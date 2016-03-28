@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Casimodo.Lib.Mojen")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Kasimier's code generator - Mojen could mean My Object Jennyrator")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Casimodo.Lib.Mojen")]
