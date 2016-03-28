@@ -15,12 +15,12 @@ namespace Casimodo.Lib
         }
     }
 
-    public static class FilesystemHelper
+    public static class FileSystemHelper
     {
         static readonly string _invalidFilesystemPathChars;
         static readonly Regex _invalidFilesystemPathRegex;
 
-        static FilesystemHelper()
+        static FileSystemHelper()
         {
             _invalidFilesystemPathChars = new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars());
             _invalidFilesystemPathRegex = new Regex(string.Format("[{0}]", Regex.Escape(_invalidFilesystemPathChars)));
@@ -29,6 +29,14 @@ namespace Casimodo.Lib
         public static string EnsureValidPath(string path)
         {
             return _invalidFilesystemPathRegex.Replace(path, "").Trim();
+        }
+
+        public static string GetFileNameWithoutExtension(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                return null;
+
+            return Path.GetFileNameWithoutExtension(filePath);
         }
 
         public static string GetExtension(string filePath)

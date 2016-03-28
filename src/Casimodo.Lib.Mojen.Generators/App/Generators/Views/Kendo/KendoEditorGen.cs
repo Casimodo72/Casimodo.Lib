@@ -793,7 +793,7 @@ namespace Casimodo.Lib.Mojen
                     //ContentUrl = dialog.Url,
                     Title = dialog.Title,
                     Width = dialog.Width,
-                    Height = dialog.Height,
+                    Height = dialog.Height,                    
                     IsModal = true,
                     OnDeactivated = geoConfig.IsViewCached ? null : KendoWindowConfig.DestructorFunction
                 });
@@ -944,7 +944,8 @@ namespace Casimodo.Lib.Mojen
                 {
                     //ContentUrl = dialog.Url,
                     Title = dialog.Title,
-                    Width = dialog.Width,
+                    Width = dialog.Width,                    
+                    MinWidth = dialog.MinWidth,
                     MaxWidth = dialog.MaxWidth,
                     MinHeight = dialog.MinHeight,
                     IsModal = true,
@@ -1179,8 +1180,9 @@ namespace Casimodo.Lib.Mojen
                 {
                     Title = dialog.Title,
                     Width = dialog.Width,
-                    MinHeight = dialog.MinHeight,
+                    MinWidth = dialog.MinWidth,
                     MaxWidth = dialog.MaxWidth,
+                    MinHeight = dialog.MinHeight,
                     IsParentModal = context.View.IsModal,
                     IsModal = true,
                     OnClosing = new Action(() =>

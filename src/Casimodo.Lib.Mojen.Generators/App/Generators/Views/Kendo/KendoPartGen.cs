@@ -98,10 +98,18 @@ namespace Casimodo.Lib.Mojen
             options.Add("modal", window.IsModal);
             options.Add("visible", window.IsVisible);
             if (window.Title != null) options.Add("title", window.Title, text: true);
-            if (window.Width != null) options.Add("width", window.Width);
+
+            var width = window.Width ?? window.MinWidth ?? window.MaxWidth;
+            if (width != null) options.Add("width", width);
+
+            if (window.MinWidth != null) options.Add("minWidth", window.MinWidth);
             if (window.MaxWidth != null) options.Add("maxWidth", window.MaxWidth);
+
+            var height = window.Height ?? window.MinHeight;
+            if (height != null) options.Add("height", height);
+
             if (window.MinHeight != null) options.Add("minHeight", window.MinHeight);
-            if (window.Height != null) options.Add("height", window.Height);
+
             if (window.OnClosing != null) options.Add("close", window.OnClosing);
             if (window.OnDeactivated != null) options.Add("deactivate", window.OnDeactivated);
 

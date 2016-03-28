@@ -13,5 +13,7 @@ namespace Casimodo.Lib.Data
         string KindName { get; }
 
         string OriginalFileName { get; }
+
+        string FileName { get; }
     }
 }

@@ -10,9 +10,9 @@ namespace Casimodo.Lib.Mojen
                 PerformWrite(controller, GenerateControllerCore);
         }
 
-        public void OClientOutputCacheAttribute()
+        public void OOutputCacheAttribute()
         {
-            O($"[OutputCache(Duration = {WebConfig.ClientOutputCacheDurationSec}, Location = OutputCacheLocation.Client)]");
+            O($"[CustomOutputCache(Duration = {WebConfig.ClientOutputCacheDurationSec}, Location = OutputCacheLocation.{WebConfig.ClientOutputCacheLocation})]");
         }
 
         void GenerateControllerCore(ControllerConfig controller)

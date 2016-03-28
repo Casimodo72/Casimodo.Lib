@@ -12,7 +12,7 @@ namespace Casimodo.Lib.Mojen
             {
                 // Index
                 O();
-                OClientOutputCacheAttribute();
+                OOutputCacheAttribute();
                 O("public ActionResult Index()");
                 Begin();
 
@@ -29,7 +29,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Lookup.Is))
             {
                 O();
-                OClientOutputCacheAttribute();
+                OOutputCacheAttribute();
                 O($"public ActionResult {view.Kind.ActionName}({view.Lookup.Parameters.ToMethodArguments()})");
                 Begin();
 
@@ -49,7 +49,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Standalone.Is))
             {
                 O();
-                OClientOutputCacheAttribute();
+                OOutputCacheAttribute();
                 O($"public ActionResult {view.Group}{view.Kind.ActionName}()");
                 Begin();
 

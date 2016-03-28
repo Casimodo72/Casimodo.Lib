@@ -149,6 +149,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomOutputCacheAttribute.cs" />
     <Compile Include="Helpers\HtmlHelperExtension.cs" />
     <Compile Include="Helpers\PickItemsHelper.cs" />
     <Compile Include="Helpers\SessionExtensions.cs" />
