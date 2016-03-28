@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Keywords>
+        <Keyword>
+        </Keyword>
+      </Keywords>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>Derived View Model with interfaces</Title>
+      <Author>Kasimier Buchcik</Author>
+      <Description/>      
+      <HelpUrl/> 
+      <Shortcut>vm2</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Name</ID>
+          <ToolTip>Name of the view model</ToolTip>
+          <Default>My</Default>
+          <Function/>          
+        </Literal>
+      </Declarations>
+      <Code Language="csharp"><![CDATA[using System.ComponentModel;
+    using System.ComponentModel.Composition;
+    using Casimodo.Lib.ComponentModel;
+    using Casimodo.Lib.Presentation;
+
+    #region Interfaces for the $Name$ ViewModel and View.
+
+    public interface I$Name$View : IView<I$Name$ViewModel>
+    { }
+
+    public interface I$Name$ViewModel : IViewModel<I$Name$View>
+    { }
+
+    #endregion
+
+    /// <summary>
+    /// The $Name$ ViewModel uses the "model first" strategy.
+    /// </summary>
+    [ViewModelExport(typeof(I$Name$ViewModel), Strategy = ViewModelStrategy.ModelFirst)]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
+    public class $Name$ViewModel : ViewModel2<I$Name$View, I$Name$ViewModel>, I$Name$ViewModel
+    {
+        /// <summary>
+        /// Main constructor.
+        /// </summary>
+        [ImportingConstructor]
+        public $Name$ViewModel()
+        { }      
+
+        protected override void OnInitialize()
+        {            
+        }
+        
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // Commands ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // Imports ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // View ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              
+        [Import]
+        public Lazy<I$Name$View> LazyView { get; set; }
+        
+        protected override I$Name$View GetLazyView()
+        {
+            var view = LazyView.Value;
+            LazyView = null;
+            return view;
+        }
+        
+        // Dispose ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        protected override void OnDispose()
+        {
+            base.OnDispose();                    
+        }
+    }
+    
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    /// <summary>
+    /// The the design time version of the $Name$ ViewModel.
+    /// </summary>
+    public class $Name$ViewModelDesign : $Name$ViewModel
+    {
+        /// <summary>
+        /// Design time constructor.
+        /// </summary>
+        public $Name$ViewModelDesign()
+        { }
+    }    
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

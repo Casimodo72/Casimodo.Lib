@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Keywords>
+        <Keyword>
+        </Keyword>
+      </Keywords>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>ViewModel for an editor.</Title>
+       <Author>Kasimier Buchcik</Author>
+      <Description/>      
+      <HelpUrl/>
+      <Shortcut>evm</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Name</ID>
+          <ToolTip>Name of the view model</ToolTip>
+          <Default>My</Default>
+          <Function/>          
+        </Literal>
+      </Declarations>
+      <Code Language="csharp"><![CDATA[using System.ComponentModel;
+    using System.ComponentModel.Composition;
+    using Casimodo.Lib.ComponentModel;
+    using Casimodo.Lib.Presentation;
+
+    #region The "$Name$" editor ViewModel and View.
+
+    public interface I$Name$EditorView : ILookupViewBase<I$Name$EditorViewModel>
+    { }
+
+    public interface I$Name$EditorViewModel : ILookupViewModelBase<I$Name$EditorView, $Name$EditorResult>
+    { }
+    
+     /// <summary>
+    /// Input arguments of the "$Name$" editor ViewModel.
+    /// </summary>
+    public class $Name$EditorArgs
+    { }
+    
+    /// <summary>
+    /// The result of the "$Name$" editor ViewModel.
+    /// </summary>
+    public class $Name$EditorResult : LookupResult
+    {
+        public $Name$EditorResult()
+        {}
+    }
+
+    #endregion
+
+    /// <summary>
+    /// The "$Name$" editor ViewModel uses the "model first" strategy.
+    /// </summary>
+    [ViewModelExport(typeof(I$Name$EditorViewModel), Strategy = ViewModelStrategy.ModelFirst)]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
+    public class $Name$EditorViewModel :
+        LookupViewModelBase<I$Name$EditorView, I$Name$EditorViewModel, $Name$EditorArgs, $Name$EditorResult>,
+        I$Name$EditorViewModel
+    {
+        /// <summary>
+        /// Main constructor.
+        /// </summary>
+        [ImportingConstructor]
+        public $Name$EditorViewModel()           
+        { }            
+
+        protected override void OnInitialize()
+        {
+            // Process arguments.            
+
+            InitData();
+        }
+                
+        protected void InitData()
+        { }
+        
+        protected override void OnBuildResult()
+        {
+            // Result.Item = 
+            HasResult = true;
+        }   
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // Commands ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // Imports ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // View ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              
+        [Import]
+        public Lazy<I$Name$EditorView> LazyView { get; set; }
+        
+        protected override I$Name$EditorView GetLazyView()
+        {
+            var view = LazyView.Value;
+            LazyView = null;
+            return view;
+        }
+        
+        // Dispose ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        protected override void OnDispose()
+        {
+            base.OnDispose();
+        }
+    }
+    
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    /// <summary>
+    /// The the design time version of the "$Name$" editor ViewModel.
+    /// </summary>
+    public sealed class $Name$EditorViewModelDesign : $Name$EditorViewModel
+    {
+        /// <summary>
+        /// Design time constructor.
+        /// </summary>
+        public $Name$EditorViewModelDesign()
+        {
+            InitData();
+        }
+    }    
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

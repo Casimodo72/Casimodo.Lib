@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3645F8F3-9172-45F0-AD20-5651B00A7F45}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Casimodo.Lib.Mojen.Generators</RootNamespace>
+    <AssemblyName>Casimodo.Lib.Mojen.Generators</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-x64|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug-x64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-x64|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug-x64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-x64|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug-x64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity.Design" />
+    <Reference Include="System.Linq.Dynamic, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\TimurSerbay\Ga\src\packages\System.Linq.Dynamic.1.0.4\lib\net40\System.Linq.Dynamic.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App\Builders\ItemBuilder.cs" />
+    <Compile Include="App\Generators\Controllers\MvcODataControllerGen.cs" />
+    <Compile Include="App\Generators\Controllers\DefaultMvcControllerGen.cs" />
+    <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
+    <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
+    <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
+    <Compile Include="App\Generators\Models\WebDataEditViewModelGen.cs" />
+    <Compile Include="App\Generators\Models\XamlEntityViewModelGen.cs" />
+    <Compile Include="App\Generators\OData\Infrastructure\ODataControllerOptions.cs" />
+    <Compile Include="App\Generators\OData\Infrastructure\ODataHelper.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerContainerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataAppDataTreeControllerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerPart.GetNextSequenceValue.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerPartGenBase.cs" />
+    <Compile Include="App\Generators\Repositories\WebPickItemsContainerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataConfigGen.cs" />
+    <Compile Include="App\Generators\Views\Infrastructure\WebViewGenContext.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoDetailsInlineTemplate2Gen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridEventsConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridGenBase.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoJsGridViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoJsGridViewGen.DataSource.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoJsGridViewGen.ViewModel.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\MojHttpRequestConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoFxConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoWindowConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoDetails2Gen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoEditorGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoPartGen.DataSource.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoPartGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoReadOnlyViewBaseGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoViewBaseGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoTypeViewGenBase.cs" />
+    <Compile Include="App\Infrastructure\AppLayerBuildContext.cs" />
+    <Compile Include="App\Infrastructure\MojViewPropBuilder.cs" />
+    <Compile Include="App\Infrastructure\ViewTemplate.cs" />
+    <Compile Include="App\Infrastructure\ViewTemplateItem.cs" />
+    <Compile Include="App\Infrastructure\WebBuildConfig.cs" />
+    <Compile Include="App\Infrastructure\WebODataBuildConfig.cs" />
+    <Compile Include="DataInteractionLayer\Builders\MojTypeInteractionBuilder.cs" />
+    <Compile Include="DataInteractionLayer\Infrastructure\DataInteractionLayerContext.cs" />
+    <Compile Include="DataInteractionLayer\Infrastructure\DataInteractionPartGenerator.cs" />
+    <Compile Include="Infrastructure\DataLayerExtensions.cs" />
+    <Compile Include="Infrastructure\Helpers\ObjectTreeHelper.cs" />
+    <Compile Include="Infrastructure\JsExtensions.cs" />
+    <Compile Include="Infrastructure\ODataExtensions.cs" />
+    <Compile Include="Objects\Generators\DbContextCreateMapGen.cs" />
+    <Compile Include="Objects\Generators\DbDataLayerRepositoriesGen.cs" />
+    <Compile Include="Objects\Generators\DbContextCreateModelGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCoreOperationContextGen.cs" />
+    <Compile Include="Objects\Generators\EntityDbUserToSeedExporterGen.cs" />
+    <Compile Include="Objects\Generators\JsTypeKeysGen.cs" />
+    <Compile Include="Objects\Generators\TypeKeysGen.cs" />
+    <Compile Include="Objects\Generators\InterfaceGen.cs" />
+    <Compile Include="Objects\Generators\EntityXmlToDbImporterGen.cs" />
+    <Compile Include="Objects\Generators\EntityDbToXmlExporterGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoContainerGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoBaseGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.GenBase.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.GetNextSequenceValueGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnAdded.NestedGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnAdded.SetNextSequenceValueGen.cs" />
+    <Compile Include="App\Generators\Repositories\WebRepoContainerGen.cs" />
+    <Compile Include="App\Generators\Views\Trash\BootstrapWebView.cs" />
+    <Compile Include="App\Generators\Views\Trash\MobileWebView.cs" />
+    <Compile Include="App\Infrastructure\AppPartGenerator.cs" />
+    <Compile Include="App\Infrastructure\ActionName.cs" />
+    <Compile Include="App\Builders\ControllerBuilder.cs" />
+    <Compile Include="App\Infrastructure\MyT4TemplateBase.cs" />
+    <Compile Include="App\Builders\ViewBuilder.cs" />
+    <Compile Include="App\Infrastructure\WebPartGenerator.cs" />
+    <Compile Include="App\Infrastructure\WebViewGenerator.cs" />
+    <Compile Include="App\Models\ViewActionConfig.cs" />
+    <Compile Include="App\Models\ControllerConfig.cs" />
+    <Compile Include="App\Models\ViewConfig.cs" />
+    <Compile Include="App\Models\ViewPropConfig.cs" />
+    <Compile Include="Objects\Generators\PrimitiveKeysGen.cs" />
+    <Compile Include="Objects\Generators\DbContextGen.cs" />
+    <Compile Include="Objects\Generators\DbMigrationSeedGen.cs" />
+    <Compile Include="Objects\Generators\ClassGen.cs" />
+    <Compile Include="Objects\Generators\DbMigrationSequenceGen.cs" />
+    <Compile Include="Objects\Generators\ComplexTypeGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnDeleted.CascadeGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnIsDeleted.CascadeGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnSaving.CheckUniqueGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnUpdate.NestedGen.cs" />
+    <Compile Include="Objects\Generators\EntityDbToSeedExporterGen.cs" />
+    <Compile Include="Objects\Generators\JsObjectInitializerGen.cs" />
+    <Compile Include="Objects\Generators\TsClassGen.cs" />
+    <Compile Include="Objects\Generators\JsObjectGen.cs" />
+    <Compile Include="Objects\Generators\EntityGen.cs" />
+    <Compile Include="Objects\Generators\EnumGen.cs" />
+    <Compile Include="Objects\Generators\JsPrimitiveKeysGen.cs" />
+    <Compile Include="Objects\Infrastructure\DataLayerBuildContext.cs" />
+    <Compile Include="Objects\Infrastructure\DataLayerGenerator.cs" />
+    <Compile Include="Objects\Generators\LegacyGfaImportMapGen.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj">
+      <Project>{14682976-50a0-4ec3-adc2-f99b191fe432}</Project>
+      <Name>Casimodo.Lib.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
+      <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
+      <Name>Casimodo.Lib.Mojen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.TypeBuilder\Casimodo.Lib.TypeBuilder.csproj">
+      <Project>{7369e6e2-be36-4e8a-9609-a9ea42fd590b}</Project>
+      <Name>Casimodo.Lib.TypeBuilder</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
+      <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
+      <Name>Casimodo.Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DataInteractionLayer\Generators\DbRepositoryCore.OnEventGen.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

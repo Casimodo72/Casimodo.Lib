@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>Dependency Property</Title>
+      <Author>Kasimier Buchcik</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>dprop</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>PropName</ID>
+          <ToolTip>Name of the property</ToolTip>
+          <Default>PropName</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Object Editable="true">
+          <ID>PropType</ID>
+          <ToolTip>Type of the property</ToolTip>
+          <Default>string</Default>
+          <Function>
+          </Function>
+          <Type>
+          </Type>
+        </Object>       
+        <Object Editable="true">
+          <ID>DefaultValue</ID>
+          <ToolTip>Default value of the property</ToolTip>
+          <Default>null</Default>
+          <Function>
+          </Function>
+          <Type>
+          </Type>
+        </Object>
+         <Literal default="true" Editable="false">
+            <ID>classname</ID> 
+            <ToolTip>Class name</ToolTip> 
+            <Function>ClassName()</Function> 
+            <Default>ClassNamePlaceholder</Default> 
+        </Literal>
+      </Declarations>
+      <Code Language="csharp"><![CDATA[/// <summary>
+        /// The "$PropName$" property (DP).
+        /// <summary>        
+        public $PropType$ $PropName$
+        {
+            get { return ($PropType$)GetValue($PropName$Property); }
+            set { SetValue($PropName$Property, value); }
+        }  
+
+        /// <summary>
+        /// The "$PropName$Property" dependency property.
+        /// <summary>
+        public static readonly DependencyProperty $PropName$Property =
+            DependencyProperty.Register("$PropName$", typeof($PropType$), typeof($classname$),
+                new PropertyMetadata($DefaultValue$, (d, e) => (($classname$)d).On$PropName$PropertyChanged(e)));
+        
+        void On$PropName$PropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            // TODO: Implement.
+        }]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

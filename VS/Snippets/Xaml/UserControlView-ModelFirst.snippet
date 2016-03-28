@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Keywords>
+        <Keyword/>
+      </Keywords>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>View derived from UserControl using the "model first" strategy.</Title>
+      <Author>Kasimier Buchcik</Author>
+      <Description/>      
+      <HelpUrl/>      
+      <Shortcut>ucv2</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Name</ID>
+          <ToolTip>Name of the view model</ToolTip>
+          <Default>My</Default>
+          <Function/>          
+        </Literal>
+      </Declarations>
+      <Code Language="csharp"><![CDATA[using System.ComponentModel.Composition;
+    using Casimodo.Lib.Presentation;
+
+    /// <summary>
+    /// The view $Name$View uses the "model first" strategy
+    /// and uses the I$Name$ViewModel.
+    /// Interaction logic for $Name$View.xaml
+    /// </summary>       
+    [ViewExport(typeof(I$Name$View), Strategy = ViewModelStrategy.ModelFirst)]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
+    public partial class $Name$View : UserControl, I$Name$View
+    {
+        public $Name$View()
+        {
+            InitializeComponent();            
+        }
+        
+        public I$Name$ViewModel Model
+        {
+            get { return (I$Name$ViewModel)this.MS.Model; }
+            set { this.MS.SetModel(value, this); }
+        }     
+    }]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

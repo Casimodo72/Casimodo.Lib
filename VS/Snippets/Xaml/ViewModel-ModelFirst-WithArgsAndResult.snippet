@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Keywords>
+        <Keyword>
+        </Keyword>
+      </Keywords>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>ViewModel which takes arguments and returns a result.</Title>
+       <Author>Kasimier Buchcik</Author>
+      <Description/>      
+      <HelpUrl/>
+      <Shortcut>vm4</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Name</ID>
+          <ToolTip>Name of the view model</ToolTip>
+          <Default>My</Default>
+          <Function/>          
+        </Literal>
+      </Declarations>
+      <Code Language="csharp"><![CDATA[using System.ComponentModel;
+    using System.ComponentModel.Composition;
+    using Casimodo.Lib.ComponentModel;
+    using Casimodo.Lib.Presentation;
+
+    #region The "$Name$" ViewModel and View.
+
+    public interface I$Name$View : ILookupViewBase<I$Name$ViewModel>
+    { }
+
+    public interface I$Name$ViewModel : ILookupViewModelBase<I$Name$View, $Name$Result>
+    { }
+    
+     /// <summary>
+    /// Input arguments of the "$Name$" ViewModel.
+    /// </summary>
+    public class $Name$Args
+    { }
+    
+    /// <summary>
+    /// The result of the "$Name$" ViewModel.
+    /// </summary>
+    public class $Name$Result : LookupResult
+    {
+        public $Name$Result()
+        {}
+    }
+
+    #endregion
+
+    /// <summary>
+    /// The "$Name$" ViewModel uses the "model first" strategy.
+    /// </summary>
+    [ViewModelExport(typeof(I$Name$ViewModel), Strategy = ViewModelStrategy.ModelFirst)]
+    [PartCreationPolicy(CreationPolicy.NonShared)]
+    public class $Name$ViewModel :
+        LookupViewModelBase<I$Name$View, I$Name$ViewModel, $Name$Args, $Name$Result>,
+        I$Name$ViewModel
+    {
+        /// <summary>
+        /// Main constructor.
+        /// </summary>
+        [ImportingConstructor]
+        public $Name$ViewModel()           
+        { }               
+
+        protected override void OnEndInit()
+        {
+            // Process arguments.            
+
+            InitData();
+        }
+                
+        protected void InitData()
+        { }
+        
+        protected override void OnBuildResult()
+        {
+            // Result.Item = 
+            HasResult = true;
+        }
+        
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // Commands ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // Imports ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        // View ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+              
+        [Import]
+        public Lazy<I$Name$View> LazyView { get; set; }
+        
+        protected override I$Name$View GetLazyView()
+        {
+            var view = LazyView.Value;
+            LazyView = null;
+            return view;
+        }        
+        // Dispose ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+        protected override void OnDispose()
+        {
+            base.OnDispose();
+        }
+    }
+
+    /// <summary>
+    /// The the design time version of the "$Name$" ViewModel.
+    /// </summary>
+    public sealed class $Name$ViewModelDesign : $Name$ViewModel
+    {
+        /// <summary>
+        /// Design time constructor.
+        /// </summary>
+        public $Name$ViewModelDesign()
+        {
+            InitData();
+        }
+    }    
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
