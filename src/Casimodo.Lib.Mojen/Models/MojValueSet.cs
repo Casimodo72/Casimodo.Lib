@@ -52,7 +52,10 @@ namespace Casimodo.Lib.Mojen
         public string Description { get; set; }
 
         [DataMember]
-        public List<string> AuthRoles { get; private set; }        
+        public List<string> AuthRoles { get; private set; }
+
+        [DataMember]
+        public string Pw { get; set; }
 
         public MojValueSetProp Get(string name, bool create = false)
         {

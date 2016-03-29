@@ -149,7 +149,11 @@ namespace Casimodo.Lib.Mojen
 
                     // Roles
                     if (valueSet.AuthRoles.Any())
-                        o(", roles: \"" + valueSet.AuthRoles.Join(", ") + "\"");
+                        o($", roles: \"{valueSet.AuthRoles.Join(", ")}\"");
+
+                    // Pw
+                    if (valueSet.Pw != null)
+                        o($", pw: \"{valueSet.Pw}\"");
 
                     o(");");
 

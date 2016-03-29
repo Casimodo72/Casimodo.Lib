@@ -237,5 +237,12 @@ namespace Casimodo.Lib.Mojen
 
             return this;
         }
+
+        public MojValueSetBuilder Pw(string pw)
+        {
+            Config.Pw = pw;
+
+            return this;
+        }
     }
 }

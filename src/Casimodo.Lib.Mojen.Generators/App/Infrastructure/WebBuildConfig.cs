@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Mojen
 
         public string WebPickItemsDirPath { get; set; }
 
-        public object ClientOutputCacheDurationSec { get; set; } = "60 * 60 * 24";
+        public object ClientOutputCacheDurationSec { get; set; } = "60 * 60 * 10";
         public string ClientOutputCacheLocation { get; set; } = "ServerAndClient";
 
         // Web MVC controllers

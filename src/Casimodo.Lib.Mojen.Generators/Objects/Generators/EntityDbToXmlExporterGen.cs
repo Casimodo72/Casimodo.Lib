@@ -6,6 +6,11 @@ using System.Xml;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class AuthUserEntityExporterOptions : EntityExporterOptions
+    {
+        public string PwSourceFilePath { get; set; }
+    }
+
     public class EntityExporterOptions : MojBase
     {
         public bool IsEnabled { get; set; } = true;

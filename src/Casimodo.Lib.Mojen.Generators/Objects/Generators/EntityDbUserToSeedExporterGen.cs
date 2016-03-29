@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
+using Casimodo.Lib;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -11,6 +13,8 @@ namespace Casimodo.Lib.Mojen
     /// </summary>
     public class EntityDbUserToSeedExporterGen : EntityExporterGenBase
     {
+        public AuthUserEntityExporterOptions AuthUserOptions { get; set; }
+
         public override void GenerateExport()
         {
             foreach (var item in App.GetItems<MojValueSetContainer>().Where(x => x.Uses(this)))
@@ -21,6 +25,8 @@ namespace Casimodo.Lib.Mojen
                 Options = item.GetGeneratorConfig<EntityExporterOptions>();
                 if (Options?.IsEnabled == false)
                     continue;
+
+                AuthUserOptions = Options as AuthUserEntityExporterOptions;
 
                 string outputDirPath = Options?.OutputDirPath ?? ExportConfig.ProductionDataFetchOutputDirPath;
 
@@ -42,10 +48,57 @@ namespace Casimodo.Lib.Mojen
             public string Name { get; set; }
         }
 
+        class UserInfoItem
+        {
+            public Guid Id { get; set; }
+            public string UserName { get; set; }
+            public string Pw { get; set; }
+            public string Ph { get; set; }
+        }
+
+        List<UserInfoItem> ReadPwSource()
+        {
+            var items = new List<UserInfoItem>();
+
+            if (AuthUserOptions == null)
+                return items;
+
+            var doc = XDocument.Load(AuthUserOptions.PwSourceFilePath);
+            foreach (var userElem in doc.Element("Users").Elements("User"))
+            {
+                items.Add(new UserInfoItem
+                {
+                    Id = (Guid)userElem.Attr("Id"),
+                    UserName = (string)userElem.Attr("Name"),
+                    Pw = (string)userElem.Attr("PW"),
+                    Ph = (string)userElem.Attr("PH")
+                });
+            }
+
+            return items;
+        }
+
+        bool TryGetPwSourceValue(string propName, UserInfoItem item, out object value)
+        {
+            value = null;
+            if (item == null)
+                return false;
+
+            if (propName == "PasswordHash")
+                value = item.Ph;
+            else
+                return false;
+
+            return true;
+        }
+
+
         public void GenerateExport(MojValueSetContainer container)
         {
             var seedType = container.TargetType;
             var storeType = seedType.GetNearestStore();
+
+            var pwsource = ReadPwSource();
 
             ONamespace("Casimodo.Lib.Mojen");
 
@@ -86,14 +139,22 @@ namespace Casimodo.Lib.Mojen
                 foreach (var entity in db.Database.SqlQuery(queryType, query))
                 {
                     Guid id = (Guid)Casimodo.Lib.TypeHelper.GetTypeProperty(entity, "Id", required: true).GetValue(entity);
+
+                    var pwitem = pwsource.FirstOrDefault(x => x.Id == id);
+
                     Oo("seed.Add(");
 
                     int i = 0;
                     string userName = "";
                     foreach (var prop in props)
                     {
-                        var value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, prop.Name, required: true)
-                            .GetValue(entity);
+                        object value = null;
+
+                        if (!TryGetPwSourceValue(prop.Name, pwitem, out value))
+                        {
+                            value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, prop.Name, required: true)
+                                .GetValue(entity);
+                        }
 
                         if (prop.Name == "UserName")
                             userName = value as string;
@@ -133,12 +194,17 @@ namespace Casimodo.Lib.Mojen
                         .Select(x => x.Name)
                         .Join(",");
 
-                    if (string.IsNullOrEmpty(roles))
-                        throw new MojenException("The user is in no role.");
+                    if (!string.IsNullOrEmpty(roles))
+                    {
+                        o($".AuthRoles(\"{roles}\")");
+                    }
 
-                    o($".AuthRoles(\"{roles}\");");
+                    if (pwitem != null)
+                    {
+                        o($".Pw(\"{pwitem.Pw}\")");
+                    }
 
-                    oO($" // {userName}");
+                    oO($"; // {userName}");
                 }
             }
 
