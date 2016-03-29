@@ -58,9 +58,9 @@ namespace Casimodo.Lib.Mojen
 
         static MojProp()
         {
-            AutoMapper.Mapper.CreateMap<MojProp, MojProp>()
-                .ForMember(s => s.DeclaringType, o => o.Ignore())
-                ;
+            AutoMapper.Mapper.Initialize(c => 
+                c.CreateMap<MojProp, MojProp>()
+                    .ForMember(s => s.DeclaringType, o => o.Ignore()));
         }
 
         public MojProp()

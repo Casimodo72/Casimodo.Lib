@@ -43,9 +43,14 @@ namespace Casimodo.Lib.Mojen
 
             O($"static void CreateMap()");
             Begin();
+
+            // NOTE: We're using AutoMapper 4.2.1.
+            O("AutoMapper.Mapper.Initialize(c =>");
+            Begin();
+
             foreach (var type in types)
             {
-                Oo("AutoMapper.Mapper.CreateMap<{0}, {0}>()", type.ClassName);
+                Oo("c.CreateMap<{0}, {0}>()", type.ClassName);
                 // Ignore nagivation properties.
                 foreach (var naviProp in type.GetProps()
                     // Exclude hidden collection props.
@@ -59,11 +64,12 @@ namespace Casimodo.Lib.Mojen
                 }
                 oO(";");
             }
-            End();
 
-            End();
+            End(");");
 
-            End();
+            End(); // Method
+            End(); // Class
+            End(); // Namespace
         }
     }
 }

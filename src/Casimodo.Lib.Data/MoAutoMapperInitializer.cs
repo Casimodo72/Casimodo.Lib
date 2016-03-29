@@ -8,20 +8,20 @@ namespace Casimodo.Lib.Data
         /// <summary>
         /// Maps entity view model properties according to their [StoreMapping] attributes.
         /// </summary>
-        public static void CreateMap<TSource, TDestination>()
+        public static void CreateMap<TSource, TDestination>(AutoMapper.IMapperConfiguration config)
         {
-            CreateMap(typeof(TSource), typeof(TDestination));
+            CreateMap(typeof(TSource), typeof(TDestination), config);
         }
 
         /// <summary>
         /// Maps entity view model properties according to their [StoreMapping] attributes.
         /// </summary>
-        public static void CreateMap(Type source, Type dest)
+        public static void CreateMap(Type source, Type dest, AutoMapper.IMapperConfiguration config)
         {
             PropertyInfo destProp;
             StoreMappingAttribute sourceMap;
             bool ignore;
-            var map = AutoMapper.Mapper.CreateMap(source, dest);
+            var map = config.CreateMap(source, dest);
 
             foreach (var sourceProp in source.GetProperties(BindingFlags.Public))
             {

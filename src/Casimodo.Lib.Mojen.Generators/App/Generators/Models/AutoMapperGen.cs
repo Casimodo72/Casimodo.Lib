@@ -34,10 +34,15 @@ namespace Casimodo.Lib.Mojen
             ONamespace(context.DataConfig.DataNamespace);
             O("public static partial class AutoMapperConfiguration");
             Begin();
-            O("public static void ConfigureCore()");
+
+            // NOTE: We're using AutoMapper 4.2.1.
+            O("public static void ConfigureCore(AutoMapper.IMapperConfiguration c)");
             Begin();
+
             O("var core = ServiceLocator.Current.GetInstance<{0}>();", context.DataConfig.DbModelRepositoryCoreName);
+
             O();
+
             foreach (MojType model in App.AllModels.OrderBy(x => x.Name))
             {
                 if (model.Store == null)
@@ -47,7 +52,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Mapping: entity --> model
 
-                Oo("AutoMapper.Mapper.CreateMap<{0}, {1}>()", model.Store.ClassName, model.ClassName);
+                Oo("c.CreateMap<{0}, {1}>()", model.Store.ClassName, model.ClassName);
 
                 // Ignore non-mapped properties
                 foreach (var prop in model
@@ -90,11 +95,12 @@ namespace Casimodo.Lib.Mojen
 
                 // Mapping: model --> entity
 
-                O("MoAutoMapperInitializer.CreateMap<{0}, {1}>();", model.ClassName, model.Store.ClassName);
+                O("MoAutoMapperInitializer.CreateMap<{0}, {1}>(c);", model.ClassName, model.Store.ClassName);
                 // KABU TODO: REVISIT: AfterMap is of no use to us, because it won't be called when projecting entity queries.
                 //O("AutoMapper.Mapper.CreateMap<{0}, {1}>().AfterMap((e, m) => factory.OnLoaded(m));", model.Store.ClassName, model.ClassName);
                 O();
             }
+
             End();
             End();
             End();

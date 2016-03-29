@@ -100,7 +100,8 @@ namespace Casimodo.Lib.Mojen
 
         static MojType()
         {
-            AutoMapper.Mapper.CreateMap(typeof(MojType), typeof(MojType));
+            AutoMapper.Mapper.Initialize(c =>
+                c.CreateMap(typeof(MojType), typeof(MojType)));
         }
 
         MojType()
