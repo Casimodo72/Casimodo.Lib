@@ -280,7 +280,7 @@ namespace Casimodo.Lib.Data
             var entity = (TEntity)ctx.Item;
 
             ApplyTennant(entity);
-            entity = EntitySet.Add(entity);
+            ctx.Item = entity = EntitySet.Add(entity);
             OnAdded(ctx);
 
             return entity;
@@ -318,7 +318,7 @@ namespace Casimodo.Lib.Data
                 var localEntity = FindLocal(GetKey(entity));
                 if (localEntity != null && localEntity != entity)
                 {
-                    entity = AutoMapper.Mapper.Map(entity, localEntity);
+                    ctx.Item = entity = AutoMapper.Mapper.Map(entity, localEntity);
                 }
                 //if (Db.Entry(entity).State != EntityState.Added)
                 Context.Entry(entity).State = EntityState.Modified;
@@ -416,7 +416,7 @@ namespace Casimodo.Lib.Data
             if (entity == null)
                 return;
 
-            EntitySet.Remove(entity);
+            entity = EntitySet.Remove(entity);
             OnDeleted(entity);
 
             if (save) Context.SaveChanges();
