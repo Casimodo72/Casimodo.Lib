@@ -48,6 +48,20 @@ namespace Casimodo.Lib.Web
             return result;
         }
 
+        // Source: http://stackoverflow.com/questions/1443647/generate-url-in-html-helper
+        public static UrlHelper UrlHelper(this HtmlHelper htmlHelper)
+        {
+            if (htmlHelper.ViewContext.Controller is Controller)
+                return ((Controller)htmlHelper.ViewContext.Controller).Url;
+
+            const string itemKey = "HtmlHelper_UrlHelper";
+
+            if (htmlHelper.ViewContext.HttpContext.Items[itemKey] == null)
+                htmlHelper.ViewContext.HttpContext.Items[itemKey] = new UrlHelper(htmlHelper.ViewContext.RequestContext, htmlHelper.RouteCollection);
+
+            return (UrlHelper)htmlHelper.ViewContext.HttpContext.Items[itemKey];
+        }
+
         public static string ActiveClass(this UrlHelper urlHelper, string controller)
         {
             string result = "active";
