@@ -126,12 +126,11 @@ namespace Casimodo.Lib.Mojen
             {
                 if (c.IsRunEditable) OE("</div>");
             };
-
-            //PropContainerClass = "k-edit-field";
+            
             OPropContainerBegin = (c) =>
             {
                 if (c.IsRunEditable)
-                    OB($"<div class='{PropContainerClass}'>"); //  data-container-for='{c.PropInfo.PropPath}'
+                    OB($"<div class='{PropContainerClass}'>"); // KABU TODO: Do I need this "data-container-for='{c.PropInfo.PropPath}'" ?
                 else
                     OB($"<div class='{PropContainerClass}'>");
             };

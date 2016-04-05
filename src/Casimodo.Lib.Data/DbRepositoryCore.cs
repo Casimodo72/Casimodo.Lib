@@ -282,6 +282,8 @@ namespace Casimodo.Lib.Data
                 }
             }
 
+            ctx = ctx.CreateSubContext(target, mask: mask);
+
             OnUpdated(ctx);
 
             return target;
