@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Data
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity, MojDataGraphMask mask = null);
         void Delete(TEntity entity);
-        IQueryable<TEntity> LocalOrQuery(Expression<Func<TEntity, bool>> expression);
+        IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false);
         int SaveChanges();
     }
@@ -216,18 +216,27 @@ namespace Casimodo.Lib.Data
 
         // Get: Query ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public IQueryable<TEntity> LocalOrQuery(Expression<Func<TEntity, bool>> expression)
+        public IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> predicate)
         {
-            return LocalOrQuery(includeDeleted: false, expression: expression);
+            return LocalAndQuery(includeDeleted: false, predicate: predicate);
         }
 
-        public IQueryable<TEntity> LocalOrQuery(bool includeDeleted, Expression<Func<TEntity, bool>> expression)
+        public IQueryable<TEntity> LocalAndQuery(bool includeDeleted, Expression<Func<TEntity, bool>> predicate)
         {
-            var localResults = FilterByIsDeleted(includeDeleted, EntitySet.Local.AsQueryable().Where(expression));
-            if (localResults.Any())
-                return localResults;
+            var localItems = FilterByIsDeleted(includeDeleted, EntitySet.Local.AsQueryable().Where(predicate));
 
-            return Query(includeDeleted).Where(expression);
+            if (!localItems.Any())
+                return Query(includeDeleted).Where(predicate);
+
+            var keys = localItems.Select(x => GetKey(x)).ToArray();
+
+            // Return local items + queried items from db.
+            return localItems.Concat(
+                Query(includeDeleted)
+                    .Where(predicate)
+                    // Exclude local items.
+                    .Where(keys.GetContainsPredicate<TEntity, TKey>(KeyProp).Not()))
+                .AsQueryable();
         }
 
         /// <summary>

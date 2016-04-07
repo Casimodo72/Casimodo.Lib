@@ -97,7 +97,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Reference.IsToMany)
             {
-                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalOrQuery(x => x.{prop.Reference.ChildToParentProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
+                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(x => x.{prop.Reference.ChildToParentProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    if (ProcessCascadeItem({target}, ctx))");
                 O($"        ctx.Repos.{targetRepo}.Update(ctx.SubUpdate({target}));");
 
@@ -122,7 +122,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     O($"// Soft child collection of {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Cardinality}");
 
-                    O($"foreach (var child in ctx.Repos.{targetRepo}.LocalOrQuery(x => {Mex.ToLinqPredicate(reference.Condition)}))");
+                    O($"foreach (var child in ctx.Repos.{targetRepo}.LocalAndQuery(x => {Mex.ToLinqPredicate(reference.Condition)}))");
                     O($"    if (ProcessCascadeItem(child, ctx))");
                     O($"        ctx.Repos.{targetRepo}.Update(ctx.SubUpdate(child));");
                 }
@@ -132,7 +132,7 @@ namespace Casimodo.Lib.Mojen
 
                     var target = targetType.VName;
 
-                    O($"var {target} = ctx.Repos.{targetRepo}.LocalOrQuery(x => {Mex.ToLinqPredicate(reference.Condition)}).FirstOrDefault();");
+                    O($"var {target} = ctx.Repos.{targetRepo}.LocalAndQuery(x => {Mex.ToLinqPredicate(reference.Condition)}).FirstOrDefault();");
                     O($"if (ProcessCascadeItem({target}, ctx))");
                     O($"    ctx.Repos.{targetRepo}.Update(ctx.SubUpdate({target}));");
                 }
