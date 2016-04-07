@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Builders\MexBuilder.cs" />
+    <Compile Include="Builders\MojAnyKeysBuilder.cs" />
     <Compile Include="Builders\MojClassBuilder.cs" />
     <Compile Include="Builders\MojClassPropBuilder.cs" />
     <Compile Include="Builders\MojInterfacePropBuilder.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="Models\Bucket.cs" />
     <Compile Include="Models\Extensions.cs" />
     <Compile Include="Models\Mex.cs" />
+    <Compile Include="Models\MojAnyKeysConfig.cs" />
     <Compile Include="Models\MojCrudOperationConfig.cs" />
     <Compile Include="Models\MojFormedType.cs" />
     <Compile Include="Models\MojFormedNavigationPath.cs" />

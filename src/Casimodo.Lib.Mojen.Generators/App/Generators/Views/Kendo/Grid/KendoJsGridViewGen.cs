@@ -115,10 +115,10 @@ namespace Casimodo.Lib.Mojen
             // End namespace.
             if (View.Lookup.Is)
             {
-                End($")((casirun.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace()));");
+                End($")((casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace()));");
             }
             else
-                End($")(casirun.{context.ComponentViewSpaceName} || (casirun.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace()));");
+                End($")(casimodo.run.{context.ComponentViewSpaceName} || (casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace()));");
         }
 
         public void GenerateComponentScript(WebViewGenContext context)
@@ -171,7 +171,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             // End component namespace.
-            End($")(casirun.{context.ComponentViewSpaceName});");
+            End($")(casimodo.run.{context.ComponentViewSpaceName});");
 
             OScriptEnd();
         }

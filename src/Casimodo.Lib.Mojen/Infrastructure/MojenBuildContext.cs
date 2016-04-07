@@ -148,11 +148,25 @@ namespace Casimodo.Lib.Mojen
         {
             var context = GetDataContext();
             var type = MojType.CreateInterface(name);
-            type.DataContextName = context.Name;            
+            type.DataContextName = context.Name;
             Items.Add(type);
 
             var builder = new MojInterfaceBuilder(type);
             builder.Namespace(context.DataNamespace);
+
+            return builder;
+        }
+
+        public MojAnyKeysBuilder AddKeys(string className, Type valueType)
+        {
+            var config = new MojAnyKeysConfig();
+            config.DataContextName = GetDataContext().Name;
+            config.ClassName = className;
+            config.ValueType = valueType;
+            Items.Add(config);
+
+            var builder = new MojAnyKeysBuilder();
+            builder.Config = config;
 
             return builder;
         }

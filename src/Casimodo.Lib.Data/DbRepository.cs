@@ -14,7 +14,10 @@ namespace Casimodo.Lib.Data
     public interface IDbRepository<TEntity> : IDbRepository
     {
         TEntity Add(TEntity entity);
+        TEntity Update(TEntity entity, MojDataGraphMask mask = null);
+        void Delete(TEntity entity);
         IQueryable<TEntity> LocalOrQuery(Expression<Func<TEntity, bool>> expression);
+        IQueryable<TEntity> Query(bool includeDeleted = false);
         int SaveChanges();
     }
 

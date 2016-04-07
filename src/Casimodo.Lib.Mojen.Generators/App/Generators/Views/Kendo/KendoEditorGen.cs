@@ -782,7 +782,7 @@ namespace Casimodo.Lib.Mojen
                 O($"casimodo.ui.dialogArgs.add(args);");
 
                 var cachedWindow = geoConfig.IsViewCached
-                    ? $"casirun.{context.ComponentViewSpaceName}cachedDialogFor{propPath.Replace(".", "")}"
+                    ? $"casimodo.run.{context.ComponentViewSpaceName}cachedDialogFor{propPath.Replace(".", "")}"
                     : "null";
 
                 // Fetch the partial view from server into a Kendo modal window.

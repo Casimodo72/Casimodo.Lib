@@ -1,4 +1,6 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿using System;
+
+namespace Casimodo.Lib.Mojen
 {
     public class DataLayerBuildContext : MojenBuildContext
     {
@@ -84,6 +86,11 @@
         public MojInterfaceBuilder AddInterface(string name)
         {
             return Parent.AddInterface(name);
+        }
+
+        public MojAnyKeysBuilder AddKeys(string className, Type valueType)
+        {
+            return Parent.AddKeys(className, valueType);
         }
 
         public MojValueSetContainerBuilder AddItemsOfType(MojType type)

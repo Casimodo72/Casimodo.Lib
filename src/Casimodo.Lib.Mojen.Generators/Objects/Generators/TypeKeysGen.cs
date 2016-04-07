@@ -29,7 +29,7 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(DataConfig.DataNamespace);
 
-            O($"public class {DataConfig.GetTypeKeysClassName()}");
+            O($"public static class {DataConfig.GetTypeKeysClassName()}");
             Begin();
 
             var ids = new List<Guid>();
