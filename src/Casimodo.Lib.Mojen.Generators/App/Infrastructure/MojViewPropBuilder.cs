@@ -198,6 +198,23 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder Filter(Action<MexConditionBuilder> build)
+        {
+            Prop.Predicate = BuildPredicate(build);
+
+            return this;
+        }
+
+        MexExpressionNode BuildPredicate(Action<MexConditionBuilder> build)
+        {
+            if (build == null)
+                return null;
+
+            var predicateBuilder = new MexConditionBuilder();
+            build(predicateBuilder);
+            return predicateBuilder.Expression;
+        }
+
         public MojViewPropBuilder InitialSort(MojOrderDirection direction = MojOrderDirection.Ascending, int index = 1)
         {
             Prop.InitialSort = new MojOrderConfig
@@ -259,10 +276,10 @@ namespace Casimodo.Lib.Mojen
                 Is = true
             };
             // KABU TODO: MAGIC: "TypeId"
-            Prop.Snippets.Args.Add("TypeId", type);            
+            Prop.Snippets.Args.Add("TypeId", type);
 
             return this;
-        }        
+        }
 
         public MojViewPropBuilder Editable(bool value = true)
         {

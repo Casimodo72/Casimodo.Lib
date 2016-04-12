@@ -299,6 +299,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsReferenceLookupDistinct { get; set; }
 
+        public MexExpressionNode Predicate { get; set; }
+
         public MojPropAutoCompleteFilter AutoCompleteFilter { get; private set; }
 
         public MojFormedType CascadeFrom { get; set; }

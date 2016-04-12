@@ -226,7 +226,12 @@ namespace Casimodo.Lib.Mojen
                 );
             }
 
-            O("scrollable: false,");
+            if (Options.Height != null)
+            {
+                O($"height: {MojenUtils.ToJsValue(Options.Height)},");
+            }
+
+            O($"scrollable: {MojenUtils.ToJsValue(Options.IsScrollable)},");
 
             // Grid events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             O("// Events");

@@ -39,12 +39,12 @@ namespace Casimodo.Lib.Mojen
         public List<KendoWebFunction> BodyFunctions { get; set; } = new List<KendoWebFunction>();
     }
 
-    public class KendoWebGridFuncsConfig
+    public class KendoWebGridEventsConfig
     {
         readonly Dictionary<KendoGridEvent, KendoWebFunction> _componentEventHandlers = new Dictionary<KendoGridEvent, KendoWebFunction>();
         readonly List<KendoWebFunction> _functions = new List<KendoWebFunction>();
 
-        public KendoWebGridFuncsConfig()
+        public KendoWebGridEventsConfig()
         {
             UseComponentEvent(KendoGridEvent.DataBinding, "kendomodo.onGridDataBinding", "DataBinding");
             UseComponentEvent(KendoGridEvent.DataBound, "kendomodo.onGridDataBound", "DataBound");
@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Mojen
             UseComponentEvent(KendoGridEvent.Saving, "kendomodo.onGridSaving", "Save");
             UseComponentEvent(KendoGridEvent.DetailInit, "kendomodo.onGridDetailInit", "DetailInit");
             UseComponentEvent(KendoGridEvent.DetailExpanding, "kendomodo.onGridDetailExpanding", "DetailExpand");
-            UseComponentEvent(KendoGridEvent.DetailCollapsing, "kendomodo.onGridDetailCollapsing", "DetailCollapse");
+            UseComponentEvent(KendoGridEvent.DetailCollapsing, "kendomodo.onGridDetailCollapsing", "DetailCollapse");                 
         }
 
         public string Component { get; set; }

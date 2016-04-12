@@ -685,30 +685,31 @@ namespace Casimodo.Lib.Mojen
 
             TPropBuilder builder;
 
+            // KABU TODO: REMOVE StoreFileName
             // Only for Files: add store file name.
             // This will hold a generated (e.g. during upload of the file) file name (mostly a prefix + GUID + file extension).
-            if (storename)
-            {
-                builder = TypeBuilder.Prop(origName + "StoreFileName", type: typeof(string), related: true)
-                    .MaxLength(200);
+            //if (storename)
+            //{
+            //    builder = TypeBuilder.Prop(origName + "StoreFileName", type: typeof(string), related: true)
+            //        .MaxLength(200);
 
-                var prop = builder.PropConfig;
-                prop.Alias = origName;
-                prop.IsSortable = false;
+            //    var prop = builder.PropConfig;
+            //    prop.Alias = origName;
+            //    prop.IsSortable = false;
 
-                // Add to related properties.
-                referenceProp.AutoRelatedProps.Add(prop);
+            //    // Add to related properties.
+            //    referenceProp.AutoRelatedProps.Add(prop);
 
-                // Store prop
-                if (referenceProp.IsModel())
-                {
-                    builder.StoreCore();
-                    // NOTE: No subsequent assignment to the store prop needed.
+            //    // Store prop
+            //    if (referenceProp.IsModel())
+            //    {
+            //        builder.StoreCore();
+            //        // NOTE: No subsequent assignment to the store prop needed.
 
-                    // Add to store's related props.
-                    referenceProp.Store.AutoRelatedProps.Add(prop.Store);
-                }
-            }
+            //        // Add to store's related props.
+            //        referenceProp.Store.AutoRelatedProps.Add(prop.Store);
+            //    }
+            //}
 
             // Add navigation property.
             if (navigation || navigationOnModel == true)
@@ -783,26 +784,21 @@ namespace Casimodo.Lib.Mojen
             var conditionBuilder = new MexConditionBuilder();
             build(conditionBuilder);
             return conditionBuilder.Expression;
+        }        
+
+        public TPropBuilder ReferenceToChildImage(MojType to, bool nullable = true, bool navigation = false)
+        {
+            return FileReference(to, MojReferenceAxis.ToChild, nullable, navigation: navigation, image: true);
         }
 
-        //public TPropBuilder ImageReference(MojType to, MojReferenceAxis axis, bool nullable = true, bool navigation = false, bool uploadable = false, bool uri = true)
-        //{
-        //    return FileReference(to, axis, nullable, navigation: navigation, uploadable: uploadable, image: true, uri: uri);
-        //}
-
-        public TPropBuilder ReferenceToChildImage(MojType to, bool nullable = true, bool navigation = false, bool uploadable = false, bool uri = true)
+        public TPropBuilder ReferenceToChildFile(MojType to, bool nullable = true, bool navigation = false)
         {
-            return FileReference(to, MojReferenceAxis.ToChild, nullable, navigation: navigation, uploadable: uploadable, image: true, uri: uri);
+            return FileReference(to, MojReferenceAxis.ToChild, nullable: nullable, navigation: navigation);
         }
 
-        public TPropBuilder ReferenceToChildFile(MojType to, bool nullable = true, bool navigation = false, bool uploadable = false, bool image = false, bool uri = true)
+        public TPropBuilder FileReference(MojType to, MojReferenceAxis axis, bool nullable = true, bool navigation = false, bool image = false)
         {
-            return FileReference(to, MojReferenceAxis.ToChild, nullable: nullable, navigation: navigation, uploadable: uploadable, image: image, uri: uri);
-        }
-
-        public TPropBuilder FileReference(MojType to, MojReferenceAxis axis, bool nullable = true, bool navigation = false, bool uploadable = false, bool image = false, bool uri = true)
-        {
-            ReferenceCore(to, axis: axis, nullable: nullable, navigation: navigation, owned: true, storename: true);
+            ReferenceCore(to, axis: axis, nullable: nullable, navigation: navigation, owned: true);
 
             PropConfig.IsFilterable = false;
             PropConfig.IsGroupable = false;
@@ -811,7 +807,8 @@ namespace Casimodo.Lib.Mojen
             PropConfig.FileRef = new MojBinaryConfig();
             PropConfig.FileRef.Is = true;
             PropConfig.FileRef.IsImage = image;
-            PropConfig.FileRef.IsUploadable = uploadable;
+            // KABU TODO: REMOVE: since UI specific.
+            //PropConfig.FileRef.IsUploadable = uploadable;
 
             // KABU TODO: REMOVE
 #if (false)

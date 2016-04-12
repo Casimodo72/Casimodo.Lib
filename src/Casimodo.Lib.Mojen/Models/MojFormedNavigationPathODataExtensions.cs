@@ -6,6 +6,12 @@ using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class MojTypePredicateBinding
+    {
+        public MojType Type { get; set; }
+        public MexExpressionNode Predicate { get; set; }
+    }
+
     public static class MojDataGraphExtensions
     {
         public static IEnumerable<MojDataGraphNode> Merge(this IEnumerable<MojDataGraphNode> first, IEnumerable<MojDataGraphNode> second)
@@ -54,13 +60,15 @@ namespace Casimodo.Lib.Mojen
             bool includeKey = false,
             bool includeForeignKey = false,
             bool filterIsDeleted = false,
-            MojReferenceBinding? binding = null)
+            MojReferenceBinding? binding = null,
+            IEnumerable<MojTypePredicateBinding> predicates = null)
         {
             return BuildDataGraph(Enumerable.Repeat(prop, 1),
                 includeKey: includeKey,
                 includeForeignKey: includeForeignKey,
                 filterIsDeleted: filterIsDeleted,
-                binding: binding)
+                binding: binding,
+                predicates: predicates)
                 .Single();
         }
 
@@ -69,7 +77,8 @@ namespace Casimodo.Lib.Mojen
             bool includeKey = false,
             bool includeForeignKey = false,
             bool filterIsDeleted = false,
-            MojReferenceBinding? binding = null)
+            MojReferenceBinding? binding = null,
+            IEnumerable<MojTypePredicateBinding> predicates = null)
         {
             // Top level leaf properties
             foreach (var prop in properties
@@ -91,7 +100,8 @@ namespace Casimodo.Lib.Mojen
                 includeKey: includeKey,
                 includeForeignKey: includeForeignKey,
                 filterIsDeleted: filterIsDeleted,
-                binding: binding);
+                binding: binding,
+                predicates: predicates);
 
             MojProp foreignKey;
             foreach (var node in navigations)
@@ -112,6 +122,7 @@ namespace Casimodo.Lib.Mojen
             bool includeForeignKey = false,
             bool filterIsDeleted = false,
             MojReferenceBinding? binding = null,
+            IEnumerable<MojTypePredicateBinding> predicates = null,
             int startDepth = 0)
         {
             return BuildDataGraph(Enumerable.Repeat(path, 1),
@@ -119,6 +130,7 @@ namespace Casimodo.Lib.Mojen
                 includeForeignKey: includeForeignKey,
                 filterIsDeleted: filterIsDeleted,
                 binding: binding,
+                predicates: predicates,
                 startDepth: startDepth).Single();
         }
 
@@ -128,6 +140,7 @@ namespace Casimodo.Lib.Mojen
             bool includeForeignKey = false,
             bool filterIsDeleted = false,
             MojReferenceBinding? binding = null,
+            IEnumerable<MojTypePredicateBinding> predicates = null,
             int startDepth = 0)
         {
             return BuildNavigationTreeCore(paths.Where(path => path.IsForeign), 0,
@@ -135,6 +148,7 @@ namespace Casimodo.Lib.Mojen
                 includeForeignKey: includeForeignKey,
                 filterIsDeleted: filterIsDeleted,
                 binding: binding,
+                predicates: predicates,
                 startDepth: startDepth)
                 .ToList();
         }
@@ -146,6 +160,7 @@ namespace Casimodo.Lib.Mojen
             bool includeForeignKey = false,
             bool filterIsDeleted = false,
             MojReferenceBinding? binding = null,
+            IEnumerable<MojTypePredicateBinding> predicates = null,
             int startDepth = 0)
         {
             var pathsAtDepth = paths.Where(path => path.Steps.Count > depth).ToArray();
@@ -162,6 +177,7 @@ namespace Casimodo.Lib.Mojen
                 var result = new MojReferenceDataGraphNode();
                 result.SourceProp = step.SourceProp;
                 result.TargetType = step.TargetType;
+                result.TargetPredicate = predicates?.FirstOrDefault(x => x.Type == result.TargetType)?.Predicate;
 
                 key = null;
                 if (includeKey)
@@ -199,7 +215,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     // Process deeper paths.
                     MojProp foreignKey;
-                    foreach (var node in BuildNavigationTreeCore(deeperPaths, depth + 1, includeKey))
+                    foreach (var node in BuildNavigationTreeCore(deeperPaths, depth + 1, includeKey, predicates: predicates))
                     {
                         if ((foreignKey = TryGetForeignKey(node, includeForeignKey)) != null)
                             result.TargetItems.Add(new MojPropDataGraphNode
@@ -295,6 +311,8 @@ namespace Casimodo.Lib.Mojen
         public MojProp SourceProp { get; set; }
 
         public MojType TargetType { get; set; }
+
+        public MexExpressionNode TargetPredicate { get; set; }
 
         public List<MojDataGraphNode> TargetItems { get; set; }
 

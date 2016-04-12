@@ -44,9 +44,9 @@
 
         public const string CloudUpOn = "CloudUpOn";
 
-        public const string FileStoreNameSuffix = "StoreFileName";
+        // KABU TODO: REMOVE StoreFileName
+        //public const string FileStoreNameSuffix = "StoreFileName";
         public const string FileIdSuffix = "Id";
-        public const string FileUriSuffix = "Uri";
     }
 
     public static class MoAttachmentProp

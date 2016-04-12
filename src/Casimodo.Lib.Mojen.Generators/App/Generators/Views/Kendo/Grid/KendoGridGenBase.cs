@@ -13,6 +13,10 @@ namespace Casimodo.Lib.Mojen
 
     public class KendoGridOptions
     {
+        public object Height { get; set; }
+        
+        public bool IsScrollable { get; set; }
+
         public int PageSize { get; set; } = 20;
 
         /// <summary>
@@ -27,6 +31,11 @@ namespace Casimodo.Lib.Mojen
         public bool IsUsingLocalData { get; set; }
 
         public bool IsHeaderVisible { get; set; } = true;
+
+        /// <summary>
+        /// KABU TODO: Not implemented yet. We need to use CSS for hiding the column header.
+        /// </summary>
+        public bool IsColumnHeaderVisible { get; set; } = true;
 
         public bool IsPagerVisible { get; set; } = true;
 
@@ -61,7 +70,7 @@ namespace Casimodo.Lib.Mojen
             Context = new WebViewGenContext();
             UseEntity = true;
             AutoCompleteFilters = new List<MojPropAutoCompleteFilter>();
-            JsFuncs = new KendoWebGridFuncsConfig();
+            JsFuncs = new KendoWebGridEventsConfig();
         }
 
         public WebViewGenContext Context { get; set; }
@@ -100,7 +109,7 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojPropAutoCompleteFilter> AutoCompleteFilters { get; set; }
 
-        public KendoWebGridFuncsConfig JsFuncs { get; set; }
+        public KendoWebGridEventsConfig JsFuncs { get; set; }
 
         public MojViewProp[] InitialSortProps { get; set; }
 

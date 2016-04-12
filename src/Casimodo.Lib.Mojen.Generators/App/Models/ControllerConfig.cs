@@ -96,9 +96,10 @@ namespace Casimodo.Lib.Mojen
             var exposableProps = TypeConfig.GetExposableSchemaProps().Select(x => x.Name).ToList();
             // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
 
-            // Get the properties actually used in the views.
-            // KABU TODO: VERY IMPORTANT: The initial-sort properties must also be added.
-            var props = Views.Where(x => x.Group == viewGroup).SelectMany(x => x.Props).Select(x => x.Model).ToList();
+            // Get the properties actually used in the views.            
+            var viewProps = Views.Where(x => x.Group == viewGroup).SelectMany(x => x.Props).ToList();
+            var props = viewProps.Select(x => x.Model).ToList();
+            var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();
 
             // Expand related file reference properties.
             props.AddRange(props.ToArray().Where(x => x.FileRef.Is).SelectMany(x => x.AutoRelatedProps));

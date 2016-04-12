@@ -40,10 +40,6 @@ namespace Casimodo.Lib
 
             var call = Expression.Call(method, instance, value);
 
-            //var param = Expression.Parameter(typeof(T), "x");
-            //var value = Expression.Property(param, property);
-            //var call = CallContains<T, TValue>(items, value);
-
             // x => keys.Contains(x.Prop)
             return Expression.Lambda<Func<T, bool>>(call, param);
         }
