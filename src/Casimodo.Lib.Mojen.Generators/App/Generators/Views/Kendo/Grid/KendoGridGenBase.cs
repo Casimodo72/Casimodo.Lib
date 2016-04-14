@@ -11,10 +11,17 @@ namespace Casimodo.Lib.Mojen
     public class WebScriptGen : WebPartGenerator
     { }
 
+    public class KendoPagerOptions
+    {
+        public bool UseRefresh { get; set; } = true;
+        public bool UseInput { get; set; } = true;
+        public bool UsePageSizes { get; set; } = true;        
+    }
+
     public class KendoGridOptions
     {
         public object Height { get; set; }
-        
+
         public bool IsScrollable { get; set; }
 
         public int PageSize { get; set; } = 20;
@@ -42,6 +49,8 @@ namespace Casimodo.Lib.Mojen
         public bool IsServerPaging { get; set; } = true;
 
         public bool IsFilterOverCurrentDataEnabled { get; set; }
+
+        public KendoPagerOptions Pager { get; set; } = new KendoPagerOptions();
     }
 
     /// <summary>
@@ -209,7 +218,7 @@ namespace Casimodo.Lib.Mojen
                 // Generate grid.
                 if (!context.View.IsCustom)
                 {
-                    if (context.View.IsViewModelOnly)
+                    if (context.View.IsViewModelOnly || context.View.IsViewless)
                         GenerateGridView(context);
                     else
                         PerformWrite(context.View, () => GenerateGridView(context));

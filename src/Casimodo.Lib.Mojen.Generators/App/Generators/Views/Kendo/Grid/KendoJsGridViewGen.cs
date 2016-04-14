@@ -46,7 +46,7 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateGridViewCore(WebViewGenContext context)
         {
-            if (context.View.IsViewModelOnly)
+            if (context.View.IsViewModelOnly || context.View.IsViewless)
                 return;
 
             ORazorGeneratedFileComment();
@@ -102,7 +102,8 @@ namespace Casimodo.Lib.Mojen
                 });
             });
 
-            GenerateComponentScript(context);
+            if (!context.View.IsViewModelOnly && !context.View.IsViewless)
+                GenerateComponentScript(context);
         }
 
         public void GenerateViewModelScript(WebViewGenContext context)
@@ -111,6 +112,12 @@ namespace Casimodo.Lib.Mojen
             OB("(function (space)");
 
             GenerateJSViewModel(context);
+
+            if (context.View.IsViewless)
+            {
+                GenerateComponentOptionsFactory(context);
+                GenerateComponentFactory(context);
+            }
 
             // End namespace.
             if (View.Lookup.Is)
@@ -123,9 +130,6 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateComponentScript(WebViewGenContext context)
         {
-            if (context.View.IsViewModelOnly)
-                return;
-
             // NOTE: Writing to a dedicated script file for the component does not always work,
             // because the lookup-column definitions of the kendo grid need Razor functionality.
             // Thus, unfortunately, we *have to* put the component script into the cshtml file.
@@ -200,7 +204,11 @@ namespace Casimodo.Lib.Mojen
             O();
             OB($"space.createComponent = function (options)");
 
-            O($"kendomodo.createGridComponentOnSpace(space, '{View.Id}', '{context.ComponentId}', '{View.TypeConfig.PluralName}', options, {MojenUtils.ToJsValue(View.Lookup.Is)});");
+            var options = $"{{ space: space, viewId: '{View.Id}', componentId: '{context.ComponentId}', " +
+                $"areaName: '{View.TypeConfig.PluralName}', componentOptions: options, " +
+                $"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)}, isAuthNeeded: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)} }}";
+
+            O($"kendomodo.createGridComponentOnSpace({options});");
 
             End(";"); // Grid factory function.            
         }
@@ -220,9 +228,9 @@ namespace Casimodo.Lib.Mojen
             if (Options.IsPagerVisible)
             {
                 OXP("pageable",
-                    "refresh: true",
-                    "input: true",
-                    "pageSizes: true"
+                    $"refresh: {MojenUtils.ToJsValue(Options.Pager.UseRefresh)}",
+                    $"input: {MojenUtils.ToJsValue(Options.Pager.UseInput)}",
+                    $"pageSizes: {MojenUtils.ToJsValue(Options.Pager.UsePageSizes)}"
                 );
             }
 
@@ -247,7 +255,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             // Row selection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if (view.ItemSelection.IsEnabled)
+            if (view.ItemSelection.IsEnabled && !view.ItemSelection.UseCheckBox)
             {
                 OXP("selectable",
                     $"mode: {(view.ItemSelection.IsMultiselect ? "'multiple'" : "'row'")}"
@@ -362,21 +370,25 @@ namespace Casimodo.Lib.Mojen
             O("columnMenu: false,");
 
             // Show filters in column headers
-            OXP("filterable",
-                // "row" - the user can filter via extra row within the header.
-                // "menu" - the user can filter via the menu after clicking the filter icon.
-                // "menu, row" - the user can filter with both modes above enabled.
-                "mode: 'row'"
-            );
+            if (view.IsFilterable)
+            {
+                OXP("filterable",
+                    // "row" - the user can filter via extra row within the header.
+                    // "menu" - the user can filter via the menu after clicking the filter icon.
+                    // "menu, row" - the user can filter with both modes above enabled.
+                    "mode: 'row'"
+                );
+            }
+            else
+            {
+                O("filterable: false,");
+            }
 
             // Columns ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~            
             O("columns: [");
             Push();
 
-            foreach (var vprop in view.Props)
-            {
-                GeneratePropColumn(context, vprop);
-            }
+            GenerateColumns(context);
 
             // Edit button column ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if (CanEdit)
@@ -415,6 +427,67 @@ namespace Casimodo.Lib.Mojen
 
             // NOTE: The data source options are created by the view model.
             O("dataSource: space.vm.createDataSourceOptions(),");
+        }
+
+        void GenerateColumns(WebViewGenContext context)
+        {
+            var view = context.View;
+            var index = 0;
+
+            if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
+            {
+                GenerateCustomControlColumns(context, new MojViewCustomControl
+                {
+                    Type = "CheckBox",
+                    SubType = "ListItemSelectorCheckBox"
+                });
+            }
+
+            foreach (var vprop in view.Props)
+            {
+                var control = view.CustomControls.FirstOrDefault(x => x.Index == index);
+                if (control != null)
+                    GenerateCustomControlColumns(context, control);
+
+                GeneratePropColumn(context, vprop);
+
+                index++;
+            }
+        }
+
+        void GenerateCustomControlColumns(WebViewGenContext context, MojViewCustomControl control)
+        {
+            var view = context.View;
+
+            OB("");
+
+            if (control.Type == "CheckBox")
+            {
+                if (control.SubType == "ListItemSelectorCheckBox")
+                {
+                    O($"field: 'ListItemSelectorCheckBox',");
+
+                    // Hide initially
+                    O("hidden: true,");
+
+                    O("width: 30,");
+
+                    O($"headerTemplate: \"<input id='cb-{view.Id}' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-{view.Id}' />\",");
+                    // KABU TODO: REMOVE
+                    // id='documents-check-all'
+
+                    O($"template: \"<input id='cb-#:Id#' class='k-checkbox list-item-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-#:Id#'/>\",");
+                    // KABU TODO: REMOVE
+                    // for='document-check-#:Id#'
+
+                    O("filterable: false,");
+                    O("sortable: false");
+                }
+                else throw new MojenException($"Unexpected custom control sub type '{control.SubType ?? ""}'.");
+            }
+            else throw new MojenException($"Unexpected custom control type '{control.Type}' (SubType: '{control.SubType ?? ""}').");
+
+            End(",");
         }
 
         void GeneratePropColumn(WebViewGenContext context, MojViewProp vprop)
@@ -490,11 +563,35 @@ namespace Casimodo.Lib.Mojen
             // Date time formatting.
             if (vprop.Type.IsAnyTime)
             {
+                var format = "{0:";
+                // KABU TODO: LOCALIZE DateTime format.
+                if (vprop.Type.DateTimeInfo.IsDate)
+                    format += "dd.MM.yyyy ";
+                if (vprop.Type.DateTimeInfo.IsTime)
+                    format += "HH:mm:ss";
+                // KABU TODO: Support milliseconds
+                format += "}";
+
+                O($"format: '{format}',");
+
+                // KABU TODO: REMOVE?
+                /*
+                var tmpl = "";
+                if (vprop.Type.DateTimeInfo.IsDate)
+                    tmpl += $"#=kendo.toString({vinfo.PropPath}, 'dd.MM.yyyy')#<br/>";
+                if (vprop.Type.DateTimeInfo.IsTime)
+                    tmpl += $"#=kendo.toString({vinfo.PropPath}, 'HH:mm:ss')#";
+                // KABU TODO: Support milliseconds
+                
+                O($"template: \"<div>{tmpl}</div>\",");
+                */
+
+                // KABU TODO: REMOVE?
                 // format: "{0:c}"
-                O("format: '@(Html.GetDateTimePattern(placeholder: true{0}{1}{2}))',",
-                    (vprop.Type.DateTimeInfo.IsDate == false ? ", date: false" : ""),
-                    (vprop.Type.DateTimeInfo.IsTime == false ? ", time: false" : ""),
-                    (vprop.Type.DateTimeInfo.DisplayMillisecondDigits > 0 ? ", ms: " + vprop.Type.DateTimeInfo.DisplayMillisecondDigits : ""));
+                //O("format: '@(Html.GetDateTimePattern(placeholder: true{0}{1}{2}))',",
+                //    (vprop.Type.DateTimeInfo.IsDate == false ? ", date: false" : ""),
+                //    (vprop.Type.DateTimeInfo.IsTime == false ? ", time: false" : ""),
+                //    (vprop.Type.DateTimeInfo.DisplayMillisecondDigits > 0 ? ", ms: " + vprop.Type.DateTimeInfo.DisplayMillisecondDigits : ""));
             }
             // Check-box Kendo template.
             else if (vprop.Type.IsBoolean)

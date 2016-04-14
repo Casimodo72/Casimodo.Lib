@@ -116,6 +116,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Viewless()
+        {
+            View.IsViewless = true;
+            return this;
+        }
+
         public MojViewBuilder Id(string id)
         {
             View.Id = id;
@@ -283,10 +289,25 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder Selectable(bool multi = false)
+        public MojViewBuilder Filterable(bool value = true)
+        {
+            View.IsFilterable = value;
+
+            return this;
+        }
+
+        public MojViewBuilder Auth(bool value = true)
+        {
+            View.IsAuthorizationNeeded = value;
+
+            return this;
+        }
+
+        public MojViewBuilder Selectable(bool multi = false, bool checkBox = false)
         {
             View.ItemSelection.IsEnabled = true;
             View.ItemSelection.IsMultiselect = multi;
+            View.ItemSelection.UseCheckBox = checkBox;
             return this;
         }
 
@@ -480,6 +501,26 @@ namespace Casimodo.Lib.Mojen
         public void EndRun()
         {
             View.Template.EndRun();
+        }
+
+        public MojViewBuilder ListItemSelectorCheckBox()
+        {
+            return CheckBox(subType: "ListItemSelectorCheckBox");
+        }
+
+        public MojViewBuilder CheckBox(string subType = null, string headerCssClass = null)
+        {
+            var index = View.Props.Count;
+
+            View.CustomControls.Add(new MojViewCustomControl
+            {
+                Index = index,
+                Type = "CheckBox",
+                SubType = subType,
+                HeaderCssClass = headerCssClass
+            });
+
+            return this;
         }
 
         public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool external = false)

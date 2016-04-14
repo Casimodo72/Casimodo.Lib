@@ -184,8 +184,6 @@
     <Compile Include="Objects\Generators\DbRepoCore.OnAdded.NestedGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.OnAdded.SetNextSequenceValueGen.cs" />
     <Compile Include="App\Generators\Repositories\WebRepoContainerGen.cs" />
-    <Compile Include="App\Generators\Views\Trash\BootstrapWebView.cs" />
-    <Compile Include="App\Generators\Views\Trash\MobileWebView.cs" />
     <Compile Include="App\Infrastructure\AppPartGenerator.cs" />
     <Compile Include="App\Infrastructure\ActionName.cs" />
     <Compile Include="App\Builders\ControllerBuilder.cs" />
@@ -246,6 +244,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataInteractionLayer\Generators\DbRepositoryCore.OnEventGen.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App\Generators\Views\Trash\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

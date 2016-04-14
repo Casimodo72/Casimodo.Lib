@@ -10,6 +10,8 @@ namespace Casimodo.Lib.Mojen
         public bool IsEnabled { get; set; }
 
         public bool IsMultiselect { get; set; }
+
+        public bool UseCheckBox { get; set; }
     }
 
     public class MojControllerViewConfig : MojViewConfig
@@ -61,6 +63,17 @@ namespace Casimodo.Lib.Mojen
         public List<MojProp> Parameters { get; set; } = new List<MojProp>();
     }
 
+    public class MojViewCustomControl
+    {
+        public string Type { get; set; }
+
+        public string SubType { get; set; }
+
+        public int Index { get; set; }
+
+        public string HeaderCssClass { get; set; }
+    }
+
     public class MojViewConfig : MojPartBase
     {
         public MojViewConfig()
@@ -90,6 +103,8 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojViewProp> Props { get; private set; } = new List<MojViewProp>();
 
+        public List<MojViewCustomControl> CustomControls { get; set; } = new List<MojViewCustomControl>();
+
         public MojViewKindConfig Kind { get; set; } = new MojViewKindConfig();
 
         public bool IsEditor
@@ -106,6 +121,8 @@ namespace Casimodo.Lib.Mojen
         public bool CanDelete { get; set; }
 
         public bool IsViewModelOnly { get; set; }
+
+        public bool IsViewless { get; set; }
 
         public MojStandaloneViewConfig Standalone { get; set; } = MojStandaloneViewConfig.None;
 
@@ -146,6 +163,10 @@ namespace Casimodo.Lib.Mojen
         public ViewItemSelection ItemSelection { get; private set; } = new ViewItemSelection();
 
         public bool UseMVVM { get; set; }
+
+        public bool IsAuthorizationNeeded { get; set; } = true;
+
+        public bool IsFilterable { get; set; } = true;
 
         public bool IsGuidFilterable { get; set; }
 
