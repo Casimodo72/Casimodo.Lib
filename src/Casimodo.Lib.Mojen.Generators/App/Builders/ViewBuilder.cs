@@ -303,11 +303,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder Selectable(bool multi = false, bool checkBox = false)
+        public MojViewBuilder Selectable(bool multi = false, bool checkBox = false, bool allCheckBox = false)
         {
             View.ItemSelection.IsEnabled = true;
             View.ItemSelection.IsMultiselect = multi;
             View.ItemSelection.UseCheckBox = checkBox;
+            View.ItemSelection.UseAllCheckBox = allCheckBox;
             return this;
         }
 

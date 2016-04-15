@@ -12,6 +12,8 @@ namespace Casimodo.Lib.Mojen
         public bool IsMultiselect { get; set; }
 
         public bool UseCheckBox { get; set; }
+
+        public bool UseAllCheckBox { get; set; }
     }
 
     public class MojControllerViewConfig : MojViewConfig
@@ -72,6 +74,8 @@ namespace Casimodo.Lib.Mojen
         public int Index { get; set; }
 
         public string HeaderCssClass { get; set; }
+
+        public Dictionary<string, string> Attrs { get; set; } = new Dictionary<string, string>();
     }
 
     public class MojViewConfig : MojPartBase

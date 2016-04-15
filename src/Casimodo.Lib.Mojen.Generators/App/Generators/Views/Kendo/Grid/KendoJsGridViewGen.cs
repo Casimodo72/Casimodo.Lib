@@ -143,11 +143,12 @@ namespace Casimodo.Lib.Mojen
             // Begin component namespace.
             OB("(function (space)");
 
-            // Factory
-            OB("space.create = function ()");
-            O("space.createViewModel();");
-            O("space.createComponent();");
-            End(";");
+            // KABU TODO: REMOVE
+            //// Factory
+            //OB("space.create = function ()");
+            //O("space.createViewModel();");
+            //O("space.createComponent();");
+            //End(";");
 
             // KABU TODO: Maybe we should throw an error if deferred and manual init was configured.            
             if (Options.IsDeferred)
@@ -436,11 +437,16 @@ namespace Casimodo.Lib.Mojen
 
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
             {
-                GenerateCustomControlColumns(context, new MojViewCustomControl
+                var selector = new MojViewCustomControl
                 {
                     Type = "CheckBox",
                     SubType = "ListItemSelectorCheckBox"
-                });
+                };
+
+                if (view.ItemSelection.UseAllCheckBox)
+                    selector.Attrs.Set("AllItemsSelector", "true");
+
+                GenerateCustomControlColumns(context, selector);
             }
 
             foreach (var vprop in view.Props)
@@ -467,18 +473,21 @@ namespace Casimodo.Lib.Mojen
                 {
                     O($"field: 'ListItemSelectorCheckBox',");
 
+                    O("title: ' ',");
+
                     // Hide initially
                     O("hidden: true,");
 
                     O("width: 30,");
 
-                    O($"headerTemplate: \"<input id='cb-{view.Id}' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-{view.Id}' />\",");
-                    // KABU TODO: REMOVE
-                    // id='documents-check-all'
+                    if (control.Attrs.FindOrDefault("AllItemsSelector") == "true")
+                    {
+                        O("headerAttributes: { 'class': 'all-list-items-selector' },");
+                        O($"headerTemplate: \"<input id='cb-{view.Id}' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-{view.Id}' />\",");
+                    }
 
-                    O($"template: \"<input id='cb-#:Id#' class='k-checkbox list-item-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-#:Id#'/>\",");
-                    // KABU TODO: REMOVE
-                    // for='document-check-#:Id#'
+                    O("attributes: { 'class': 'list-item-selector' },");
+                    O($"template: \"<input id='cb-#:Id#' class='k-checkbox list-item-selector' type='checkbox' /><label class='k-checkbox-label list-item-selector' for='cb-#:Id#' style='display:none'/>\",");
 
                     O("filterable: false,");
                     O("sortable: false");
