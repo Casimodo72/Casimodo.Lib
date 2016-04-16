@@ -16,6 +16,7 @@ namespace Casimodo.Lib.Mojen
         public MojHttpRequestConfig TransportConfig { get; set; }
         public MojViewProp[] InitialSortProps { get; set; }
         public string ModelFactory { get; set; }
+        public string UrlFactory { get; set; }
         public string RequestEndFunction { get; set; }
         public bool CanCreate { get; set; }
         public bool CanEdit { get; set; }
@@ -69,7 +70,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             // Read                
-            O($"read: {{ url: '{transport.ODataSelectUrl}' }},");
+            O($"read: {{ url: {config.UrlFactory} }},");
 
             // Create
             if (config.CanCreate)

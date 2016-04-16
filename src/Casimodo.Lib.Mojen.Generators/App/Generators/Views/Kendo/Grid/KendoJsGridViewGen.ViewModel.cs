@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoJsGridViewGen
     {
-        void GenerateJSViewModelCore2(WebViewGenContext context)
+        void GenerateJSViewModelCore(WebViewGenContext context)
         {
             var view = context.View;
 
@@ -84,6 +84,18 @@ namespace Casimodo.Lib.Mojen
             O("return this.dataSource ? this.dataSource : (this.dataSource = new kendo.data.DataSource(this.createDataSourceOptions()));");
             End();
 
+            // Request url factory.
+            O();
+            OB("fn.createRequestUrl = function ()");
+            O($"var url = \"{TransportConfig.ODataSelectUrl}\";");
+            O("if (this.requestUrlFactory) return this.requestUrlFactory(url); else return url;");
+            End();
+
+            O();
+            OB("fn.setRequestUrlFactory = function (factory)");
+            O($"this.requestUrlFactory = factory;");
+            End();
+
             // Data source options factory.
             O();
             OB("fn.createDataSourceOptions = function ()");
@@ -111,95 +123,6 @@ namespace Casimodo.Lib.Mojen
             End(");");
         }
 
-        void GenerateJSViewModelCore(WebViewGenContext context)
-        {
-            // Extend base component view model.
-            OB($"space.vm = kendomodo.extendComponentViewModel(");
-
-            // NOTE: We use an init function for setting of the space property, because otherwise,
-            //   when declaring the space on the object directly, then kendo would 
-            //   convert the space into an kendo.Observable as well - we don't want that.
-            OB("init: function()");
-            O("this.space = space;");
-            End(",");
-
-            O($"keyName: \"{context.View.TypeConfig.Key.Name}\",");
-
-            // KABU TODO: REMOVE
-            //OB("executeFilter: function ()");
-            //O("kendomodo.filterViewModelData(self);");
-            //End(",");
-
-            // Define main event handler functions and call each specific function.
-            foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer))
-            {
-                OB($"{item.FunctionName}: function (e)");
-
-                foreach (var func in item.BodyFunctions)
-                {
-                    if (func.Call != null)
-                    {
-                        O(func.Call);
-                    }
-                    else if (func.FunctionName != null)
-                    {
-                        if (func.IsModelPart)
-                            O($"this.{func.FunctionName}(e);");
-                        else
-                            O($"{func.FunctionName}(e);");
-                    }
-                }
-
-                O($"this.trigger('{item.Kind.ToString().FirstLetterToLower()}', e);");
-                if (item.Kind == KendoGridEvent.Changed)
-                    O("this.onCurrentItemChanged();");
-
-                End(",");
-            }
-
-            // View model functions.
-            foreach (var func in JsFuncs.Functions.Where(x => x.IsModelPart && x.Body != null))
-            {
-                OB($"{func.FunctionName}: function (e)");
-                func.Body(context);
-                End(",");
-            }
-
-            // Data model factory (used by the Kendo data source).
-            OB("createDataModel: function ()");
-            OB("var model =");
-            KendoGen.GenerateDataSourceModel(context, TransportConfig.ModelProps);
-            End(";");
-            // Add custom (computed) properties to the model.
-            O();
-            O("this.extendDataModel(model);");
-
-            O();
-            O("return model;");
-            End(","); // Data model factory.            
-
-            // Data source factory.            
-            OB("createDataSource: function ()");
-            O("return this.dataSource ? this.dataSource : (this.dataSource = new kendo.data.DataSource(this.createDataSourceOptions()));");
-            End(",");
-
-            // Data source options factory.
-            O("dataSourceOptions: null,");
-            OB("createDataSourceOptions: function ()");
-            O("if (this.dataSourceOptions) return this.dataSourceOptions;");
-            OB("this.dataSourceOptions =");
-            GenerateDataSourceOptions(context);
-            End(";");
-
-            // Set initial filters.
-            O("if (this.filters.length)");
-            O("    this.dataSourceOptions.filter = { filters: this.filters };");
-
-            O("return this.dataSourceOptions;");
-            End(); // Data source factory.
-
-            End(");"); // ViewModel object.
-        }
         void GenerateJSViewModel(WebViewGenContext context)
         {
             var vm = context.ComponentViewModelName;
@@ -216,7 +139,7 @@ namespace Casimodo.Lib.Mojen
             OB($"space.createViewModel = function ()");
             O("if (space.vm) return space.vm;");
             O();
-            GenerateJSViewModelCore2(context);
+            GenerateJSViewModelCore(context);
 
             // KABU TODO: REVISIT: This does not work.
             //// Add property data sources.
