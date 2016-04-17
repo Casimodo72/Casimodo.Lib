@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
         public MojHttpRequestConfig TransportConfig { get; set; }
         public MojViewProp[] InitialSortProps { get; set; }
         public string ModelFactory { get; set; }
-        public string UrlFactory { get; set; }
+        public string SelectUrlFactory { get; set; }
         public string RequestEndFunction { get; set; }
         public bool CanCreate { get; set; }
         public bool CanEdit { get; set; }
@@ -69,8 +69,9 @@ namespace Casimodo.Lib.Mojen
                 O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}, space.vm) }},");
             }
 
-            // Read                
-            O($"read: {{ url: {config.UrlFactory} }},");
+            // Read
+            var readUrl = config.SelectUrlFactory ?? $"'{transport.ODataSelectUrl}'";
+            O($"read: {{ url: {readUrl} }},");
 
             // Create
             if (config.CanCreate)

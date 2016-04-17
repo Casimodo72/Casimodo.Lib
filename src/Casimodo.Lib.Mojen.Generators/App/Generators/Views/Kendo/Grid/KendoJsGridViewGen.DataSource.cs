@@ -44,7 +44,7 @@ namespace Casimodo.Lib.Mojen
                 InitialSortProps = InitialSortProps,
                 // The data-source's model is created by the view model.
                 ModelFactory = "space.vm.createDataModel()",
-                UrlFactory = "space.vm.createRequestUrl()",
+                SelectUrlFactory = "space.vm.createRequestUrl()",
                 // Reload and refresh the whole grid after an update was performed.
                 // We need this because otherwise computed properties won't be updated.
                 RequestEndFunction = "kendomodo.onDataSourceRequestEnd",
