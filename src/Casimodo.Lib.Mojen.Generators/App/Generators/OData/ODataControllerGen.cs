@@ -342,7 +342,7 @@ namespace Casimodo.Lib.Mojen
                 // Otherwise the action won't be found by the OData Web API machinery.
                 O($"public async Task<IHttpActionResult> {action}([FromODataUri] {key.Type.Name} key, ODataActionParameters parameters)");
                 Begin();
-                O($"return await UpdateCore(key, parameters.Values.FirstOrDefault() as {Type.ClassName}, {mask});");
+                O($"return await UpdateCore(key, parameters.Values.FirstOrDefault() as {Type.ClassName}, {mask}, \"{group}\");");
                 End();
             }
             else
@@ -363,7 +363,7 @@ namespace Casimodo.Lib.Mojen
             var key = Type.Key;
 
             O();
-            O($"async Task<IHttpActionResult> UpdateCore([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask)");
+            O($"async Task<IHttpActionResult> UpdateCore([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask, string group = null)");
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
@@ -374,7 +374,7 @@ namespace Casimodo.Lib.Mojen
             // Update the item.
             O($"var item = _db.Update({key.VName}, model, mask);");
 
-            O("OnUpdatingExtended(item);");
+            O("OnUpdatingExtended(item, group);");
 
             // Save to DB
             O($"{GetDbContextSaveChangesExpression("_db")};");
@@ -383,7 +383,7 @@ namespace Casimodo.Lib.Mojen
             End();
 
             O();
-            O($"partial void OnUpdatingExtended({Type.ClassName} model);");
+            O($"partial void OnUpdatingExtended({Type.ClassName} model, string group);");
         }
 
         // Patch ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

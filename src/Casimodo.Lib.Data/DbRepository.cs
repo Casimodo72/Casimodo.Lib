@@ -1,6 +1,7 @@
 ﻿using Microsoft.Practices.ServiceLocation;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Casimodo.Lib.Data
     {
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity, MojDataGraphMask mask = null);
-        void Delete(TEntity entity);
+        void Delete(TEntity entity, DbRepoOperationContext ctx = null);
         IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false);
         int SaveChanges();
@@ -30,6 +31,7 @@ namespace Casimodo.Lib.Data
 
         object UpdateEntity(DbRepoOperationContext ctx);
         void DeleteEntity(object entity);
+        void DeleteEntityByKey(object key, DbRepoOperationContext ctx);
         void DeleteEntityByKey(object key);
         DbContext Context { get; set; }
         DbRepositoryCore Core();
@@ -132,6 +134,42 @@ namespace Casimodo.Lib.Data
             }
         }
 
+        public void PerformTransaction(Action action)
+        {
+            using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
+            {
+                try
+                {
+                    action();
+
+                    trans.Commit();
+                }
+                catch
+                {
+                    trans.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public async Task PerformTransactionAsync(Func<Task> action)
+        {
+            using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
+            {
+                try
+                {
+                    await action();
+
+                    trans.Commit();
+                }
+                catch
+                {
+                    trans.Rollback();
+                    throw;
+                }
+            }
+        }
+
         protected Guid GetTenantGuid()
         {
             if (_tenantGuid == null)
@@ -231,11 +269,12 @@ namespace Casimodo.Lib.Data
             var keys = localItems.Select(x => GetKey(x)).ToArray();
 
             // Return local items + queried items from db.
-            return localItems.Concat(
+            return localItems.ToArray().Concat(
                 Query(includeDeleted)
                     .Where(predicate)
                     // Exclude local items.
-                    .Where(keys.GetContainsPredicate<TEntity, TKey>(KeyProp).Not()))
+                    .Where(keys.GetContainsPredicate<TEntity, TKey>(KeyProp).Not())
+                    .ToArray())
                 .AsQueryable();
         }
 
@@ -341,6 +380,19 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
+        public TEntity RestoreSelfDeleted(TKey key)
+        {
+            var entity = Find(key, required: true);
+            Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, _db));            
+
+            return entity;
+        }       
+
+        public T GetProp<T>(object item, string name, T defaultValue = default(T))
+        {
+            return HProp.GetProp(item, name, defaultValue);
+        }
+
         object IDbRepository.UpdateEntity(DbRepoOperationContext ctx)
         {
             return Update(ctx);
@@ -366,9 +418,9 @@ namespace Casimodo.Lib.Data
             Core().OnUpdated(ctx);
         }
 
-        protected void OnDeleted(TEntity entity)
+        protected void OnDeleting(DbRepoOperationContext ctx)
         {
-            Core().OnDeleted(entity, Context);
+            Core().OnDeleting(ctx);
         }
 
         protected IQueryable<TEntity> FilterByTenant(IQueryable<TEntity> query)
@@ -404,17 +456,14 @@ namespace Casimodo.Lib.Data
                 TenantKeyProp.SetValue(entity, GetTenantGuid());
         }
 
-        public void Delete(TEntity entity)
-        {
-            Guard.ArgNotNull(entity, nameof(entity));
-
-            EntitySet.Remove(entity);
-            OnDeleted(entity);
-        }
-
         void IDbRepository.DeleteEntity(object entity)
         {
-            Delete(entity as TEntity);
+            Delete((TEntity)entity);
+        }
+
+        void IDbRepository.DeleteEntityByKey(object key, DbRepoOperationContext ctx)
+        {
+            Delete((TKey)key, ctx);
         }
 
         void IDbRepository.DeleteEntityByKey(object key)
@@ -422,16 +471,32 @@ namespace Casimodo.Lib.Data
             Delete((TKey)key);
         }
 
-        public void Delete(TKey key, bool save = false)
+        public void Delete(TKey key, DbRepoOperationContext ctx = null, bool save = false)
         {
             var entity = EntitySet.Find(key);
             if (entity == null)
                 return;
 
-            entity = EntitySet.Remove(entity);
-            OnDeleted(entity);
+            Delete(entity, ctx);
 
             if (save) Context.SaveChanges();
+        }
+
+        public void Delete(TEntity entity, DbRepoOperationContext ctx = null)
+        {
+            Guard.ArgNotNull(entity, nameof(entity));
+
+            if (ctx == null)
+                ctx = Core().CreateOperationContext(entity, DbRepoOp.Delete, Context);
+            else if (ctx.Item == null)
+                ctx.Item = entity;
+
+            // NOTE: We will process the entity *before* EF's Remove() method,
+            //   because this object will have some foreign keys nullified by that method.
+            //   Thus we would loose information needed in the OnDeleting handlers.
+            OnDeleting(ctx);
+
+            EntitySet.Remove(entity);
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -48,6 +48,7 @@ namespace Casimodo.Lib.Data
         Update = 1 << 1,
         Delete = 1 << 2,
         MoveToRecycleBin = 1 << 3,
+        RestoreSelfDeleted = 1 << 4,
         UpdateMoveToRecycleBin = Update | MoveToRecycleBin
     }
 
@@ -102,6 +103,16 @@ namespace Casimodo.Lib.Data
         public DbRepoOperationContext SubAdd(object item, MojDataGraphMask mask = null)
         {
             return CreateSubContext(item, DbRepoOp.Add, mask);
+        }
+
+        public DbRepoOperationContext SubDelete(object item = null)
+        {
+            return CreateSubContext(item, DbRepoOp.Delete);
+        }
+
+        public DbRepoOperationContext SubRestoreCascadeDeleted(object item)
+        {
+            return CreateSubContext(item);
         }
 
         public DbRepoOperationContext CreateSubContext(object item, DbRepoOp? op = null, MojDataGraphMask mask = null)
@@ -332,7 +343,17 @@ namespace Casimodo.Lib.Data
             // NOP
         }
 
-        public virtual void OnDeleted(object item, DbContext db)
+        public virtual void OnDeleting(DbRepoOperationContext ctx)
+        {
+            // NOP
+        }
+
+        public virtual void RestoreSelfDeleted(DbRepoOperationContext ctx)
+        {
+            // NOP
+        }
+
+        public virtual void RestoreCascadeDeleted(DbRepoOperationContext ctx)
         {
             // NOP
         }
@@ -436,6 +457,17 @@ namespace Casimodo.Lib.Data
             }
         }
 
+        protected bool IsCascadeDeletedByOrigin(object item, DbRepoOperationContext ctx)
+        {
+            if (GetProp(item, CommonDataNames.IsCascadeDeleted, false) == false)
+                return false;
+
+            if (GetProp<Guid?>(item, CommonDataNames.CascadeDeletedByOriginId) != ctx.OriginInfo.Id)
+                return false;
+
+            return true;
+        }
+
         /// <summary>
         /// Returns true if the item was changed.
         /// </summary>        
@@ -513,6 +545,35 @@ namespace Casimodo.Lib.Data
             return changed;
         }
 
+        protected void ClearDeleted(object item, DbRepoOperationContext ctx)
+        {
+            SetProp(item, CommonDataNames.IsDeleted, false);
+            SetProp(item, CommonDataNames.DeletedOn, null);
+            SetProp(item, CommonDataNames.DeletedBy, null);
+            SetProp(item, CommonDataNames.DeletedByUserId, null);
+            SetProp(item, CommonDataNames.DeletedByDeviceId, null);
+
+            SetProp(item, CommonDataNames.IsSelfDeleted, false);
+            SetProp(item, CommonDataNames.SelfDeletedOn, null);
+            SetProp(item, CommonDataNames.SelfDeletedBy, null);
+            SetProp(item, CommonDataNames.SelfDeletedByUserId, null);
+            SetProp(item, CommonDataNames.SelfDeletedByDeviceId, null);
+
+            SetProp(item, CommonDataNames.IsCascadeDeleted, false);
+            SetProp(item, CommonDataNames.CascadeDeletedOn, null);
+            SetProp(item, CommonDataNames.CascadeDeletedBy, null);
+            SetProp(item, CommonDataNames.CascadeDeletedByUserId, null);
+            SetProp(item, CommonDataNames.CascadeDeletedByDeviceId, null);
+            SetProp(item, CommonDataNames.CascadeDeletedByOriginTypeId, null);
+            SetProp(item, CommonDataNames.CascadeDeletedByOriginId, null);
+
+            SetProp(item, CommonDataNames.IsRecyclableDeleted, false);
+            SetProp(item, CommonDataNames.RecyclableDeletedOn, null);
+            SetProp(item, CommonDataNames.RecyclableDeletedBy, null);
+            SetProp(item, CommonDataNames.RecyclableDeletedByUserId, null);
+            SetProp(item, CommonDataNames.RecyclableDeletedByDeviceId, null);
+        }
+
         /// <summary>
         /// Updates the set of DB entities specified by the given @predicate
         /// using the specified collection of entities.
@@ -548,7 +609,7 @@ namespace Casimodo.Lib.Data
                     if (local != update)
                         throw new DbRepositoryException("An other instance of this entity already exists in the DbContext.");
 
-                    db.UpdateEntity(ctx.CreateSubContext(update));
+                    db.UpdateEntity(ctx.CreateSubContext(update, op: DbRepoOp.Update));
 
                     items.Remove(update);
                 }
@@ -556,7 +617,7 @@ namespace Casimodo.Lib.Data
                 {
                     // This DB entity does not exist anymore in the collection.
                     // Delete **physically** from DB.
-                    db.DeleteEntityByKey(id);
+                    db.DeleteEntityByKey(id, ctx.SubDelete());
                 }
             }
 
