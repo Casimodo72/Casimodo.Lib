@@ -369,8 +369,9 @@ namespace Casimodo.Lib.Mojen
         }
 
         public TPropBuilder DefaultValueOnEdit(object value)
-        {
-            return DefaultValueCore(value, "OnEdit");
+        { 
+            PropConfig.AddDefaultValue(value, "OnEdit");
+            return This();
         }
 
         public TPropBuilder DefaultValue(object value)

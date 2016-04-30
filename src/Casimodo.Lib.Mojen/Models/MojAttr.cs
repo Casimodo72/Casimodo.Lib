@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
 
         public static IEnumerable<MojDefaultValueConfig> WithCommon(this IEnumerable<MojDefaultValueConfig> items)
         {
-            return items.Where(x => x.Common != null);
+            return items.Where(x => x.CommonValue != null);
         }
 
         //public static string ToJsCodeString(this MojDefaultValueConfig config)
@@ -48,7 +48,10 @@ namespace Casimodo.Lib.Mojen
         public MojDefaultValueAttr Attr { get; set; }
 
         [DataMember]
-        public MojDefaultValueCommon? Common { get; set; }
+        public object Value { get; set; }
+
+        [DataMember]
+        public MojDefaultValueCommon? CommonValue { get; set; }
     }
 
     [DataContract(Namespace = MojContract.Ns)]
@@ -75,10 +78,16 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public List<MojDefaultValueConfig> Items { get; private set; } = Empty;
 
+        public void Add(object value, string scenario = null)
+        {
+            CheckIs();
+            Items.Add(new MojDefaultValueConfig { Value = value, TargetScenario = scenario });
+        }
+
         public void Add(MojDefaultValueCommon value, string scenario = null)
         {
             CheckIs();
-            Items.Add(new MojDefaultValueConfig { Common = value, TargetScenario = scenario });
+            Items.Add(new MojDefaultValueConfig { CommonValue = value, TargetScenario = scenario });
         }
 
         public void Add(MojDefaultValueAttr attr, string scenario = null)

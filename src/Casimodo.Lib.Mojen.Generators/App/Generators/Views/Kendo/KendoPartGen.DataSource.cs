@@ -185,11 +185,21 @@ namespace Casimodo.Lib.Mojen
                     {
                         O("defaultValue: {0},", @default.Attr.Args.First().ToJsCodeString());
                     }
-                    else if (@default.Common == MojDefaultValueCommon.CurrentYear)
+                    else if (@default.CommonValue != null)
                     {
-                        O("defaultValue: function(e) { return new Date().getFullYear() },");
+                        if (@default.CommonValue == MojDefaultValueCommon.CurrentYear)
+                        {
+                            O("defaultValue: function(e) { return new Date().getFullYear() },");
+                        }
+                        else throw new MojenException($"Unhandled common default value kind '{@default.CommonValue}'.");
                     }
-                    else throw new MojenException($"Unhandled common default value kind '{@default.Common}'.");
+                    else if (@default.Value is string[])
+                    {
+                        // Multiline text.
+                        string multilineText = (@default.Value as string[]).Join("\\n");
+                        O($"defaultValue: \"{multilineText}\",");
+                    }
+                    else throw new MojenException($"Unexpected default value object '{@default.Value}'.");
                 }
                 else if (prop.IsGuidKey && !prop.Type.CanBeNull)
                 {

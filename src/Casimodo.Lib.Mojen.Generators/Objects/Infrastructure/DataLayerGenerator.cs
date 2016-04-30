@@ -48,11 +48,21 @@ namespace Casimodo.Lib.Mojen
                 {
                     return @default.Attr.Args.First().ToJsCodeString();
                 }
-                else if (@default.Common == MojDefaultValueCommon.CurrentYear)
+                else if (@default.CommonValue != null)
                 {
-                    return "new Date().getFullYear()";
+                    if (@default.CommonValue == MojDefaultValueCommon.CurrentYear)
+                    {
+                        return "new Date().getFullYear()";
+                    }
+                    else throw new MojenException($"Unhandled common default value kind '{@default.CommonValue}'.");
                 }
-                else throw new MojenException($"Unhandled common default value kind '{@default.Common}'.");
+                else if (@default.Value is string[])
+                {
+                    // Multiline text.
+                    string multilineText = (@default.Value as string[]).Join("\\n");
+                    return $"\"{multilineText}\"";
+                }
+                else throw new MojenException($"Unexpected default value object '{@default.Value}'.");
             }
 
             // KABU TODO: REMOVE

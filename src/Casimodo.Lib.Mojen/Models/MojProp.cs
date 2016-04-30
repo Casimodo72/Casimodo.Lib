@@ -372,6 +372,11 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojDefaultValuesConfig DefaultValues { get; set; } = MojDefaultValuesConfig.None;
 
+        public void AddDefaultValue(object value, string scenario = null)
+        {
+            EnsureDefaultValues().Add(value, scenario);
+        }
+
         public void AddDefaultValue(MojDefaultValueCommon value, string scenario = null)
         {
             EnsureDefaultValues().Add(value, scenario);

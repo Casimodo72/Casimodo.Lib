@@ -82,7 +82,7 @@ namespace Casimodo.Lib.Mojen
             OB("function createDataModel ()");
             OB("return");
             KendoGen.GenerateDataSourceModel(context, TransportConfig.ModelProps);
-            End();            
+            End();
             End();
 
             O();
@@ -126,7 +126,7 @@ namespace Casimodo.Lib.Mojen
             {
                 if (c.IsRunEditable) OE("</div>");
             };
-            
+
             OPropContainerBegin = (c) =>
             {
                 if (c.IsRunEditable)
@@ -390,11 +390,15 @@ namespace Casimodo.Lib.Mojen
                 var defaultValue = prop.DefaultValues.ForScenario("OnEdit").WithCommon().FirstOrDefault();
                 if (defaultValue != null)
                 {
-                    if (defaultValue.Common == MojDefaultValueCommon.CurrentYear)
+                    if (defaultValue.CommonValue != null)
                     {
-                        o(".Value(DateTime.Now.Year)");
-                    }
-                    else throw new MojenException($"Unhandled common default value '{defaultValue.Common}'.");
+                        if (defaultValue.CommonValue == MojDefaultValueCommon.CurrentYear)
+                        {
+                            o(".Value(DateTime.Now.Year)");
+                        }
+                        else throw new MojenException($"Unexpected common default value '{defaultValue.CommonValue}'.");
+                    }                   
+                    else throw new MojenException($"Unexpected default value object '{defaultValue.Value}'.");
                 }
 
                 OMvcAttrs(context, kendo: true);
@@ -792,7 +796,7 @@ namespace Casimodo.Lib.Mojen
                     //ContentUrl = dialog.Url,
                     Title = dialog.Title,
                     Width = dialog.Width,
-                    Height = dialog.Height,                    
+                    Height = dialog.Height,
                     IsModal = true,
                     OnDeactivated = geoConfig.IsViewCached ? null : KendoWindowConfig.DestructorFunction
                 });
@@ -943,7 +947,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     //ContentUrl = dialog.Url,
                     Title = dialog.Title,
-                    Width = dialog.Width,                    
+                    Width = dialog.Width,
                     MinWidth = dialog.MinWidth,
                     MaxWidth = dialog.MaxWidth,
                     MinHeight = dialog.MinHeight,

@@ -77,6 +77,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder DefaultValue(object value)
+        {
+            Prop.AddDefaultValue(value, "OnEdit");
+            return this;
+        }
+
         public MojViewPropBuilder UseCustomTemplate(string name)
         {
             Prop.CustomTemplateName = name;

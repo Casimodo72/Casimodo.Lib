@@ -18,6 +18,7 @@ namespace Casimodo.Lib.Mojen
             PreserveObjectReferences = true,
             KnownTypes = new Type[]
             {
+                typeof(string[]),
                 typeof(MojenMetaContainer),
                 typeof(DataLayerConfig),
                 typeof(DateTimeOffset),
