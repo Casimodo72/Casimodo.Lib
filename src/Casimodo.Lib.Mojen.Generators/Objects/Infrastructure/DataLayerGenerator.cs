@@ -62,7 +62,10 @@ namespace Casimodo.Lib.Mojen
                     string multilineText = (@default.Value as string[]).Join("\\n");
                     return $"\"{multilineText}\"";
                 }
-                else throw new MojenException($"Unexpected default value object '{@default.Value}'.");
+                else
+                {
+                    return MojenUtils.ToJsValue(@default.Value);
+                }
             }
 
             // KABU TODO: REMOVE
