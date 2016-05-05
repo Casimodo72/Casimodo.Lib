@@ -61,7 +61,7 @@ namespace Casimodo.Lib.Data
     public class DbRepository
     { }
 
-    public class DbRepository<TContext, TEntity, TKey> : DbRepository, IDbRepository, IDisposable
+    public class DbRepository<TContext, TEntity, TKey> : DbRepository, IDbRepository<TEntity>, IDbRepository, IDisposable
         where TContext : DbContext, new()
         where TEntity : class, IKeyAccessor<TKey>
         where TKey : struct, IComparable<TKey>
@@ -337,7 +337,7 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        protected DbSet<TEntity> EntitySet
+        public DbSet<TEntity> EntitySet
         {
             get { return Context.Set<TEntity>(); }
         }

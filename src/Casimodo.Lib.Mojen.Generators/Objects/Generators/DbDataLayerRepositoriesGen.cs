@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrEmpty(context.DbRepositoryDirPath)) return;
             if (string.IsNullOrEmpty(context.DbRepositoryName)) return;
 
-            PerformWrite(Path.Combine(context.DbRepositoryDirPath, "DbRepository.Cores.generated.cs"),
+            PerformWrite(Path.Combine(context.DbRepositoryDirPath, "DbRepositories.generated.cs"),
                 () => GenerateRepositories(context));
         }
 
@@ -34,9 +34,8 @@ namespace Casimodo.Lib.Mojen
                 "Casimodo.Lib.Data");
 
             ONamespace(App.Get<DataLayerConfig>().DataNamespace);
-
-            // NOTE: The repositories will be internal.
-            string accessModifier = "";
+            
+            string accessModifier = "public ";
 
             foreach (var type in types)
             {

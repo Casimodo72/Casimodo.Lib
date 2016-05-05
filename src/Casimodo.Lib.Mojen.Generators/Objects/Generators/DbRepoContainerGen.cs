@@ -43,10 +43,16 @@ namespace Casimodo.Lib.Mojen
         {            
             string name = dataConfig.DbRepoContainerName;
 
-            O($"sealed partial class {name} : DbRepoContainer");
+            O($"public sealed partial class {name} : DbRepoContainer");
             Begin();
             //O($"readonly {context.DbContextName} _db;");
             //O();
+
+            O($"public {name}()");
+            O($"    : base(new {dataConfig.DbContextName}())");
+            O("{ }");
+
+            O();
             O($"public {name}({dataConfig.DbContextName} db)");
             O("    : base(db)");
             O("{ }");

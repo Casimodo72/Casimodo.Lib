@@ -78,7 +78,7 @@ namespace Casimodo.Lib.Mojen
                     if (false)
                     {
 #pragma warning disable CS0162
-                        O(accessModifier + "class {0} : WebModelRepository<{1}, {2}, {3}, {4}, {5}>{6}",
+                        O(accessModifier + "public class {0} : WebModelRepository<{1}, {2}, {3}, {4}, {5}>{6}",
                             repositoryName,
                             type.ClassName,
                             GetWebRepositoryName(type.Store),
@@ -96,7 +96,7 @@ namespace Casimodo.Lib.Mojen
                 }
                 else if (type.Kind == MojTypeKind.Entity)
                 {
-                    O(accessModifier + "class {0} : WebEntityRepository<{1}, {2}, {3}>{4}",
+                    O(accessModifier + "public class {0} : WebEntityRepository<{1}, {2}, {3}>{4}",
                         repositoryName,
                         context.DbContextName,
                         type.ClassName,
