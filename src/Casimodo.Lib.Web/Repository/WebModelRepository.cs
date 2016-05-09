@@ -44,6 +44,7 @@ namespace Casimodo.Lib.Web
 
         public TModel Find(TKey key, bool required = false)
         {
+            // KABU TODO: Not tenant safe.
             var entity = EntitySet.Find(key);
             if (entity == null && required)
                 throw NotFound();
@@ -205,6 +206,7 @@ namespace Casimodo.Lib.Web
         public async Task<TModel> PatchAsync(TKey key, Delta<TModel> delta, bool save = false, CancellationToken? cancellationToken = null)
         {
             // Get entity from store.
+            // KABU TODO: Not tenant safe.
             var entity = await EntitySet.FindAsync(key);
             if (entity == null)
                 throw NotFound();

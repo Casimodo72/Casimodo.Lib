@@ -66,6 +66,11 @@ namespace Casimodo.Lib
             return formatProvider != null ? value.ToString(formatProvider) : value.ToString();
         }
 
+        public static DateTimeOffset TruncateTime(this DateTimeOffset value)
+        {
+            return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, TimeSpan.Zero);
+        }
+
         static DateTimeOffset ApplyTimeZone(DateTimeOffset value)
         {
             return TimeZoneInfo.ConvertTime(value, GetCurrentTimeZone());

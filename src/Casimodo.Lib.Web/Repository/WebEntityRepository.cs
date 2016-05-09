@@ -166,6 +166,7 @@ namespace Casimodo.Lib.Web
         // NOTE: Not used anywhere. Keep though.
         async Task<TEntity> PatchAsync(TKey key, Delta<TEntity> delta, bool save = false, CancellationToken? cancellationToken = null)
         {
+            // KABU TODO: Not tenant safe.
             var entity = await EntitySet.FindAsync(key);
             if (entity == null)
                 throw NotFound();

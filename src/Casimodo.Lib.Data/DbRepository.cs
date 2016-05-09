@@ -37,6 +37,33 @@ namespace Casimodo.Lib.Data
         DbRepositoryCore Core();
     }
 
+    public class DbTransactionContext
+    {
+        public DbTransactionContext(DbContextTransaction trans)
+        {
+            Guard.ArgNotNull(trans, nameof(trans));
+
+            Transaction = trans;
+        }
+
+        public DbContextTransaction Transaction { get; private set; }
+
+        public TDbContext CreateDbContext<TDbContext>()
+            where TDbContext : DbContext, new()
+        {
+            var db = new TDbContext();
+            Use(db);
+            return db;
+        }
+
+        public void Use(DbContext db)
+        {
+            Guard.ArgNotNull(db, nameof(db));
+
+            db.Database.UseTransaction(Transaction.UnderlyingTransaction);
+        }
+    }
+
     public static class DbRepositoryExtensions
     {
         public static TRepo Use<TRepo>(this TRepo repository, DbContext context)
@@ -132,17 +159,18 @@ namespace Casimodo.Lib.Data
                 _core = ServiceLocator.Current.GetInstance<DbRepositoryCoreProvider>().GetCoreFor<TContext>();
                 return _core;
             }
-        }
+        }       
 
-        public void PerformTransaction(Action action)
+        public void PerformTransaction(Action<DbTransactionContext> action)
         {
             using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 try
-                {
-                    action();
+                { 
+                    var context = new DbTransactionContext(trans);
+                    action(context);
 
-                    trans.Commit();
+                trans.Commit();
                 }
                 catch
                 {
@@ -201,7 +229,9 @@ namespace Casimodo.Lib.Data
         {
             TEntity entity = null;
             if (key != null)
+                // KABU TODO: Not tenant safe.
                 entity = EntitySet.Find(key);
+
             if (entity == null && required)
                 throw NotFound();
 
@@ -215,8 +245,12 @@ namespace Casimodo.Lib.Data
             return Find((TKey)key);
         }
 
+        /// <summary>
+        /// KABU TODO: Not tenant safe.
+        /// </summary>        
         public async Task<TEntity> FindAsync(TKey key, bool required = false)
         {
+            // KABU TODO: Not tenant safe.
             var entity = await EntitySet.FindAsync(key);
             if (entity == null && required)
                 throw NotFound();
@@ -261,6 +295,7 @@ namespace Casimodo.Lib.Data
 
         public IQueryable<TEntity> LocalAndQuery(bool includeDeleted, Expression<Func<TEntity, bool>> predicate)
         {
+            // KABU TODO: Not tenant safe.
             var localItems = FilterByIsDeleted(includeDeleted, EntitySet.Local.AsQueryable().Where(predicate));
 
             if (!localItems.Any())
@@ -383,10 +418,10 @@ namespace Casimodo.Lib.Data
         public TEntity RestoreSelfDeleted(TKey key)
         {
             var entity = Find(key, required: true);
-            Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, _db));            
+            Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, _db));
 
             return entity;
-        }       
+        }
 
         public T GetProp<T>(object item, string name, T defaultValue = default(T))
         {
@@ -473,6 +508,7 @@ namespace Casimodo.Lib.Data
 
         public void Delete(TKey key, DbRepoOperationContext ctx = null, bool save = false)
         {
+            // KABU TODO: Not tenant safe.
             var entity = EntitySet.Find(key);
             if (entity == null)
                 return;
@@ -543,6 +579,7 @@ namespace Casimodo.Lib.Data
 
         protected TEntity FindLocal(TKey key)
         {
+            // KABU TODO: Not tenant safe.
             return EntitySet.Local.AsQueryable().FirstOrDefault(GetIsKeyEqual(key));
         }
 
