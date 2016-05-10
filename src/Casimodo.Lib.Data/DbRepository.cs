@@ -39,29 +39,26 @@ namespace Casimodo.Lib.Data
 
     public class DbTransactionContext
     {
-        public DbTransactionContext(DbContextTransaction trans)
+        public DbTransactionContext(DbContext db, DbContextTransaction trans)
         {
+            Guard.ArgNotNull(db, nameof(db));
             Guard.ArgNotNull(trans, nameof(trans));
 
+            Context = db;
             Transaction = trans;
         }
 
         public DbContextTransaction Transaction { get; private set; }
 
+        public DbContext Context { get; set; }
+
         public TDbContext CreateDbContext<TDbContext>()
             where TDbContext : DbContext, new()
         {
-            var db = new TDbContext();
-            Use(db);
+            var db = (TDbContext)Activator.CreateInstance(typeof(TDbContext), new object[] { Transaction.UnderlyingTransaction.Connection, false });
+            db.Database.UseTransaction(Transaction.UnderlyingTransaction);            
             return db;
-        }
-
-        public void Use(DbContext db)
-        {
-            Guard.ArgNotNull(db, nameof(db));
-
-            db.Database.UseTransaction(Transaction.UnderlyingTransaction);
-        }
+        }       
     }
 
     public static class DbRepositoryExtensions
@@ -167,10 +164,9 @@ namespace Casimodo.Lib.Data
             {
                 try
                 { 
-                    var context = new DbTransactionContext(trans);
-                    action(context);
+                    action(new DbTransactionContext(Context, trans));
 
-                trans.Commit();
+                    trans.Commit();
                 }
                 catch
                 {
@@ -180,13 +176,13 @@ namespace Casimodo.Lib.Data
             }
         }
 
-        public async Task PerformTransactionAsync(Func<Task> action)
+        public async Task PerformTransactionAsync(Func<DbTransactionContext, Task> action)
         {
             using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 try
                 {
-                    await action();
+                    await action(new DbTransactionContext(Context, trans));
 
                     trans.Commit();
                 }

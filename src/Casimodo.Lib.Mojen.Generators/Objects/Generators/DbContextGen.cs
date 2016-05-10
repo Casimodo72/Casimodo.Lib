@@ -38,7 +38,7 @@ namespace Casimodo.Lib.Mojen
 
                 ONamespace(config.DataNamespace);
 
-                O($"public partial class {config.DbContextName}: DbContext");
+                O($"public partial class {config.DbContextName}: CustomDbContext");
                 Begin();
 
                 // Constructor
@@ -46,6 +46,11 @@ namespace Casimodo.Lib.Mojen
                 {
                     O($"public {config.DbContextName}(string nameOrConnectionString)");
                     O("    : base(nameOrConnectionString)");
+                    O("{ }");
+
+                    O();
+                    O($"public {config.DbContextName}(DbConnection existingConnection, bool contextOwnsConnection)");
+                    O("    : base(existingConnection, contextOwnsConnection)");
                     O("{ }");
 
                     O();

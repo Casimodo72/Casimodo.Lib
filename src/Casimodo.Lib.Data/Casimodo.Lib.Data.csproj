@@ -123,6 +123,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomDbContext.cs" />
     <Compile Include="DbMigrationSeedBase.cs" />
     <Compile Include="DbRepositoryCore.cs" />
     <Compile Include="DbRepositoryException.cs" />

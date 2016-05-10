@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Data
 {
     public static class DbContextExtensions
     {
-        public static void ReferenceLoading(this DbContext db, bool enabled)
+        public static void UseLazyLoading(this DbContext db, bool enabled)
         {
             db.Configuration.ProxyCreationEnabled = enabled;
             db.Configuration.LazyLoadingEnabled = enabled;
