@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
-    public class CustomDbContext : DbContext
+    public abstract class CustomDbContext : DbContext
     {
         protected CustomDbContext()
         { }

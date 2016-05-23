@@ -12,6 +12,7 @@ namespace Casimodo.Lib.Mojen
             Scope = "DataContext";
 
             Name = "GetNextSequenceValue";
+            ItemName = "item";
 
             // Select types which have sequence props with parameterized constraints or start value selectors.
             SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)

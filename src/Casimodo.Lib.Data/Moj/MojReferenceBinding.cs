@@ -9,6 +9,7 @@ namespace Casimodo.Lib.Data
         Loose = 1 << 0, // Loose or Nested
         Nested = 1 << 1,
         Associated = 1 << 2, // Associated or Owned
-        Owned = 1 << 3
+        Owned = 1 << 3,
+        Independent = 1 << 4
     }
 }

@@ -15,6 +15,7 @@ namespace Casimodo.Lib.Mojen
             Name = "OnSaving.CheckUnique";
             OnAnyTypeMethodName = "OnSavingCheckUniqueAny";
             OnTypeMethodName = "OnSavingCheckUnique";
+            ItemName = "item";
 
             SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
             {

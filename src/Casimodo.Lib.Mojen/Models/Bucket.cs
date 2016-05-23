@@ -8,13 +8,16 @@ using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
-    [DataContract(Namespace = MojContract.Ns)]
+    //[DataContract(Namespace = MojContract.Ns)]
     public enum MojDefaultValueCommon
     {
-        [EnumMember]
+        //[EnumMember]
         None = 0,
 
-        [EnumMember]
-        CurrentYear
+        //[EnumMember]
+        CurrentYear,
+
+        //[EnumMember]
+        CurrentUser
     }
 }

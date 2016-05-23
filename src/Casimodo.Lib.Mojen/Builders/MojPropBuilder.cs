@@ -356,7 +356,7 @@ namespace Casimodo.Lib.Mojen
             return Attr(new MojAttr("RegularExpression", 6).CSArg("pattern", pattern, verbatim: true).ErrorArg(error));
             // RegularExpression(expression) { ErrorMessage = error };
         }
-
+       
         public TPropBuilder DefaultValueOnEdit(MojDefaultValueCommon value)
         {
             return DefaultValueCore(value, "OnEdit");
@@ -369,7 +369,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public TPropBuilder DefaultValueOnEdit(object value)
-        { 
+        {
             PropConfig.AddDefaultValue(value, "OnEdit");
             return This();
         }

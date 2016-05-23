@@ -165,6 +165,7 @@
     <Compile Include="Infrastructure\Helpers\ObjectTreeHelper.cs" />
     <Compile Include="Infrastructure\JsExtensions.cs" />
     <Compile Include="Infrastructure\ODataExtensions.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnSaving.MiscGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.RestoreIsCascadeDeleted.CascadeGen.cs" />
     <Compile Include="Objects\Generators\JsAnyKeysGen.cs" />
     <Compile Include="Objects\Generators\DbContextCreateMapGen.cs" />

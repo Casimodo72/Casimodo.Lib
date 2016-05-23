@@ -48,6 +48,8 @@ namespace Casimodo.Lib.Mojen
 
         public string Name { get; set; }
 
+        public string ItemName { get; set; }
+
         public string OnAnyTypeMethodName { get; set; }
 
         public Func<DbRepoCoreGenBase, string> AnyTypeMethodCall { get; set; } =
@@ -147,7 +149,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var typeItem in items)
             {
                 var type = typeItem.Type;
-                string item = "parent"; // type.VName;
+                string item = ItemName ?? "parent"; // type.VName;
 
                 O(TypeMethod(this, type, item));
                 Begin();

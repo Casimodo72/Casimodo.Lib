@@ -152,6 +152,12 @@ namespace Casimodo.Lib.Data
         public Guid TypeId { get; set; }
     }
 
+    public class DbRepoCurrentUserInfo
+    {
+        public Guid UserId { get; set; }
+        public string UserName { get; set; }
+    }
+
     public abstract class DbRepositoryCore
     {
         public DateTimeOffset GetTime()
@@ -169,6 +175,11 @@ namespace Casimodo.Lib.Data
         }
 
         public abstract DbRepoOperationContext CreateOperationContext(object item, DbRepoOp op, DbContext db, MojDataGraphMask mask = null);
+
+        public virtual DbRepoCurrentUserInfo GetCurrentUserInfo()
+        {
+            throw new NotImplementedException();
+        }
 
         public object UpdateUsingMask(DbRepoOperationContext ctx)
         {
@@ -694,6 +705,12 @@ namespace Casimodo.Lib.Data
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException($"Der Wert für '{display}' darf nicht größer als {value} sein.");
+        }
+
+        public void ThrowStaticUserIdPropMustNotBeModified<T>(string prop)
+        {
+            var display = HProp.Display(typeof(T), prop).Text;
+            throw new DbRepositoryException($"Die User-Identifikations-Eigenschaft '{display}' darf nicht mehr verändert werden.");
         }
     }
 }

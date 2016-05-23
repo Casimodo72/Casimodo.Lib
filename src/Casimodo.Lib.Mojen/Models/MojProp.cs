@@ -653,6 +653,10 @@ namespace Casimodo.Lib.Mojen
         [MapFromModel]
         public bool IsGroupable { get; set; }
 
+        [DataMember]
+        [MapFromModel]
+        public bool IsCurrentLoggedInPerson { get; set; }
+
         public bool IsDataMember
         {
             get { return Attrs.Any(x => x.Name == "DataMember"); }

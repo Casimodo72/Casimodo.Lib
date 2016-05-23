@@ -122,34 +122,42 @@ namespace Casimodo.Lib.Mojen
                     O($"{item}.HasMany(x => x.{prop.Name})");
                     Push();
 
-                    var backrefCount = prop.Reference.ToType.GetBackReferenceProps().Count();
-                    if (prop.Reference.ToType.WillHaveManyParents == true ||
-                        // Case 1:
-                        backrefCount > 1 ||
-                        (backrefCount == 1 && prop.Reference.ToType.GetBackReferenceProps().First().Rules.IsNotRequired))
+                    if (prop.Reference.Binding.HasFlag(MojReferenceBinding.Independent))
                     {
-                        // Case 1: If the target type has multiple back reference foreign keys then
-                        //   those foreign keys must be optional, because mostly only
-                        //   one of those foreign keys applies and is set.
-                        //   E.g. Job has many WorkTimes and BreakTimes.
-                        //     The target JobTimeRange has *two* back references - foreign keys - back to Job:
-                        //     JobTimeRange.WorkTimeOfJobId and JobTimeRange.BreakTimeOfJobId
-                        //     Only one of those foreign keys can be set. Either the JobTimeRange
-                        //     represents the work-time of a Job or the break-time of a Job.
-
                         O($".WithOptional()");
                     }
                     else
-                        O($".WithRequired()");
+                    {
+                        var backrefCount = prop.Reference.ToType.GetBackReferenceProps().Count();
+                        if (prop.Reference.ToType.WillHaveManyParents == true ||
+                            // Case 1:
+                            backrefCount > 1 ||
+                            (backrefCount == 1 && prop.Reference.ToType.GetBackReferenceProps().First().Rules.IsNotRequired))
+                        {
+                            // Case 1: If the target type has multiple back reference foreign keys then
+                            //   those foreign keys must be optional, because mostly only
+                            //   one of those foreign keys applies and is set.
+                            //   E.g. Job has many WorkTimes and BreakTimes.
+                            //     The target JobTimeRange has *two* back references - foreign keys - back to Job:
+                            //     JobTimeRange.WorkTimeOfJobId and JobTimeRange.BreakTimeOfJobId
+                            //     Only one of those foreign keys can be set. Either the JobTimeRange
+                            //     represents the work-time of a Job or the break-time of a Job.
 
-                    // Specify the back reference property.
-                    O($".HasForeignKey(y => y.{prop.Reference.ChildToParentProp.ForeignKey.Name})");
+                            O($".WithOptional()");
+                        }
+                        else
+                            O($".WithRequired()");
+
+                        // Specify the back reference property.
+                        O($".HasForeignKey(y => y.{prop.Reference.ChildToParentProp.ForeignKey.Name})");
+
+                    }
 
                     // KABU TODO: REMOVE? This was intended for polymorphic associations, which do not work the way we want them anyway.
                     //else O($".HasForeignKey(y => y.{prop.Reference.ChildToParentReferenceProp.Name})");
 
                     // KABU TODO: REVISIT: When we move to EF7, we need to evaluate
-                    //   how no-sql databases handle deletion. Only then we will decide whether
+                    //   how no-sql databases handle deletion. Only then will we decide whether
                     //   to hand over cascades to the DB.
                     // We will hande cascading deletion ourselves, so turn it of at DB level.
                     O(".WillCascadeOnDelete(false);");

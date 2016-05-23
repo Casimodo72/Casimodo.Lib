@@ -34,7 +34,7 @@ namespace Casimodo.Lib.Mojen
 
             PerformWrite(outputFilePath, () =>
             {
-                OUsing("System", "System.Data.Entity");
+                OUsing("System", "System.Data.Common", "System.Data.Entity", "Casimodo.Lib.Data");
 
                 ONamespace(config.DataNamespace);
 
@@ -46,22 +46,26 @@ namespace Casimodo.Lib.Mojen
                 {
                     O($"public {config.DbContextName}(string nameOrConnectionString)");
                     O("    : base(nameOrConnectionString)");
-                    O("{ }");
+                    Begin();
+                    O("OnCreatingMain();");
+                    End();
 
                     O();
                     O($"public {config.DbContextName}(DbConnection existingConnection, bool contextOwnsConnection)");
                     O("    : base(existingConnection, contextOwnsConnection)");
-                    O("{ }");
+                    Begin();
+                    O("OnCreatingMain();");
+                    End();
 
                     O();
                     O($"public {config.DbContextName}()");
-                    O($": base(\"{config.DbContextConnectionStringName}\")");
+                    O($"    : base(\"{config.DbContextConnectionStringName}\")");
+                    Begin();
+                    O("OnCreatingMain();");
+                    End();
 
-                    //O("{ }");
-                    //OL();
-                    //O("public {0}(string name)", model.Name);
-                    //O(": base(name)");
-
+                    O();
+                    O("void OnCreatingMain()");
                     Begin();
                     O("// See http://stackoverflow.com/questions/8099949/entity-framework-mvc3-temporarily-disable-validation");
                     O("Configuration.ValidateOnSaveEnabled = false;");

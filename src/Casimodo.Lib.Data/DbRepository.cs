@@ -208,7 +208,7 @@ namespace Casimodo.Lib.Data
         public void ReferenceLoading(bool enabled)
         {
             Context.Configuration.LazyLoadingEnabled = enabled;
-            //Context.Configuration.ProxyCreationEnabled = enabled;
+            Context.Configuration.ProxyCreationEnabled = enabled;
         }
 
         public async Task<int> SaveChangesAsync()

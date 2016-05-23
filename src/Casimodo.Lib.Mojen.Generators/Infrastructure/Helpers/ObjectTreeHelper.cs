@@ -21,13 +21,13 @@ namespace Casimodo.Lib.Mojen
             if (reference.ToType.IsAbstract)
                 return false;
 
+            // KABU TODO: IMPORTANT: Add validation: nested and owned must not have any other axis that "ToChild".
+
             if ((reference.Binding.HasFlag(MojReferenceBinding.Nested) ||
                  reference.Binding.HasFlag(MojReferenceBinding.Owned)))
                 return true;
 
-            if (reference.Axis != MojReferenceAxis.ToChild &&
-                // KABU TODO: TEMPORARY: Just for dev purposes: allow descendants as well.
-                reference.Axis != MojReferenceAxis.ToDescendant)
+            if (reference.Axis != MojReferenceAxis.ToChild)
                 return false;
 
             return true;

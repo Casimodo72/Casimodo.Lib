@@ -44,6 +44,14 @@ namespace Casimodo.Lib.Mojen
             get { return TypeBuilder.TypeConfig; }
         }
 
+        public TPropBuilder IndependentCollectionOf(MojType type)
+        {
+            return CollectionOfCore(type,
+                owned: false,
+                nested: false,
+                independent: true);
+        }
+
         public TPropBuilder CollectionOf(MojType type, bool owned, bool nested,
             bool hiddenNavigation = false,
             // @backrefNew defaults to true, but is nullable because we need to know whether specified.
@@ -129,7 +137,8 @@ namespace Casimodo.Lib.Mojen
                 backref: backref);
         }
 
-        internal TPropBuilder CollectionOfCore(MojType childType, bool owned, bool nested,
+        internal TPropBuilder CollectionOfCore(MojType childType,
+            bool owned, bool nested, bool independent = false,
             MojProp childToParentProp = null,
             bool hiddenParentToChildNavigation = false,
             // @backrefExplicit defaults to true, but is nullable because we need to know whether specified.
@@ -160,10 +169,21 @@ namespace Casimodo.Lib.Mojen
                 // Reference binding
                 // KABU TODO: IMPORTANT: IMPL nested reference binding.
                 var binding = nested ? MojReferenceBinding.Nested : MojReferenceBinding.Loose;
+
                 if (owned)
                     binding |= MojReferenceBinding.Owned;
                 else
                     binding |= MojReferenceBinding.Associated;
+
+                if (independent)
+                    binding |= MojReferenceBinding.Independent;
+
+                var axis = MojReferenceAxis.ToChild;
+
+                // KABU TODO: IMPORTANT: Add validation: nested and owned must not have any other axis that "ToChild".
+                // KABU TODO: VERY IMPORTANT: CLARIFY if also a link if not owned.
+                if (independent)
+                    axis = MojReferenceAxis.Link;
 
                 // Reference
                 PropConfig.Reference = new MojReference
@@ -171,60 +191,63 @@ namespace Casimodo.Lib.Mojen
                     Is = true,
                     Binding = binding,
                     Cardinality = MojCardinality.Many,
-                    Axis = MojReferenceAxis.ToChild,
+                    Axis = axis,
                     ToType = childType,
                     IsNavigation = true
                 };
 
-                if (childToParentProp == null)
+                if (!independent)
                 {
-                    // Add a back-reference property to the child type,
-                    //   otherwise EF will itself auto-generate a crappy foreign key name.
-                    //   Currently the back-reference will *not* be a navigation property.
-                    // KABU TODO: REVISIT: Evaluate scenarios where we would want
-                    //   a navigational back-reference property.
-                    var childToParentNavigation = false;
-
-                    string childToParentPropName;
-                    if (backref != null)
-                        childToParentPropName = backref.RemoveRight("Id");
-                    else if (PropConfig.SingleName == childType.Name || backrefExplicit == false)
-                        childToParentPropName = TypeConfig.Name;
-                    else
-                        childToParentPropName = PropConfig.SingleName + "Of" + TypeConfig.Name;
-
-                    MojPropBuilder pbuilder = null;
-
-                    if (childType.Kind == MojTypeKind.Entity)
+                    if (childToParentProp == null)
                     {
-                        pbuilder =
-                            MojTypeBuilder.Create<MojEntityBuilder>(App, childType)
-                                .Prop(childToParentPropName)
-                                    .ReferenceCore(to: TypeBuilder.TypeConfig,
-                                        axis: MojReferenceAxis.ToParent,
-                                        required: backrefRequired,
-                                        navigation: childToParentNavigation);
+                        // Add a back-reference property to the child type,
+                        //   otherwise EF will itself auto-generate a crappy foreign key name.
+                        //   Currently the back-reference will *not* be a navigation property.
+                        // KABU TODO: REVISIT: Evaluate scenarios where we would want
+                        //   a navigational back-reference property.
+                        var childToParentNavigation = false;
 
-                    }
-                    else if (childType.Kind == MojTypeKind.Model)
-                    {
-                        pbuilder =
-                            MojTypeBuilder.Create<MojModelBuilder>(App, childType)
-                                .Prop(childToParentPropName)
-                                    .ReferenceCore(to: TypeBuilder.TypeConfig,
-                                        axis: MojReferenceAxis.ToParent,
-                                        required: backrefRequired,
-                                        navigation: childToParentNavigation);
-                    }
-                    else throw new MojenException($"Invalid child type kind '{childType.Kind}' for this operation.");
+                        string childToParentPropName;
+                        if (backref != null)
+                            childToParentPropName = backref.RemoveRight("Id");
+                        else if (PropConfig.SingleName == childType.Name || backrefExplicit == false)
+                            childToParentPropName = TypeConfig.Name;
+                        else
+                            childToParentPropName = PropConfig.SingleName + "Of" + TypeConfig.Name;
 
-                    childToParentProp = pbuilder
-                        .PropConfig
-                        // Prefer navigation prop over foreign key prop.
-                        .NavigationOrSelf;
+                        MojPropBuilder pbuilder = null;
+
+                        if (childType.Kind == MojTypeKind.Entity)
+                        {
+                            pbuilder =
+                                MojTypeBuilder.Create<MojEntityBuilder>(App, childType)
+                                    .Prop(childToParentPropName)
+                                        .ReferenceCore(to: TypeBuilder.TypeConfig,
+                                            axis: MojReferenceAxis.ToParent,
+                                            required: backrefRequired,
+                                            navigation: childToParentNavigation);
+
+                        }
+                        else if (childType.Kind == MojTypeKind.Model)
+                        {
+                            pbuilder =
+                                MojTypeBuilder.Create<MojModelBuilder>(App, childType)
+                                    .Prop(childToParentPropName)
+                                        .ReferenceCore(to: TypeBuilder.TypeConfig,
+                                            axis: MojReferenceAxis.ToParent,
+                                            required: backrefRequired,
+                                            navigation: childToParentNavigation);
+                        }
+                        else throw new MojenException($"Invalid child type kind '{childType.Kind}' for this operation.");
+
+                        childToParentProp = pbuilder
+                            .PropConfig
+                            // Prefer navigation prop over foreign key prop.
+                            .NavigationOrSelf;
+                    }
+
+                    PropConfig.Reference.ChildToParentProp = childToParentProp;
                 }
-
-                PropConfig.Reference.ChildToParentProp = childToParentProp;
             }
             else
             {
@@ -479,7 +502,7 @@ namespace Casimodo.Lib.Mojen
             else throw new MojenException($"Unexpected cardinality '{cardinality}'.");
 
             return This();
-        }       
+        }
 
         public TPropBuilder Type(MojType type, bool nullable = true, bool nested = false, bool? required = null,
             // @navigation is implicitly false but we need to know whether specified.
@@ -652,6 +675,7 @@ namespace Casimodo.Lib.Mojen
                 IsForeignKey = true,
                 ForeignKey = referenceProp,
                 Cardinality = nullable ? MojCardinality.OneOrZero : MojCardinality.One,
+                // KABU TODO: IMPORTANT: Add validation: nested and owned must not have any other axis that "ToChild".
                 Axis = axis,
                 ToType = to,
                 ToTypeKey = toKeyProp,
@@ -784,7 +808,7 @@ namespace Casimodo.Lib.Mojen
             var conditionBuilder = new MexConditionBuilder();
             build(conditionBuilder);
             return conditionBuilder.Expression;
-        }        
+        }
 
         public TPropBuilder ReferenceToChildImage(MojType to, bool nullable = true, bool navigation = false)
         {
@@ -926,6 +950,13 @@ namespace Casimodo.Lib.Mojen
         public TPropBuilder Trackable(bool value = true)
         {
             PropConfig.IsTracked = value;
+
+            return This();
+        }
+
+        public TPropBuilder CurrentLoggedInPerson()
+        {
+            PropConfig.IsCurrentLoggedInPerson = true;
 
             return This();
         }

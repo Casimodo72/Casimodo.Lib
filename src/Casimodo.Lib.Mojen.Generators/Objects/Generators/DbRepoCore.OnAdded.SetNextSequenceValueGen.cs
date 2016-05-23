@@ -18,6 +18,7 @@ namespace Casimodo.Lib.Mojen
             Name = "OnAdded.SetNextSequenceValue";
             OnAnyTypeMethodName = "OnAddedSetNextSequenceValueAny";
             OnTypeMethodName = "OnAddedSetNextSequenceValue";
+            ItemName = "item";
             UseRepositoriesContext = false;
 
             // Select types which have sequence props with Unique.PerTypes.
