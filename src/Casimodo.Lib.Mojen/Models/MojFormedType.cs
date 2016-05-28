@@ -56,9 +56,28 @@ namespace Casimodo.Lib.Mojen
             _props = new Dictionary<int, MojProp>(container._props);
         }
 
+        public MojProp GetPickDisplayProp(bool required = true)
+        {
+            var pick = _Type.FindPick();
+            if (pick == null)
+            {
+                if (required)
+                    throw new MojenException($"The type '{_Type.ClassName}' does no pick-display property defined.");
+
+                return null;
+            }
+
+            return Get(pick.DisplayProp);
+        }
+
         public MojProp Get(int index)
         {
             return this[index];
+        }
+
+        public MojProp Get(string name)
+        {
+            return this[_props.First(x => x.Value.Name == name).Key];            
         }
 
         public MojProp this[int index]

@@ -673,6 +673,20 @@ namespace Casimodo.Lib.Mojen
             return prop;
         }
 
+        public MojProp GetPickDisplayProp(bool required = true)
+        {
+            var pick = FindPick();
+            if (pick == null)
+            {
+                if (required)
+                    throw new MojenException($"The type '{ClassName}' does no pick-display property defined.");
+
+                return null;
+            }
+
+            return GetProp(pick.DisplayProp);
+        }
+
         public MojProp FindProp(string name)
         {
             return GetProps().FirstOrDefault(x => x.Name == name);

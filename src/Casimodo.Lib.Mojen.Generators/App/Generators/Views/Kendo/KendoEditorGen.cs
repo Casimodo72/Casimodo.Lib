@@ -397,7 +397,7 @@ namespace Casimodo.Lib.Mojen
                             o(".Value(DateTime.Now.Year)");
                         }
                         else throw new MojenException($"Unexpected common default value '{defaultValue.CommonValue}'.");
-                    }                   
+                    }
                     else throw new MojenException($"Unexpected default value object '{defaultValue.Value}'.");
                 }
 
@@ -602,6 +602,7 @@ namespace Casimodo.Lib.Mojen
         public bool OPropSelector(WebViewGenContext context)
         {
             return
+                OPropTagsSelector(context) ||
                 OPropSnippetSelector(context) ||
                 OPropSequenceSelector(context) ||
                 OPropLookupSelectorDialog(context) ||
@@ -644,6 +645,52 @@ namespace Casimodo.Lib.Mojen
                 o($" data-val-required=\"Das Feld '{GetDisplayNameFor(context)}' ist erforderlich.\"");
             oO(" />");
         }
+
+        public bool OPropTagsSelector(WebViewGenContext context)
+        {
+            var type = context.View.TypeConfig;
+            var info = context.PropInfo;
+            var vprop = info.ViewProp;
+            var prop = info.Prop;
+            var propPath = info.PropPath;
+
+            if (!vprop.IsSelector || !vprop.IsTagsSelector) return false;
+
+            OB("<div class='kmodo-tags-container'>");
+            O($"<div class='kmodo-tags-listview' data-role='listview' data-bind='source: {propPath}' data-template='tag-template'/>");
+            O("<button class='k-button k-add-button'>+</button>");
+            OE("</div>");
+
+            OB("<script id='tag-template' type='text/x-kendo-template'>");
+            OB("<div class='kmodo-tag-item'>");
+            var firstProp = vprop.ContentView?.Props.FirstOrDefault();
+            if (firstProp != null)
+            {                
+                O($"<span>#:{firstProp.FormedNavigationTo.TargetProp.Name}#</span>");
+            }
+            OB("<a class='k-delete-button' href='\\\\#'>");
+            O("<i class='remove glyphicon glyphicon-remove-sign'></i>");
+            OE("</a>");
+            OE("</div>");
+            OE("</script>");
+
+            return true;
+        }
+
+        /*
+         <div style="display: flex">
+                        <div data-role="listview" data-bind="source: Tags" data-template="tag-template" style="flex: 2; display: flex; flex-flow: row wrap" />
+                        <button class="k-button k-add-button">+</button>
+                    </div>
+                    <script type="text/x-kendo-template" id="tag-template">
+                        <div style="display:flex; border: 1px solid gray; border-radius: 4px; margin: 3px">
+                            <div>#:DisplayName#</div>
+                            <a class="k-delete-button" href="\\#">
+                                <i class="remove glyphicon glyphicon-remove-sign glyphicon-white"></i>
+                            </a>
+                        </div>
+                    </script>
+         */
 
         public bool OPropSequenceSelector(WebViewGenContext context)
         {

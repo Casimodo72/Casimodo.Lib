@@ -116,6 +116,8 @@ namespace Casimodo.Lib.Mojen
             get { return Kind.Roles.HasFlag(MojViewRole.Editor); }
         }
 
+        public MojViewConfig RootView { get; set; }
+
         public MojViewConfig EditorView { get; set; }
 
         public bool CanCreate { get; set; }

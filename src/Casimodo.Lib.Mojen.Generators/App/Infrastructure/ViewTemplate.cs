@@ -177,7 +177,7 @@ namespace Casimodo.Lib.Mojen
             if (prop is MojViewProp)
                 return (MojViewProp)prop;
 
-            return ViewBuilder.PropCore(prop, readOnly: readOnly).Prop;
+            return ViewBuilder.SimplePropCore(prop, readOnly: readOnly).Prop;
         }
 
         void StartRun()

@@ -10,6 +10,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder AddSelector(MojType type)
         {
             var view = new MojViewConfig();
+            view.RootView = view;
             view.TypeConfig = type;
             App.Add(view);
 

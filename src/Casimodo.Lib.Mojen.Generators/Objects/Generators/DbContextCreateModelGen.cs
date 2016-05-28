@@ -124,7 +124,14 @@ namespace Casimodo.Lib.Mojen
 
                     if (prop.Reference.Binding.HasFlag(MojReferenceBinding.Independent))
                     {
-                        O($".WithOptional()");
+                        O($".WithMany()");
+
+                        O(".Map(x =>");
+                        Begin();
+                        O($"x.MapLeftKey(\"{type.Name + type.Key.Name}\");");
+                        O($"x.MapRightKey(\"{prop.Reference.ToType.Name + prop.Reference.ToType.Key.Name}\");");
+                        O($"x.ToTable(\"{type.PluralName}2{prop.Reference.ToType.PluralName}\");");
+                        End(");");
                     }
                     else
                     {
@@ -151,16 +158,15 @@ namespace Casimodo.Lib.Mojen
                         // Specify the back reference property.
                         O($".HasForeignKey(y => y.{prop.Reference.ChildToParentProp.ForeignKey.Name})");
 
+                        // KABU TODO: REMOVE? This was intended for polymorphic associations, which do not work the way we want them anyway.
+                        //else O($".HasForeignKey(y => y.{prop.Reference.ChildToParentReferenceProp.Name})");
+
+                        // KABU TODO: REVISIT: When we move to EF7, we need to evaluate
+                        //   how no-sql databases handle deletion. Only then will we decide whether
+                        //   to hand over cascades to the DB.
+                        // We will hande cascading deletion ourselves, so turn it of at DB level.
+                        O(".WillCascadeOnDelete(false);");
                     }
-
-                    // KABU TODO: REMOVE? This was intended for polymorphic associations, which do not work the way we want them anyway.
-                    //else O($".HasForeignKey(y => y.{prop.Reference.ChildToParentReferenceProp.Name})");
-
-                    // KABU TODO: REVISIT: When we move to EF7, we need to evaluate
-                    //   how no-sql databases handle deletion. Only then will we decide whether
-                    //   to hand over cascades to the DB.
-                    // We will hande cascading deletion ourselves, so turn it of at DB level.
-                    O(".WillCascadeOnDelete(false);");
 
                     Pop();
                 }

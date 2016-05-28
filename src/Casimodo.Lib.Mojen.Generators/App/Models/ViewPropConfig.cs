@@ -47,13 +47,9 @@ namespace Casimodo.Lib.Mojen
             // bool lookupable = false,
             bool column = false,
             bool isGroupedByTarget = true,
-            bool alias = false)
+            bool alias = false,
+            bool allowCollections = false)
         {
-            if (vprop.Name == "NextTask")
-            {
-
-            }
-
             var navigationTo = vprop.FormedNavigationTo;
 
             if (!navigationTo.Is)
@@ -75,7 +71,7 @@ namespace Casimodo.Lib.Mojen
             if (navigationTo.TargetProp == null)
                 throw new MojenException("The navigation path has no target property.");
 
-            if (navigationTo.Steps.Any(x => !x.SourceProp.Reference.IsToOne))
+            if (!allowCollections && navigationTo.Steps.Any(x => !x.SourceProp.Reference.IsToOne))
                 throw new MojenException("The navigation path must consist only of references with cardinality One or OneOrZero.");
 
             if (selectable)
@@ -94,18 +90,7 @@ namespace Casimodo.Lib.Mojen
                     throw new MojenException("The navigation path must end after the first loose reference.");
 
                 return BuildForeignKeyInfo(vprop, step);
-            }
-            // KABU TODO: REMOVE: @lookupable is not used anywhere.
-            //else if (lookupable)
-            //{
-            //var step = vprop.FormedNavigationTo.Last;
-            //if (step != null)
-            //{
-            //    if (step.TargetProp == null)
-            //        throw new MojenException("The navigation path's last step has no target property assigned.");
-            //    return BuildForeignKeyInfo(vprop, step);
-            //}
-            //}
+            }           
 
             var targetType = navigationTo.TargetType;
             var targetDisplayProp = navigationTo.TargetProp;
@@ -308,6 +293,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsHeader { get; set; }
 
         public bool IsSelector { get; set; }
+        public bool IsTagsSelector { get; set; }
 
         public GeoPlaceLookupConfig GeoPlaceLookup { get; set; } = GeoPlaceLookupConfig.None;
 
@@ -328,6 +314,11 @@ namespace Casimodo.Lib.Mojen
         public bool IsExternal { get; set; }
 
         public MojFontWeight FontWeight { get; set; }
+
+        /// <summary>
+        /// In case of collection properties this will hold the collection item view.
+        /// </summary>
+        public MojViewConfig ContentView { get; set; }
 
         public string GetHideModesMarker()
         {

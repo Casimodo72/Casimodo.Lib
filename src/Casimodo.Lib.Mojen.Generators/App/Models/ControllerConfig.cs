@@ -90,6 +90,24 @@ namespace Casimodo.Lib.Mojen
             return view;
         }
 
+        IEnumerable<MojViewProp> GetViewPropsDeep(IEnumerable<MojViewConfig> views)
+        {
+            foreach (var view in views)
+            {
+                foreach (var prop in view.Props)
+                {
+                    yield return prop;
+
+                    // Yield properties of sub-views.
+                    if (prop.ContentView != null)
+                    {
+                        foreach (var p in GetViewPropsDeep(Enumerable.Repeat(prop.ContentView, 1)))
+                            yield return p;
+                    }
+                }
+            }
+        }
+
         public MojDataGraphNode[] BuildDataGraphForRead(string viewGroup)
         {
             // Filter out non-exposable properties.
@@ -97,7 +115,8 @@ namespace Casimodo.Lib.Mojen
             // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
 
             // Get the properties actually used in the views.            
-            var viewProps = Views.Where(x => x.Group == viewGroup).SelectMany(x => x.Props).ToList();
+            var viewProps = GetViewPropsDeep(Views.Where(x => x.Group == viewGroup)).ToList();
+
             var props = viewProps.Select(x => x.Model).ToList();
             var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();
 

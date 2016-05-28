@@ -6,31 +6,55 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class MojViewPropBuilder
+    public class MojViewCollectionPropBuilder : MojViewPropBuilderBase<MojViewCollectionPropBuilder>
     {
-        MojViewBuilder _view;
-
-        public static MojViewPropBuilder Create(MojViewBuilder view, MojProp prop)
+        public static MojViewCollectionPropBuilder Create(MojViewBuilder itemViewBuilder, MojFormedType type, MojProp prop)
         {
-            var builder = new MojViewPropBuilder();
-            builder.Initialize(view, null, prop);
+            var builder = new MojViewCollectionPropBuilder();
+            builder.Initialize(itemViewBuilder, null, prop);
+            builder.FormedType = type;
 
             return builder;
         }
 
-        public static MojViewPropBuilder Create(MojViewBuilder view, MojViewProp vprop)
-        {
-            var builder = new MojViewPropBuilder();
-            builder.Initialize(view, vprop, null);
+        MojFormedType FormedType { get; set; }
 
-            return builder;
+        public MojViewCollectionPropBuilder TagsSelector()
+        {
+            Prop.IsSelector = true;
+            Prop.IsTagsSelector = true;
+
+            // KABU TODO: REMOVE
+            // Add the required pick-display property to the view.
+            //ViewBuilder.Prop(FormedType.GetPickDisplayProp(), hidden: true);
+
+            return This();
         }
 
+        public void Content(Action<MojViewBuilder> build)
+        {
+            var contentView = new MojViewConfig();
+            contentView.RootView = View.RootView;
+            contentView.TypeConfig = View.TypeConfig;
+            var contentViewBuilder = new MojViewBuilder(contentView);
+            contentView.Template.ViewBuilder = contentViewBuilder;
+
+            build(contentViewBuilder);
+
+            Prop.ContentView = contentViewBuilder.Build();
+        }
+    }
+
+    public abstract class MojViewPropBuilderBase<TBuilder>
+        where TBuilder : MojViewPropBuilderBase<TBuilder>
+    {
         static readonly List<string> CloneFromModelExcludedProps = new List<string> { };
 
-        void Initialize(MojViewBuilder view, MojViewProp viewProp, MojProp sourceProp)
+        protected MojViewBuilder _viewBuilder;
+
+        protected virtual void Initialize(MojViewBuilder viewBuilder, MojViewProp viewProp, MojProp sourceProp)
         {
-            _view = view;
+            _viewBuilder = viewBuilder;
             if (viewProp != null)
                 Prop = viewProp;
             else
@@ -42,7 +66,7 @@ namespace Casimodo.Lib.Mojen
 
                 var flags = BindingFlags.Instance | BindingFlags.Public;
 
-                // Properties
+                // Assign property values from MojProp to MojViewProp.
                 foreach (var p in sourceProp.GetType().GetProperties(flags))
                 {
                     if (CloneFromModelExcludedProps.Contains(p.Name))
@@ -70,37 +94,89 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewProp Prop { get; private set; }
 
-        public MojViewPropBuilder Label(string label)
+        protected TBuilder This()
+        {
+            return (TBuilder)this;
+        }
+
+        protected MojType TypeConfig
+        {
+            get { return _viewBuilder.View.TypeConfig; }
+        }
+
+        protected MojViewConfig View
+        {
+            get { return _viewBuilder.View; }
+        }
+
+        protected MojViewBuilder ViewBuilder
+        {
+            get { return _viewBuilder; }
+        }
+
+        public TBuilder Label(string label)
         {
             Prop.DisplayLabel = label;
 
-            return this;
+            return This();
+        }
+
+        public TBuilder UseCustomTemplate(string name)
+        {
+            Prop.CustomTemplateName = name;
+
+            return This();
+        }
+
+        public TBuilder ShowIf(MojProp prop)
+        {
+            // KABU TODO: IMPL?
+
+            return This();
+        }
+
+        public TBuilder ShowIf(MojFormedType type)
+        {
+            // KABU TODO: IMPL?
+
+            return This();
+        }
+
+        public TBuilder HideOn(MojViewMode mode)
+        {
+            Prop.HideModes = mode;
+            return This();
+        }
+
+        public TBuilder ShowOn(MojViewMode mode)
+        {
+            //Prop.ShowModes = mode;
+            Prop.HideModes = MojViewMode.All & ~mode;
+            return This();
+        }
+    }
+
+    public class MojViewPropBuilder : MojViewPropBuilderBase<MojViewPropBuilder>
+    {
+        public static MojViewPropBuilder Create(MojViewBuilder view, MojProp prop)
+        {
+            var builder = new MojViewPropBuilder();
+            builder.Initialize(view, null, prop);
+
+            return builder;
+        }
+
+        public static MojViewPropBuilder Create(MojViewBuilder view, MojViewProp vprop)
+        {
+            var builder = new MojViewPropBuilder();
+            builder.Initialize(view, vprop, null);
+
+            return builder;
         }
 
         public MojViewPropBuilder DefaultValue(object value)
         {
             Prop.AddDefaultValue(value, "OnEdit");
-            return this;
-        }
-
-        public MojViewPropBuilder UseCustomTemplate(string name)
-        {
-            Prop.CustomTemplateName = name;
-
-            return this;
-        }
-
-        public MojViewPropBuilder ShowIf(MojProp prop)
-        {
-            // KABU TODO: IMPL?
-
-            return this;
-        }
-
-        public MojViewPropBuilder ShowIf(MojFormedType type)
-        {
-            // KABU TODO: IMPL?
-
             return this;
         }
 
@@ -151,16 +227,6 @@ namespace Casimodo.Lib.Mojen
             Prop.Width = width;
 
             return this;
-        }
-
-        MojType TypeConfig
-        {
-            get { return _view.View.TypeConfig; }
-        }
-
-        MojViewConfig View
-        {
-            get { return _view.View; }
         }
 
         public MojViewPropBuilder IsHtml()
@@ -249,26 +315,6 @@ namespace Casimodo.Lib.Mojen
         {
             Prop.FontWeight = MojFontWeight.Bold;
 
-            return this;
-        }
-
-        public MojViewPropBuilder HideOn(MojViewMode mode)
-        {
-            Prop.HideModes = mode;
-            return this;
-        }
-
-        // KABU TODO: REMOVE
-        //public MojViewPropBuilder Hidden()
-        //{
-        //    Prop.HideModes = MojViewMode.All;
-        //    return this;
-        //}
-
-        public MojViewPropBuilder ShowOn(MojViewMode mode)
-        {
-            //Prop.ShowModes = mode;
-            Prop.HideModes = MojViewMode.All & ~mode;
             return this;
         }
 

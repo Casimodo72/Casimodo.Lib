@@ -524,9 +524,42 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewCollectionPropBuilder ListProp(MojFormedType type)
+        {
+            var collectionProp = type.FormedNavigationFrom.Last.SourceProp;
+            if (!collectionProp.Reference.IsToMany)
+                throw new MojenException("The given property must be a collection property.");
+
+            collectionProp = AnyPropCore(collectionProp, readOnly: false, hidden: false);
+
+            // KABU TODO: REMOVE: We can't do that because there are cases
+            //  when we want the same property to appear twice.
+#if (false)
+            // If an already added property is requested, then return that.
+            MojViewProp existingProp = View.FindSameProp(prop);
+            if (existingProp != null)
+                return MojViewPropBuilder.Create(this, existingProp);
+#endif
+
+            // Add view for the collection item.
+           
+            var collectionPropBuilder = MojViewCollectionPropBuilder.Create(this, type, collectionProp);
+            var collectionViewProp = collectionPropBuilder.Prop;
+
+            // Add collection prop to view.
+            View.Props.Add(collectionViewProp);
+            collectionViewProp.Position = View.Props.Count;
+            // Add collection prop to view template.
+            View.Template.Label(collectionViewProp);
+            View.Template.o(collectionViewProp);
+            View.Template.EndRun();            
+
+            return collectionPropBuilder;
+        }
+
         public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool external = false)
         {
-            var pbuilder = PropCore(prop, hidden: hidden);
+            var pbuilder = SimplePropCore(prop, hidden: hidden);
 
             if (hidden || external)
             {
@@ -548,7 +581,30 @@ namespace Casimodo.Lib.Mojen
             return pbuilder;
         }
 
-        internal MojViewPropBuilder PropCore(MojProp prop, bool readOnly = false, bool hidden = false)
+        internal MojViewPropBuilder SimplePropCore(MojProp prop, bool readOnly = false, bool hidden = false)
+        {
+            prop = AnyPropCore(prop, readOnly, hidden);
+
+            // KABU TODO: REMOVE: We can't do that because there are cases
+            //  when we want the same property to appear twice.
+#if (false)
+            // If an already added property is requested, then return that.
+            MojViewProp existingProp = View.FindSameProp(prop);
+            if (existingProp != null)
+                return MojViewPropBuilder.Create(this, existingProp);
+#endif
+
+            var pbuilder = MojViewPropBuilder.Create(this, prop);
+            View.Props.Add(pbuilder.Prop);
+            pbuilder.Prop.Position = View.Props.Count;
+
+            if (readOnly)
+                pbuilder.ReadOnly();
+
+            return pbuilder;
+        }
+
+        internal MojProp AnyPropCore(MojProp prop, bool readOnly = false, bool hidden = false)
         {
             if (prop.Reference.Is && prop.Reference.ForeignKey == prop && !hidden)
             {
@@ -572,23 +628,7 @@ namespace Casimodo.Lib.Mojen
                 prop = naviProp;
             }
 
-            // KABU TODO: REMOVE: We can't do that because there are cases
-            //  when we want the same property to appear twice.
-#if (false)
-            // If an already added property is requested, then return that.
-            MojViewProp existingProp = View.FindSameProp(prop);
-            if (existingProp != null)
-                return MojViewPropBuilder.Create(this, existingProp);
-#endif
-
-            var pbuilder = MojViewPropBuilder.Create(this, prop);
-            View.Props.Add(pbuilder.Prop);
-            pbuilder.Prop.Position = View.Props.Count;
-
-            if (readOnly)
-                pbuilder.ReadOnly();
-
-            return pbuilder;
+            return prop;
         }
 
         public MojViewBuilder Grid(Action content)
