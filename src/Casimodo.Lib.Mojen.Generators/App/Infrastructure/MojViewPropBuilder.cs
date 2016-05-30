@@ -19,14 +19,17 @@ namespace Casimodo.Lib.Mojen
 
         MojFormedType FormedType { get; set; }
 
-        public MojViewCollectionPropBuilder TagsSelector()
+        public MojViewCollectionPropBuilder TagSelector(string viewId)
         {
             Prop.IsSelector = true;
             Prop.IsTagsSelector = true;
 
-            // KABU TODO: REMOVE
-            // Add the required pick-display property to the view.
-            //ViewBuilder.Prop(FormedType.GetPickDisplayProp(), hidden: true);
+            Prop.Lookup = new MojLookupViewPropConfig
+            {
+                Is = true,
+                TargetType = Prop.Reference.ToType,
+                ViewId = viewId
+            };
 
             return This();
         }
@@ -206,14 +209,7 @@ namespace Casimodo.Lib.Mojen
             Prop.RowCount = value;
 
             return this;
-        }
-
-        public MojViewPropBuilder Position(int position)
-        {
-            Prop.Position = position;
-
-            return this;
-        }
+        }       
 
         public MojViewPropBuilder Sortable(bool sortable = true)
         {
@@ -388,10 +384,16 @@ namespace Casimodo.Lib.Mojen
         /// so IMPL definition of lookups without having to specify a property.
         /// </summary>
         /// <returns></returns>
-        public MojViewPropBuilder Lookup(string group = null)
+        public MojViewPropBuilder Lookup(string group = null, string viewId = null)
         {
             Prop.IsSelector = true;
-            Prop.Lookup = new MojLookupViewPropConfig { Is = true, ViewGroup = group };
+            Prop.Lookup = new MojLookupViewPropConfig
+            {
+                Is = true,
+                TargetType = Prop.FormedNavigationTo.TargetType,
+                ViewGroup = group,
+                ViewId = viewId
+            };
 
             return this;
         }

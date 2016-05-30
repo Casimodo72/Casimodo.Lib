@@ -117,11 +117,16 @@ namespace Casimodo.Lib.Mojen
             // Get the properties actually used in the views.            
             var viewProps = GetViewPropsDeep(Views.Where(x => x.Group == viewGroup)).ToList();
 
-            var props = viewProps.Select(x => x.Model).ToList();
-            var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();
+            var props = new List<MojProp>();
+            //props.AddRange(viewProps.Select(x => x.Model));
+            props.AddRange(viewProps);
 
+            // KABU TODO: IMPORTANT: IMPL predicates at OData query level.
+            //var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();
+
+            // KABU TODO: REMOVE
             // Expand related file reference properties.
-            props.AddRange(props.ToArray().Where(x => x.FileRef.Is).SelectMany(x => x.AutoRelatedProps));
+            //props.AddRange(props.ToArray().Where(x => x.FileRef.Is).SelectMany(x => x.AutoRelatedProps));
 
             foreach (var prop in props)
             {
@@ -137,6 +142,8 @@ namespace Casimodo.Lib.Mojen
 
         public XElement BuildDataGraphMaskForUpdate(string viewGroup = null)
         {
+            // KABU TODO: Exclude read-only properties like CreatedOn, ModifiedOn, etc.
+
             // Operate on the entity type.
             var type = TypeConfig.RequiredStore;
 
@@ -169,23 +176,33 @@ namespace Casimodo.Lib.Mojen
 
                 if (reference != null)
                 {
-                    if (reference.SourceProp.Reference.IsToMany)
-                    {
-                        // KABU TODO: IMPORTANT: REVISIT: Currently we don't support updates of collection properties.
-                        continue;
-                    }
-
                     // Operate on entity types.
                     var targetType = reference.TargetType.RequiredStore;
 
-                    yield return new XElement("Ref",
-                        new XAttribute("Name", reference.SourceProp.Name),
-                        new XAttribute("Binding", reference.SourceProp.Reference.Binding),
-                        new XAttribute("Cardinality", reference.SourceProp.Reference.Cardinality),
-                        new XAttribute("ForeignKey", reference.SourceProp.Reference.ForeignKey.Name),
-                        new XElement("To",
-                            new XAttribute("Type", targetType.QualifiedClassName),
-                            BuildDataMaskCore(reference.TargetItems)));
+                    if (reference.SourceProp.Reference.IsToMany)
+                    {
+                        // Collections
+                        // KABU TODO: Currently we only support updates of independent collections.
+                        if (reference.SourceProp.Reference.IsIdependent)
+                        {
+                            yield return new XElement("Ref",
+                                new XAttribute("Name", reference.SourceProp.Name),
+                                new XAttribute("Binding", reference.SourceProp.Reference.Binding),
+                                new XAttribute("Cardinality", reference.SourceProp.Reference.Cardinality),
+                                //new XAttribute("ForeignKey", reference.SourceProp.Reference.ForeignKey.Name),
+                                new XElement("To", new XAttribute("Type", targetType.QualifiedClassName)));
+                        }
+                    }
+                    else {
+                        yield return new XElement("Ref",
+                            new XAttribute("Name", reference.SourceProp.Name),
+                            new XAttribute("Binding", reference.SourceProp.Reference.Binding),
+                            new XAttribute("Cardinality", reference.SourceProp.Reference.Cardinality),
+                            new XAttribute("ForeignKey", reference.SourceProp.Reference.ForeignKey.Name),
+                            new XElement("To",
+                                new XAttribute("Type", targetType.QualifiedClassName),
+                                BuildDataMaskCore(reference.TargetItems)));
+                    }
                 }
                 else
                 {

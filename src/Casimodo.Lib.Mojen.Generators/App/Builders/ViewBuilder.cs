@@ -526,11 +526,27 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewCollectionPropBuilder ListProp(MojFormedType type)
         {
-            var collectionProp = type.FormedNavigationFrom.Last.SourceProp;
-            if (!collectionProp.Reference.IsToMany)
+            // Check for collection prop.
+            var prop = type.FormedNavigationFrom.Last.SourceProp;
+            if (!prop.Reference.IsToMany)
                 throw new MojenException("The given property must be a collection property.");
 
-            collectionProp = AnyPropCore(collectionProp, readOnly: false, hidden: false);
+            if (!View.TypeConfig.IsNativeProp(prop))
+                throw new MojenException($"The collection property '{prop}' is not a member of type '{View.TypeConfig.ClassName}'.");
+
+            var path = new MojFormedNavigationPath
+            {                
+                Steps = new List<MojFormedNavigationPathStep>()
+            };
+            path.AddStep(new MojFormedNavigationPathStep
+            {
+                SourceType = View.TypeConfig,
+                SourceProp = prop,
+                TargetType = prop.Reference.ToType,
+                //TargetProp = prop
+            });
+            path.Build();
+            path.IsForeign = false;
 
             // KABU TODO: REMOVE: We can't do that because there are cases
             //  when we want the same property to appear twice.
@@ -542,17 +558,18 @@ namespace Casimodo.Lib.Mojen
 #endif
 
             // Add view for the collection item.
-           
-            var collectionPropBuilder = MojViewCollectionPropBuilder.Create(this, type, collectionProp);
-            var collectionViewProp = collectionPropBuilder.Prop;
+
+            var collectionPropBuilder = MojViewCollectionPropBuilder.Create(this, type, prop);
+            var vprop = collectionPropBuilder.Prop;
+            vprop.FormedNavigationTo = path;
 
             // Add collection prop to view.
-            View.Props.Add(collectionViewProp);
-            collectionViewProp.Position = View.Props.Count;
+            View.Props.Add(vprop);
+            vprop.Position = View.Props.Count;
             // Add collection prop to view template.
-            View.Template.Label(collectionViewProp);
-            View.Template.o(collectionViewProp);
-            View.Template.EndRun();            
+            View.Template.Label(vprop);
+            View.Template.o(vprop);
+            View.Template.EndRun();
 
             return collectionPropBuilder;
         }
@@ -569,6 +586,7 @@ namespace Casimodo.Lib.Mojen
                     pbuilder.ReadOnly();
                 }
 
+                // KABU TODO: Why do I set IsExternal for all hidden properties?
                 pbuilder.Prop.IsExternal = external;
             }
             else
@@ -583,7 +601,29 @@ namespace Casimodo.Lib.Mojen
 
         internal MojViewPropBuilder SimplePropCore(MojProp prop, bool readOnly = false, bool hidden = false)
         {
-            prop = AnyPropCore(prop, readOnly, hidden);
+            CheckNotForeignKeyProp(prop, hidden);
+
+            if (!View.TypeConfig.IsAccessibleFromThis(prop))
+                throw new MojenException($"Property '{prop}' cannot be accessed from type '{View.TypeConfig.ClassName}'.");
+
+            var path = prop.FormedNavigationFrom;
+
+            if (View.TypeConfig.IsForeign(prop))
+            {
+
+                // Get and clone root property of navigation path, which is the native property of the current MojType.
+
+                // NOTE: This will create multiple clones of the same navigation property
+                //   if the navigation property is used to access different foreign properties.
+                // NOTE: Thus, elsewhere: group by property name never by property instance.
+                //var nativeProp = prop.FormedNavigationFrom.Root.SourceProp.Clone();
+
+                // KABU TODO: Why do I set FormedNavigationTo on the type's property and not only on the view-property?
+                //nativeProp.FormedNavigationTo = prop.FormedNavigationFrom;
+                //prop = nativeProp;
+
+                prop = prop.FormedNavigationFrom.Root.SourceProp;
+            }
 
             // KABU TODO: REMOVE: We can't do that because there are cases
             //  when we want the same property to appear twice.
@@ -595,6 +635,7 @@ namespace Casimodo.Lib.Mojen
 #endif
 
             var pbuilder = MojViewPropBuilder.Create(this, prop);
+            pbuilder.Prop.FormedNavigationTo = path;
             View.Props.Add(pbuilder.Prop);
             pbuilder.Prop.Position = View.Props.Count;
 
@@ -602,33 +643,15 @@ namespace Casimodo.Lib.Mojen
                 pbuilder.ReadOnly();
 
             return pbuilder;
-        }
+        }       
 
-        internal MojProp AnyPropCore(MojProp prop, bool readOnly = false, bool hidden = false)
+        void CheckNotForeignKeyProp(MojProp prop, bool hidden)
         {
-            if (prop.Reference.Is && prop.Reference.ForeignKey == prop && !hidden)
+            if (prop.Reference.IsForeignKey && !hidden)
             {
                 if (!prop.FileRef.Is && !View.IsCustom)
-                    throw new MojenException("Foreign key properties must not be used when building views.");
+                    throw new MojenException("Non-hidden foreign key properties must not be used when building views.");
             }
-
-            if (!View.TypeConfig.IsAccessibleFromThis(prop))
-                throw new MojenException($"Property '{prop}' cannot be accessed from type '{View.TypeConfig.ClassName}'.");
-
-            if (View.TypeConfig.IsForeign(prop))
-            {
-                // Get and clone root property of navigation path.
-
-                // NOTE: This will create multiple clones of the same navigation property
-                //   if the navigation property is used to access different foreign properties.
-                // NOTE: Thus, elsewhere: group by property name never by property instance.
-                var naviProp = prop.FormedNavigationFrom.Root.SourceProp.Clone();
-
-                naviProp.FormedNavigationTo = prop.FormedNavigationFrom;
-                prop = naviProp;
-            }
-
-            return prop;
         }
 
         public MojViewBuilder Grid(Action content)

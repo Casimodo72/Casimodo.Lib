@@ -32,7 +32,7 @@ namespace Casimodo.Lib.Data
             reference.Name = (string)elem.Attr("Name");
             reference.Binding = elem.EnumAttr<MojReferenceBinding>("Binding");
             reference.Cardinality = elem.EnumAttr<MojCardinality>("Cardinality");
-            reference.ForeignKey = (string)elem.Attr("ForeignKey");
+            reference.ForeignKey = (string)elem.Attr("ForeignKey", optional: true);
             reference.To = new MojDataGraphMask().Parse(elem.Elem("To"));
 
             return reference;

@@ -1,7 +1,9 @@
 ﻿using Microsoft.Practices.ServiceLocation;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -230,76 +232,105 @@ namespace Casimodo.Lib.Data
             }
 
             // Reference properties to entity or complex type.
-            foreach (var referenceProp in mask.References)
+            foreach (var referenceNode in mask.References)
             {
                 // KABU TODO: How to differentiate references to entities from references to complex types?
 
-                if (referenceProp.Cardinality.HasFlag(MojCardinality.Many))
-                    throw new DbRepositoryException("Update error: Nested references with " +
-                        $"cardinality 'Many' are not supported yet (property: '{referenceProp.Name}').");
-
-                if (referenceProp.Binding.HasFlag(MojReferenceBinding.Loose))
+                if (referenceNode.Cardinality.HasFlag(MojCardinality.Many))
                 {
-                    prop = type.GetProperty(referenceProp.ForeignKey);
-                    newValue = prop.GetValue(source);
+                    // Collections
 
-                    // Loose navigation properties: Update the foreign key value only.
-                    // Mark as modified and assign if changed.
-                    if (!object.Equals(prop.GetValue(target), newValue))
+                    if (referenceNode.Binding.HasFlag(MojReferenceBinding.Independent))
                     {
-                        prop.SetValue(target, newValue);
-                        entry.Property(referenceProp.ForeignKey).IsModified = true;
-                    }
+                        throw new NotImplementedException();
+                        //prop = type.GetProperty(referenceNode.Name);
 
-                    continue;
-                }
+                        //var newCollection = prop.GetValue(source) as ICollection;
 
-                // Nested reference
+                        //UpdateIndependentCollection(type, source, target, entry, referenceNode);
+                        //var deletedItems = oldCollection.Exclude(old => object.Equals(((IKeyAccessor)old).GetKeyObject(),                        
 
-                prop = type.GetProperty(referenceProp.Name);
-                newValue = prop.GetValue(source);
+                        //prop.SetValue(target, newCollection);
 
-                var foreignKeyProp = type.GetProperty(referenceProp.ForeignKey);
-                var oldValue = foreignKeyProp.GetValue(target);
-
-                if (newValue == null)
-                {
-                    // NULL values are only acceptable if the value was also NULL beforehand.
-                    if (oldValue != null)
-                        throw new DbRepositoryException("Update error: The nested reference " +
-                            $"property '{referenceProp.Name}' must not be set to NULL.");
-                }
-                else if (newValue != null)
-                {
-                    if (oldValue == null)
-                    {
-                        // The referenced entity was not added yet.
-
-                        newValue = db.Set(prop.PropertyType).Add(newValue);
-                        ApplyTenantKey(newValue);
-                        SetIsNested(newValue);
-                        OnAdded(ctx.CreateSubContext(newValue, op: DbRepoOp.Add));
-
-                        // Set the reference entitity.
-                        prop.SetValue(target, newValue);
-
-                        // Set the foreign key to the referenced entity.
-                        foreignKeyProp.SetValue(target, ((IKeyAccessor)newValue).GetKeyObject());
-                        entry.Property(referenceProp.ForeignKey).IsModified = true;
+                        //foreach (var item in newCollection as ICollection)
+                        //{
+                        //    var itemEntry = db.Entry(item);
+                        //    itemEntry.State = EntityState.Unchanged;
+                        //}
                     }
                     else
                     {
-                        var newForeignKey = foreignKeyProp.GetValue(source);
-                        if (!object.Equals(oldValue, newForeignKey))
-                            throw new DbRepositoryException("Update error: Nested reference " +
-                                $"property '{referenceProp.Name}': The referenced entity must not be changed once the reference is established.");
+                        throw new DbRepositoryException("Update error: Update of non-independent collections is " +
+                            $"not supported yet (Property: '{referenceNode.Name}').");
+                    }
+                }
+                else
+                {
+                    // Singles
 
-                        // Process the nested object.
-                        newValue = UpdateUsingMask(ctx.CreateSubContext(newValue, op: DbRepoOp.Update, mask: referenceProp.To));
+                    if (referenceNode.Binding.HasFlag(MojReferenceBinding.Loose))
+                    {
+                        prop = type.GetProperty(referenceNode.ForeignKey);
+                        newValue = prop.GetValue(source);
 
-                        // Assign to target object.
-                        // NOTE: Do *not* mark nested navigation properties as modified.
-                        prop.SetValue(target, newValue);
+                        // Loose navigation properties: Update the foreign key value only.
+                        // Mark as modified and assign if changed.
+                        if (!object.Equals(prop.GetValue(target), newValue))
+                        {
+                            prop.SetValue(target, newValue);
+                            entry.Property(referenceNode.ForeignKey).IsModified = true;
+                        }
+
+                        continue;
+                    }
+
+                    // Nested reference
+
+                    prop = type.GetProperty(referenceNode.Name);
+                    newValue = prop.GetValue(source);
+
+                    var foreignKeyProp = type.GetProperty(referenceNode.ForeignKey);
+                    var oldValue = foreignKeyProp.GetValue(target);
+
+                    if (newValue == null)
+                    {
+                        // NULL values are only acceptable if the value was also NULL beforehand.
+                        if (oldValue != null)
+                            throw new DbRepositoryException("Update error: The nested reference " +
+                                $"property '{referenceNode.Name}' must not be set to NULL.");
+                    }
+                    else if (newValue != null)
+                    {
+                        if (oldValue == null)
+                        {
+                            // The referenced entity was not added yet.
+
+                            newValue = db.Set(prop.PropertyType).Add(newValue);
+                            ApplyTenantKey(newValue);
+                            SetIsNested(newValue);
+                            OnAdded(ctx.CreateSubContext(newValue, op: DbRepoOp.Add));
+
+                            // Set the reference entitity.
+                            prop.SetValue(target, newValue);
+
+                            // Set the foreign key to the referenced entity.
+                            foreignKeyProp.SetValue(target, ((IKeyAccessor)newValue).GetKeyObject());
+                            entry.Property(referenceNode.ForeignKey).IsModified = true;
+                        }
+                        else
+                        {
+                            var newForeignKey = foreignKeyProp.GetValue(source);
+                            if (!object.Equals(oldValue, newForeignKey))
+                                throw new DbRepositoryException("Update error: Nested reference " +
+                                    $"property '{referenceNode.Name}': The referenced entity must not be changed once the reference is established.");
+
+                            // Process the nested object.
+                            newValue = UpdateUsingMask(ctx.CreateSubContext(newValue, op: DbRepoOp.Update, mask: referenceNode.To));
+
+                            // Assign to target object.
+                            // NOTE: Do *not* mark nested navigation properties as modified.
+                            prop.SetValue(target, newValue);
+                        }
                     }
                 }
             }
@@ -309,6 +340,24 @@ namespace Casimodo.Lib.Data
             OnUpdated(ctx);
 
             return target;
+        }
+
+        static void UpdateIndependentCollection(Type type, DbEntityEntry entry, object source, object target, MojReferenceDataGraphMask referenceNode)
+        {
+            var prop = type.GetProperty(referenceNode.Name);
+
+            var newCollection = prop.GetValue(source) as ICollection<object>;
+
+            // Load old collection from DB.
+            entry.Collection(referenceNode.Name).Load();
+            var oldCollection = prop.GetValue(target) as ICollection<object>;
+
+            foreach (var oldItem in oldCollection.ToArray())
+            {
+                //var key = ((IKeyAccessor)oldItem).GetKeyObject();
+                //if (newCollection.Any(n => ))
+
+            }
         }
 
         protected void ApplyTenantKey(object entity)

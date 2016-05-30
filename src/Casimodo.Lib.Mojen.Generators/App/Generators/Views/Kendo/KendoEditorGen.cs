@@ -654,25 +654,76 @@ namespace Casimodo.Lib.Mojen
             var prop = info.Prop;
             var propPath = info.PropPath;
 
-            if (!vprop.IsSelector || !vprop.IsTagsSelector) return false;
+            if (!vprop.IsTagsSelector) return false;
 
-            OB("<div class='kmodo-tags-container'>");
+            var targetType = vprop.Reference.ToType;
+            var dialog = vprop.LookupDialog;
+
+            OB("<div class='input-group'>");
+
+            //OB("<div class='kmodo-tags-container'>");
+
             O($"<div class='kmodo-tags-listview' data-role='listview' data-bind='source: {propPath}' data-template='tag-template'/>");
-            O("<button class='k-button k-add-button'>+</button>");
-            OE("</div>");
 
-            OB("<script id='tag-template' type='text/x-kendo-template'>");
+            // Invisible input for binding & validation.
+            OSelectorControlInvisibleInput(context);
+
+            // Button for popping up the lookup dialog.            
+            OSelectorControlButton(context);            
+
+            //OE("</div>"); // container
+
+            OE("</div>"); // input-group
+
+            OScriptBegin();
+            O($"// Lookup view for {propPath}");
+            OnSelectorButtonClick(context, () =>
+            {
+                O($"var $container = {JQuerySelectEditorContainer()};");
+                O($"var item = $container.find('input').first().prop('kendoBindingTarget').source;");
+                O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}');");
+                O($"casimodo.ui.dialogArgs.add(args);");
+
+                // Fetch the partial view from server into a Kendo modal window.
+                Oo($"var wnd = $('<div/>').appendTo($container).kendoWindow(");
+                KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
+                {
+                    IsModal = true,
+                    OnClosing = new Action(() =>
+                    {
+                        // Closing event handler
+                        oB($"function (e)");
+                        OB("if (args.dialogResult === true)");
+                        // Set value and fire the "change" event for the binding to pick up the new value.
+                        O($"kendomodo.addEntityToObservableArray(item.{propPath}, args.item, '{targetType.Key.Name}');");
+                        End();
+                        End();
+                    })
+                });
+                oO(").data('kendoWindow');"); // Kendo window
+
+                O("kendomodo.setModalWindowBehavior(wnd);");
+
+                O("wnd.center().open();");
+
+                O($"wnd.refresh({{ url: '{dialog.Url}', cache: {MojenUtils.ToJsValue(dialog.IsCachedOnClient)} }});");
+
+            });
+            OScriptEnd();
+
+            // Tag item template
+            OKendoTemplateBegin("tag-template");
             OB("<div class='kmodo-tag-item'>");
             var firstProp = vprop.ContentView?.Props.FirstOrDefault();
             if (firstProp != null)
-            {                
+            {
                 O($"<span>#:{firstProp.FormedNavigationTo.TargetProp.Name}#</span>");
             }
             OB("<a class='k-delete-button' href='\\\\#'>");
             O("<i class='remove glyphicon glyphicon-remove-sign'></i>");
             OE("</a>");
             OE("</div>");
-            OE("</script>");
+            OKendoTemplateEnd();
 
             return true;
         }
@@ -840,7 +891,6 @@ namespace Casimodo.Lib.Mojen
                 Oo($"var wnd = {cachedWindow} || $('<div/>').appendTo($container).kendoWindow(");
                 KendoGen.OWindowOptions(new KendoWindowConfig
                 {
-                    //ContentUrl = dialog.Url,
                     Title = dialog.Title,
                     Width = dialog.Width,
                     Height = dialog.Height,
@@ -990,14 +1040,8 @@ namespace Casimodo.Lib.Mojen
 
                 // Fetch the partial view from server into a Kendo modal window.
                 Oo($"var wnd = $('<div/>').appendTo($container).kendoWindow(");
-                KendoGen.OWindowOptions(new KendoWindowConfig
+                KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
                 {
-                    //ContentUrl = dialog.Url,
-                    Title = dialog.Title,
-                    Width = dialog.Width,
-                    MinWidth = dialog.MinWidth,
-                    MaxWidth = dialog.MaxWidth,
-                    MinHeight = dialog.MinHeight,
                     IsModal = true,
                     OnClosing = new Action(() =>
                     {
@@ -1226,13 +1270,8 @@ namespace Casimodo.Lib.Mojen
 
                 // Fetch the partial view from server into a Kendo modal window.
                 Oo($"var wnd = $('<div/>').appendTo({JQuerySelectDialogContainer(null)}).kendoWindow(");
-                KendoGen.OWindowOptions(new KendoWindowConfig
+                KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
                 {
-                    Title = dialog.Title,
-                    Width = dialog.Width,
-                    MinWidth = dialog.MinWidth,
-                    MaxWidth = dialog.MaxWidth,
-                    MinHeight = dialog.MinHeight,
                     IsParentModal = context.View.IsModal,
                     IsModal = true,
                     OnClosing = new Action(() =>

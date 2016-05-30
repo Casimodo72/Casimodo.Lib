@@ -609,7 +609,7 @@ namespace Casimodo.Lib.Mojen
                 //o($".ClientTemplate(@\"<input type='checkbox' disabled #= {prop.Name} ? checked='checked' : '' # />\")");
             }
             // Reference
-            else if (vprop.FormedNavigationTo.Is && vprop.Reference.IsToOne)
+            else if (vprop.Reference.IsToOne) // REMOVE: vprop.FormedNavigationTo.Is && 
             {
                 // IMPORTANT NOTE:
                 // Provide template, because Kendo will break if an itermediate property
@@ -620,9 +620,12 @@ namespace Casimodo.Lib.Mojen
             }
             else if (vprop.Reference.Is)
             {
-                throw new MojenException("This reference kind is not supported.");
+                throw new MojenException("This kind of reference is not supported.");
             }
 
+            // KABU TODO: IMPORTANT: Currently we hard-code all navigated-to properties to be sortable,
+            //   because the view-property (which is a clone of the type's native property)
+            //   is a reference property and is *not* sortable by default (set in MojClassPropBuilder).
             if (!vprop.IsSortable && !vprop.FormedNavigationTo.Is)
                 O("sortable: false,");
 

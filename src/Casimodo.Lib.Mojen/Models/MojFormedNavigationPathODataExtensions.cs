@@ -96,6 +96,8 @@ namespace Casimodo.Lib.Mojen
                 .DistinctBy(prop => prop.FormedTargetPath)
                 .Select(x => x.FormedNavigationTo);
 
+            // Build non-formed paths.
+
             var navigations = BuildDataGraph(navigationPaths,
                 includeKey: includeKey,
                 includeForeignKey: includeForeignKey,
@@ -143,7 +145,8 @@ namespace Casimodo.Lib.Mojen
             IEnumerable<MojTypePredicateBinding> predicates = null,
             int startDepth = 0)
         {
-            return BuildNavigationTreeCore(paths.Where(path => path.IsForeign), 0,
+            //paths = paths.Where(path => path.IsForeign);
+            return BuildNavigationTreeCore(paths, 0,
                 includeKey: includeKey,
                 includeForeignKey: includeForeignKey,
                 filterIsDeleted: filterIsDeleted,
@@ -194,10 +197,16 @@ namespace Casimodo.Lib.Mojen
                     if (step == path.Steps.Last())
                     {
                         // This is a path leaf. Add the target property.
-
-                        var targetProp = step.TargetProp;
-                        if (targetProp != null && targetProp != key)
-                            result.TargetItems.Add(new MojPropDataGraphNode { Prop = targetProp });
+                        
+                        if (step.TargetProp != null)
+                        {
+                            if (step.TargetProp != key)
+                                result.TargetItems.Add(new MojPropDataGraphNode { Prop = step.TargetProp });
+                        }
+                        //else if (step.SourceProp != null)
+                        //{
+                        //    result.TargetItems.Add(new MojPropDataGraphNode { Prop = step.SourceProp });
+                        //}
                     }
                     else
                     {

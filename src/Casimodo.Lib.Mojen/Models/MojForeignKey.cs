@@ -44,6 +44,35 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojReferenceBinding Binding { get; set; }
 
+        // Loose or Nested
+        public bool IsLoose
+        {
+            get { return Is && Binding.HasFlag(MojReferenceBinding.Loose); }
+        }
+
+        // Loose or Nested
+        public bool IsNested
+        {
+            get { return Is && Binding.HasFlag(MojReferenceBinding.Nested); }
+        }
+
+        // Associated or Owned or Independent
+        public bool IsOwned
+        {
+            get { return Is && Binding.HasFlag(MojReferenceBinding.Owned); }
+        }
+
+        // Associated or Owned or Independent
+        public bool IsAssotiated
+        {
+            get { return Is && Binding.HasFlag(MojReferenceBinding.Associated); }
+        }
+
+        public bool IsIdependent
+        {
+            get { return Is && Binding.HasFlag(MojReferenceBinding.Independent); }
+        }
+
         [DataMember]
         public MojCardinality Cardinality { get; set; } = MojCardinality.None;
 
@@ -53,7 +82,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsToOne
         {
             get { return Is && Cardinality.HasFlag(MojCardinality.One); }
-        }
+        }        
 
         public bool IsToMany
         {

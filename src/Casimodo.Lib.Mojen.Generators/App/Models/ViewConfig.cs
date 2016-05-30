@@ -207,18 +207,31 @@ namespace Casimodo.Lib.Mojen
             // Find lookup views to be used for selection.
             foreach (var prop in Props.Where(x => x.Lookup.Is))
             {
-                var targetType = prop.FormedNavigationTo.TargetType;
+                //var targetType = prop.FormedNavigationTo.TargetType;
+
+                //if (targetType == null)
+                //{
+                //    if (prop.Reference.IsToMany)
+                //        targetType = prop.Reference.ToType;
+                //    else
+                //        throw new MojenException($"Can't compute target type of lookup.");
+                //}
+
+                var viewType = prop.Lookup.TargetType;
+                var viewId = prop.Lookup.ViewId;
                 var viewGroup = prop.Lookup.ViewGroup;
+                
                 var lookupViews = app.GetItems<MojViewConfig>()
                     .Where(x =>
                         x.Lookup.Is &&
-                        x.TypeConfig == targetType &&
+                        x.TypeConfig == viewType &&
+                        (viewId == null || viewId == x.Id) &&
                         (viewGroup == null || viewGroup == x.Group))
                     .ToArray();
 
                 if (lookupViews.Count() != 1)
                 {
-                    var err = $"for lookup-selector '{prop.FormedNavigationTo.TargetPath}' with group '{viewGroup ?? ""}'.";
+                    var err = $"for lookup-selector '{prop.FormedNavigationTo.TargetPath}' (Group: '{viewGroup ?? ""}', ID: '{viewId ?? ""}').";
 
                     if (lookupViews.Count() == 0)
                         throw new MojenException($"Lookup view not found {err}.");

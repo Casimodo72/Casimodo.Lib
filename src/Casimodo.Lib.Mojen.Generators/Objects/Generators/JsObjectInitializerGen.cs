@@ -33,11 +33,12 @@ namespace Casimodo.Lib.Mojen
                 OJsNamespace(context.ScriptNamespace, () =>
                 {
                     O();
-                    O("// Init...OnEditing: Creates objects on nested navigation properties if missing.");
+                    O("// Init...OnEditing: Creates nested objects if missing.");
                     O();
                     O("// Init...OnSaving: Sets all navigation properties of non-nested objects to null");
                     O("//   because we don't want to send them to the server as they");
                     O("//   might be only partially expanded and because we must not change their values anyway.");
+                    O("//   Except for independent associations (collections).");
                     O();
 
                     foreach (var item in items)
@@ -63,17 +64,31 @@ namespace Casimodo.Lib.Mojen
             OB("{0}.Init{1}OnEditing = function (item)", ModuleName, type.Name);
 
             // Process nested object references.
-            var naviProps = type.GetProps()
+            var nestedProps = type.GetProps()
                 .Where(x =>
                     x.Reference.IsNavigation &&
-                    x.Reference.Binding.HasFlag(MojReferenceBinding.Nested) &&
+                    x.Reference.IsNested &&
                     x.Reference.IsToOne
                 );
 
-            foreach (var prop in naviProps)
+            foreach (var prop in nestedProps)
             {
                 O();
                 O($"if (!item.{prop.Name}) item.{prop.Name} = new {ModuleName}.{prop.Reference.ToType.Name}();");
+            }
+
+            // Process independent associations (collections).
+            var independentCollectionProps = type.GetProps()
+                .Where(x =>
+                    x.Reference.IsNavigation &&
+                    x.Reference.IsIdependent &&
+                    x.Reference.IsToMany
+                );
+
+            foreach (var prop in independentCollectionProps)
+            {
+                O();
+                O($"if (!item.{prop.Name}) item.{prop.Name} = [];");
             }
 
             End(";");
@@ -84,34 +99,40 @@ namespace Casimodo.Lib.Mojen
             O();
             OB("{0}.Init{1}OnSaving = function (item)", ModuleName, type.Name);
 
-            // Set all navigation properties of non-nested references to null,
-            //  because we don't want to send them to the server as they might be only partially expanded.
+            var referenceProps = type.GetProps().Where(x => x.Reference.IsNavigation);
 
-            var naviProps = type.GetProps()
-                .Where(x =>
-                    x.Reference.IsNavigation);
-
-            foreach (var prop in naviProps)
+            foreach (var prop in referenceProps)
             {
                 O();
 
-
                 if (prop.Reference.IsToMany)
                 {
-                    // KABU TODO: IMPORTANT: REVISIT: Currently we don't support saving of collection props.
-                    // NOTE: We delete the property in this case.
-                    O($"if (typeof item.{prop.Name} != 'undefined') delete item.{prop.Name};");
+                    // KABU TODO: IMPORTANT: REVISIT: Currently we only support saving 
+                    //   of independent collection props.
+                    //   Neither nested or loose collections are saved currently.
+                    if (!prop.Reference.IsIdependent)
+                    {
+                        // NOTE: We delete the property in this case.
+                        O($"if (typeof item.{prop.Name} != 'undefined') delete item.{prop.Name};");
+                    }
                 }
-                else if (prop.Reference.Binding.HasFlag(MojReferenceBinding.Loose))
+                else if (prop.Reference.IsToOne)
                 {
-                    O($"if (item.{prop.Name}) item.{prop.Name} = null;");
+                    // Set all navigation properties of non-nested references to null,
+                    //  because we don't want to send them to the server as they might be only partially expanded.
+
+                    if (prop.Reference.IsLoose)
+                    {
+                        O($"if (item.{prop.Name}) item.{prop.Name} = null;");
+                    }
+                    else if (prop.Reference.IsNested)
+                    {
+                        // Call InitOnSaving for the nested referenced object.
+                        O("// Preserve nested object.");
+                        O($"if (item.{prop.Name}) {ModuleName}.Init{prop.Reference.ToType.Name}OnSaving(item.{prop.Name});");
+                    }
                 }
-                else
-                {
-                    // Call InitOnSaving for the nested referenced object.
-                    O("// Preserve nested object.");
-                    O($"if (item.{prop.Name}) {ModuleName}.Init{prop.Reference.ToType.Name}OnSaving(item.{prop.Name});");
-                }
+
             }
 
             End(";");

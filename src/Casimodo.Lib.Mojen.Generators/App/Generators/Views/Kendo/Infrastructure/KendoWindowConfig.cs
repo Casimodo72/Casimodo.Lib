@@ -10,6 +10,18 @@ namespace Casimodo.Lib.Mojen
     {
         public const string DestructorFunction = "function() { this.destroy() }";
 
+        public KendoWindowConfig()
+        { }
+
+        public KendoWindowConfig(MojViewConfig view)
+        {
+            Title = view.Title;
+            Width = view.Width;
+            MinWidth = view.MinWidth;
+            MaxWidth = view.MaxWidth;
+            MinHeight = view.MinHeight;
+        }
+
         public KendoFxConfig Open { get; set; } = new KendoFxConfig(true)
         {
             Effects = "fadeIn", // "slideIn:down fadeIn",

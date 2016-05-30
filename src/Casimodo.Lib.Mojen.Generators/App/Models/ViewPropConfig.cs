@@ -50,9 +50,9 @@ namespace Casimodo.Lib.Mojen
             bool alias = false,
             bool allowCollections = false)
         {
-            var navigationTo = vprop.FormedNavigationTo;
+            var path = vprop.FormedNavigationTo;
 
-            if (!navigationTo.Is)
+            if (!path.Is || !path.IsForeign)
             {
                 return new MojViewPropInfo
                 {
@@ -66,13 +66,12 @@ namespace Casimodo.Lib.Mojen
                     TargetType = vprop.DeclaringType,
                     CustomDisplayLabel = GetCustomDisplayLabel(vprop, vprop.DisplayLabel)
                 };
-            }
+            }            
 
-            if (navigationTo.TargetProp == null)
+            if (path.TargetProp == null)
                 throw new MojenException("The navigation path has no target property.");
 
-            if (!allowCollections && navigationTo.Steps.Any(x => !x.SourceProp.Reference.IsToOne))
-                throw new MojenException("The navigation path must consist only of references with cardinality One or OneOrZero.");
+            CheckPathSteps(path);
 
             if (selectable)
             {
@@ -82,7 +81,7 @@ namespace Casimodo.Lib.Mojen
                 // E.g.    [Contract].BusinessContact(nested) -> Salutation(loose) -> DisplayName
                 // becomes [Contract].BusinessContact(nested) -> SalutationId(loose)
 
-                var step = navigationTo.FirstLooseStep;
+                var step = path.FirstLooseStep;
                 if (step == null)
                     throw new MojenException("A selectable view property must have a loose reference in its path.");
 
@@ -90,10 +89,10 @@ namespace Casimodo.Lib.Mojen
                     throw new MojenException("The navigation path must end after the first loose reference.");
 
                 return BuildForeignKeyInfo(vprop, step);
-            }           
+            }
 
-            var targetType = navigationTo.TargetType;
-            var targetDisplayProp = navigationTo.TargetProp;
+            var targetType = path.TargetType;
+            var targetDisplayProp = path.TargetProp;
             string display = "";
 
             if (column)
@@ -109,7 +108,7 @@ namespace Casimodo.Lib.Mojen
             {
                 // Use navigation steps for display.
 
-                display = navigationTo.Steps
+                display = path.Steps
                     .Select(x => x.TargetType.DisplayName)
                     // Add target display prop if not pick-display.
                     .AddIfNotDefault(() => targetDisplayProp.IsPickDisplay ? null : targetDisplayProp.DisplayLabel)
@@ -120,16 +119,33 @@ namespace Casimodo.Lib.Mojen
             return new MojViewPropInfo
             {
                 IsForeign = true,
-                ForeignDepth = navigationTo.Steps.Count,
+                ForeignDepth = path.Steps.Count,
                 ViewProp = vprop,
-                PropPath = navigationTo.TargetPath,
-                PropAliasPath = navigationTo.TargetAliasPath,
+                PropPath = path.TargetPath,
+                PropAliasPath = path.TargetAliasPath,
                 // NOTE: Prop and TargetDisplayProp are *equal* in this case.
                 Prop = targetDisplayProp,
                 TargetDisplayProp = targetDisplayProp,
                 TargetType = targetType,
                 CustomDisplayLabel = GetCustomDisplayLabel(vprop, display)
             };
+        }
+
+        static void CheckPathSteps(MojFormedNavigationPath path)
+        {
+            int depth = 0;            
+            foreach (var step in path.Steps)
+            {
+                if (step.SourceProp.Reference.IsToMany)
+                {
+                    if (depth != 0 || !step.SourceProp.Reference.IsIdependent)
+                        throw new MojenException("Collections in the navigation path are only alloed if they are native and independent.");
+                }
+                else if (!step.SourceProp.Reference.IsToOne)
+                    throw new MojenException("Only references with cardinality One or OneOrZero are allowed at this step in the navigation path.");
+
+                depth++;
+            }
         }
 
         static MojViewPropInfo BuildForeignKeyInfo(MojViewProp vprop, MojFormedNavigationPathStep step)
@@ -341,6 +357,10 @@ namespace Casimodo.Lib.Mojen
         public static readonly MojLookupViewPropConfig None = new MojLookupViewPropConfig();
 
         public bool Is { get; set; }
+
+        public MojType TargetType { get; set; }
+
+        public string ViewId { get; set; }
 
         public string ViewGroup { get; set; }
     }

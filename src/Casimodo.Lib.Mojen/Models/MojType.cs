@@ -618,6 +618,11 @@ namespace Casimodo.Lib.Mojen
             if (prop.FormedNavigationFrom.Is && prop.FormedNavigationFrom.TargetType != this)
                 return true;
 
+            if (prop.DeclaringType == null)
+            {
+
+            }
+
             if (prop.DeclaringType == this || TestAncestorOrSelf(type => type == prop.DeclaringType))
                 return false;
 
