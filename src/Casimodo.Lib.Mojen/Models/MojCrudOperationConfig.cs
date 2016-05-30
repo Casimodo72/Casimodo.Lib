@@ -63,7 +63,7 @@ namespace Casimodo.Lib.Mojen
         public MojType TargetType { get; set; }
 
         [DataMember]
-        public MojCardinality Cardinality { get; set; }
+        public MojMultiplicity Multiplicity { get; set; }
     }
 
     [DataContract(Namespace = MojContract.Ns)]

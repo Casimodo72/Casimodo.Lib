@@ -119,7 +119,7 @@ namespace Casimodo.Lib.Mojen
                     else if (!backrefProp.Reference.IsToOne)
                     {
                         throw new MojenException($"The backref property '{backrefProp.Name}' " +
-                            $"of child type '{type.Name}' must have reference-cardinality of One/OneOrZero.");
+                            $"of child type '{type.Name}' must have reference multiplicity of One/OneOrZero.");
                     }
 
                     childToParentProp = backrefProp;
@@ -172,11 +172,10 @@ namespace Casimodo.Lib.Mojen
 
                 if (owned)
                     binding |= MojReferenceBinding.Owned;
-                else
-                    binding |= MojReferenceBinding.Associated;
-
-                if (independent)
+                else if (independent)
                     binding |= MojReferenceBinding.Independent;
+                else
+                    binding |= MojReferenceBinding.Associated;                
 
                 var axis = MojReferenceAxis.ToChild;
 
@@ -190,7 +189,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     Is = true,
                     Binding = binding,
-                    Cardinality = MojCardinality.Many,
+                    Multiplicity = MojMultiplicity.Many,
                     Axis = axis,
                     ToType = childType,
                     IsNavigation = true
@@ -419,15 +418,15 @@ namespace Casimodo.Lib.Mojen
 
         public TPropBuilder AsChild(bool owned)
         {
-            return AsChildSingleOrCollection(owned, MojCardinality.OneOrZero);
+            return AsChildSingleOrCollection(owned, MojMultiplicity.OneOrZero);
         }
 
         public TPropBuilder AsChildCollection(bool owned)
         {
-            return AsChildSingleOrCollection(owned, MojCardinality.Many);
+            return AsChildSingleOrCollection(owned, MojMultiplicity.Many);
         }
 
-        TPropBuilder AsChildSingleOrCollection(bool owned, MojCardinality cardinality)
+        TPropBuilder AsChildSingleOrCollection(bool owned, MojMultiplicity multiplicity)
         {
             if (!PropConfig.Reference.IsChildToParent)
                 throw new MojenException($"The property '{PropConfig.Name}' is not a child reference to a parent type.");
@@ -447,7 +446,7 @@ namespace Casimodo.Lib.Mojen
 
             // Create parent to child references.
 
-            if (cardinality.HasFlag(MojCardinality.Many))
+            if (multiplicity.HasFlag(MojMultiplicity.Many))
             {
                 // Create parent's collection property.
 
@@ -475,7 +474,7 @@ namespace Casimodo.Lib.Mojen
                 }
                 else throw new MojenException($"Unexpected type kind: '{parentType.Kind}'");
             }
-            else if (cardinality.HasFlag(MojCardinality.One))
+            else if (multiplicity.HasFlag(MojMultiplicity.One))
             {
                 throw new MojenException("Not supported yet. Evaluate this scenario.");
 
@@ -499,7 +498,7 @@ namespace Casimodo.Lib.Mojen
                 else throw new MojenException($"Unexpected type: '{parentType.Kind}'");
 #pragma warning restore CS0162
             }
-            else throw new MojenException($"Unexpected cardinality '{cardinality}'.");
+            else throw new MojenException($"Unexpected multiplicity '{multiplicity}'.");
 
             return This();
         }
@@ -674,7 +673,7 @@ namespace Casimodo.Lib.Mojen
                 Binding = binding,
                 IsForeignKey = true,
                 ForeignKey = referenceProp,
-                Cardinality = nullable ? MojCardinality.OneOrZero : MojCardinality.One,
+                Multiplicity = nullable ? MojMultiplicity.OneOrZero : MojMultiplicity.One,
                 // KABU TODO: IMPORTANT: Add validation: nested and owned must not have any other axis that "ToChild".
                 Axis = axis,
                 ToType = to,

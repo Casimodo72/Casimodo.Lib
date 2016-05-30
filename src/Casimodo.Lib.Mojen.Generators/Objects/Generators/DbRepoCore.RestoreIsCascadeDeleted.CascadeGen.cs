@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
                         //   scenarios where there's no delete-info on children.
                         //.Where(x => x.Reference.ToType.FindDeletedMarker(DeleteMarkers) != null)
                         .OrderBy(x => x.Reference.Binding)
-                        .ThenBy(x => x.Reference.Cardinality)
+                        .ThenBy(x => x.Reference.Multiplicity)
                         .ToArray(),
 
                     SoftReferences = types                        
@@ -101,7 +101,7 @@ namespace Casimodo.Lib.Mojen
 
                 O();
             }
-            else throw new MojenException($"Unexpected cardinality '{prop.Reference.Cardinality}'.");
+            else throw new MojenException($"Unexpected multiplicity '{prop.Reference.Multiplicity}'.");
         }
 
         public override void OSoftReference()
@@ -118,7 +118,7 @@ namespace Casimodo.Lib.Mojen
             {
                 if (reference.IsCollection)
                 {
-                    O($"// Soft child collection of {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Cardinality}");
+                    O($"// Soft child collection of {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Multiplicity}");
 
                     O($"foreach (var child in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}))");
                     O($"    if (IsCascadeDeletedByOrigin(child, ctx))");
@@ -126,7 +126,7 @@ namespace Casimodo.Lib.Mojen
                 }
                 else
                 {
-                    O($"// Soft single child {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Cardinality}");
+                    O($"// Soft single child {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Multiplicity}");
 
                     var target = targetType.VName;
 

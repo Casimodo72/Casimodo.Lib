@@ -74,24 +74,24 @@ namespace Casimodo.Lib.Mojen
         }
 
         [DataMember]
-        public MojCardinality Cardinality { get; set; } = MojCardinality.None;
+        public MojMultiplicity Multiplicity { get; set; } = MojMultiplicity.None;
 
         [DataMember]
         public MojReferenceAxis Axis { get; set; } = MojReferenceAxis.None;
 
         public bool IsToOne
         {
-            get { return Is && Cardinality.HasFlag(MojCardinality.One); }
+            get { return Is && Multiplicity.HasFlag(MojMultiplicity.One); }
         }        
 
         public bool IsToMany
         {
-            get { return Is && Cardinality.HasFlag(MojCardinality.Many); }
+            get { return Is && Multiplicity.HasFlag(MojMultiplicity.Many); }
         }
 
         public bool IsToZero
         {
-            get { return Is && Cardinality.HasFlag(MojCardinality.Zero); }
+            get { return Is && Multiplicity.HasFlag(MojMultiplicity.Zero); }
         }
 
         [DataMember]

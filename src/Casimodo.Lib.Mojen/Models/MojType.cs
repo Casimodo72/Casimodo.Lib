@@ -408,13 +408,13 @@ namespace Casimodo.Lib.Mojen
             return prop;
         }
 
-        public IEnumerable<MojProp> GetReferenceProps(MojReferenceBinding? binding = null, MojCardinality? cardinality = null)
+        public IEnumerable<MojProp> GetReferenceProps(MojReferenceBinding? binding = null, MojMultiplicity? multiplicity = null)
         {
             return GetProps()
                 .Where(x =>
                     x.Reference.Is &&
                     (binding == null || x.Reference.Binding.HasFlag(binding.Value)) &&
-                    (cardinality == null || x.Reference.Cardinality.HasFlag(cardinality.Value)))
+                    (multiplicity == null || x.Reference.Multiplicity.HasFlag(multiplicity.Value)))
                 .ToList()
                 // Remove foreign key props if the navigation prop was also included.
                 .Exclude((list, x) => x.Reference.IsForeignKey && list.Any(y => y.Reference.ForeignKey == x && y.Reference.IsNavigation))

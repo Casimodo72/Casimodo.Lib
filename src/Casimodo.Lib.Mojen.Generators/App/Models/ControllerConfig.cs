@@ -188,7 +188,7 @@ namespace Casimodo.Lib.Mojen
                             yield return new XElement("Ref",
                                 new XAttribute("Name", reference.SourceProp.Name),
                                 new XAttribute("Binding", reference.SourceProp.Reference.Binding),
-                                new XAttribute("Cardinality", reference.SourceProp.Reference.Cardinality),
+                                new XAttribute("Multiplicity", reference.SourceProp.Reference.Multiplicity),
                                 //new XAttribute("ForeignKey", reference.SourceProp.Reference.ForeignKey.Name),
                                 new XElement("To", new XAttribute("Type", targetType.QualifiedClassName)));
                         }
@@ -197,7 +197,7 @@ namespace Casimodo.Lib.Mojen
                         yield return new XElement("Ref",
                             new XAttribute("Name", reference.SourceProp.Name),
                             new XAttribute("Binding", reference.SourceProp.Reference.Binding),
-                            new XAttribute("Cardinality", reference.SourceProp.Reference.Cardinality),
+                            new XAttribute("Multiplicity", reference.SourceProp.Reference.Multiplicity),
                             new XAttribute("ForeignKey", reference.SourceProp.Reference.ForeignKey.Name),
                             new XElement("To",
                                 new XAttribute("Type", targetType.QualifiedClassName),

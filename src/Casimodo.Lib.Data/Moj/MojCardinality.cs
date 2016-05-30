@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Casimodo.Lib.Data
 {
     [Flags]
-    public enum MojCardinality
+    public enum MojMultiplicity
     {
         None = 0,
         Zero = 1 << 0,

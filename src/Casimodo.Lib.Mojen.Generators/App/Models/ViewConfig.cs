@@ -46,7 +46,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool Is { get; set; }
 
-        public MojCardinality Cardinality { get; set; }
+        public MojMultiplicity Multiplicity { get; set; }
 
         public List<MojLookupViewSource> Sources { get; private set; }
 

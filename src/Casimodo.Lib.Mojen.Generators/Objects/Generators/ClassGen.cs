@@ -226,7 +226,7 @@ namespace Casimodo.Lib.Mojen
                                 prop.Reference.ToTypeKey.Name);
                         }
                         else if (!prop.Reference.IsToMany)
-                            throw new MojenException($"Invalid property reference cardinality '{prop.Reference.Cardinality}'.");
+                            throw new MojenException($"Invalid property reference multiplicity '{prop.Reference.Multiplicity}'.");
                     }
                     OOnChanged(prop);
                 });

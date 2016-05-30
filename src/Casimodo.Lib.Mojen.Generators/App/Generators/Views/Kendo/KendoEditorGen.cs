@@ -942,7 +942,7 @@ namespace Casimodo.Lib.Mojen
             if (!vprop.Lookup.Is) return false;
 
             if (!prop.Reference.IsToOne)
-                throw new MojenException($"Unsupported reference cardinality '{prop.Reference.Cardinality}'.");
+                throw new MojenException($"Unsupported reference multiplicity '{prop.Reference.Multiplicity}'.");
 
             if (!prop.Reference.Binding.HasFlag(MojReferenceBinding.Loose))
                 throw new MojenException($"Unsupported reference binding '{prop.Reference.Binding}'.");

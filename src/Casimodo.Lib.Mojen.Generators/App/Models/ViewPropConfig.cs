@@ -142,7 +142,7 @@ namespace Casimodo.Lib.Mojen
                         throw new MojenException("Collections in the navigation path are only alloed if they are native and independent.");
                 }
                 else if (!step.SourceProp.Reference.IsToOne)
-                    throw new MojenException("Only references with cardinality One or OneOrZero are allowed at this step in the navigation path.");
+                    throw new MojenException("Only references with multiplicity One or OneOrZero are allowed at this step in the navigation path.");
 
                 depth++;
             }

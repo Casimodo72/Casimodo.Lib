@@ -203,7 +203,7 @@ namespace Casimodo.Lib.Mojen
             View.Lookup = new MojLookupViewConfig
             {
                 Is = true,
-                Cardinality = Data.MojCardinality.OneOrZero,
+                Multiplicity = Data.MojMultiplicity.OneOrZero,
                 Parameters = new List<MojProp>(parameters)
             };
 

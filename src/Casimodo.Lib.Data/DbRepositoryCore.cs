@@ -236,27 +236,13 @@ namespace Casimodo.Lib.Data
             {
                 // KABU TODO: How to differentiate references to entities from references to complex types?
 
-                if (referenceNode.Cardinality.HasFlag(MojCardinality.Many))
+                if (referenceNode.Multiplicity.HasFlag(MojMultiplicity.Many))
                 {
                     // Collections
 
                     if (referenceNode.Binding.HasFlag(MojReferenceBinding.Independent))
                     {
-                        throw new NotImplementedException();
-                        //prop = type.GetProperty(referenceNode.Name);
-
-                        //var newCollection = prop.GetValue(source) as ICollection;
-
-                        //UpdateIndependentCollection(type, source, target, entry, referenceNode);
-                        //var deletedItems = oldCollection.Exclude(old => object.Equals(((IKeyAccessor)old).GetKeyObject(),                        
-
-                        //prop.SetValue(target, newCollection);
-
-                        //foreach (var item in newCollection as ICollection)
-                        //{
-                        //    var itemEntry = db.Entry(item);
-                        //    itemEntry.State = EntityState.Unchanged;
-                        //}
+                        UpdateIndependentCollection(db, type, entry, source, target, referenceNode);
                     }
                     else
                     {
@@ -342,22 +328,61 @@ namespace Casimodo.Lib.Data
             return target;
         }
 
-        static void UpdateIndependentCollection(Type type, DbEntityEntry entry, object source, object target, MojReferenceDataGraphMask referenceNode)
+        static void UpdateIndependentCollection(DbContext db, Type type, DbEntityEntry entry, object source, object target, MojReferenceDataGraphMask referenceNode)
         {
             var prop = type.GetProperty(referenceNode.Name);
 
-            var newCollection = prop.GetValue(source) as ICollection<object>;
+            dynamic newItems = prop.GetValue(source);
+            dynamic addedItems = Enumerable.ToList(newItems);
 
-            // Load old collection from DB.
+            // Load current items from DB.
             entry.Collection(referenceNode.Name).Load();
-            var oldCollection = prop.GetValue(target) as ICollection<object>;
+            dynamic curItems = prop.GetValue(target);
 
-            foreach (var oldItem in oldCollection.ToArray())
+            bool found;
+            foreach (var curItem in Enumerable.ToArray(curItems))
             {
-                //var key = ((IKeyAccessor)oldItem).GetKeyObject();
-                //if (newCollection.Any(n => ))
+                var curKey = GetEntityKey(curItem);
 
+                // Search this current item in the list of new items.
+                found = false;
+                foreach (var newItem in newItems)
+                {
+                    var newKey = GetEntityKey(newItem);
+                    if (object.Equals(newKey, curKey))
+                    {
+                        found = true;
+                        addedItems.Remove(newItem);
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    // No current item was found that matches the previous item.
+                    // Remove item
+                    curItems.Remove(curItem);
+                }
             }
+
+            // Add newly added items.
+            if (addedItems.Count != 0)
+            {
+                var itemDbSet = db.Set(prop.PropertyType.GetGenericArguments()[0]);
+                foreach (var newItem in addedItems)
+                {
+                    var dbItem = itemDbSet.Find(GetEntityKey(newItem));
+                    if (dbItem != null)
+                    {
+                        curItems.Add(dbItem);
+                    }
+                }
+            }
+        }
+
+        static object GetEntityKey(object entity)
+        {
+            return ((IKeyAccessor)entity).GetKeyObject();
         }
 
         protected void ApplyTenantKey(object entity)

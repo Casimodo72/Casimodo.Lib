@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Data
         public MojReferenceBinding Binding { get; private set; }
 
         [DataMember]
-        public MojCardinality Cardinality { get; private set; }
+        public MojMultiplicity Multiplicity { get; private set; }
 
         [DataMember]
         public MojDataGraphMask To { get; private set; }
@@ -31,7 +31,7 @@ namespace Casimodo.Lib.Data
             var reference = new MojReferenceDataGraphMask();
             reference.Name = (string)elem.Attr("Name");
             reference.Binding = elem.EnumAttr<MojReferenceBinding>("Binding");
-            reference.Cardinality = elem.EnumAttr<MojCardinality>("Cardinality");
+            reference.Multiplicity = elem.EnumAttr<MojMultiplicity>("Multiplicity");
             reference.ForeignKey = (string)elem.Attr("ForeignKey", optional: true);
             reference.To = new MojDataGraphMask().Parse(elem.Elem("To"));
 

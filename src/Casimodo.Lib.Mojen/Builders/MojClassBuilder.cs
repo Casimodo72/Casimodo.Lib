@@ -299,7 +299,7 @@ namespace Casimodo.Lib.Mojen
                 Binding = MojReferenceBinding.Loose | (owned ? MojReferenceBinding.Owned : MojReferenceBinding.Associated),
                 //IsForeignKey = false,
                 //ForeignKey = null,
-                Cardinality = MojCardinality.OneOrZero,
+                Multiplicity = MojMultiplicity.OneOrZero,
                 Axis = MojReferenceAxis.ToParent,
                 IsCollection = collection,
                 ToType = parentType,

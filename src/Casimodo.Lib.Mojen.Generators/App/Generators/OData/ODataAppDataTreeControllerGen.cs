@@ -73,7 +73,7 @@ namespace Casimodo.Lib.Mojen
                     Props = type.GetReferenceProps()
                         .Where(ObjectTreeHelper.IsReferenceToChild)
                         .OrderBy(x => x.Reference.Binding)
-                        .ThenBy(x => x.Reference.Cardinality)
+                        .ThenBy(x => x.Reference.Multiplicity)
                         .ToArray(),
                     SoftReferences = types
                         .Select(t => new DbRepoCoreGenSoftRefItem
@@ -120,7 +120,7 @@ namespace Casimodo.Lib.Mojen
                         var pick = targetType.FindPick();
                         var valueDisplayPropName = pick != null ? targetType.GetProp(pick.DisplayProp).Name : null;
 
-                        O($"// {prop.Reference.Axis}, {prop.Reference.Binding}, {prop.Reference.Cardinality}");
+                        O($"// {prop.Reference.Axis}, {prop.Reference.Binding}, {prop.Reference.Multiplicity}");
 
                         if (prop.Reference.IsToMany)
                         {
@@ -159,14 +159,14 @@ namespace Casimodo.Lib.Mojen
                         {
                             if (reference.IsCollection)
                             {
-                                O($"// Soft child collection of {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Cardinality}");
+                                O($"// Soft child collection of {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Multiplicity}");
 
                                 O($"foreach (var child in ctx.Repos.{targetRepo}.Query(includeDeleted: true).Where(x => {Mex.ToLinqPredicate(reference.Condition)}))");
                                 O($"    ctx.AddChild({BuildNode(targetTypeItem, "child", reference.DisplayName, valueDisplayPropName)});");
                             }
                             else
                             {
-                                O($"// Soft single child {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Cardinality}");
+                                O($"// Soft single child {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Multiplicity}");
 
                                 O($"ctx.AddChild({BuildNode(targetTypeItem, $"ctx.Repos.{targetRepo}.Query(includeDeleted: true).FirstOrDefault(x => {Mex.ToLinqPredicate(reference.Condition)})", reference.DisplayName, valueDisplayPropName)});");
                             }

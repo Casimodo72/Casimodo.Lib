@@ -110,7 +110,7 @@ namespace Casimodo.Lib.Mojen
         {
             type = UseEntity(type);
             _trigger.TargetType = type;
-            _trigger.Cardinality = MojCardinality.One;
+            _trigger.Multiplicity = MojMultiplicity.One;
             return this;
         }
 
@@ -118,7 +118,7 @@ namespace Casimodo.Lib.Mojen
         {
             type = UseEntity(type);
             _trigger.TargetType = type;
-            _trigger.Cardinality = MojCardinality.Many;
+            _trigger.Multiplicity = MojMultiplicity.Many;
             return this;
         }
 

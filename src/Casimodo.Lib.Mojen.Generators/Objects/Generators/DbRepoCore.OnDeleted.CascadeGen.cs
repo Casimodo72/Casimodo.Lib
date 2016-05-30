@@ -54,7 +54,7 @@ namespace Casimodo.Lib.Mojen
                 O($"    context.{targetType.PluralName}.Delete({target});");
                 O();
             }
-            else throw new MojenException($"Unexpected cardinality {prop.Reference.Cardinality}");
+            else throw new MojenException($"Unexpected multiplicity {prop.Reference.Multiplicity}");
         }
     }
 }

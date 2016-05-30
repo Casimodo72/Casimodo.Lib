@@ -111,8 +111,8 @@ namespace Casimodo.Lib.Mojen
                 }
                 else if (trigger.CrudOp == MojCrudOp.Create)
                 {
-                    if (trigger.Cardinality != MojCardinality.One)
-                        throw new MojenException($"Invalid cardinality '{trigger.Cardinality}' for this operation.");
+                    if (trigger.Multiplicity != MojMultiplicity.One)
+                        throw new MojenException($"Invalid multiplicity '{trigger.Multiplicity}' for this operation.");
 
                     if (trigger.Operations.FactoryFunctionCall != null)
                     {
@@ -177,7 +177,7 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateCore(MiaTypeTriggerConfig trigger, Action<MojProp, MojProp> build)
         {
-            CheckCardinalityNotEmpty(trigger.Cardinality);
+            CheckMultiplicityNotEmpty(trigger.Multiplicity);
 
             MojType type = trigger.ContextType;
             string item = FirstCharToLower(type.Name);
@@ -194,11 +194,11 @@ namespace Casimodo.Lib.Mojen
             // 1) There is only a foreign key from target to source.
             // 2) There is only a foreign key from source to target.
             // 3) There is a navigation property from source to target.
-            // 3.a) Navigation property has cardinality of One (or zero)
-            // 3.b) Navigation property has cardinality of Many (or zero)
+            // 3.a) Navigation property has multiplicity of One (or zero)
+            // 3.b) Navigation property has multiplicity of Many (or zero)
             // 3.b.1) There must have a back-reference property on the target type.
             // 4) There is a navigation property from target to source.
-            // 4.a) Here we only allow a cardinality of One (or zero) to the source type.
+            // 4.a) Here we only allow a multiplicity of One (or zero) to the source type.
 
             var to = type.FindReferenceWithForeignKey(targetType);
             var from = targetType.FindReferenceWithForeignKey(type);
@@ -219,7 +219,7 @@ namespace Casimodo.Lib.Mojen
             {
                 build(to, from);
             }
-            else if (trigger.Cardinality == MojCardinality.One)
+            else if (trigger.Multiplicity == MojMultiplicity.One)
             {
                 if (to != null)
                     O($"if ({item}.{to.Reference.ForeignKey.Name} == null) return true;");
@@ -235,7 +235,7 @@ namespace Casimodo.Lib.Mojen
 
                 build(to, from);
             }
-            else if (trigger.Cardinality == MojCardinality.Many)
+            else if (trigger.Multiplicity == MojMultiplicity.Many)
             {
                 if (to != null)
                 {
@@ -255,11 +255,11 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        void CheckCardinalityNotEmpty(MojCardinality cardinality)
+        void CheckMultiplicityNotEmpty(MojMultiplicity multiplicity)
         {
-            if (cardinality != MojCardinality.One &&
-                cardinality != MojCardinality.Many)
-                throw new MojenException($"Invalid cardinality '{cardinality}' for this operation.");
+            if (multiplicity != MojMultiplicity.One &&
+                multiplicity != MojMultiplicity.Many)
+                throw new MojenException($"Invalid multiplicity '{multiplicity}' for this operation.");
         }
     }
 }
