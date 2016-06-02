@@ -11,7 +11,7 @@ namespace Casimodo.Lib.Mojen
         public static MojViewCollectionPropBuilder Create(MojViewBuilder itemViewBuilder, MojFormedType type, MojProp prop)
         {
             var builder = new MojViewCollectionPropBuilder();
-            builder.Initialize(itemViewBuilder, null, prop);
+            builder.Initialize(itemViewBuilder, prop);
             builder.FormedType = type;
 
             return builder;
@@ -55,44 +55,40 @@ namespace Casimodo.Lib.Mojen
 
         protected MojViewBuilder _viewBuilder;
 
-        protected virtual void Initialize(MojViewBuilder viewBuilder, MojViewProp viewProp, MojProp sourceProp)
+        protected virtual void Initialize(MojViewBuilder viewBuilder, MojProp sourceProp)
         {
             _viewBuilder = viewBuilder;
-            if (viewProp != null)
-                Prop = viewProp;
-            else
+
+            Prop = new MojViewProp(viewBuilder.View, sourceProp);
+            Type vt = typeof(MojViewProp);
+            PropertyInfo vp;
+            FieldInfo vf;
+
+            var flags = BindingFlags.Instance | BindingFlags.Public;
+
+            // Assign property values from MojProp to MojViewProp.
+            foreach (var p in sourceProp.GetType().GetProperties(flags))
             {
-                Prop = new MojViewProp(sourceProp);
-                Type vt = typeof(MojViewProp);
-                PropertyInfo vp;
-                FieldInfo vf;
+                if (CloneFromModelExcludedProps.Contains(p.Name))
+                    continue;
 
-                var flags = BindingFlags.Instance | BindingFlags.Public;
+                if (!p.CanWrite)
+                    continue;
 
-                // Assign property values from MojProp to MojViewProp.
-                foreach (var p in sourceProp.GetType().GetProperties(flags))
-                {
-                    if (CloneFromModelExcludedProps.Contains(p.Name))
-                        continue;
+                vp = vt.GetProperty(p.Name, flags);
 
-                    if (!p.CanWrite)
-                        continue;
-
-                    vp = vt.GetProperty(p.Name, flags);
-
-                    vp.SetValue(Prop, p.GetValue(sourceProp));
-                }
-
-                // Fields
-                foreach (var f in sourceProp.GetType().GetFields(flags))
-                {
-                    vf = vt.GetField(f.Name, flags);
-                    vf.SetValue(Prop, f.GetValue(sourceProp));
-                }
-
-                // NOTE: Some properties must be reset.
-                Prop.InitialSort = MojOrderConfig.None;
+                vp.SetValue(Prop, p.GetValue(sourceProp));
             }
+
+            // Fields
+            foreach (var f in sourceProp.GetType().GetFields(flags))
+            {
+                vf = vt.GetField(f.Name, flags);
+                vf.SetValue(Prop, f.GetValue(sourceProp));
+            }
+
+            // NOTE: Some properties must be reset.
+            Prop.InitialSort = MojOrderConfig.None;
         }
 
         public MojViewProp Prop { get; private set; }
@@ -164,15 +160,7 @@ namespace Casimodo.Lib.Mojen
         public static MojViewPropBuilder Create(MojViewBuilder view, MojProp prop)
         {
             var builder = new MojViewPropBuilder();
-            builder.Initialize(view, null, prop);
-
-            return builder;
-        }
-
-        public static MojViewPropBuilder Create(MojViewBuilder view, MojViewProp vprop)
-        {
-            var builder = new MojViewPropBuilder();
-            builder.Initialize(view, vprop, null);
+            builder.Initialize(view, prop);
 
             return builder;
         }
@@ -209,7 +197,7 @@ namespace Casimodo.Lib.Mojen
             Prop.RowCount = value;
 
             return this;
-        }       
+        }
 
         public MojViewPropBuilder Sortable(bool sortable = true)
         {

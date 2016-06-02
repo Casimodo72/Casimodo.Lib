@@ -32,4 +32,25 @@ namespace Casimodo.Lib.Mojen
             return (MojDateTimeInfo)MemberwiseClone();
         }
     }
+
+    [DataContract(Namespace = MojContract.Ns)]
+    public class MojTimeSpanInfo : MojBase
+    {
+        public MojTimeSpanInfo()
+        { }
+
+        [DataMember]
+        public bool IsDays { get; set; }
+
+        [DataMember]
+        public bool IsHours { get; set; }
+
+        [DataMember]
+        public bool IsMinutes { get; set; }        
+
+        public MojDateTimeInfo Clone()
+        {
+            return (MojDateTimeInfo)MemberwiseClone();
+        }
+    }
 }

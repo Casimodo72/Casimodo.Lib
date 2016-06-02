@@ -90,7 +90,7 @@ namespace Casimodo.Lib.Mojen
             return view;
         }
 
-        IEnumerable<MojViewProp> GetViewPropsDeep(IEnumerable<MojViewConfig> views)
+        IEnumerable<MojViewProp> GetAllViewPropsDeep(IEnumerable<MojViewConfig> views)
         {
             foreach (var view in views)
             {
@@ -101,43 +101,84 @@ namespace Casimodo.Lib.Mojen
                     // Yield properties of sub-views.
                     if (prop.ContentView != null)
                     {
-                        foreach (var p in GetViewPropsDeep(Enumerable.Repeat(prop.ContentView, 1)))
+                        foreach (var p in GetAllViewPropsDeep(Enumerable.Repeat(prop.ContentView, 1)))
                             yield return p;
                     }
                 }
             }
         }
 
-        public MojDataGraphNode[] BuildDataGraphForRead(string viewGroup)
+        public MojProp[] GetAllPropsDistinct(string viewGroup)
         {
             // Filter out non-exposable properties.
             var exposableProps = TypeConfig.GetExposableSchemaProps().Select(x => x.Name).ToList();
             // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
 
-            // Get the properties actually used in the views.            
-            var viewProps = GetViewPropsDeep(Views.Where(x => x.Group == viewGroup)).ToList();
+            // Get the view-properties actually used in the views.            
+            var props = GetAllViewPropsDeep(Views.Where(x => x.Group == viewGroup)).Cast<MojProp>().ToList();
 
-            var props = new List<MojProp>();
-            //props.AddRange(viewProps.Select(x => x.Model));
-            props.AddRange(viewProps);
+            // Insert mandatory key property.
+            props.Insert(0, TypeConfig.Key);
 
-            // KABU TODO: IMPORTANT: IMPL predicates at OData query level.
-            //var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();
+            // Remove duplicates.
+            // Prefer edit properties to read properties, because the edit-properties hold
+            // information needed to generate the edit data-model elsewhere.
+            // Also prefer editable properties to read-only properties.
+            var vprops = props.OfType<MojViewProp>().ToList();
+            MojProp duplicate;
+            MojViewProp vprop, vduplicate;
+            foreach (var prop in props.ToArray())
+            {
+                duplicate = props.FirstOrDefault(x => x != prop && x.FormedTargetPath == prop.FormedTargetPath);
+                if (duplicate == null)
+                    continue;
 
-            // KABU TODO: REMOVE
-            // Expand related file reference properties.
-            //props.AddRange(props.ToArray().Where(x => x.FileRef.Is).SelectMany(x => x.AutoRelatedProps));
+                vprop = prop as MojViewProp;
+                if (vprop != null)
+                {
+                    if (vprop.View.Kind.Roles.HasFlag(MojViewRole.Editor))
+                    {
+                        vduplicate = (MojViewProp)duplicate;
 
+                        // Check: only one edit view per view-group allowed.
+                        if (vprop.View != vduplicate.View &&
+                            vduplicate.View.Kind.Roles.HasFlag(MojViewRole.Editor))
+                        {
+                            // KABU TODO: Move this constraint to controller/view validation layer.
+                            throw new MojenException($"Multiple edit views in the same view-group are not allowed.");
+                        }
+
+                        // Prefer editable properties to read-only properties.
+                        if (duplicate.IsEditable && !prop.IsEditable)
+                            props.Remove(prop);
+                        else
+                            props.Remove(duplicate);
+                    }
+                    else
+                        props.Remove(prop);
+                }
+            }
+
+            // KABU TODO: IMPL? predicates at OData query level.
+            //var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();            
+
+            // KABU TODO: This checks only the top-level properties and not the whole navigation tree.
             foreach (var prop in props)
             {
                 if (!exposableProps.Contains(prop.Name))
                     throw new MojenException($"The property '{prop.Name}' is not exposable, thus must no included in read operations.");
             }
 
-            // Insert mandatory key property.
-            props.Insert(0, TypeConfig.Key);
 
-            return props.BuildDataGraph(includeKey: true, includeForeignKey: true).ToArray();
+
+            return props.ToArray();
+        }
+
+        public MojDataGraphNode[] BuildDataGraphForRead(string viewGroup)
+        {
+            return GetAllPropsDistinct(viewGroup)
+                .BuildDataGraph(includeKey: true, includeForeignKey: true)
+                .ToArray();
         }
 
         public XElement BuildDataGraphMaskForUpdate(string viewGroup = null)
@@ -193,7 +234,8 @@ namespace Casimodo.Lib.Mojen
                                 new XElement("To", new XAttribute("Type", targetType.QualifiedClassName)));
                         }
                     }
-                    else {
+                    else
+                    {
                         yield return new XElement("Ref",
                             new XAttribute("Name", reference.SourceProp.Name),
                             new XAttribute("Binding", reference.SourceProp.Reference.Binding),

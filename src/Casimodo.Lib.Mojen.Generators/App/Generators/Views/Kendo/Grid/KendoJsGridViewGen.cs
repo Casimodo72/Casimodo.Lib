@@ -546,6 +546,8 @@ namespace Casimodo.Lib.Mojen
                 O($"title: '{label}',");
             }
 
+            // KABU TODO: VERY IMPORTANT: FIX: We incorrectly operate on the vprop rather than the target prop.
+
             if (vprop.IsHtml)
             {
                 O($"encoded: false,");
@@ -605,7 +607,12 @@ namespace Casimodo.Lib.Mojen
             // Check-box Kendo template.
             else if (vprop.Type.IsBoolean)
             {
-                template = $"'#= casimodo.toDisplayBool({vprop.Name})#'";
+                template = $"'#=casimodo.toDisplayBool({vprop.Name})#'";
+                //o($".ClientTemplate(@\"<input type='checkbox' disabled #= {prop.Name} ? checked='checked' : '' # />\")");
+            }
+            else if (vprop.Type.IsTimeSpan)
+            {
+                template = $"'#=casimodo.toDisplayTimeSpan({vprop.Name})#'";
                 //o($".ClientTemplate(@\"<input type='checkbox' disabled #= {prop.Name} ? checked='checked' : '' # />\")");
             }
             // Reference
@@ -617,7 +624,7 @@ namespace Casimodo.Lib.Mojen
                 // Example:
                 // template: "#if(Company!=null){##:Company.NameShort##}#",                
                 template = $"\"{KendoGen.GetPlainDisplayTemplate(vprop, checkLastProp: true)}\"";
-            }
+            }            
             else if (vprop.Reference.Is)
             {
                 throw new MojenException("This kind of reference is not supported.");

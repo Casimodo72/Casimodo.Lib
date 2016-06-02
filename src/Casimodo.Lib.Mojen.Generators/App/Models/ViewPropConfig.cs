@@ -272,12 +272,15 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojViewProp : MojProp
     {
-        public MojViewProp(MojProp model)
+        public MojViewProp(MojViewConfig view, MojProp model)
         {
+            View = view;
             Model = model;
             Name = Model.Name;
             AutoCompleteFilter = new MojPropAutoCompleteFilter();
         }
+
+        public MojViewConfig View { get; set; }
 
         public MojDateTimeInfo DisplayDateTime { get; set; }
 
@@ -350,6 +353,11 @@ namespace Casimodo.Lib.Mojen
         /// TODO: Implement CeqOrder
         /// </summary>
         public int OrderByIndex { get; set; }
+
+        public override string ToString()
+        {
+            return FormedTargetPath;
+        }
     }
 
     public class MojLookupViewPropConfig : MojBase

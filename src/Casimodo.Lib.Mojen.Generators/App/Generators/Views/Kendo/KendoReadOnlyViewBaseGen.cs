@@ -110,6 +110,8 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"<span data-bind='text:{GetBinding(context)}'{GetElemAttrs()}></span>");
             }
+
+            // KABU TODO: Support TimeSpan
         }
     }
 }

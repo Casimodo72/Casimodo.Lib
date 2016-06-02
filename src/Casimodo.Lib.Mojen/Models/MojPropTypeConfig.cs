@@ -56,7 +56,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojPropType()
         {
-            DateTimeInfo = new MojDateTimeInfo();
+            // KABU TODO: REMOVE
+            //DateTimeInfo = new MojDateTimeInfo();
         }
 
         public MojPropType Clone()
@@ -191,6 +192,11 @@ namespace Casimodo.Lib.Mojen
             get { return MojenUtils.IsDateTimeOrOffset(TypeNormalized); }
         }
 
+        public bool IsTimeSpan
+        {
+            get { return TypeNormalized != null && TypeNormalized == typeof(TimeSpan); }
+        }
+
         /// <summary>
         /// Indicates whether the type of the property is an enum.
         /// </summary>
@@ -219,6 +225,9 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public MojDateTimeInfo DateTimeInfo { get; private set; }
+
+        [DataMember]
+        public MojTimeSpanInfo TimeSpanInfo { get; private set; }
 
         [DataMember]
         /// <summary>
@@ -363,8 +372,16 @@ namespace Casimodo.Lib.Mojen
 
             if (MojenUtils.IsDateTimeOrOffset(normalizedType))
             {
+                DateTimeInfo = new MojDateTimeInfo();
                 DateTimeInfo.IsDate = true;
                 DateTimeInfo.IsTime = true;
+            }
+
+            if (normalizedType == typeof(TimeSpan))
+            {
+                TimeSpanInfo = new MojTimeSpanInfo();
+                TimeSpanInfo.IsHours = true;
+                TimeSpanInfo.IsMinutes = true;
             }
         }
 

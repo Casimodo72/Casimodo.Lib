@@ -11,6 +11,7 @@ namespace Casimodo.Lib.Mojen
         Lookup = 1 << 2,
         Details = 1 << 3,
         Editor = 1 << 4,
+        // KABU TODO: REMOVE? ForUpdate and ForCreate and never assigned.
         ForUpdate = 1 << 5,
         ForCreate = 1 << 6,
         Delete = 1 << 7

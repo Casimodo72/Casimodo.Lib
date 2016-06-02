@@ -249,10 +249,20 @@ namespace Casimodo.Lib.Mojen
             return DateTime(nullable: nullable, date: false, time: true);
         }
 
-        public TPropBuilder TimeSpan(bool nullable = true)
+        public TPropBuilder TimeSpan(bool nullable = true, bool days = false, bool hours = true, bool minutes = true)
         {
-            // KABU TODO: IMPORTANT: Will TimeSpan produce problems on the JavaScript side?
-            return Type(nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
+            // KABU TODO: IMPORTANT: TimeSpan produces problems on the JavaScript side.
+            // We have to use custom controls and templates in order to edit and display TimeSpans in the browser.
+            Type(nullable ? typeof(TimeSpan?) : typeof(TimeSpan));
+
+            var info = PropConfig.Type.TimeSpanInfo;
+            info.IsDays = days;
+            info.IsHours = hours;
+            info.IsMinutes = minutes;
+
+            Type(DataType.Duration);
+
+            return This();
         }
 
         public TPropBuilder DateTime(bool nullable = true, bool date = true, bool time = true, int ms = 0)
@@ -356,7 +366,7 @@ namespace Casimodo.Lib.Mojen
             return Attr(new MojAttr("RegularExpression", 6).CSArg("pattern", pattern, verbatim: true).ErrorArg(error));
             // RegularExpression(expression) { ErrorMessage = error };
         }
-       
+
         public TPropBuilder DefaultValueOnEdit(MojDefaultValueCommon value)
         {
             return DefaultValueCore(value, "OnEdit");
