@@ -322,6 +322,11 @@ namespace Casimodo.Lib.Mojen
             OPropEditableCore(context);
         }
 
+        public void oAttr(string name, object value)
+        {
+            o($" {name}='{MojenUtils.ToJsXAttrValue(value)}'");
+        }
+
         public void OPropEditableCore(WebViewGenContext context)
         {
             var type = context.View.TypeConfig;
@@ -359,6 +364,86 @@ namespace Casimodo.Lib.Mojen
 
                 Pop();
                 O(")");
+            }
+            else if (prop.Type.IsNumber)
+            {
+                // KABU TODO: REMOVE? Default values should be already handled when defined in the Kendo data-source model.
+                //var commonDefaultValue = prop.DefaultValues.ForScenario("OnEdit").WithCommon().FirstOrDefault();
+                //if (commonDefaultValue != null)
+                //{
+                //    if (commonDefaultValue.CommonValue != null)
+                //    {
+                //        if (commonDefaultValue.CommonValue == MojDefaultValueCommon.CurrentYear)
+                //        {
+                //            o(".Value(DateTime.Now.Year)");
+                //        }
+                //        else throw new MojenException($"Unexpected common default value '{commonDefaultValue.CommonValue}'.");
+                //    }
+                //    else throw new MojenException($"Unexpected default value object '{commonDefaultValue.Value}'.");
+                //}
+
+
+                Oo("<input");
+
+                oAttr("id", propPath);
+                oAttr("name", propPath);
+
+                if (prop.Rules.Is)
+                {
+                    var constr = prop.Rules;
+                    if (constr.Min != null)
+                    {
+                        oAttr("data-val-range-min", constr.Min);
+                        oAttr("min", constr.Min);
+                    }
+                    if (constr.Max != null)
+                    {
+                        oAttr("data-val-range-max", constr.Max);
+                        oAttr("max", constr.Max);
+                    }
+                }
+
+                oAttr("type", "text");
+
+                oO("/>"); // End of input element
+
+                OScriptBegin();
+                Oo($@"jQuery(function(){{ jQuery('#{propPath}').kendoNumericTextBox({{");
+
+                // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+                // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+                var format = @"#.##"; // "{0:#.##}";
+                if (prop.Type.IsInteger)
+                    format = @"#";
+                o($"'format':'{format}'");
+
+                // Decimals                
+                if (prop.Type.IsInteger)
+                    o($",'decimals':0");
+
+                oO("});});");
+                OScriptEnd();
+
+                // Validation error
+                O($"<span class='field-validation-valid' data-valmsg-for='{propPath}' data-valmsg-replace='true'></span>");
+
+                /*
+                  <input data-val="true" 
+                         data-val-number="The field Anzahl der Mitarbeiter must be a number." 
+                         data-val-range="Das Feld &quot;Anzahl der Mitarbeiter&quot; muss zwischen 1 und 99 liegen." 
+                         data-val-range-max="99" 
+                         data-val-range-min="1" 
+                         data-val-required="Das Feld &quot;Anzahl der Mitarbeiter&quot; ist erforderlich." 
+                         id="WorkersCount" 
+                         max="99" 
+                         min="1" 
+                         name="WorkersCount" 
+                         type="text" />
+                  <script>
+	                jQuery(function(){jQuery("\#WorkersCount").kendoNumericTextBox({"format":"\#","decimals":0});});
+                  <\/script>
+                  <span class="field-validation-valid" data-valmsg-for="WorkersCount" data-valmsg-replace="true"></span>                        
+                */
             }
             else if (prop.Type.IsNumber)
             {
@@ -509,6 +594,13 @@ namespace Casimodo.Lib.Mojen
                     oO(")");
                 }
             }
+            //else if (prop.Type.IsTimeSpan)
+            //{
+            //    O($"@(Html.Kendo().TimePickerFor(m => m.{propPath})");
+            //    OMvcAttrs(context, kendo: true);
+            //    OToClientTemplate();
+            //    oO(")");
+            //}
             else if (prop.Type.IsString)
             {
                 OStringEditor(context);
@@ -669,7 +761,7 @@ namespace Casimodo.Lib.Mojen
             OSelectorControlInvisibleInput(context);
 
             // Button for popping up the lookup dialog.            
-            OSelectorControlButton(context);            
+            OSelectorControlButton(context);
 
             //OE("</div>"); // container
 

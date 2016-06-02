@@ -535,7 +535,7 @@ namespace Casimodo.Lib.Mojen
                 throw new MojenException($"The collection property '{prop}' is not a member of type '{View.TypeConfig.ClassName}'.");
 
             var path = new MojFormedNavigationPath
-            {                
+            {
                 Steps = new List<MojFormedNavigationPathStep>()
             };
             path.AddStep(new MojFormedNavigationPathStep
@@ -574,16 +574,19 @@ namespace Casimodo.Lib.Mojen
             return collectionPropBuilder;
         }
 
-        public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool external = false)
+        public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool? readOnly = null, bool external = false)
         {
-            var pbuilder = SimplePropCore(prop, hidden: hidden);
+            var pbuilder = SimplePropCore(prop, readOnly: readOnly ?? false, hidden: hidden);
 
             if (hidden || external)
             {
                 if (hidden)
                 {
                     pbuilder.Prop.HideModes = MojViewMode.All;
-                    pbuilder.ReadOnly();
+
+                    // Hidden props are read-only by default, except for if explicitely non-read-only.
+                    if (readOnly != false)
+                        pbuilder.ReadOnly();
                 }
 
                 // KABU TODO: Why do I set IsExternal for all hidden properties?
@@ -643,7 +646,7 @@ namespace Casimodo.Lib.Mojen
                 pbuilder.ReadOnly();
 
             return pbuilder;
-        }       
+        }
 
         void CheckNotForeignKeyProp(MojProp prop, bool hidden)
         {

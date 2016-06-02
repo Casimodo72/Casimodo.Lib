@@ -188,7 +188,20 @@ namespace Casimodo.Lib.Mojen
             return ToJsValue(value, value.GetType(), parse);
         }
 
-        public static string ToJsValue(object value, Type type, bool parse = true, bool verbatim = false)
+        public static string ToJsXAttrValue(object value)
+        {
+            if (value == null)
+                return "null";
+
+            return ToJsValueCore(value, value.GetType(), parse: false, verbatim: false, quote: false);
+        }
+
+        public static string ToJsValue(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
+        {
+            return ToJsValueCore(value, type, parse, verbatim, quote: true);
+        }
+
+        static string ToJsValueCore(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
         {
             if (value == null)
                 return "null";
@@ -199,10 +212,20 @@ namespace Casimodo.Lib.Mojen
             type = Nullable.GetUnderlyingType(type) ?? type;
 
             if (type == typeof(string))
+            {
                 // KABU: TODO: How to handle varbatim strings in JS?
-                return "\"" + value + "\"";
+                if (quote)
+                    return "\"" + value + "\"";
+                else
+                    return (string)value;
+            }
             else if (type == typeof(Enum))
-                return "\"" + value + "\"";
+            {
+                if (quote)
+                    return "\"" + value + "\"";
+                else
+                    return value.ToString();
+            }
             else if (type == typeof(bool))
                 return XmlConvert.ToString((bool)value);
             else if (type == typeof(decimal))
@@ -220,12 +243,15 @@ namespace Casimodo.Lib.Mojen
             {
                 throw new NotImplementedException("Conversion of DateTime is not implemented yet.");
 #pragma warning disable 0162
-                return parse ? "DateTime.Parse(\"" + XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.Local) + "\")" : "\"" + value + "\"";
+                return parse ? "new Date('" + XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.Local) + "')" : "'" + value + "'";
 #pragma warning restore 0162
             }
             else if (type == typeof(Guid))
             {
-                return "\"" + value + "\"";
+                if (quote)
+                    return "\"" + value + "\"";
+                else
+                    return value.ToString();
             }
 
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
