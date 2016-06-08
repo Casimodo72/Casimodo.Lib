@@ -92,6 +92,14 @@ namespace Casimodo.Lib
 
             return text.Split(new[] { separator }, options);
         }
+
+        public static string NullIfEmpty(this string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            return text;
+        }
     }
 
     public static class StringBuilderExtensions

@@ -139,7 +139,7 @@ namespace Casimodo.Lib.Mojen
             attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + ";" + value;
         }
 
-        public void ElemDataBind(WebViewGenContext context)
+        public void ElemDataBindAttr(WebViewGenContext context)
         {
             if (context.View.UseMVVM)
             {
@@ -147,7 +147,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public void ElemDataBind(string expression)
+        public void ElemDataBindAttr(string expression)
         {
             var attr = GetOrCreateAttr("data-bind");
             attr.Value = string.IsNullOrEmpty(attr.Value) ? expression : attr.Value + ", " + expression;

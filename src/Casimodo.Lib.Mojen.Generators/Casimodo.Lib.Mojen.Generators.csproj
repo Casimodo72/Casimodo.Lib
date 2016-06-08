@@ -146,6 +146,7 @@
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoFxConfig.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoWindowConfig.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoDetails2Gen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoEditorGen.InputComponents.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoEditorGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoPartGen.DataSource.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoPartGen.cs" />

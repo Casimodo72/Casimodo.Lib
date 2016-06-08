@@ -105,7 +105,7 @@ namespace Casimodo.Lib.Mojen
         void OMvcAttrs(WebViewGenContext context, bool kendo)
         {
             if (!kendo)
-                ElemDataBind(context);
+                ElemDataBindAttr(context);
 
             OMvcAttrs(kendo);
         }
