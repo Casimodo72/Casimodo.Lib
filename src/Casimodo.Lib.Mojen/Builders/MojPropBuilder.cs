@@ -233,11 +233,35 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TPropBuilder Decimal(bool nullable = true)
+        {
+            if (nullable)
+                Type(typeof(decimal?));
+            else
+                Type(typeof(decimal));
+            
+            return This();
+        }
+
+        public TPropBuilder Money(bool nullable = true)
+        {
+            Decimal(nullable: nullable);
+            Precision(19, 4);
+            return This();
+        }
+
+        public TPropBuilder VatPercent(bool nullable = true)
+        {
+            Decimal(nullable: nullable);            
+            Precision(19, 2);
+            return This();
+        }
+
         public TPropBuilder Precision(byte precision, byte scale, string error = null)
         {
             return Attr(new MojAttr("Precision", 4).CArg("precision", precision).CArg("scale", scale)
                 .ErrorArg(error));
-        }
+        }        
 
         public TPropBuilder Date(bool nullable = true)
         {

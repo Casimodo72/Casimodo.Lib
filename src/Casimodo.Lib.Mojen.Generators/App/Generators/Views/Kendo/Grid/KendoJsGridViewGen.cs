@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
             string jsTypeName = FirstCharToLower(type.Name);
             string keyPropName = type.Key.Name;
 
-            TransportConfig = this.CreateODataTransport(view, EditorView);
+            TransportConfig = this.CreateODataTransport(view, EditorView, Options.CustomQueryMethod);
 
             InitEvents(context);
 

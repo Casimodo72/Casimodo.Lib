@@ -60,7 +60,7 @@ namespace Casimodo.Lib.Mojen
         {
             var items = new List<UserInfoItem>();
 
-            if (AuthUserOptions == null)
+            if (AuthUserOptions == null || string.IsNullOrWhiteSpace(AuthUserOptions.PwSourceFilePath))
                 return items;
 
             var doc = XDocument.Load(AuthUserOptions.PwSourceFilePath);

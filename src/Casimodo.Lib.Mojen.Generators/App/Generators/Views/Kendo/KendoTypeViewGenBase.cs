@@ -321,7 +321,10 @@ namespace Casimodo.Lib.Mojen
 
                 if (cur.Directive == "custom-view")
                 {
-                    O($"@Html.Partial(\"_{cur.Name}\")");
+                    if (!context.IsElementHidden(cur.HideModes))
+                    {
+                        O($"@Html.Partial(\"_{cur.Name}\")");
+                    }
                     continue;
                 }
 

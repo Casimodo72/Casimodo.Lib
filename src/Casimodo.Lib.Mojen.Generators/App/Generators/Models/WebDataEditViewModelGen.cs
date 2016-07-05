@@ -50,6 +50,8 @@ namespace Casimodo.Lib.Mojen
             // Only one of each foreign entity navigation group.
             propInfos.AddRange(editorViewPropInfos.DistinctBy(x => x.ViewProp.Name));
 
+            propInfos = propInfos.DistinctBy(x => x.ViewProp.Name).ToList();
+
             var propItems = propInfos.Select(x => new
             {
                 Info = x,

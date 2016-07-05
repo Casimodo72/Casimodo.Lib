@@ -38,6 +38,17 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsModalView { get; set; }
 
+        public bool IsElementHidden(MojViewMode hideMode)
+        {
+            if (IsEditableView && (hideMode.HasFlag(MojViewMode.Create) || hideMode.HasFlag(MojViewMode.Update)))
+                return true;
+
+            if (!IsEditableView && (hideMode.HasFlag(MojViewMode.Read)))
+                return true;
+
+            return false;
+        }
+
 #if (false)
         /// <summary>
         /// NOTE: StopOnLooseReferences will be false by default.

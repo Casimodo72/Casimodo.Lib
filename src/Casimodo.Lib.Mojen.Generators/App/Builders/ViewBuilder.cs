@@ -489,9 +489,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public ViewTemplate UseCustomView(string name)
+        public ViewTemplate UseCustomView(string name, MojViewMode showOn = MojViewMode.All)
         {
-            return View.Template.CustomView(name);
+            return View.Template.CustomView(name, showOn);
         }
 
         public ViewTemplate Label(string label = null)

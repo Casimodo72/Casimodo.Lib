@@ -20,6 +20,9 @@ namespace Casimodo.Lib.Mojen
 
     public class KendoGridOptions
     {
+        // We need to use a custom OData method e.g. for querying of return Mos with IsDeleted and IsRecyclableDeleted.
+        public string CustomQueryMethod { get; set; }
+
         public object Height { get; set; }
 
         public bool IsScrollable { get; set; }

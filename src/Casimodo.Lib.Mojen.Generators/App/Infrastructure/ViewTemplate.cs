@@ -120,10 +120,11 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public ViewTemplate CustomView(string name)
+        public ViewTemplate CustomView(string name, MojViewMode showOn = MojViewMode.All)
         {
             Add("custom-view");
             Cur.Name = name;
+            Cur.HideModes = MojViewMode.All & ~showOn;
             StartRun();
             EndRun();
             return this;

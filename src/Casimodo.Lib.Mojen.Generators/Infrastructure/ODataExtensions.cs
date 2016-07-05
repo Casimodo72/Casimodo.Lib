@@ -37,10 +37,16 @@ namespace Casimodo.Lib.Mojen
                 .Join(",");
         }
 
-        public static string GetODataQueryFunc(this AppPartGenerator gen, bool distinct = false)
+        public static string GetODataQueryFunc(this AppPartGenerator gen, bool distinct = false, string customMethod = null)
         {
             var config = gen.App.Get<WebODataBuildConfig>();
-            var func = distinct ? config.QueryDistinct : config.Query;
+
+            string func = null;
+            if (!string.IsNullOrWhiteSpace(customMethod))
+                func = distinct ? customMethod + "Distinct" : customMethod;
+            else
+                func = distinct ? config.QueryDistinct : config.Query;
+
             return gen.GetODataFunc(func);
         }
 
@@ -110,7 +116,8 @@ namespace Casimodo.Lib.Mojen
             return s.ToString();
         }
 
-        public static MojHttpRequestConfig CreateODataTransport(this AppPartGenerator gen, MojViewConfig view, MojViewConfig editorView)
+        public static MojHttpRequestConfig CreateODataTransport(this AppPartGenerator gen, MojViewConfig view, MojViewConfig editorView,
+            string customQueryMethod = null)
         {
             var c = new MojHttpRequestConfig();
 
@@ -126,7 +133,7 @@ namespace Casimodo.Lib.Mojen
 
             // OData URLs
             c.ODataBaseUrl = gen.GetODataPath(view.TypeConfig);
-            c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc()}()?";
+            c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc(customMethod: customQueryMethod)}()?";
             // Build OData $expand expressions based on the used foreign properties in the view.
             c.ODataSelectUrl = c.ODataReadBaseUrl + gen.BuildODataSelectAndExpand(c.ReadGraph);
             if (!string.IsNullOrEmpty(view.CustomSelectFilter))

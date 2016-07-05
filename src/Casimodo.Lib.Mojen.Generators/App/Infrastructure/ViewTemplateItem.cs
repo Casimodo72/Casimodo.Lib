@@ -16,6 +16,7 @@ namespace Casimodo.Lib.Mojen
         public string Name;
         public string TextValue;
         public MojViewProp Prop;
+        public MojViewMode HideModes = MojViewMode.None;
         public int Index = -1;
         public MojColumnDefinition Style;
         public bool IsRunStart;
