@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
                 End();
             }
 
-            // Standalone editors.
+            // Standalone lists and editors.
             foreach (var view in controller.Views.Where(x => x.Standalone.Is))
             {
                 O();

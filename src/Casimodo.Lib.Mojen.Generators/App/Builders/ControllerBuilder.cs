@@ -62,6 +62,15 @@ namespace Casimodo.Lib.Mojen
                 .CanDelete(false);
         }
 
+        public MojViewBuilder ListDialog(string id)
+        {
+            return View().ListDialog()
+                .Id(id)
+                .CanEdit(false)
+                .CanCreate(false)
+                .CanDelete(false);
+        }
+
         public MojViewBuilder LookupSingleView(params MojProp[] parameters)
         {
             return View().LookupSingle(parameters);

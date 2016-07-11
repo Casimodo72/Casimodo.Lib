@@ -239,6 +239,31 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder ListDialog(params MojProp[] parameters)
+        {
+            View.Kind.Mode = MojViewMode.Read;
+            View.Kind.Roles = MojViewRole.List;
+            View.Kind.ComponentRoleName = "List";
+            View.Kind.ActionName = "List";
+            View.Group = "Standalone";
+
+            // Dialogs are currently all modal and partial.
+            View.IsModal = true;
+            View.IsPartial = true;
+
+            View.Standalone = new MojStandaloneViewConfig
+            {
+                Is = true,
+                Parameters = new List<MojProp>(parameters)
+            };
+
+            Title(View.TypeConfig.DisplayName);
+
+            OnViewUrlChanged();
+
+            return this;
+        }
+
         public MojViewBuilder SelectFilter(string filterExpression)
         {
             View.CustomSelectFilter = filterExpression;

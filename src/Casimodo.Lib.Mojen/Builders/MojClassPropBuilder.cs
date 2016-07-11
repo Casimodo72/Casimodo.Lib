@@ -809,17 +809,20 @@ namespace Casimodo.Lib.Mojen
             return conditionBuilder.Expression;
         }
 
-        public TPropBuilder ReferenceToChildImage(MojType to, bool nullable = true, bool navigation = false)
+        public TPropBuilder OwnedChildImage(MojType to, bool nullable = true, bool navigation = false)
         {
-            return FileReference(to, MojReferenceAxis.ToChild, nullable, navigation: navigation, image: true);
+            return OwnedFile(to, MojReferenceAxis.ToChild, nullable, navigation: navigation, image: true);
         }
 
-        public TPropBuilder ReferenceToChildFile(MojType to, bool nullable = true, bool navigation = false)
+        /// <summary>
+        /// Makes the property an owned file of the specified file-type.
+        /// </summary>        
+        public TPropBuilder OwnedChildFile(MojType to, bool nullable = true, bool navigation = false)
         {
-            return FileReference(to, MojReferenceAxis.ToChild, nullable: nullable, navigation: navigation);
+            return OwnedFile(to, MojReferenceAxis.ToChild, nullable: nullable, navigation: navigation);
         }
 
-        public TPropBuilder FileReference(MojType to, MojReferenceAxis axis, bool nullable = true, bool navigation = false, bool image = false)
+        public TPropBuilder OwnedFile(MojType to, MojReferenceAxis axis, bool nullable = true, bool navigation = false, bool image = false)
         {
             ReferenceCore(to, axis: axis, nullable: nullable, navigation: navigation, owned: true);
 
