@@ -115,5 +115,168 @@ namespace Casimodo.Lib.Mojen
 
             OJsObjectLiteral(options.Elem, trailingNewline: false, trailingComma: false);
         }
+
+        public void OStandaloneEditorViewModel(MojViewConfig view, string componentName = null)
+        {
+            // View model for standalone editor views.
+            
+            OJsImmediateBegin("space");
+
+            var transportConfig = this.CreateODataTransport(view, view);
+
+            var config = new KendoDataSourceConfig
+            {
+                TypeConfig = view.TypeConfig,
+                TransportType = "odata-v4",
+                UseODataActions = true,
+                TransportConfig = transportConfig,
+                ModelFactory = "createDataModel()",
+                CanEdit = view.CanEdit,
+                CanCreate = view.CanCreate,
+                CanDelete = view.CanDelete,
+                PageSize = 1
+            };
+
+            O($"var args = casimodo.ui.dialogArgs.consume('{view.Id}');");
+
+            // KABU TODO: REVISIT: document.scriptElement does not work here, because
+            // Chrome and Firefox will move the script elements from their original location to somewhere else.
+            // Such a pity.
+            O($"var $view = $('#view-{view.Id}');");
+            // Create a dummy view model, because we don't use one.
+            O("space.vm = {}");
+            O();
+            OB("function createDataModel ()");
+            OB("return");
+            GenerateDataSourceModel(transportConfig.ModelProps);
+            End();
+            End();
+
+            O();
+            OB("var ds = new kendo.data.DataSource(");
+            ODataSource(config);
+            End(");");
+
+            O();
+            O("kendomodo.initStandaloneEditorDialog($view, args, ds);");
+
+            O();
+            O($"ds.filter({{ field: '{config.TypeConfig.Key.Name}', operator: 'eq', value: args.value }});");
+
+            OJsImmediateEnd(BuildNewComponentSpace(componentName));            
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public void OStandaloneDetailsViewModel(MojViewConfig view, string space)
+        {
+            // View model for standalone editor views.
+
+            OJsImmediateBegin("space");            
+
+            // KABU TODO: REVISIT: document.scriptElement does not work here, because
+            // Chrome and Firefox will move the script elements from their original location to somewhere else.
+            // Such a pity.
+            O($"var $view = $('#view-{view.Id}');");
+
+            // View model factory function.
+            O();
+            OB($"space.createViewModel = function ()");
+            O("if (space.vm) return space.vm;");
+            O();
+            OJsClass("ViewModel", extends: "kendomodo.DetailsViewModelBase",
+                construct: null, 
+                content: () =>
+            {
+                var transportConfig = this.CreateODataTransport(view, null);
+
+                OB("fn.createDataModel = function ()");
+                OB("return");
+                GenerateDataSourceModel(transportConfig.ModelProps);
+                End();
+                End();
+
+                // Data source factory.
+                O();
+                OB("fn.createDataSource = function ()");
+                O("if (this.dataSource)");
+                O("    return this.dataSource;");
+                O();
+                OB("this.dataSource = new kendo.data.DataSource(");
+                ODataSource(new KendoDataSourceConfig
+                {
+                    TypeConfig = view.TypeConfig,
+                    TransportType = "odata-v4",
+                    UseODataActions = true,
+                    TransportConfig = transportConfig,
+                    ModelFactory = "this.createDataModel()",
+                    CanEdit = false,
+                    CanCreate = false,
+                    CanDelete = false,
+                    PageSize = 1
+                });
+                O("change: $.proxy(space.vm.onDataSourceChanged, space.vm)");
+                End(");");
+                O();
+                O("return this.dataSource;");
+                End();                
+            });
+            O();
+            OB("space.vm = new ViewModel(");
+            O("space: space");
+            End(");");
+            O();
+            O("return space.vm;");
+            End();            
+
+            // Component factory function.
+            OB("space.createComponent = function(options)");
+            OB($"kendomodo.createStandaloneDetailsComponentOnSpace(");
+            O("space: space,");            
+            O($"viewId: '{view.Id}',");
+            O($"title: '{view.TypeConfig.DisplayName}',");
+            if (view.EditorView != null)
+            {
+                OB("editor:");
+                O($"viewId: '{view.EditorView.Id}',");
+                O($"url: '{view.EditorView.Url}',");
+                O($"width: {MojenUtils.ToJsValue(view.EditorView.Width)},");                
+                O($"height: {MojenUtils.ToJsValue(view.EditorView.MinHeight)},");
+                End();
+                
+            }
+            End(")");
+            End();            
+
+            OJsImmediateEnd(BuildNewComponentSpace(space));
+        }
+
+        public void OJsClass(string name, string extends, Action construct, Action content)
+        {
+            // Extend base component view model.
+            OB($"var {name} = (function (_super)");
+
+            O($"casimodo.__extends({name}, _super);");
+
+            O();
+            OB($"function {name}(options)");
+            O("_super.call(this, options);");
+            construct?.Invoke();
+            End();
+
+            O();
+            O("var fn = ViewModel.prototype;");
+
+            if (content != null)
+            {
+                O();
+                content();
+            }
+
+            O();
+            O($"return {name};");
+
+            End($")({extends});");
+        }
     }
 }

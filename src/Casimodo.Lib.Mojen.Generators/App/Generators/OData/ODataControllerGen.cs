@@ -342,7 +342,7 @@ namespace Casimodo.Lib.Mojen
                 // Otherwise the action won't be found by the OData Web API machinery.
                 O($"public async Task<IHttpActionResult> {action}([FromODataUri] {key.Type.Name} key, ODataActionParameters parameters)");
                 Begin();
-                O($"return await UpdateCore(key, parameters.Values.FirstOrDefault() as {Type.ClassName}, {mask}, \"{group}\");");
+                O($"return await UpdateCore(key, parameters?.Values?.FirstOrDefault() as {Type.ClassName}, {mask}, \"{group}\");");
                 End();
             }
             else

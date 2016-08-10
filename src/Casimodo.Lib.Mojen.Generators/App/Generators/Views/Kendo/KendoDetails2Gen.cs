@@ -8,6 +8,8 @@ namespace Casimodo.Lib.Mojen
 {
     public class KendoDetails2Gen : KendoReadOnlyViewGenBase
     {
+        public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
+
         protected override void GenerateCore()
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
@@ -17,7 +19,26 @@ namespace Casimodo.Lib.Mojen
                 {
                     View = view
                 }));
+
+                if (view.Standalone.Is)
+                {
+                    var path = BuildJsScriptFilePath(view, suffix: ".vm.generated", newConvention: true);
+                    var componentName = view.TypeConfig.Name.FirstLetterToLower() + (view.Group ?? "") + "DetailsSpace";
+                    PerformWrite(path, () =>
+                    {
+                        OScriptUseStrict();
+                        KendoGen.OStandaloneDetailsViewModel(view, componentName);
+                    });
+                }
             }
+        }
+
+        public override MojenGenerator Initialize(MojenApp app)
+        {
+            base.Initialize(app);            
+            KendoGen.SetParent(this);
+
+            return this;
         }
 
         public override void Define(WebViewGenContext context)
@@ -28,16 +49,48 @@ namespace Casimodo.Lib.Mojen
 
         public override void BeginView(WebViewGenContext context)
         {
+            ORazorGeneratedFileComment();
+
             if (context.View.Template.IsEmpty)
                 return;
-
-            ORazorGeneratedFileComment();
 
             ORazorUsing("Casimodo.Lib.Web", context.View.TypeConfig.Namespace);
 
             ORazorModel(context.View.TypeConfig);
 
+            if (context.View.Standalone.Is)
+            {
+                OB($"<div class='standalone-details-view' id='view-{context.View.Id}'>");
+
+                OB("<div class='details-view-toolbar'>");
+
+                // Refresh button
+                O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
+
+                // Edit button
+                if (context.View.CanEdit)
+                    O("<button type='button' class='k-button btn edit-command'><span class='k-icon k-i-edit'></span></button>");
+                    
+                OE("</div>");
+
+                OB("<div class='details-view-content'>");
+            }           
+
             OB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
+        }
+
+        public override void EndView(WebViewGenContext context)
+        {
+            if (context.View.Template.IsEmpty)
+                return;            
+
+            base.EndView(context);            
+
+            if (context.View.Standalone.Is)
+            {
+                OE($"</div>"); // standalone details view content
+                OE($"</div>"); // standalone details view
+            }
         }
 
         public override void OProp(WebViewGenContext context)

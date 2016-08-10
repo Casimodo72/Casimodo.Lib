@@ -68,7 +68,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OB("fn.createDataModel = function ()");
             OB("var model =");
-            KendoGen.GenerateDataSourceModel(context, TransportConfig.ModelProps);
+            KendoGen.GenerateDataSourceModel(TransportConfig.ModelProps);
             End(";");
             // Add custom (computed) properties to the model.
             O();

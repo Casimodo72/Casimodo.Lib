@@ -408,6 +408,11 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TPropBuilder DefaultTime(int hours, int minutes)
+        {
+            return DefaultValue(new DateTimeOffset(2015, 1, 1, hours, minutes, 0, System.TimeSpan.Zero));
+        }
+
         public TPropBuilder DefaultValue(object value)
         {
             return DefaultValueCore(value, null);

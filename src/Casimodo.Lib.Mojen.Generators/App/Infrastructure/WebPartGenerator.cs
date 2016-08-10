@@ -70,6 +70,11 @@ namespace Casimodo.Lib.Mojen
         public void OScriptBegin()
         {
             OB("<script>");
+            OScriptUseStrict();
+        }
+
+        public void OScriptUseStrict()
+        {
             O("\"use strict\";");
         }
 
@@ -98,14 +103,22 @@ namespace Casimodo.Lib.Mojen
             End($")({args});");
         }
 
+        public string BuildNewComponentSpace(string name = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return $"casimodo.ui.createComponentSpace()";
+            else
+                return $"casimodo.run.{name} || (casimodo.run.{name} = casimodo.ui.createComponentSpace())";
+        }
+
         public string GetViewDirPath(MojViewConfig view)
         {
             return Path.Combine(App.Get<WebBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
         }
 
-        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string suffix = null)
+        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string suffix = null, bool newConvention = false)
         {
-            return Path.Combine(App.Get<WebBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix));
+            return Path.Combine(App.Get<WebBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix, newConvention: newConvention));
         }
 
         public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string suffix = null)
@@ -113,11 +126,20 @@ namespace Casimodo.Lib.Mojen
             return App.Get<WebBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
         }
 
-        string BuildJsScriptFileName(MojViewConfig view, string name = null, string suffix = null)
+        string BuildJsScriptFileName(MojViewConfig view, string name = null, string suffix = null, bool newConvention = false)
         {
             if (name == null)
             {
                 name = view.TypeConfig.Name;
+
+                if (newConvention)
+                {
+                    if (view.Group != null &&
+                        !view.Group.Equals("lookup", StringComparison.OrdinalIgnoreCase))
+                    {
+                        name += "." + view.Group.FirstLetterToLower();
+                    }
+                }
 
                 string role = null;
                 var roles = view.Kind.Roles;
@@ -138,10 +160,13 @@ namespace Casimodo.Lib.Mojen
 
                 name += "." + role;
 
-                if (view.Group != null &&
-                    !view.Group.Equals("lookup", StringComparison.OrdinalIgnoreCase))
+                if (!newConvention)
                 {
-                    name += "." + view.Group.FirstLetterToLower();
+                    if (view.Group != null &&
+                        !view.Group.Equals("lookup", StringComparison.OrdinalIgnoreCase))
+                    {
+                        name += "." + view.Group.FirstLetterToLower();
+                    }
                 }
 
                 if (suffix != null)

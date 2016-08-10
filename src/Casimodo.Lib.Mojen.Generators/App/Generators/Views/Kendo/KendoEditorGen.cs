@@ -49,54 +49,9 @@ namespace Casimodo.Lib.Mojen
             if (!context.View.Standalone.Is)
                 return;
 
-            var view = context.View;
-
-            // View model for standalone views.
+            // View model for standalone editor views.
             OScriptBegin();
-            OJsImmediateBegin("space");
-
-            TransportConfig = this.CreateODataTransport(context.View, context.View);
-
-            var config = new KendoDataSourceConfig
-            {
-                TypeConfig = context.View.TypeConfig,
-                TransportType = "odata-v4",
-                UseODataActions = true,
-                TransportConfig = TransportConfig,
-                ModelFactory = "createDataModel()",
-                CanEdit = view.CanEdit,
-                CanCreate = view.CanCreate,
-                CanDelete = view.CanDelete,
-                PageSize = 1
-            };
-
-            O($"var args = casimodo.ui.dialogArgs.consume('{view.Id}');");
-
-            // KABU TODO: REVISIT: document.scriptElement does not work here, because
-            // Chrome and Firefox will move the script elements from their original location to somewhere else.
-            // Such a pity.
-            O($"var $view = $('#view-{view.Id}');");
-            // Create a dummy view model, because we don't use one.
-            O("space.vm = {}");
-            O();
-            OB("function createDataModel ()");
-            OB("return");
-            KendoGen.GenerateDataSourceModel(context, TransportConfig.ModelProps);
-            End();
-            End();
-
-            O();
-            OB("var ds = new kendo.data.DataSource(");
-            KendoGen.ODataSource(context, config);
-            End(");");
-
-            O();
-            O("kendomodo.initStandaloneEditorDialog($view, args, ds);");
-
-            O();
-            O($"ds.filter({{ field: '{config.TypeConfig.Key.Name}', operator: 'eq', value: args.value }});");
-
-            OJsImmediateEnd("casimodo.ui.createComponentSpace()");
+            KendoGen.OStandaloneEditorViewModel(context.View);
             OScriptEnd();
         }
 

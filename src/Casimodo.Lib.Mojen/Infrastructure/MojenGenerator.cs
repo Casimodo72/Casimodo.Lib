@@ -87,12 +87,7 @@ namespace Casimodo.Lib.Mojen
         public string GetRepositoryName(MojType type)
         {
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "Repository";
-        }
-
-        public void OUseStrict()
-        {
-            O("\"use strict\";");
-        }
+        }       
 
         public void oQuote(string text)
         {

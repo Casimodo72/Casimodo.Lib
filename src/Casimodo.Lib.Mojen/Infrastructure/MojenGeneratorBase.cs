@@ -661,38 +661,40 @@ namespace Casimodo.Lib.Mojen
             {
                 bool differs = false;
                 var buffer = SharedComparisonBuffer;
-                int index = 0, bytesRead;
+                int totalBytesRead = 0, bytesRead;
                 using (var fs = new FileStream(outputFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (var reader = new BinaryReader(fs, MyUT8Encoding))
                 {
                     while ((bytesRead = reader.Read(buffer, 0, buffer.Length)) != 0)
                     {
-                        if (index + bytesRead > outputLength)
+                        if (totalBytesRead + bytesRead > outputLength)
                         {
+                            // Existing file is bigger than the new output.
                             differs = true;
                             break;
                         }
 
-                        if (bytesRead != 0)
+                        if (bytesRead < buffer.Length && totalBytesRead + bytesRead != outputLength)
                         {
-                            for (int i = 0; i < bytesRead; i++)
-                            {
-                                if (buffer[i] != outputData[index + i])
-                                {
-                                    differs = true;
-                                    break;
-                                }
-                            }
-
-                            if (differs || bytesRead < buffer.Length)
-                                break;
-                        }
-                        else
+                            // Existing file is smaller than the new output.
+                            differs = true;
                             break;
+                        }
 
-                        index += bytesRead;
+                        for (int i = 0; i < bytesRead; i++)
+                        {
+                            if (buffer[i] != outputData[totalBytesRead + i])
+                            {
+                                differs = true;
+                                break;
+                            }
+                        }
+
+                        totalBytesRead += bytesRead;
                     }
                 }
+
+                differs = differs || (totalBytesRead != outputLength);
 
                 if (!differs)
                 {

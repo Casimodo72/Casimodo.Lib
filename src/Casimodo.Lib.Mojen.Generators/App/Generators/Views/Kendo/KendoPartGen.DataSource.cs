@@ -27,13 +27,13 @@ namespace Casimodo.Lib.Mojen
 
     public partial class KendoPartGen : WebPartGenerator
     {
-        public void ODataSource(WebViewGenContext context, KendoDataSourceConfig config)
+        public void ODataSource(KendoDataSourceConfig config)
         {
             var transport = config.TransportConfig;
 
             O($"type: '{config.TransportType}',");
 
-            ODataSourceOrderBy(context, config);
+            ODataSourceOrderBy(config);
 
             // Data source events            
             if (config.TransportType == "odata-v4")
@@ -100,7 +100,7 @@ namespace Casimodo.Lib.Mojen
             O("serverFiltering: true,");
         }
 
-        void ODataSourceOrderBy(WebViewGenContext context, KendoDataSourceConfig config)
+        void ODataSourceOrderBy(KendoDataSourceConfig config)
         {
             // Apply initial sort.
             var props = config.InitialSortProps;
@@ -129,7 +129,7 @@ namespace Casimodo.Lib.Mojen
             return prop.IsRequiredOnEdit || prop.Rules.Is;
         }
 
-        public void GenerateDataSourceModel(WebViewGenContext context, MojProp[] props)
+        public void GenerateDataSourceModel(MojProp[] props)
         {
             var key = props.FirstOrDefault(x => x.IsKey);
             if (key != null)
@@ -137,12 +137,12 @@ namespace Casimodo.Lib.Mojen
 
             OB("fields:");
 
-            GenerateDataSourceFields(context, props);
+            GenerateDataSourceFields(props);
 
             End(","); // Fields
         }
 
-        void GenerateDataSourceFields(WebViewGenContext context, MojProp[] props)
+        void GenerateDataSourceFields(MojProp[] props) // WebViewGenContext context
         {
             // Available model options are: defaultValue, editable, nullable, parse,
             // type, from, validation.

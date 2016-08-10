@@ -17,6 +17,11 @@ namespace Casimodo.Lib.Mojen
             End($")({ns} || ({ns} = {{}}));");
         }
 
+        public void OUseStrict()
+        {
+            O("\"use strict\";");
+        }
+
         public void OJsClass(string name, bool isstatic, Action content)
         {
             OB("var {0} = (function ()", name);

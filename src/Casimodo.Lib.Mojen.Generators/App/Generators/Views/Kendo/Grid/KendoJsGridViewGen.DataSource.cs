@@ -55,7 +55,7 @@ namespace Casimodo.Lib.Mojen
                 IsServerPaging = Options.IsServerPaging
             };
 
-            KendoGen.ODataSource(context, config);
+            KendoGen.ODataSource(config);
         }
     }
 }

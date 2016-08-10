@@ -90,10 +90,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public void GenerateScript(WebViewGenContext context)
-        {
-            // NOTE: Writing to a dedicated script file does not always work,
-            // because lookup - columns definitions need Razor functionality.
-            //Thus, unfortunately, we* have to* put the script into the cshtml file.
+        {            
             WriteTo(ScriptGen, () =>
             {
                 ScriptGen.PerformWrite(ViewModelScriptFilePath, () =>
@@ -102,14 +99,16 @@ namespace Casimodo.Lib.Mojen
                 });
             });
 
+            // NOTE: Writing to a dedicated script file does not always work,
+            // because lookup - columns definitions need Razor functionality.
+            // Thus, unfortunately, we have to put the component script into the cshtml file.
             if (!context.View.IsViewModelOnly && !context.View.IsViewless)
                 GenerateComponentScript(context);
         }
 
         public void GenerateViewModelScript(WebViewGenContext context)
         {
-            // Begin namespace.
-            OB("(function (space)");
+            OJsImmediateBegin("space");
 
             GenerateJSViewModel(context);
 
@@ -122,10 +121,12 @@ namespace Casimodo.Lib.Mojen
             // End namespace.
             if (View.Lookup.Is)
             {
-                End($")((casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace()));");
+                // KABU TODO: IMPORTANT: Better make the space of lookups anonymous.
+                // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
+                OJsImmediateEnd($"(casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace())");
             }
-            else
-                End($")(casimodo.run.{context.ComponentViewSpaceName} || (casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace()));");
+            else                
+                OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
         }
 
         public void GenerateComponentScript(WebViewGenContext context)
