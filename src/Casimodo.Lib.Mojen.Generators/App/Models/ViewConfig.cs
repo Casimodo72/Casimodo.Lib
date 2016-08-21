@@ -22,7 +22,10 @@ namespace Casimodo.Lib.Mojen
 
         public override MojDataGraphNode[] BuildDataGraphForRead()
         {
-            return Controller.BuildDataGraphForRead(Group);
+            if (Lookup.Is || Standalone.Is)
+                return Controller.BuildDataGraphForRead(new[] { this });
+            else
+                return Controller.BuildDataGraphForRead(Group);
         }
     }
 
@@ -110,6 +113,26 @@ namespace Casimodo.Lib.Mojen
         public List<MojViewCustomControl> CustomControls { get; set; } = new List<MojViewCustomControl>();
 
         public MojViewKindConfig Kind { get; set; } = new MojViewKindConfig();
+
+        /// <summary>
+        /// The effective name (group name included) of the controller action.
+        /// </summary>
+        public string ControllerActionName
+        {
+            get
+            {
+                if (CustomControllerActionName != null)
+                    return CustomControllerActionName;
+
+                //if (Kind.RawAction == ActionName.Index)
+                //    return (Group ?? "") + "Index";
+
+                return (Group ?? "") + Kind.RawAction;
+                //return (Group ?? "") + (Lookup.Is ? "Lookup" : "") + TypeConfig.Name;
+            }
+        }
+
+        public string CustomControllerActionName { get; set; }
 
         public bool IsEditor
         {
@@ -219,14 +242,15 @@ namespace Casimodo.Lib.Mojen
 
                 var viewType = prop.Lookup.TargetType;
                 var viewId = prop.Lookup.ViewId;
-                var viewGroup = prop.Lookup.ViewGroup ?? "Lookup";
+                var viewGroup = prop.Lookup.ViewGroup; // ?? "Lookup";
                 
                 var lookupViews = app.GetItems<MojViewConfig>()
                     .Where(x =>
                         x.Lookup.Is &&
                         x.TypeConfig == viewType &&
                         (viewId == null || viewId == x.Id) &&
-                        (viewGroup == null || viewGroup == x.Group))
+                        viewGroup == x.Group)
+                    //(viewGroup == null || viewGroup == x.Group))
                     .ToArray();
 
                 if (lookupViews.Count() != 1)

@@ -234,17 +234,16 @@ namespace Casimodo.Lib.Mojen
                 return XmlConvert.ToString((double)value);
             else if (type == typeof(DateTimeOffset))
             {
-                throw new NotImplementedException("Conversion of DateTimeOffset is not implemented yet.");
-#pragma warning disable 0162
-                return parse ? "DateTimeOffset.Parse(\"" + XmlConvert.ToString((DateTimeOffset)value) + "\")" : "\"" + value + "\"";
-#pragma warning restore 0162
+                // KABU TODO: IMPORTANT: How to convert DateTimeOffset exactly? (might not be possible at all).
+                var time = (DateTimeOffset)value;
+                return $"new Date({time.Year}, {time.Month}, {time.Day}, {time.Hour}, {time.Minute}, {time.Second}, {time.Millisecond})";
             }
             else if (type == typeof(DateTime))
             {
-                throw new NotImplementedException("Conversion of DateTime is not implemented yet.");
-#pragma warning disable 0162
-                return parse ? "new Date('" + XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.Local) + "')" : "'" + value + "'";
-#pragma warning restore 0162
+                throw new NotSupportedException("Conversion of DateTime to JS is not supported yet.");
+                // KABU TODO: IMPORTANT: How to convert DateTime exactly?
+                var time = (DateTime)value;
+                return $"new Date({time.Year}, {time.Month}, {time.Day}, {time.Hour}, {time.Minute}, {time.Second}, {time.Millisecond})";
             }
             else if (type == typeof(Guid))
             {

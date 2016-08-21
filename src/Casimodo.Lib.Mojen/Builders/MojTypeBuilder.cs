@@ -241,7 +241,15 @@ namespace Casimodo.Lib.Mojen
                 _pbuilder.TypeCore(effectiveMojType, nullable: nullableMojType);
             }
             else
+            {
                 _pbuilder.Type(type);
+
+                // Booleans have an implicit default value of FALSE.
+                if (type == typeof(bool))
+                {
+                    _pbuilder.DefaultValue(false);
+                }
+            }
 
             if (!TypeConfig.HasBaseClass)
                 _pbuilder.PropConfig.IsObservable = false;

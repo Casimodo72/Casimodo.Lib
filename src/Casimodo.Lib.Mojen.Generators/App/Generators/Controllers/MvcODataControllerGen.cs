@@ -7,16 +7,15 @@ namespace Casimodo.Lib.Mojen
     {
         public override void GenerateController(ControllerConfig controller)
         {
-            var indexView = controller.GetIndexView();
-            if (indexView != null)
+            foreach (var view in controller.GetIndexViews())            
             {
                 // Index
                 O();
                 OOutputCacheAttribute();
-                O("public ActionResult Index()");
+                O($"public ActionResult {view.ControllerActionName}()"); // Index{view.Group}
                 Begin();
 
-                string name = BuildFileName(indexView, extension: false);
+                string name = BuildFileName(view, extension: false);
                 if (name != "Index")
                     O($"return View(\"{name}\");");
                 else
@@ -30,7 +29,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O();
                 OOutputCacheAttribute();
-                O($"public ActionResult {view.Kind.ActionName}({view.Lookup.Parameters.ToMethodArguments()})");
+                O($"public ActionResult {view.ControllerActionName}({view.Lookup.Parameters.ToMethodArguments()})");
                 Begin();
 
                 foreach (var prop in view.Lookup.Parameters)
@@ -50,7 +49,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O();
                 OOutputCacheAttribute();
-                O($"public ActionResult {view.Group}{view.Kind.ActionName}()");
+                O($"public ActionResult {view.ControllerActionName}()");
                 Begin();
 
                 var method = view.IsPartial ? "PartialView" : "View";

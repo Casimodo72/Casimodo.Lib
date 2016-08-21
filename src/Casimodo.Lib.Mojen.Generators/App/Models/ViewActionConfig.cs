@@ -25,10 +25,6 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewMode Mode { get; set; }
 
-        /// <summary>
-        /// The name of the controller action.
-        /// </summary>
-        public string ActionName { get; set; }
-        public bool IsCustomActionName { get; set; }
+        public string RawAction { get; set; }        
     }
 }

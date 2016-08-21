@@ -78,23 +78,35 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public List<MojDefaultValueConfig> Items { get; private set; } = Empty;
 
-        public void Add(object value, string scenario = null)
+        public void Set(object value, string scenario = null)
         {
             CheckIs();
+            ClearScenario(scenario);
             Items.Add(new MojDefaultValueConfig { Value = value, TargetScenario = scenario });
         }
 
-        public void Add(MojDefaultValueCommon value, string scenario = null)
+        public void Set(MojDefaultValueCommon value, string scenario = null)
         {
             CheckIs();
+            ClearScenario(scenario);
             Items.Add(new MojDefaultValueConfig { CommonValue = value, TargetScenario = scenario });
         }
 
-        public void Add(MojDefaultValueAttr attr, string scenario = null)
+        public void Set(MojDefaultValueAttr attr, string scenario = null)
         {
             CheckIs();
+            ClearScenario(scenario);
             Items.Add(new MojDefaultValueConfig { Attr = attr, TargetScenario = scenario });
         }
+
+        void ClearScenario(string scenario)
+        {
+            var item = Items.FirstOrDefault(x => x.TargetScenario == scenario);
+            if (item == null)
+                return;
+            
+            Items.Remove(item);
+        }        
 
         void CheckIs()
         {

@@ -143,7 +143,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Index | MojViewRole.List;
             View.Kind.ComponentRoleName = ActionName.Index;
-            View.Kind.ActionName = ActionName.Index;
+            View.Kind.RawAction = ActionName.Index;
 
             View.CanCreate = true;
             View.CanEdit = true;
@@ -177,11 +177,15 @@ namespace Casimodo.Lib.Mojen
         //    return this;
         //}
 
-        public MojViewBuilder Action(string name)
+        public MojViewBuilder CustomAction(string name)
         {
-            View.Kind.ActionName = name;
-            View.Kind.IsCustomActionName = true;
-            OnViewUrlChanged();
+            if (View.Group != null)
+                throw new MojenException("The view can't have a custom action name if a group was specified.");
+            View.Kind.RawAction = null;
+
+            View.CustomControllerActionName = name;
+
+            OnNamingChanged();
 
             return this;
         }
@@ -189,7 +193,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder ComponentRole(string name)
         {
             View.Kind.ComponentRoleName = name;
-            OnViewUrlChanged();
+            OnNamingChanged();
 
             return this;
         }
@@ -198,14 +202,14 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Lookup | MojViewRole.List;
-            // KABU TODO: IMPORTANT: What if we have multipe lookups?
-            View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
+            //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
+            View.Kind.RawAction = ActionName.Lookup;
             View.Kind.ComponentRoleName = "Lookup";
-            View.Group = "Lookup";
+            View.Group = null; // "Lookup";
 
             View.CanCreate = false;
             View.CanEdit = false;
-            View.CanDelete = false;            
+            View.CanDelete = false;
 
             // Dialogs are currently all modal and partial.
             View.IsModal = true;
@@ -221,7 +225,7 @@ namespace Casimodo.Lib.Mojen
 
             Title(View.TypeConfig.DisplayPluralName);
 
-            OnViewUrlChanged();
+            OnNamingChanged();
 
             return this;
         }
@@ -231,7 +235,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
             View.Kind.ComponentRoleName = "Editor";
-            View.Kind.ActionName = ActionName.Edit;
+            View.Kind.RawAction = ActionName.Edit;
             View.Group = "Standalone";
 
             // Dialogs are currently all modal and partial.
@@ -250,7 +254,7 @@ namespace Casimodo.Lib.Mojen
 
             Title(View.TypeConfig.DisplayName);
 
-            OnViewUrlChanged();
+            OnNamingChanged();
 
             return this;
         }
@@ -260,7 +264,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
             View.Kind.ComponentRoleName = "Details";
-            View.Kind.ActionName = ActionName.Details;
+            View.Kind.RawAction = ActionName.Details;
             View.Group = "Standalone";
 
             View.CanCreate = false;
@@ -277,7 +281,7 @@ namespace Casimodo.Lib.Mojen
 
             Title(View.TypeConfig.DisplayName);
 
-            OnViewUrlChanged();
+            OnNamingChanged();
 
             return this;
         }
@@ -287,7 +291,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
             View.Kind.ComponentRoleName = "List";
-            View.Kind.ActionName = "List";
+            View.Kind.RawAction = "List";
             View.Group = "Standalone";
 
             View.CanCreate = false;
@@ -306,7 +310,7 @@ namespace Casimodo.Lib.Mojen
 
             Title(View.TypeConfig.DisplayName);
 
-            OnViewUrlChanged();
+            OnNamingChanged();
 
             return this;
         }
@@ -317,9 +321,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        void OnViewUrlChanged()
+        void OnNamingChanged()
         {
-            View.Url = $"/{View.TypeConfig.PluralName}/{View.Group ?? ""}{View.Kind.ActionName}";
+            View.Url = $"/{View.TypeConfig.PluralName}/{View.ControllerActionName}";
         }
 
         public virtual MojViewBuilder Details()
@@ -327,7 +331,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
             View.Kind.ComponentRoleName = ActionName.Details;
-            View.Kind.ActionName = ActionName.Details;
+            View.Kind.RawAction = ActionName.Details;
 
             View.CanCreate = false;
             View.CanEdit = false;
@@ -342,8 +346,8 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Create | MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
             View.Kind.ComponentRoleName = "Editor";
-            View.Kind.ActionName = ActionName.Edit;
-            
+            View.Kind.RawAction = ActionName.Edit;
+
             View.CanDelete = true;
 
             Title(View.TypeConfig.DisplayName);
@@ -474,15 +478,19 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder Group(string name)
         {
+            if (View.CustomControllerActionName != null)
+                throw new MojenException("The view must not be in a group if a custom action name was specified.");
+
             View.Group = name;
 
-            if (!View.Kind.IsCustomActionName &&
-                 View.Kind.Roles.HasFlag(MojViewRole.Lookup))
-            {
-                View.Kind.ActionName = View.Group + "Lookup" + View.TypeConfig.Name;                
-            }
+            // KABU TODO: REMOVE
+            //if (!View.Kind.IsCustomActionName &&
+            //     View.Kind.Roles.HasFlag(MojViewRole.Lookup))
+            //{
+            //    View.Kind.ActionName = (View.Group ?? "") + "Lookup" + View.TypeConfig.Name;
+            //}
 
-            OnViewUrlChanged();
+            OnNamingChanged();
 
             return this;
         }

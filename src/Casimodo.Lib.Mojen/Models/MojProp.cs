@@ -374,17 +374,17 @@ namespace Casimodo.Lib.Mojen
 
         public void AddDefaultValue(object value, string scenario = null)
         {
-            EnsureDefaultValues().Add(value, scenario);
+            EnsureDefaultValues().Set(value, scenario);
         }
 
         public void AddDefaultValue(MojDefaultValueCommon value, string scenario = null)
         {
-            EnsureDefaultValues().Add(value, scenario);
+            EnsureDefaultValues().Set(value, scenario);
         }
 
         public void AddDefaultValue(MojDefaultValueAttr attr, string scenario = null)
         {
-            EnsureDefaultValues().Add(attr, scenario);
+            EnsureDefaultValues().Set(attr, scenario);
         }
 
         MojDefaultValuesConfig EnsureDefaultValues()

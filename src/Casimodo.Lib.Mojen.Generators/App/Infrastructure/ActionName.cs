@@ -7,6 +7,6 @@
         public const string Create = "Create";
         public const string Edit = "Edit";
         public const string Delete = "Delete";
-        public const string Custom = "Custom";
+        public const string Lookup = "Lookup";
     }
 }

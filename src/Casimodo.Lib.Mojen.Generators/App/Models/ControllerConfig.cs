@@ -73,6 +73,11 @@ namespace Casimodo.Lib.Mojen
             return Views.SingleOrDefault(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Index));
         }
 
+        public IEnumerable<MojViewConfig> GetIndexViews(string group = null)
+        {
+            return Views.Where(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Index));
+        }
+
         public MojViewConfig GetDetailsView(string group = null)
         {
             var view = Views.FirstOrDefault(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Details));
@@ -110,12 +115,17 @@ namespace Casimodo.Lib.Mojen
 
         public MojProp[] GetAllPropsDistinct(string viewGroup)
         {
+            return GetAllPropsDistinct(Views.Where(x => x.Group == viewGroup).ToArray());
+        }
+
+        public MojProp[] GetAllPropsDistinct(MojViewConfig[] views)
+        {
             // Filter out non-exposable properties.
             var exposableProps = TypeConfig.GetExposableSchemaProps().Select(x => x.Name).ToList();
             // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
 
             // Get the view-properties actually used in the views.            
-            var props = GetAllViewPropsDeep(Views.Where(x => x.Group == viewGroup)).Cast<MojProp>().ToList();
+            var props = GetAllViewPropsDeep(views).Cast<MojProp>().ToList();
 
             // Insert mandatory key property.
             props.Insert(0, TypeConfig.Key);
@@ -169,14 +179,19 @@ namespace Casimodo.Lib.Mojen
                     throw new MojenException($"The property '{prop.Name}' is not exposable, thus must no included in read operations.");
             }
 
-
-
             return props.ToArray();
         }
 
         public MojDataGraphNode[] BuildDataGraphForRead(string viewGroup)
         {
             return GetAllPropsDistinct(viewGroup)
+                .BuildDataGraph(includeKey: true, includeForeignKey: true)
+                .ToArray();
+        }
+
+        public MojDataGraphNode[] BuildDataGraphForRead(MojViewConfig[] views)
+        {
+            return GetAllPropsDistinct(views)
                 .BuildDataGraph(includeKey: true, includeForeignKey: true)
                 .ToArray();
         }

@@ -268,9 +268,9 @@ namespace Casimodo.Lib.Mojen
             return DateTime(nullable: nullable, date: true, time: false);
         }
 
-        public TPropBuilder Time(bool nullable = true)
+        public TPropBuilder Time(bool nullable = true, bool local = true)
         {
-            return DateTime(nullable: nullable, date: false, time: true);
+            return DateTime(nullable: nullable, date: false, time: true, local: local);
         }
 
         public TPropBuilder TimeSpan(bool nullable = true, bool days = false, bool hours = true, bool minutes = true)
@@ -289,7 +289,7 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TPropBuilder DateTime(bool nullable = true, bool date = true, bool time = true, int ms = 0)
+        public TPropBuilder DateTime(bool nullable = true, bool date = true, bool time = true, int ms = 0, bool local = true)
         {
             if (ms < 0 || ms > 3)
                 throw new ArgumentOutOfRangeException("ms",
@@ -302,7 +302,8 @@ namespace Casimodo.Lib.Mojen
 
             var info = PropConfig.Type.DateTimeInfo;
             info.IsDate = date;
-            info.IsTime = time;
+            info.IsTime = time;            
+            info.IsLocal = time && local;
             info.DisplayMillisecondDigits = ms;
 
             if (info.IsDateAndTime)

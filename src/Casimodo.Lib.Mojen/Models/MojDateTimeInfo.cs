@@ -20,6 +20,9 @@ namespace Casimodo.Lib.Mojen
             get { return IsDate && IsTime; }
         }
 
+        [DataMember]
+        public bool IsLocal { get; set; }
+
         /// <summary>
         /// The number of digits of milliseconds to *display*.
         /// NOTE: This does not set the number of digits of milliseconds saved to DB.
