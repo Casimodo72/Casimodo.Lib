@@ -243,8 +243,12 @@ namespace Casimodo.Lib.Mojen
                 var viewType = prop.Lookup.TargetType;
                 var viewId = prop.Lookup.ViewId;
                 var viewGroup = prop.Lookup.ViewGroup; // ?? "Lookup";
-                
+
                 var lookupViews = app.GetItems<MojViewConfig>()
+                    .Where(x => x.Lookup.Is)
+                    .ToArray();
+
+                lookupViews = app.GetItems<MojViewConfig>()
                     .Where(x =>
                         x.Lookup.Is &&
                         x.TypeConfig == viewType &&
@@ -266,5 +270,15 @@ namespace Casimodo.Lib.Mojen
                 prop.LookupDialog = lookupViews.First();
             }
         }
+
+        // KABU TODO: REMOVE
+        //public void GetLookupView(MojType lookupType)
+        //{
+        //    return GetItems<MojViewConfig>()
+        //            .Where(x =>
+        //                x.Lookup.Is &&
+        //                x.TypeConfig == lookupType)
+        //            .ToArray();
+        //}
     }
 }

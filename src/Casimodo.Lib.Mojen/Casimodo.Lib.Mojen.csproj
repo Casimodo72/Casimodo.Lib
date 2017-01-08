@@ -131,6 +131,7 @@
     <Compile Include="Builders\MojComplexTypePropBuilder.cs" />
     <Compile Include="Builders\MojFormedPathUtils.cs" />
     <Compile Include="Builders\MojTypeComparisonBuilder.cs" />
+    <Compile Include="Builders\MojTypeInteractionBuilder.cs" />
     <Compile Include="Builders\MojValueSetBuilder.cs" />
     <Compile Include="Infrastructure\MojenAppMetadataGen.cs" />
     <Compile Include="Infrastructure\MojenBuildConfig.cs" />

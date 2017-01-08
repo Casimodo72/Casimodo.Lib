@@ -15,6 +15,20 @@ namespace Casimodo.Lib.Mojen
         public ODataControllerGen()
         {
             Scope = "App";
+
+            MojenApp.UsingBy += MojenApp_UsingBy;
+        }
+
+        void MojenApp_UsingBy(object source, MojUsedByEventArgs args)
+        {
+            if (args.UsedType == typeof(ODataControllerGen))
+            {
+                var type = (MojType)args.UsedByObject;
+                // Add implitic OData configuration generator.
+                var modelGens = type.UsingGenerators;
+                if (!modelGens.Any(x => x.Type == typeof(ODataConfigGen)))
+                    modelGens.Add(new MojUsingGeneratorConfig { Type = typeof(ODataConfigGen) });
+            }
         }
 
         WebODataBuildConfig OData { get; set; }
@@ -26,6 +40,11 @@ namespace Casimodo.Lib.Mojen
         public MojType Type { get; set; }
 
         public Func<string, string> GetDbContextSaveChangesExpression { get; set; } = (db) => $"await {db}.SaveChangesAsync()";
+
+        public override void ProcessOnUse(object usedBy)
+        {
+            // NOP
+        }
 
         protected override void GenerateCore()
         {

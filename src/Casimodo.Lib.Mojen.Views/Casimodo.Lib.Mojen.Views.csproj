@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E7B30B2D-E791-4032-80E2-1B4DB4BE4F02}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Casimodo.Lib.Mojen.Views</RootNamespace>
+    <AssemblyName>Casimodo.Lib.Mojen.Views</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Builders\ControllerBuilder.cs" />
+    <Compile Include="Builders\ItemBuilder.cs" />
+    <Compile Include="Builders\ViewBuilder.cs" />
+    <Compile Include="Infrastructure\ActionName.cs" />
+    <Compile Include="Infrastructure\AppLayerBuildContext.cs" />
+    <Compile Include="Infrastructure\AppPartGenerator.cs" />
+    <Compile Include="Infrastructure\MojViewPropBuilder.cs" />
+    <Compile Include="Infrastructure\MyT4TemplateBase.cs" />
+    <Compile Include="Infrastructure\ViewTemplate.cs" />
+    <Compile Include="Infrastructure\ViewTemplateItem.cs" />
+    <Compile Include="Infrastructure\WebBuildConfig.cs" />
+    <Compile Include="Infrastructure\WebODataBuildConfig.cs" />
+    <Compile Include="Infrastructure\WebPartGenerator.cs" />
+    <Compile Include="Infrastructure\WebViewGenerator.cs" />
+    <Compile Include="Models\ControllerConfig.cs" />
+    <Compile Include="Models\ViewActionConfig.cs" />
+    <Compile Include="Models\ViewConfig.cs" />
+    <Compile Include="Models\ViewPropConfig.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj">
+      <Project>{14682976-50a0-4ec3-adc2-f99b191fe432}</Project>
+      <Name>Casimodo.Lib.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
+      <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
+      <Name>Casimodo.Lib.Mojen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
+      <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
+      <Name>Casimodo.Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

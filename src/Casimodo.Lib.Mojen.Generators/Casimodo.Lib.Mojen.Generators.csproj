@@ -118,7 +118,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App\Builders\ItemBuilder.cs" />
     <Compile Include="App\Generators\Controllers\MvcODataControllerGen.cs" />
     <Compile Include="App\Generators\Controllers\DefaultMvcControllerGen.cs" />
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
@@ -153,13 +152,6 @@
     <Compile Include="App\Generators\Views\Kendo\KendoReadOnlyViewBaseGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoViewBaseGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoTypeViewGenBase.cs" />
-    <Compile Include="App\Infrastructure\AppLayerBuildContext.cs" />
-    <Compile Include="App\Infrastructure\MojViewPropBuilder.cs" />
-    <Compile Include="App\Infrastructure\ViewTemplate.cs" />
-    <Compile Include="App\Infrastructure\ViewTemplateItem.cs" />
-    <Compile Include="App\Infrastructure\WebBuildConfig.cs" />
-    <Compile Include="App\Infrastructure\WebODataBuildConfig.cs" />
-    <Compile Include="DataInteractionLayer\Builders\MojTypeInteractionBuilder.cs" />
     <Compile Include="DataInteractionLayer\Infrastructure\DataInteractionLayerContext.cs" />
     <Compile Include="DataInteractionLayer\Infrastructure\DataInteractionPartGenerator.cs" />
     <Compile Include="Infrastructure\DataLayerExtensions.cs" />
@@ -187,17 +179,6 @@
     <Compile Include="Objects\Generators\DbRepoCore.OnAdded.NestedGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.OnAdded.SetNextSequenceValueGen.cs" />
     <Compile Include="App\Generators\Repositories\WebRepoContainerGen.cs" />
-    <Compile Include="App\Infrastructure\AppPartGenerator.cs" />
-    <Compile Include="App\Infrastructure\ActionName.cs" />
-    <Compile Include="App\Builders\ControllerBuilder.cs" />
-    <Compile Include="App\Infrastructure\MyT4TemplateBase.cs" />
-    <Compile Include="App\Builders\ViewBuilder.cs" />
-    <Compile Include="App\Infrastructure\WebPartGenerator.cs" />
-    <Compile Include="App\Infrastructure\WebViewGenerator.cs" />
-    <Compile Include="App\Models\ViewActionConfig.cs" />
-    <Compile Include="App\Models\ControllerConfig.cs" />
-    <Compile Include="App\Models\ViewConfig.cs" />
-    <Compile Include="App\Models\ViewPropConfig.cs" />
     <Compile Include="Objects\Generators\PrimitiveKeysGen.cs" />
     <Compile Include="Objects\Generators\DbContextGen.cs" />
     <Compile Include="Objects\Generators\DbMigrationSeedGen.cs" />
@@ -228,6 +209,10 @@
       <Project>{14682976-50a0-4ec3-adc2-f99b191fe432}</Project>
       <Name>Casimodo.Lib.Data</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen.Views\Casimodo.Lib.Mojen.Views.csproj">
+      <Project>{e7b30b2d-e791-4032-80e2-1b4db4be4f02}</Project>
+      <Name>Casimodo.Lib.Mojen.Views</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
       <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
       <Name>Casimodo.Lib.Mojen</Name>
@@ -250,6 +235,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App\Generators\Views\Trash\" />
+    <Folder Include="App\Models\" />
+    <Folder Include="DataInteractionLayer\Builders\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

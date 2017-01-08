@@ -103,13 +103,11 @@ namespace Casimodo.Lib.Mojen
         {
             var use = MojenBuildExtensions.Use<T>(Controller.UsingGenerators, args);
 
-            if (use.Type == typeof(ODataControllerGen))
+            MojenApp.HandleUsingBy(new MojUsedByEventArgs
             {
-                // Add implitic OData configuration generator on the MojType.
-                var modelGens = Controller.TypeConfig.UsingGenerators;
-                if (!modelGens.Any(x => x.Type == typeof(ODataConfigGen)))
-                    modelGens.Add(new MojUsingGeneratorConfig { Type = typeof(ODataConfigGen) });
-            }
+                UsedType = use.Type,
+                UsedByObject = Controller.TypeConfig
+            });            
 
             return this;
         }

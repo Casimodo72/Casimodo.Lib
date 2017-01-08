@@ -5,6 +5,14 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class MojUsedByEventArgs : EventArgs
+    {
+        public Type UsedType { get; set; }
+        public object UsedByObject { get; set; }
+    }
+
+    public delegate void MojUsedByEventHandler(object source, MojUsedByEventArgs args);
+
     public class MojenApp
     {
         public MojenApp()
@@ -14,6 +22,13 @@ namespace Casimodo.Lib.Mojen
             Contexts = new List<MojenBuildContext>();
             Configs = new List<MojenBuildConfig>();
         }
+
+        public static void HandleUsingBy(MojUsedByEventArgs args)
+        {
+            UsingBy?.Invoke(null, args);
+        }
+
+        public static event MojUsedByEventHandler UsingBy;
 
         public Action<MojenApp> Prepare { get; set; }
 

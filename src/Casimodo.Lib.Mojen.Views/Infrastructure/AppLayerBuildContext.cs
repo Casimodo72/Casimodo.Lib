@@ -34,8 +34,8 @@ namespace Casimodo.Lib.Mojen
         }
 
         public ItemBuilder Item(MojType type)
-        {
-            var builder = new ItemBuilder(type);
+        {            
+            var builder = new ItemBuilder(this, type);
 
             return builder;
         }

@@ -8,6 +8,11 @@ namespace Casimodo.Lib.Mojen
 {
     public abstract class AppPartGenerator : MojenGenerator
     {
+        public virtual void ProcessOnUse(object usedBy)
+        {
+            // NOP
+        }
+
         public IEnumerable<string> GetAllDataNamespaces()
         {
             var result = App.GetItems<DataLayerConfig>().Select(x => x.DataNamespace).ToArray();
