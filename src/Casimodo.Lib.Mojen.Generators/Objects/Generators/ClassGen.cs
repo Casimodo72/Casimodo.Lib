@@ -104,6 +104,30 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        protected string[] BuildNamespaces(MojType type)
+        {
+            var ns = type.Namespace;
+            var dataNs = App.Get<DataLayerConfig>().DataNamespaces.ToArray();
+            var props = type.GetProps().ToArray();
+            var foreignNs = type.GetProps()
+                .Where(x => x.Reference.Is && !x.Reference.IsForeignKey && x.Reference.ToType.Namespace != ns)
+                .Select(x => x.Reference.ToType.Namespace)
+                .Distinct()
+                .ToArray();
+            return dataNs.Concat(foreignNs).ToArray();
+        }
+
+        protected string[] GetFriendNamespaces(MojType type)
+        {
+            var ns = type.Namespace;
+            var foreignNs = type.GetProps()
+                .Where(x => x.Reference.Is && !x.Reference.IsForeignKey && x.Reference.ToType.Namespace != ns)
+                .Select(x => x.Reference.ToType.Namespace)
+                .Distinct()
+                .ToArray();
+            return foreignNs;
+        }
+
         public void GenerateIMultitenantImpl(MojType type)
         {
             // IMultitenant

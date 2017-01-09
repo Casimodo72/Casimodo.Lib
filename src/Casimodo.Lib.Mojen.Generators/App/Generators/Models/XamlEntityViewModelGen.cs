@@ -71,7 +71,8 @@ namespace Casimodo.Lib.Mojen
         {
             OUsing(Namespaces,
                 "System.ComponentModel.DataAnnotations.Schema",
-                (type.StoreOrSelf.Namespace != type.Namespace ? type.StoreOrSelf.Namespace : null));
+                (type.StoreOrSelf.Namespace != type.Namespace ? type.StoreOrSelf.Namespace : null),
+                GetFriendNamespaces(type));
 
             ONamespace(type.Namespace);
 

@@ -27,7 +27,7 @@ namespace Casimodo.Lib.Mojen
 
         public void Generate(MojType type)
         {
-            OUsing(App.Get<DataLayerConfig>().DataNamespaces);
+            OUsing(BuildNamespaces(type));
             ONamespace(type.Namespace);
 
             // Class declaration

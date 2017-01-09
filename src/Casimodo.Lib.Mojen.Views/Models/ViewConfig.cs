@@ -245,10 +245,6 @@ namespace Casimodo.Lib.Mojen
                 var viewGroup = prop.Lookup.ViewGroup; // ?? "Lookup";
 
                 var lookupViews = app.GetItems<MojViewConfig>()
-                    .Where(x => x.Lookup.Is)
-                    .ToArray();
-
-                lookupViews = app.GetItems<MojViewConfig>()
                     .Where(x =>
                         x.Lookup.Is &&
                         x.TypeConfig == viewType &&

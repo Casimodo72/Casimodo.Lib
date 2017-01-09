@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -39,7 +40,7 @@ namespace Casimodo.Lib.Mojen
 
         public void Generate(MojType type)
         {
-            OUsing(App.Get<DataLayerConfig>().DataNamespaces);
+            OUsing(BuildNamespaces(type));
 
             ONamespace(type.Namespace);
 
