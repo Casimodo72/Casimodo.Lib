@@ -142,6 +142,7 @@
     <Compile Include="Models\Extensions.cs" />
     <Compile Include="Models\Mex.cs" />
     <Compile Include="Models\MojAnyKeysConfig.cs" />
+    <Compile Include="Models\MojViewAction.cs" />
     <Compile Include="Models\MojCrudOperationConfig.cs" />
     <Compile Include="Models\MojFormedType.cs" />
     <Compile Include="Models\MojFormedNavigationPath.cs" />

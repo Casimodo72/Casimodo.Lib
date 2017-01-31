@@ -56,11 +56,13 @@ namespace Casimodo.Lib.Mojen
 
         public MojEntityBuilder AddEnumEntity(string name, string displayName, string displayNamePlural)
         {
-            return AddEntity(name)
+            var builder = AddEntity(name)
                 .Base(EnumEntity)
                 .EnumEntity()
                 .Display(displayName, displayNamePlural)
                 .Use<ODataConfigGen>();
+            
+            return builder;
         }
 
         public MojEntityBuilder AddEntity(string name)

@@ -199,6 +199,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsGuidFilterable { get; set; }
 
+        public List<MojViewActionConfig> CustomActions { get; set; } = new List<MojViewActionConfig>();
+
         public MojViewConfig InlineDetailsView { get; set; }
 
         public bool IsExportableToPdf { get; set; }

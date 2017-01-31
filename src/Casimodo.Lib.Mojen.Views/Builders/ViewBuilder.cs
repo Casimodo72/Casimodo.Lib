@@ -380,6 +380,19 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder CustomActionToggle(string name, string display, bool value, bool visible = true)
+        {            
+            View.CustomActions.Add(new MojViewActionConfig
+            {
+                Name = name,
+                DisplayName = display,
+                Kind = MojViewActionKind.Toggle,
+                DefaultValue = value,
+                IsVisible = visible
+            });
+            return this;
+        }
+
         public MojViewBuilder Auth(bool value = true)
         {
             View.IsAuthorizationNeeded = value;

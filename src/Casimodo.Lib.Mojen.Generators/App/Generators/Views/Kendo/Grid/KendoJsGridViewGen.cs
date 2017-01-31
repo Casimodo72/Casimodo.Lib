@@ -90,7 +90,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public void GenerateScript(WebViewGenContext context)
-        {            
+        {
             WriteTo(ScriptGen, () =>
             {
                 ScriptGen.PerformWrite(ViewModelScriptFilePath, () =>
@@ -125,7 +125,7 @@ namespace Casimodo.Lib.Mojen
                 // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
                 OJsImmediateEnd($"(casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace())");
             }
-            else                
+            else
                 OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
         }
 
@@ -336,6 +336,21 @@ namespace Casimodo.Lib.Mojen
 
                                 if (view.IsGuidFilterable)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Filter entfernen</button>");
+
+                                if (view.CustomActions.Any())
+                                {
+                                    foreach (var action in view.CustomActions)
+                                    {
+                                        if (action.Kind == MojViewActionKind.Toggle)
+                                        {
+                                            o($"<button class='k-button custom-command' name='{action.Name}'");
+                                            if (!action.IsVisible)
+                                                o(" style ='display:none'");
+                                            o($">{action.DisplayName}</button>");
+                                        }
+                                        else throw new MojenException($"Unhandled view action kind '{action.Kind}'.");
+                                    }
+                                }
 
                                 if (CanCreate)
                                 {
@@ -625,7 +640,7 @@ namespace Casimodo.Lib.Mojen
                 // Example:
                 // template: "#if(Company!=null){##:Company.NameShort##}#",                
                 template = $"\"{KendoGen.GetPlainDisplayTemplate(vprop, checkLastProp: true)}\"";
-            }            
+            }
             else if (vprop.Reference.Is)
             {
                 throw new MojenException("This kind of reference is not supported.");
