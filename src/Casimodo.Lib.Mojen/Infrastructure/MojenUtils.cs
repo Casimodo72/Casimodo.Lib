@@ -59,6 +59,14 @@ namespace Casimodo.Lib.Mojen
             return char.ToLowerInvariant(str[0]) + str.Substring(1);
         }
 
+        public static string FirstCharToUpper(string str)
+        {
+            if (string.IsNullOrWhiteSpace(str) || char.IsUpper(str, 0))
+                return str;
+
+            return char.ToUpperInvariant(str[0]) + str.Substring(1);
+        }
+
         public static bool IsDateTimeOrOffset(Type type)
         {
             return type != null && (type == typeof(DateTimeOffset) || type == typeof(DateTime));

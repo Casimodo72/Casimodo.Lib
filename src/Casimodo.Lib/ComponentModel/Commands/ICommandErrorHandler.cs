@@ -1,5 +1,4 @@
-﻿// Copyright (c) 2009 Kasimier Buchcik
-using System;
+﻿using System;
 
 namespace Casimodo.Lib.ComponentModel
 {

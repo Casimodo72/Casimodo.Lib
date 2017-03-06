@@ -193,7 +193,8 @@ namespace Casimodo.Lib
 
         private static DayOfWeek GetFirstDayOfWeek()
         {
-            return Thread.CurrentThread.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+            return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
+            // KABU TODO: REMOVE: return Thread.CurrentThread.CurrentCulture.DateTimeFormat.FirstDayOfWeek;
         }
 
         public static IEnumerable<TimeZoneInfo> GetTimeZones(DateTimeOffset time)

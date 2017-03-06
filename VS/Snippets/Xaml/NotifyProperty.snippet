@@ -16,15 +16,10 @@
         <Literal Editable="true">
           <ID>Property</ID>
           <ToolTip/>
-          <Default/>
+          <Default>Prop</Default>
           <Function/>
         </Literal>
-        <Literal Editable="true">
-          <ID>Field</ID>
-          <ToolTip></ToolTip>
-          <Default/>
-          <Function/>
-        </Literal>
+        
         <Object Editable="true">
           <ID>Type</ID>
           <ToolTip></ToolTip>
@@ -32,21 +27,14 @@
           <Function/>
           <Type/>
         </Object>
-        <Literal default="true" Editable="false">
-            <ID>classname</ID> 
-            <ToolTip>Class name</ToolTip> 
-            <Function>ClassName()</Function> 
-            <Default>ClassNamePlaceholder</Default> 
-        </Literal>
       </Declarations>
       <Code Language="csharp">
-          <![CDATA[public $Type$ $Property$ 
+<![CDATA[public $Type$ $Property$ 
 		{
-			get { return _$Field$; }
-			set { SetProperty($Property$Property, ref _$Field$, value); }
+			get { return _$Property$; }
+			set { SetProp(ref _$Property$, value); }
 		}
-		$Type$ _$Field$;
-        public static readonly ObservablePropertyMetadata $Property$Property = ObservablePropertyMetadata.Create(($classname$ t) => t.$Property$);]]></Code>
+		$Type$ _$Property$;]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

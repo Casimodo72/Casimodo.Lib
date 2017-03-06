@@ -10,6 +10,7 @@ namespace Casimodo.Lib.Presentation
         where TViewModel : class
     { }
 
+    // KABU TODO: Move to separate file.
     public interface ICloseable
     {
         void Close();

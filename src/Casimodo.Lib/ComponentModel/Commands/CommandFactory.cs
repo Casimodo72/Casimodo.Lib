@@ -1,7 +1,5 @@
-﻿// Copyright (c) 2009 Kasimier Buchcik
+﻿//#define RelayCommand
 using Microsoft.Practices.ServiceLocation;
-
-//#define RelayCommand
 using System;
 
 namespace Casimodo.Lib.ComponentModel
@@ -53,6 +51,7 @@ namespace Casimodo.Lib.ComponentModel
         public static ICommandEx Create<T>(Action<T> execute)
         {
             return Create<T>(execute, (a) => true);
+            // KABU TODO: REMOVE?
             //#if (RelayCommand)
             //            return new RelayCommand<T>(execute, (a) => true);
             //#else
@@ -63,6 +62,7 @@ namespace Casimodo.Lib.ComponentModel
         public static ICommandEx Create(Action execute, Func<bool> canExecute)
         {
             return Create<object>((a) => execute(), (a) => canExecute());
+            // KABU TODO: REMOVE?
             //#if (RelayCommand)
             //            return new RelayCommand(execute, canExecute);
             //#else
@@ -74,8 +74,6 @@ namespace Casimodo.Lib.ComponentModel
         {
             return Create(execute, () => true);
         }
-
-        // ~~~
 
         public static ICommandEx Get<T>(ref ICommandEx command, Action<T> execute, Func<T, bool> canExecute)
         {

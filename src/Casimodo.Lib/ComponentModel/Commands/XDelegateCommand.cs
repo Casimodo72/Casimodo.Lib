@@ -1,9 +1,16 @@
-﻿using Microsoft.Practices.Prism;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using System.Reflection;
+#if (WINDOWS_UWP)
+using Prism;
+using MyDispatcher = Windows.UI.Core.CoreDispatcher;
+#else
 using System.Windows.Threading;
+using Microsoft.Practices.Prism;
+using MyDispatcher = System.Windows.Threading.Dispatcher;
+#endif
 
 namespace Casimodo.Lib.ComponentModel
 {
@@ -72,14 +79,15 @@ namespace Casimodo.Lib.ComponentModel
             if (executeMethod == null || canExecuteMethod == null)
                 throw new ArgumentNullException("executeMethod"); //, Resources.DelegateCommandDelegatesCannotBeNull);
 
-#if !WINDOWS_PHONE
+            // KABU TODO: Why did I restrict this to non WinPhone scenarios?
+#if (!WINDOWS_PHONE)
             Type genericType = typeof(T);
 
             // DelegateCommand allows object or Nullable<>.
             // note: Nullable<> is a struct so we cannot use a class constraint.
-            if (genericType.IsValueType)
+            if (TypeHelper.GetTypeInfo(genericType).IsValueType)
             {
-                if ((!genericType.IsGenericType) || (!typeof(Nullable<>).IsAssignableFrom(genericType.GetGenericTypeDefinition())))
+                if ((!TypeHelper.GetTypeInfo(genericType).IsGenericType) || (!typeof(Nullable<>).IsAssignableFrom(genericType.GetGenericTypeDefinition())))
                 {
                     throw new InvalidCastException(); // TODO: Resources.DelegateCommandInvalidGenericPayloadType);
                 }
@@ -285,9 +293,9 @@ namespace Casimodo.Lib.ComponentModel
         }
 
 #if SILVERLIGHT
-    /// <summary>
-    /// Occurs when changes occur that affect whether or not the command should execute.
-    /// </summary>
+        /// <summary>
+        /// Occurs when changes occur that affect whether or not the command should execute.
+        /// </summary>
         public event EventHandler CanExecuteChanged;
 #else
 
@@ -358,63 +366,21 @@ namespace Casimodo.Lib.ComponentModel
 
         private static void CallHandler(object sender, EventHandler eventHandler)
         {
-            DispatcherProxy dispatcher = DispatcherProxy.CreateDispatcher();
+            if (eventHandler == null)
+                return;
 
-            if (eventHandler != null)
+            var dispatcher = DispatcherProxy.CreateDispatcher();
+            if (dispatcher != null && !dispatcher.HasThreadAccess())
             {
-                if (dispatcher != null && !dispatcher.CheckAccess())
-                {
-                    dispatcher.BeginInvoke((Action<object, EventHandler>)CallHandler, sender, eventHandler);
-                }
-                else
-                {
-                    eventHandler(sender, EventArgs.Empty);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Hides the dispatcher mis-match between Silverlight and .Net, largely so code reads a bit easier
-        /// </summary>
-        private class DispatcherProxy
-        {
-            Dispatcher innerDispatcher;
-
-            private DispatcherProxy(Dispatcher dispatcher)
-            {
-                innerDispatcher = dispatcher;
-            }
-
-            public static DispatcherProxy CreateDispatcher()
-            {
-                DispatcherProxy proxy = null;
-#if SILVERLIGHT
-                if (Deployment.Current == null)
-                    return null;
-
-                proxy = new DispatcherProxy(Deployment.Current.Dispatcher);
+#if (WINDOWS_UWP)
+                dispatcher.RunAsync((Action<object, EventHandler>)CallHandler, sender, eventHandler);
 #else
-                if (Application.Current == null)
-                    return null;
-
-                proxy = new DispatcherProxy(Application.Current.Dispatcher);
+                dispatcher.BeginInvoke((Action<object, EventHandler>)CallHandler, sender, eventHandler);
 #endif
-                return proxy;
             }
-
-            public bool CheckAccess()
+            else
             {
-                return innerDispatcher.CheckAccess();
-            }
-
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1903:UseOnlyApiFromTargetedFramework", MessageId = "System.Windows.Threading.Dispatcher.#BeginInvoke(System.Delegate,System.Windows.Threading.DispatcherPriority,System.Object[])")]
-            public DispatcherOperation BeginInvoke(Delegate method, params Object[] args)
-            {
-#if SILVERLIGHT
-                return innerDispatcher.BeginInvoke(method, args);
-#else
-                return innerDispatcher.BeginInvoke(method, DispatcherPriority.Normal, args);
-#endif
+                eventHandler(sender, EventArgs.Empty);
             }
         }
 
@@ -475,6 +441,115 @@ namespace Casimodo.Lib.ComponentModel
                     }
                 }
             }
+        }
+
+
+#if (false)
+        /// <summary>
+        /// Window.Current.Content = rootFrame;
+        /// Window.Current.Activate();
+        /// UIDispatcher.Initialize();
+        /// Source: http://mikaelkoskinen.net/post/fixing-coredispatcher-invoke-how-to-invoke-method-in-ui-thread-in-windows-8-release-preview
+        /// </summary>
+        public static class StaticUIDispatcher
+        {
+            private static Windows.UI.Core.CoreDispatcher _dispatcher;
+
+            public static void Initialize()
+            {
+                _dispatcher = Windows.UI.Xaml.Window.Current.Dispatcher;
+            }
+
+            public static void BeginExecute(Action action)
+            {
+                if (_dispatcher.HasThreadAccess)
+                    action();
+
+                else _dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => action());
+            }
+
+            public static void Execute(Action action)
+            {
+                InnerExecute(action).Wait();
+            }
+
+            private static async System.Threading.Tasks.Task InnerExecute(Action action)
+            {
+                if (_dispatcher.HasThreadAccess)
+                    action();
+
+                else await _dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => action());
+            }
+        }
+
+#endif
+
+        /// <summary>
+        /// Hides the dispatcher mis-match between Silverlight and .Net, largely so code reads a bit easier
+        /// </summary>
+        class DispatcherProxy
+        {
+            MyDispatcher _dispatcher;
+
+            private DispatcherProxy(MyDispatcher dispatcher)
+            {
+                _dispatcher = dispatcher;
+            }
+
+#if (WINDOWS_UWP)
+            public static DispatcherProxy CreateDispatcher()
+            {
+                return new DispatcherProxy(Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher);
+            }
+#else
+            public static DispatcherProxy CreateDispatcher()
+            {
+                DispatcherProxy proxy = null;
+#if (SILVERLIGHT)
+                if (Deployment.Current == null)
+                    return null;
+
+                proxy = new DispatcherProxy(Deployment.Current.Dispatcher);
+#else
+                if (Application.Current == null)
+                    return null;
+
+                proxy = new DispatcherProxy(Application.Current.Dispatcher);
+#endif
+                return proxy;
+            }
+#endif
+
+            public bool HasThreadAccess()
+            {
+#if (WINDOWS_UWP)
+                return _dispatcher.HasThreadAccess;
+#else
+                return _dispatcher.CheckAccess();
+#endif
+            }
+
+#if (WINDOWS_UWP)
+            public async void RunAsync(Delegate method, params object[] args)
+            {
+                await _dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                {
+                    method.DynamicInvoke(args);
+                });
+            }
+#endif
+
+#if (!WINDOWS_UWP)
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Portability", "CA1903:UseOnlyApiFromTargetedFramework", MessageId = "System.Windows.Threading.Dispatcher.#BeginInvoke(System.Delegate,System.Windows.Threading.DispatcherPriority,System.Object[])")]
+            public DispatcherOperation BeginInvoke(Delegate method, params Object[] args)
+            {
+#if SILVERLIGHT
+                return innerDispatcher.BeginInvoke(method, args);
+#else
+                return _dispatcher.BeginInvoke(method, DispatcherPriority.Normal, args);
+#endif
+            }
+#endif
         }
     }
 }

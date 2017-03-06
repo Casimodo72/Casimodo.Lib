@@ -2,6 +2,7 @@
 
 namespace Casimodo.Lib
 {
+    // KABU TODO: Move out of the core lib.
     /// <summary>
     /// Used by the MoAutoMapperInitializer for generation of AutoMapper 
     /// mappings of model properties to entity properties.

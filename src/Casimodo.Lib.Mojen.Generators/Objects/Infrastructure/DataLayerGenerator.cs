@@ -24,21 +24,26 @@ namespace Casimodo.Lib.Mojen
 
         public void OJsClass(string name, bool isstatic, Action content)
         {
-            OB("var {0} = (function ()", name);
-            OB("function {0}()", name);
+            OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, content);            
+        }
+
+        public void OJsClass(string ns, string name, bool isstatic, Action content)
+        {
+            OB($"var {name} = (function ()");
+            OB($"function {name}()");
 
             content();
 
             End();
 
-            O("return {0};", name);
+            O($"return {name};");
 
             End(")();");
 
             if (isstatic)
-                O("{0}.{1} = new {1}();", App.Get<DataLayerConfig>().ScriptNamespace, name);
+                O("{0}.{1} = new {1}();", ns, name);
             else
-                O("{0}.{1} = {1};", App.Get<DataLayerConfig>().ScriptNamespace, name);
+                O("{0}.{1} = {1};", ns, name);
         }
 
         public string GetJsDefaultValue(MojProp prop)

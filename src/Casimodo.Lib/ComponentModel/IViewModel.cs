@@ -27,6 +27,7 @@ namespace Casimodo.Lib.Presentation
         IViewModel Parent { get; set; }
     }
 
+    // KABU TODO: Move to separate file.
     public interface IViewModel<TView> : IViewModel
         where TView : class
     {

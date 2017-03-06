@@ -12,6 +12,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsReadOnly { get; set; }
 
+        public bool IsReadable { get; set; } = true;
+
         public bool IsCreatable { get; set; } = true;
 
         public bool IsUpdateable { get; set; } = true;

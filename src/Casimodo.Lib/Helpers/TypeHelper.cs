@@ -7,16 +7,28 @@ namespace Casimodo.Lib
 {
     public static class TypeHelper
     {
+#if (WINDOWS_UWP)
+        public static TypeInfo GetTypeInfo(Type type)
+        {
+            return type.GetTypeInfo();
+        }
+#else
+        public static Type GetTypeInfo(Type type)
+        {
+            return type;
+        }
+#endif
+
         public static TAttr FindTypeAttr<TType, TAttr>()
             where TAttr : class
         {
-            return typeof(TType).GetCustomAttribute(typeof(TAttr)) as TAttr;
+            return GetTypeInfo(typeof(TType)).GetCustomAttribute(typeof(TAttr)) as TAttr;
         }
 
         public static TAttr FindAttr<TAttr>(this Type type)
             where TAttr : class
         {
-            return type.GetCustomAttribute(typeof(TAttr)) as TAttr;
+            return GetTypeInfo(type).GetCustomAttribute(typeof(TAttr)) as TAttr;
         }
 
         public static T GetPropValueOrDefault<T>(object item, string name, T defaultValue = default(T))

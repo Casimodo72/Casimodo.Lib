@@ -93,6 +93,92 @@ namespace Casimodo.Lib.Mojen
             End(");");
         }
 
+        public class MojNamespaceContext
+        {
+            public MojNamespaceContext(string namespaces)
+            {
+                Guard.ArgNotNullOrWhitespace(namespaces, nameof(namespaces));
+
+                Namespaces.AddRange(namespaces.Split("."));
+            }
+
+            public List<string> Namespaces { get; set; } = new List<string>();
+
+            public string Current
+            {
+                get { return Index >= 0 ? Namespaces[Index] : null; }
+
+            }
+
+            public string Previous
+            {
+                get { return Index >= 1 ? Namespaces[Index - 1] : null; }
+
+            }
+
+            public bool IsLast
+            {
+                get { return Index == Namespaces.Count - 1; }
+            }
+
+            public bool Next()
+            {
+                if (Index >= Namespaces.Count - 1)
+                    return false;
+
+                Index++;
+                return true;
+            }
+
+            public int Index { get; private set; } = -1;
+        }
+
+        public void OJsNamespace(string ns, Action<MojNamespaceContext> action)
+        {
+            OUseStrict();
+
+            OJsNamespaceCore(new MojNamespaceContext(ns), action);
+        }
+
+        public void OJsNamespaceCore(MojNamespaceContext context, Action<MojNamespaceContext> action)
+        {
+            while (context.Next())
+            {
+                if (context.Index == 0)
+                    O($"var {context.Current};");
+
+                var absoluteNs = context.Previous != null ? context.Previous + "." + context.Current : context.Current;
+                OB($"(function({context.Current})");
+                O();
+
+                if (context.IsLast && action != null)
+                    action(context);
+                else
+                    OJsNamespaceCore(context, action);
+
+                O();
+                End($")({absoluteNs} || ({absoluteNs} = {{}}));");
+            }
+        }
+
+        public void OJsNamespace(string ns, Action action)
+        {
+            OUseStrict();
+            O($"var {ns};");
+            OB($"(function({ns})");
+            O();
+
+            action();
+
+            O();
+            End($")({ns} || ({ns} = {{}}));");
+        }
+
+        public void OUseStrict()
+        {
+            O("\"use strict\";");
+        }
+
         public void OJsImmediateBegin(string parameters = "")
         {
             OB($"(function ({parameters})");
@@ -101,6 +187,50 @@ namespace Casimodo.Lib.Mojen
         public void OJsImmediateEnd(string args = "")
         {
             End($")({args});");
+        }
+
+        // KABU TODO: Find a ways to share JS methods with DataLayerGenerator.
+        public void OJsClass(string name, bool isstatic = false, string extends = null,
+            string args = null, Action content = null)
+        {
+            OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
+        }
+
+        public void OJsClass(string ns, string name, bool isstatic = false,
+            string extends = null, string args = null, Action content = null)
+        {
+            var isderived = !string.IsNullOrWhiteSpace(extends);
+            var hasargs = !string.IsNullOrWhiteSpace(args);
+
+            OB($"var {name} = (function ({(isderived ? "_super" : "")})");
+
+            if (isderived)
+                O($"casimodo.__extends({name}, _super);");
+
+            // Constructor function.
+            O();
+            OB($"function {name}({(hasargs ? args : "")})");
+
+            if (isderived)
+            {
+                O($"_super.call(this{(hasargs ? ", " + args : "")});");
+                O();
+            }
+
+            if (content != null)
+                content();
+
+            End();
+
+            O();
+            O($"return {name};");
+
+            End($")({(isderived ? extends : "")});");
+
+            if (isstatic)
+                O("{0}.{1} = new {1}();", ns, name);
+            else
+                O("{0}.{1} = {1};", ns, name);
         }
 
         public string BuildNewComponentSpace(string name = null)
@@ -126,7 +256,8 @@ namespace Casimodo.Lib.Mojen
             return App.Get<WebBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
         }
 
-        string BuildJsScriptFileName(MojViewConfig view, string name = null, string suffix = null, bool newConvention = false)
+        public string BuildJsScriptFileName(MojViewConfig view, string name = null, string suffix = null,
+            bool extension = true, bool newConvention = false)
         {
             if (name == null)
             {
@@ -173,7 +304,7 @@ namespace Casimodo.Lib.Mojen
                     name += suffix.FirstLetterToLower();
             }
 
-            if (!name.EndsWith(".js"))
+            if (extension && !name.EndsWith(".js"))
                 name += ".js";
 
             name = name.Split('.').Select(x => x.FirstLetterToLower()).Join(".");

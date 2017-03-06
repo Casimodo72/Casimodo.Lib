@@ -22,6 +22,8 @@ namespace Casimodo.Lib.Mojen
             OB("function ViewModel(options)");
             O("_super.call(this, options);");
             O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
+            if (HasViewModelExtension)
+                O($"this.extension = new {DataConfig.ScriptUINamespace}.{ViewModelExtensionClassName}({{ vm: this }});");
             End();
 
             O();
@@ -128,12 +130,6 @@ namespace Casimodo.Lib.Mojen
             var vm = context.ComponentViewModelName;
             var view = context.View;
 
-            // Global data source accessor.
-            O();
-            OB($"space.getDataSource = function ()");
-            O("return space.createViewModel().createDataSource();");
-            End(";");
-
             // View model factory function.
             O();
             OB($"space.createViewModel = function ()");
@@ -165,20 +161,7 @@ namespace Casimodo.Lib.Mojen
             O();
             O("return space.vm;");
 
-            End(); // ViewModel factory function.            
-
-            // Non-view-model functions.
-            var funcs = JsFuncs.Functions.Where(x => !x.IsModelPart && x.Body != null).ToArray();
-            if (funcs.Any())
-            {
-                O();
-                foreach (var func in funcs)
-                {
-                    OB($"function {func.FunctionName} (e)");
-                    func.Body(context);
-                    End();
-                }
-            }
+            End(); // ViewModel factory function.                        
         }
 
         protected void InitEvents(WebViewGenContext context)

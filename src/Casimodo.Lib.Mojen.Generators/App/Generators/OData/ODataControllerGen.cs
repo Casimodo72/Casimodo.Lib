@@ -136,7 +136,10 @@ namespace Casimodo.Lib.Mojen
 
             if (!Options.IsEmpty)
             {
-                GenerateRead(Type, key, Type.Key.VName);
+                GenerateFilters(Type);
+
+                if (Options.IsReadable)
+                    GenerateRead(Type, key, Type.Key.VName);
 
                 if (!Options.IsReadOnly)
                 {
@@ -243,6 +246,14 @@ namespace Casimodo.Lib.Mojen
             End();
         }
 
+        // Filters
+
+        void GenerateFilters(MojType type)
+        {
+            O();
+            O($"Func<IQueryable<{type.ClassName}>, IQueryable<{type.ClassName}>> CustomFilter {{ get; set; }} = (query) => query;");
+        }
+
         // Read ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         void GenerateRead(MojType type, MojProp key, string keyName)
@@ -286,8 +297,7 @@ namespace Casimodo.Lib.Mojen
             O($"return Ok(CustomFilter(_db.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
             End();
 
-            O();
-            O($"Func<IQueryable<{type.ClassName}>, IQueryable<{type.ClassName}>> CustomFilter {{ get; set; }} = (query) => query;");
+
 
             O();
             O("[HttpGet]");

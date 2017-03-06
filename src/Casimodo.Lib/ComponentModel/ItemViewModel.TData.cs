@@ -5,8 +5,9 @@ namespace Casimodo.Lib.Presentation
 {
     public class ItemViewModel<TData> : ItemViewModel
     {
-        public static readonly PropertyChangedEventArgs DataChangedArgs = new PropertyChangedEventArgs("Data");
-        public static readonly PropertyChangedEventArgs ItemChangedArgs = new PropertyChangedEventArgs("Item");
+        // KABU TODO: REMOVE
+        //public static readonly PropertyChangedEventArgs DataChangedArgs = new PropertyChangedEventArgs("Data");
+        //public static readonly PropertyChangedEventArgs ItemChangedArgs = new PropertyChangedEventArgs("Item");
 
         public ItemViewModel()
         { }
@@ -45,9 +46,9 @@ namespace Casimodo.Lib.Presentation
 
         protected virtual void SetData(TData data)
         {
-            if (SetProp(ref _data, data, DataChangedArgs))
+            if (SetProp(ref _data, data, nameof(Data)))
             {
-                RaisePropertyChanged(ItemChangedArgs);
+                RaisePropertyChanged(nameof(Item));
             }
         }
     }

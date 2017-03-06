@@ -10,6 +10,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using MyItemType = System.Object;
+#if (WINDOWS_UWP)
+using Windows.UI.Xaml.Data;
+#endif
 
 namespace Casimodo.Lib.Presentation
 {
@@ -46,6 +49,7 @@ namespace Casimodo.Lib.Presentation
         /// This is *not* the source collection.</param>
         public CustomCollectionView(CustomObservableCollection internalCollection)
         {
+            
             if (internalCollection == null)
                 throw new ArgumentNullException("internalCollection");
 
@@ -165,7 +169,7 @@ namespace Casimodo.Lib.Presentation
         // TODO: IMPL Culture.
         public CultureInfo Culture
         {
-            get { return Thread.CurrentThread.CurrentCulture; }
+            get { return System.Threading.Thread.CurrentThread.CurrentCulture; }
             set { throw new NotSupportedException(); }
         }
 

@@ -13,7 +13,8 @@ namespace Casimodo.Lib.ComponentModel
             if (string.IsNullOrWhiteSpace(propertyName))
                 throw new ArgumentNullException("propertyName");
 
-            propertyName = string.Intern(propertyName);
+            // KABU NOTE: Removed because UWP doesn't support string interning.
+            //propertyName = string.Intern(propertyName);
             Name = propertyName;
             ChangedArgs = new PropertyChangedEventArgs(propertyName);
         }

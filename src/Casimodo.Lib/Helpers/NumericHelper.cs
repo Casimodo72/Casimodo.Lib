@@ -18,7 +18,7 @@ namespace Casimodo.Lib
         {
             type = Nullable.GetUnderlyingType(type) ?? type;
 
-            return type.IsPrimitive &&
+            return TypeHelper.GetTypeInfo(type).IsPrimitive &&
                 // See https://msdn.microsoft.com/en-us/library/exx3b86w.aspx
                 (type == typeof(int) ||
                  type == typeof(long) ||
@@ -44,7 +44,7 @@ namespace Casimodo.Lib
             if (type == null) return false;
             type = Nullable.GetUnderlyingType(type) ?? type;
 
-            if (type.IsPrimitive)
+            if (TypeHelper.GetTypeInfo(type).IsPrimitive)
             {
                 return type != typeof(bool) &&
                     type != typeof(char) &&

@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
             GenerateGridViewCore(context);
 
             // Script
-            GenerateScript(context);
+            GenerateScript(context);            
         }
 
         void GenerateGridViewCore(WebViewGenContext context)
@@ -95,9 +95,12 @@ namespace Casimodo.Lib.Mojen
             {
                 ScriptGen.PerformWrite(ViewModelScriptFilePath, () =>
                 {
-                    GenerateViewModelScript(context);
+                    GenerateJsComponentSpaceScript(context);
                 });
             });
+
+            // View model extension script.
+            GenerateViewModelExtensionJsScript(context);
 
             // NOTE: Writing to a dedicated script file does not always work,
             // because lookup - columns definitions need Razor functionality.
@@ -106,11 +109,30 @@ namespace Casimodo.Lib.Mojen
                 GenerateComponentScript(context);
         }
 
-        public void GenerateViewModelScript(WebViewGenContext context)
+        public void GenerateJsComponentSpaceScript(WebViewGenContext context)
         {
             OJsImmediateBegin("space");
 
+            // Global data source accessor.
+            O();
+            OB($"space.getDataSource = function ()");
+            O("return space.createViewModel().createDataSource();");
+            End(";");
+
             GenerateJSViewModel(context);
+
+            // Non-view-model functions.
+            var funcs = JsFuncs.Functions.Where(x => !x.IsModelPart && x.Body != null).ToArray();
+            if (funcs.Any())
+            {
+                O();
+                foreach (var func in funcs)
+                {
+                    OB($"function {func.FunctionName} (e)");
+                    func.Body(context);
+                    End();
+                }
+            }
 
             if (context.View.IsViewless)
             {
@@ -129,6 +151,44 @@ namespace Casimodo.Lib.Mojen
                 OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
         }
 
+        public bool HasViewModelExtension
+        {
+            get
+            {
+                // Only if there are custom actions defined.
+                if (!View.CustomActions.Any())
+                    return false;
+
+                return true;
+            }
+        }
+
+        public void GenerateViewModelExtensionJsScript(WebViewGenContext context)
+        {
+            // Write an initial stub for the view model extension,
+            // which is intended to be further manually edited.
+           
+            if (!HasViewModelExtension)
+                return;
+
+            // Only if the file does not exist already.
+            if (System.IO.File.Exists(ViewModelExtensionScriptFilePath))
+                return;
+
+            WriteTo(ScriptGen, () =>
+            {
+                ScriptGen.PerformWrite(ViewModelExtensionScriptFilePath, () =>
+                {
+                    OJsNamespace(DataConfig.ScriptUINamespace, (nscontext) =>
+                    {
+                        OJsClass(nscontext.Current, ViewModelExtensionClassName,
+                            extends: "casimodo.ui.ComponentViewModelExtensionBase",
+                            args: "options");
+                    });
+                });
+            });
+        }
+
         public void GenerateComponentScript(WebViewGenContext context)
         {
             // NOTE: Writing to a dedicated script file for the component does not always work,
@@ -136,7 +196,9 @@ namespace Casimodo.Lib.Mojen
             // Thus, unfortunately, we *have to* put the component script into the cshtml file.
 
             O();
-            OScriptReference(ViewModelScriptVirtualFilePath);
+            if (HasViewModelExtension)
+                OScriptReference(ViewModelExtensionScriptVirtualFilePath);
+            OScriptReference(ViewModelScriptVirtualFilePath);            
 
             O();
             OScriptBegin();

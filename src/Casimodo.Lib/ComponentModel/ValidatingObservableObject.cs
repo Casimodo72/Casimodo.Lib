@@ -348,7 +348,7 @@ namespace Casimodo.Lib.ComponentModel
                         {
                             errorMsg =
                                 string.Format(
-                                    "An uknown validation error occurred using attribute '{0}'.",
+                                    "An unknown validation error occurred using attribute '{0}'.",
                                     attr.GetType().Name);
                         }
                     }

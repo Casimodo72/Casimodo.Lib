@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
     {
         public bool UseRefresh { get; set; } = true;
         public bool UseInput { get; set; } = true;
-        public bool UsePageSizes { get; set; } = true;        
+        public bool UsePageSizes { get; set; } = true;
     }
 
     public class KendoGridOptions
@@ -87,6 +87,8 @@ namespace Casimodo.Lib.Mojen
 
         public WebViewGenContext Context { get; set; }
 
+        public DataLayerConfig DataConfig { get; set; }
+
         public bool UseEntity { get; set; }
 
         public MojViewConfig View { get; private set; }
@@ -149,6 +151,10 @@ namespace Casimodo.Lib.Mojen
         public string ViewModelScriptFilePath { get; set; }
         public string ViewModelScriptVirtualFilePath { get; set; }
 
+        public string ViewModelExtensionScriptFilePath { get; set; }
+        public string ViewModelExtensionScriptVirtualFilePath { get; set; }
+        public string ViewModelExtensionClassName { get; set; }
+
         protected override void GenerateCore()
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
@@ -157,6 +163,7 @@ namespace Casimodo.Lib.Mojen
                 Reset();
 
                 var context = Context = new WebViewGenContext { View = view };
+                DataConfig = App.GetDataLayerConfig(context.View.TypeConfig.DataContextName);
 
                 View = view;
 
@@ -217,6 +224,14 @@ namespace Casimodo.Lib.Mojen
                 var viewModelScriptSuffix = ".vm.generated";
                 ViewModelScriptFilePath = BuildJsScriptFilePath(View, suffix: viewModelScriptSuffix);
                 ViewModelScriptVirtualFilePath = BuildJsScriptVirtualFilePath(View, suffix: viewModelScriptSuffix);
+
+                viewModelScriptSuffix = ".vm.extension";
+                ViewModelExtensionScriptFilePath = BuildJsScriptFilePath(View, suffix: viewModelScriptSuffix);
+                ViewModelExtensionScriptVirtualFilePath = BuildJsScriptVirtualFilePath(View, suffix: viewModelScriptSuffix);
+                ViewModelExtensionClassName = BuildJsScriptFileName(View, suffix: viewModelScriptSuffix, extension: false)
+                    .Split('.')
+                    .Select(x => MojenUtils.FirstCharToUpper(x))
+                    .Join("");
 
                 // Generate grid.
                 if (!context.View.IsCustom)

@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 
 namespace Casimodo.Lib.ComponentModel
 {
+    // KABU TODO: REMOVE?
     //public static class ObservableObjectExtensions
     //{
     //    public static bool IsDisposed(this ObservableObject item)
@@ -24,8 +25,6 @@ namespace Casimodo.Lib.ComponentModel
     {
         bool IsDisposed { get; }
     }
-
-    // See http://stackoverflow.com/questions/864243/how-do-i-compare-a-generic-type-to-its-default-value
 
     [DataContract]
     public abstract partial class ObservableObject : INotifyPropertyChanged, IDisposable, IDisposableEx
@@ -149,6 +148,8 @@ namespace Casimodo.Lib.ComponentModel
                 return false;
             }
 
+            // See http://stackoverflow.com/questions/864243/how-do-i-compare-a-generic-type-to-its-default-value
+
             if (EqualityComparer<T>.Default.Equals(oldValue, newValue))
                 return false;
 
@@ -175,6 +176,7 @@ namespace Casimodo.Lib.ComponentModel
             return true;
         }
 
+        // KABU TODO: ELIMINATE?
         public bool SetProperty<T>(T oldValue, T newValue, Action setter, [CallerMemberName] string propertyName = null)
         {
             return SetProp<T>(oldValue, newValue, setter, propertyName);
@@ -200,6 +202,7 @@ namespace Casimodo.Lib.ComponentModel
             return true;
         }
 
+        // KABU TODO: ELIMINATE?
         // KABU TODO: Still used?
         protected bool SetProperty<T>(string propertyName, ref T oldValue, T newValue)
             where T : class

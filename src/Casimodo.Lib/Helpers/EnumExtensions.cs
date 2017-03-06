@@ -41,7 +41,7 @@ namespace Casimodo.Lib
         private static DisplayAttribute GetDisplayAttribute(object value)
         {
             Type type = value.GetType();
-            if (!type.IsEnum)
+            if (!TypeHelper.GetTypeInfo(type).IsEnum)
             {
                 throw new ArgumentException(string.Format("Type {0} is not an enum", type));
             }

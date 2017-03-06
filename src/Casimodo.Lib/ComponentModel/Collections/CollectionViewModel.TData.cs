@@ -8,8 +8,14 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Data;
-using MyView = System.Windows.Data.ListCollectionView;
+
+#if (WINDOWS_UWP)
+    using Windows.UI.Xaml.Data;
+    //using MyView = Windows.UI.Xaml..ListCollectionView;
+#else
+    using System.Windows.Data;
+    using MyView = System.Windows.Data.ListCollectionView;
+#endif
 
 namespace Casimodo.Lib.Presentation
 {

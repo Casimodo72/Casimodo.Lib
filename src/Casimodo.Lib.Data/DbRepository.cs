@@ -14,6 +14,7 @@ namespace Casimodo.Lib.Data
 {
     public interface IDbRepository<TEntity> : IDbRepository
     {
+        TEntity GetById(object key);
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity, MojDataGraphMask mask = null);
         void Delete(TEntity entity, DbRepoOperationContext ctx = null);
@@ -56,9 +57,9 @@ namespace Casimodo.Lib.Data
             where TDbContext : DbContext, new()
         {
             var db = (TDbContext)Activator.CreateInstance(typeof(TDbContext), new object[] { Transaction.UnderlyingTransaction.Connection, false });
-            db.Database.UseTransaction(Transaction.UnderlyingTransaction);            
+            db.Database.UseTransaction(Transaction.UnderlyingTransaction);
             return db;
-        }       
+        }
     }
 
     public static class DbRepositoryExtensions
@@ -156,14 +157,14 @@ namespace Casimodo.Lib.Data
                 _core = ServiceLocator.Current.GetInstance<DbRepositoryCoreProvider>().GetCoreFor<TContext>();
                 return _core;
             }
-        }       
+        }
 
         public void PerformTransaction(Action<DbTransactionContext> action)
         {
             using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 try
-                { 
+                {
                     action(new DbTransactionContext(Context, trans));
 
                     trans.Commit();
@@ -217,6 +218,11 @@ namespace Casimodo.Lib.Data
         }
 
         // Get: Single ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        TEntity IDbRepository<TEntity>.GetById(object key)
+        {
+            return Find((TKey?)key, required: true);
+        }
 
         /// <summary>
         /// NOTE: Returns also IsDeleted entities.

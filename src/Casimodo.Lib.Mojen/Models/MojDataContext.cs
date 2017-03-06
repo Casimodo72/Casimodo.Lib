@@ -68,6 +68,10 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string ScriptNamespace { get; set; }
 
+        // KABU TODO: Move into UI config.
+        [DataMember]
+        public string ScriptUINamespace { get; set; }
+
         [DataMember]
         public string ComplexTypeDirPath { get; set; }
 
