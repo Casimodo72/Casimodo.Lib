@@ -1,0 +1,250 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7DB656F9-919F-42C3-8CEA-700D9985A48F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Casimodo.Lib.Uwp</RootNamespace>
+    <AssemblyName>Casimodo.Lib.Uwp</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.14393.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.14393.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
+    <PlatformTarget>ARM</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\ARM\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
+    <PlatformTarget>ARM</PlatformTarget>
+    <OutputPath>bin\ARM\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>ARM</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Casimodo.Lib\CasimodoLibException.cs">
+      <Link>CasimodoLibException.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\CancelableChangingEventHandler.cs">
+      <Link>ComponentModel\CancelableChangingEventHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\CancelableEventHandler.cs">
+      <Link>ComponentModel\CancelableEventHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\CollectionItemViewModel.cs">
+      <Link>ComponentModel\CollectionItemViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\CommandFactory.cs">
+      <Link>ComponentModel\Commands\CommandFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\DelegateCommandOfT.cs">
+      <Link>ComponentModel\Commands\DelegateCommandOfT.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\ICommandErrorHandler.cs">
+      <Link>ComponentModel\Commands\ICommandErrorHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\ICommandEx.cs">
+      <Link>ComponentModel\Commands\ICommandEx.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\RelayCommand.cs">
+      <Link>ComponentModel\Commands\RelayCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\RelayCommandOfT.cs">
+      <Link>ComponentModel\Commands\RelayCommandOfT.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\Commands\XDelegateCommand.cs">
+      <Link>ComponentModel\Commands\XDelegateCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\CommonEventHandlers.cs">
+      <Link>ComponentModel\CommonEventHandlers.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\DataErrorInfo.cs">
+      <Link>ComponentModel\DataErrorInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\DoubleValidationAttribute.cs">
+      <Link>ComponentModel\DoubleValidationAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\IKeyAccessor.cs">
+      <Link>ComponentModel\IKeyAccessor.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\ItemViewModel.cs">
+      <Link>ComponentModel\ItemViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\ItemViewModel.TData.cs">
+      <Link>ComponentModel\ItemViewModel.TData.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\IView.cs">
+      <Link>ComponentModel\IView.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\IViewModel.cs">
+      <Link>ComponentModel\IViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\ObservableObject.cs">
+      <Link>ComponentModel\ObservableObject.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\ComponentModel\ObservablePropertyMetadata.cs">
+      <Link>ComponentModel\ObservablePropertyMetadata.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\BindingHelper.cs">
+      <Link>Helpers\BindingHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\DateTimeHelper.cs">
+      <Link>Helpers\DateTimeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\DictionaryHelper.cs">
+      <Link>Helpers\DictionaryHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\EnumerableExtensions.cs">
+      <Link>Helpers\EnumerableExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\EnumExtensions.cs">
+      <Link>Helpers\EnumExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\ExpressionHelper.cs">
+      <Link>Helpers\ExpressionHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\FilePathHelper.cs">
+      <Link>Helpers\FilePathHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\Guard.cs">
+      <Link>Helpers\Guard.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\HArg.cs">
+      <Link>Helpers\HArg.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\HProp.cs">
+      <Link>Helpers\HProp.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\HPropDispayInfo.cs">
+      <Link>Helpers\HPropDispayInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\IServiceProviderExtensions.cs">
+      <Link>Helpers\IServiceProviderExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\ListExtensions.cs">
+      <Link>Helpers\ListExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\NumericHelper.cs">
+      <Link>Helpers\NumericHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\QueryableExtensions.cs">
+      <Link>Helpers\QueryableExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\SetExtension.cs">
+      <Link>Helpers\SetExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\StreamHelper.cs">
+      <Link>Helpers\StreamHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\StringExtensions.cs">
+      <Link>Helpers\StringExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\TypeHelper.cs">
+      <Link>Helpers\TypeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Casimodo.Lib\Helpers\XmlLinqExtensions.cs">
+      <Link>Helpers\XmlLinqExtensions.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Properties\Casimodo.Lib.Uwp.rd.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ComponentModel\Collections\" />
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
+    <VisualStudioVersion>14.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
