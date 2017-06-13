@@ -664,7 +664,7 @@ namespace Casimodo.Lib.Data
         /// using the specified collection of entities.
         /// Newly added entities in the collection are added to the DB.
         /// Existing entities in the collection and the DB are updated and saved to DB.
-        /// NOTE: Removed entities are deleted physically from the DB.
+        /// WARNING: Removed entities are deleted physically from the DB.
         /// </summary>        
         public void UpdateNestedCollection<T, TKey>(
             IEnumerable<T> collection,

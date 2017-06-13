@@ -145,6 +145,7 @@ namespace Casimodo.Lib.ComponentModel
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
             {
                 // Deserialization behavior.
+                oldValue = newValue;
                 return false;
             }
 
@@ -165,6 +166,7 @@ namespace Casimodo.Lib.ComponentModel
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
             {
                 // Deserialization behavior.
+                oldValue = newValue;
                 return false;
             }
 
