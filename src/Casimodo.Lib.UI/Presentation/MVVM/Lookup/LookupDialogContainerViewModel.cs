@@ -143,7 +143,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsOKVisible
         {
             get { return _isOKVisible; }
-            set { SetValueTypeProperty(IsOKVisibleProperty.ChangedArgs, ref _isOKVisible, value); }
+            set { SetValueTypeProperty(IsOKVisibleProperty, ref _isOKVisible, value); }
         }
         bool _isOKVisible;
         public static readonly ObservablePropertyMetadata IsOKVisibleProperty = ObservablePropertyMetadata.Create("IsOKVisible");
@@ -151,7 +151,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsCancelVisible
         {
             get { return _isCancelVisible; }
-            set { SetValueTypeProperty(IsCancelVisibleProperty.ChangedArgs, ref _isCancelVisible, value); }
+            set { SetValueTypeProperty(IsCancelVisibleProperty, ref _isCancelVisible, value); }
         }
         bool _isCancelVisible;
         public static readonly ObservablePropertyMetadata IsCancelVisibleProperty = ObservablePropertyMetadata.Create("IsCancelVisible");
@@ -159,7 +159,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsYesVisible
         {
             get { return _isYesVisible; }
-            set { SetValueTypeProperty(IsYesVisibleProperty.ChangedArgs, ref _isYesVisible, value); }
+            set { SetValueTypeProperty(IsYesVisibleProperty, ref _isYesVisible, value); }
         }
         bool _isYesVisible;
         public static readonly ObservablePropertyMetadata IsYesVisibleProperty = ObservablePropertyMetadata.Create("IsYesVisible");
@@ -167,7 +167,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsNoVisible
         {
             get { return _isNoVisible; }
-            set { SetValueTypeProperty(IsNoVisibleProperty.ChangedArgs, ref _isNoVisible, value); }
+            set { SetValueTypeProperty(IsNoVisibleProperty, ref _isNoVisible, value); }
         }
         bool _isNoVisible;
         public static readonly ObservablePropertyMetadata IsNoVisibleProperty = ObservablePropertyMetadata.Create("IsNoVisible");
@@ -286,7 +286,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsOKVisible
         {
             get { return _isOKVisible; }
-            set { SetValueTypeProperty(IsOKVisibleProperty.ChangedArgs, ref _isOKVisible, value); }
+            set { SetValueTypeProperty(IsOKVisibleProperty, ref _isOKVisible, value); }
         }
         bool _isOKVisible;
         public static readonly ObservablePropertyMetadata IsOKVisibleProperty = ObservablePropertyMetadata.Create("IsOKVisible");
@@ -294,7 +294,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsCancelVisible
         {
             get { return _isCancelVisible; }
-            set { SetValueTypeProperty(IsCancelVisibleProperty.ChangedArgs, ref _isCancelVisible, value); }
+            set { SetValueTypeProperty(IsCancelVisibleProperty, ref _isCancelVisible, value); }
         }
         bool _isCancelVisible;
         public static readonly ObservablePropertyMetadata IsCancelVisibleProperty = ObservablePropertyMetadata.Create("IsCancelVisible");
@@ -302,7 +302,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsYesVisible
         {
             get { return _isYesVisible; }
-            set { SetValueTypeProperty(IsYesVisibleProperty.ChangedArgs, ref _isYesVisible, value); }
+            set { SetValueTypeProperty(IsYesVisibleProperty, ref _isYesVisible, value); }
         }
         bool _isYesVisible;
         public static readonly ObservablePropertyMetadata IsYesVisibleProperty = ObservablePropertyMetadata.Create("IsYesVisible");
@@ -310,7 +310,7 @@ namespace Casimodo.Lib.Presentation
         public bool IsNoVisible
         {
             get { return _isNoVisible; }
-            set { SetValueTypeProperty(IsNoVisibleProperty.ChangedArgs, ref _isNoVisible, value); }
+            set { SetValueTypeProperty(IsNoVisibleProperty, ref _isNoVisible, value); }
         }
         bool _isNoVisible;
         public static readonly ObservablePropertyMetadata IsNoVisibleProperty = ObservablePropertyMetadata.Create("IsNoVisible");

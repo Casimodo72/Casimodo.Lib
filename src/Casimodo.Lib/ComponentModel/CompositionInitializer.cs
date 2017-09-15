@@ -2,13 +2,29 @@
 
 namespace System.ComponentModel.Composition
 {
+    public class CompositionHost
+    {
+
+        internal static CompositionContainer _container = null;
+
+        public static void Initialize(CompositionContainer container)
+        {
+            _container = container;
+        }
+
+        public static CompositionContainer CompositionInitializer
+        {
+            get { return _container as CompositionContainer; }
+        }
+    }
+
     public class CompositionInitializer
     {
-        static CompositionInitializer _instance;
+        static CompositionInitializer _current;
 
-        static CompositionInitializer Instance
+        static CompositionInitializer Current
         {
-            get { return _instance ?? (_instance = new CompositionInitializer()); }
+            get { return _current ?? (_current = new CompositionInitializer()); }
         }
 
         CompositionContainer _container;
@@ -18,12 +34,12 @@ namespace System.ComponentModel.Composition
 
         public static void SetContainer(CompositionContainer container)
         {
-            Instance._container = container;
+            Current._container = container;
         }
 
         public static void SatisfyImports(object obj)
         {
-            Instance._container.SatisfyImportsOnce(obj);
+            Current._container.SatisfyImportsOnce(obj);
         }
     }
 }

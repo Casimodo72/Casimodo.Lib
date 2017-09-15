@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Casimodo.Lib.ComponentModel
 {
-    // KABU TODO: ELIMINATE
+    // KABU TODO: ELIMINATE?
     public class ObservablePropertyMetadata
     {
         internal ObservablePropertyMetadata(string propertyName)

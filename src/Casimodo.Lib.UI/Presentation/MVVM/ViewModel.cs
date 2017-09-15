@@ -28,8 +28,8 @@ using System.Collections.Generic;
 using Casimodo.Lib.ComponentModel;
 using System.Windows;
 using System.ComponentModel.Composition;
-using Prism.Events;
 using Casimodo.Lib.Events;
+using Microsoft.Practices.Prism.PubSubEvents;
 
 namespace Casimodo.Lib.Presentation
 {

@@ -66,28 +66,6 @@ namespace Casimodo.Lib
             return result;
         }
 
-        static TEnum SetFlag<TEnum>(this TEnum flags, TEnum flag)
-             where TEnum : struct
-        {
-            if (HasFlag(flags, flag))
-                return flags;
-
-            int flagsInt = Convert.ToInt32(flags);
-            int flagInt = Convert.ToInt32(flag);
-
-            flags = (TEnum)(object)(flagsInt | flagInt);
-
-            return flags;
-        }
-
-        static TEnum SetFlag<TEnum>(this TEnum flags, TEnum flag, bool set)
-             where TEnum : struct
-        {
-            if (set)
-                return SetFlag(flags, flag);
-            else
-                return UnsetFlag(flags, flag);
-        }
 
         public static TEnum UnsetFlag<TEnum>(this TEnum flags, TEnum flag)
             where TEnum : struct

@@ -244,7 +244,7 @@ namespace Casimodo.Lib.ComponentModel
 
         protected virtual void OnDispose()
         {
-            // NOP.
+            IsDisposed = true;
         }
 
         protected bool IsDisposed { get; private set; }

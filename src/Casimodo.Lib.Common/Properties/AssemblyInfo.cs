@@ -1,5 +1,5 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("Grcp.Dsm.Common")]
+[assembly: AssemblyTitle("Casimodo.Lib.Common")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]

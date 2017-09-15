@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Prism.Events;
+using Microsoft.Practices.Prism.PubSubEvents;
 
 namespace Casimodo.Lib.Events
 {

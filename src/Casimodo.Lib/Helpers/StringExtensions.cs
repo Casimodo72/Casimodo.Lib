@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Casimodo.Lib
@@ -99,6 +101,11 @@ namespace Casimodo.Lib
                 return null;
 
             return text;
+        }
+
+        public static bool ContainsAny(this IEnumerable<string> items, params string[] values)
+        {
+            return values.Any(x => items.Contains(x));
         }
     }
 
