@@ -18,6 +18,7 @@ namespace Casimodo.Lib.Presentation
         }
 
         public string Title { get; set; }
+        public bool IsMaximized { get; set; }
         public double? Width { get; set; }
         public double? Height { get; set; }
         public MessageBoxButton? Buttons { get; set; }

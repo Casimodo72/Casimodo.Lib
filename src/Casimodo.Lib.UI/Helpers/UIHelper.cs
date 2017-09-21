@@ -233,6 +233,26 @@ namespace Casimodo.Lib.Presentation
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool GetCursorPos(ref Win32Point pt);
+
+        [DllImport("user32.dll")]
+        static extern int FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll")]
+        static extern int SendMessage(int hWnd, uint Msg, int wParam, int lParam);
+
+        public const int WM_SYSCOMMAND = 0x0112;
+        public const int SC_CLOSE = 0xF060;
+
+        public static void CloseOnscreenKeyboard()
+        {
+            // retrieve the handler of the window  
+            int iHandle = FindWindow("IPTIP_Main_Window", "");
+            if (iHandle > 0)
+            {
+                // close the window using API        
+                SendMessage(iHandle, WM_SYSCOMMAND, SC_CLOSE, 0);
+            }
+        }
 #endif
     }
 }

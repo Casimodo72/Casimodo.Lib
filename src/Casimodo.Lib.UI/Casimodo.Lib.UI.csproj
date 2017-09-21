@@ -144,6 +144,7 @@
     <Compile Include="Presentation\Attributes\TextInputMaskAttribute.cs" />
     <Compile Include="Presentation\Behaviors\MiscBehaviors.cs" />
     <Compile Include="Presentation\Controls\Behaviours\MaskedTextBoxBehavior.cs" />
+    <Compile Include="Presentation\Controls\Behaviours\NoOnscreenkeyboardBehavior.cs" />
     <Compile Include="Presentation\Controls\Behaviours\TextBoxInputMaskBehavior.cs" />
     <Compile Include="Presentation\Controls\Behaviours\TextBoxMaskBehavior.cs" />
     <Compile Include="Presentation\Controls\DataErrorView.xaml.cs">
@@ -180,6 +181,7 @@
     <Compile Include="Presentation\MVVM\Lookup\LookupResult.cs" />
     <Compile Include="Presentation\MVVM\Lookup\LookupResultState.cs" />
     <Compile Include="Presentation\MVVM\Lookup\LookupViewModelBase.cs" />
+    <Compile Include="Presentation\MVVM\MoCommandParameter.cs" />
     <Compile Include="Presentation\MVVM\ModelFirstStrategyAttribute.cs" />
     <Compile Include="Presentation\MVVM\ModelSource.cs" />
     <Compile Include="Presentation\MVVM\Trees\TreeNodeViewModel.cs" />
