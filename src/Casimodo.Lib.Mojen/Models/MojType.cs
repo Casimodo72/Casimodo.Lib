@@ -336,9 +336,9 @@ namespace Casimodo.Lib.Mojen
                 );
         }
 
-        public IEnumerable<MojProp> CollectionProps
+        public IEnumerable<MojProp> NonArrayCollectionProps
         {
-            get { return GetProps().Where(x => x.Type.IsCollection); }
+            get { return GetProps().Where(x => x.Type.IsCollection && !x.Type.IsArray); }
         }
 
         public MojProp Guid

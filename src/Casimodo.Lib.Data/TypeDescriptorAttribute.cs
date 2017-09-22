@@ -2,9 +2,9 @@
 
 namespace Casimodo.Lib.Data
 {
-    public class TypeDescriptorAttribute : Attribute
+    public class TypeIdentityAttribute : Attribute
     {
-        public TypeDescriptorAttribute(string guid)
+        public TypeIdentityAttribute(string guid)
         {
             Guid = new Guid(guid);
         }

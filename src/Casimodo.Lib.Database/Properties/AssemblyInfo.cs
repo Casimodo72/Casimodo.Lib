@@ -1,15 +1,15 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("Casimodo.Lib.Data")]
+[assembly: AssemblyTitle("Casimodo.Lib.Database")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Casimodo.Lib.Data")]
+[assembly: AssemblyProduct("Casimodo.Lib.Database")]
 [assembly: AssemblyCopyright("Copyright © 2015-2017 Kasimier Buchcik")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: Guid("e3f40c64-0abd-4560-9c8f-f9761ae7097e")]
+[assembly: Guid("275aa4b5-2ea6-4b86-afb4-a131956d6df8")]
 [assembly: ComVisible(false)]

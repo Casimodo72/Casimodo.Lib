@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Mojen
         {
             OSummary(type.Summary);
 
-            O($"[TypeDescriptor(\"{type.Id}\")]");
+            O($"[TypeIdentity(\"{type.Id}\")]");
 
             if (type.IsKeyAccessible)
                 O("[KeyInfo(PropName = \"{0}\")]", type.Key.Name);

@@ -120,7 +120,7 @@ namespace Casimodo.Lib.Mojen
                 O("SetStore(new {0}());", type.Store.ClassName);
             }
 
-            foreach (var collectionProp in type.CollectionProps)
+            foreach (var collectionProp in type.NonArrayCollectionProps)
             {
                 O("{0} = new ObservableCollection<{1}>();", collectionProp.Name, collectionProp.Type.GenericTypeArguments.First().Name);
             }

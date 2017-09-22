@@ -81,7 +81,7 @@ namespace Casimodo.Lib.Data
 
                     _originInfo = new OperationOriginInfo
                     {
-                        TypeId = Origin.GetType().FindAttr<TypeDescriptorAttribute>().Guid,
+                        TypeId = Origin.GetType().FindAttr<TypeIdentityAttribute>().Guid,
                         Id = id.Value
                     };
                 }

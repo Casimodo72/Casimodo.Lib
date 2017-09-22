@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(enu.Namespace);
 
-            O($"[TypeDescriptor(\"{enu.Id}\")]");
+            O($"[TypeIdentity(\"{enu.Id}\")]");
             O("[DataContract]");
             O("public enum {0}", enu.ClassName);
             Begin();

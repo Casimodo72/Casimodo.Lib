@@ -263,6 +263,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Database\Casimodo.Lib.Database.csproj">
+      <Project>{e3f40c64-0abd-4560-9c8f-f9761ae7097e}</Project>
+      <Name>Casimodo.Lib.Database</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj">
       <Project>{14682976-50a0-4ec3-adc2-f99b191fe432}</Project>
       <Name>Casimodo.Lib.Data</Name>
