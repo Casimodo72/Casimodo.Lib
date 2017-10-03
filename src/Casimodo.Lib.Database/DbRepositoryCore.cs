@@ -216,6 +216,10 @@ namespace Casimodo.Lib.Data
             {
                 if (same)
                 {
+                    // KABU TODO: IMPORTANT: CLARIFY why this case is about.
+                    //   Why and when do we expect the source and target to be the same object.
+                    //   Why do we mark properties as modified in this case.
+                    //   And why do we process equal objects at all?
                     entry.Property(propName).IsModified = true;
                 }
                 else

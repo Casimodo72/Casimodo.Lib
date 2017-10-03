@@ -181,7 +181,7 @@ namespace Casimodo.Lib.Mojen
         // Create ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         void GenerateCreate()
-        {
+        {            
             GenerateCreateMain();
 
             var actions = new List<string>();
@@ -199,6 +199,8 @@ namespace Casimodo.Lib.Mojen
 
                 GenerateCreateSingle(editorView);
             }
+
+            //GenerateCreateCore();
         }
 
         void GenerateCreateSingle(MojViewConfig editorView)

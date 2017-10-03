@@ -34,22 +34,24 @@ namespace Casimodo.Lib.Presentation
 
         /// <summary>
         /// Obsolete: use Data instead.
-        /// KABU TODO: ELIMINATE
+        /// KABU TODO: REMOVE
         /// </summary>
-        public TData Item
-        {
-            get { return _data; }
-            set { SetData(value); }
-        }
+        //public TData Item
+        //{
+        //    get { return _data; }
+        //    set { SetData(value); }
+        //}
 
         protected TData _data;
 
         protected virtual void SetData(TData data)
         {
-            if (SetProp(ref _data, data, nameof(Data)))
-            {
-                RaisePropertyChanged(nameof(Item));
-            }
+            SetProp(ref _data, data, nameof(Data));
+            // KABU TODO: REMOVE
+            //if (SetProp(ref _data, data, nameof(Data)))
+            //{
+            //    RaisePropertyChanged(nameof(Item));
+            //}
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -12,19 +13,19 @@ namespace Casimodo.Lib.Data
     public class MojReferenceDataGraphMask
     {
         [DataMember]
-        public string Name { get; private set; }
+        public string Name { get; internal set; }
 
         [DataMember]
-        public string ForeignKey { get; private set; }
+        public string ForeignKey { get; internal set; }
 
         [DataMember]
-        public MojReferenceBinding Binding { get; private set; }
+        public MojReferenceBinding Binding { get; internal set; }
 
         [DataMember]
-        public MojMultiplicity Multiplicity { get; private set; }
+        public MojMultiplicity Multiplicity { get; internal set; }
 
         [DataMember]
-        public MojDataGraphMask To { get; private set; }
+        public MojDataGraphMask To { get; internal set; }
 
         internal static MojReferenceDataGraphMask Parse(XElement elem)
         {
@@ -36,6 +37,118 @@ namespace Casimodo.Lib.Data
             reference.To = new MojDataGraphMask().Parse(elem.Elem("To"));
 
             return reference;
+        }
+    }
+
+    //public interface IMojReferenceDataMaskBuilder<TParent, TChild>
+    //    where TParent : IMojDataMaskBuilderBase
+    //    where TChild : IMojDataMaskBuilderBase
+    //{
+    //    IMojReferenceDataMaskBuilder<TParent, TChild> StartReference();
+    //    TParent EndReference();
+    //}
+
+    //public interface IMojDataMaskBuilder<TParent, TChild>
+    //     where TParent : IMojDataMaskBuilderBase
+    //     where TChild : IMojDataMaskBuilderBase
+    //{    
+    //}
+
+    //public interface IMojDataMaskBuilder      
+    //{
+    //    IMojReferenceDataMaskBuilder<IMojDataMaskBuilder, TChild> StartReference();
+    //    MojDataGraphMask Mask();
+    //}
+
+    //public interface IMojDataMaskBuilderBase
+    //{
+    //}
+
+    public class XFactory
+    {
+        public MojDataMaskBuilder Create()
+        {
+            return null;
+        }
+
+        public void Test()
+        {
+            Create()
+                .StartReference("ContentData", MojReferenceBinding.OwnedLoose, MojMultiplicity.One)              
+                .EndReference()
+                .Mask();
+        }
+    }
+
+    public class MojDataMaskBuilder
+    {
+        public MojDataMaskBuilder(Type targetType)
+        {
+            Guard.ArgNotNull(targetType, nameof(targetType));
+
+            _targetType = targetType;
+
+            _mask.TypeName = _targetType.FullName;
+        }
+
+        MojDataMaskBuilder _parent;
+        MojDataGraphMask _mask = new MojDataGraphMask();
+        List<MojDataMaskBuilder> _propTypeBuilders = new List<MojDataMaskBuilder>();
+        Type _targetType;
+
+        public MojDataMaskBuilder Prop(string name)
+        {
+            Guard.ArgNotNull(name, nameof(name));
+
+            if (_targetType.GetProperty(name) == null)
+                throw new InvalidOperationException($"The type '{_targetType.Name}' does not contain a property named '{name}'.");
+
+            _mask.Properties.Add(name);
+            return this;
+        }
+
+        public MojDataMaskBuilder StartReference(string name, MojReferenceBinding binding, MojMultiplicity multiplicity)
+        {
+            Guard.ArgNotNull(name, nameof(name));
+
+            var reference = new MojReferenceDataGraphMask
+            {
+                Name = name,
+                Binding = binding,
+                Multiplicity = multiplicity
+            };
+
+            var prop = _targetType.GetProperty(name);
+            var foreignKeyAttr = prop
+                .GetCustomAttributes(typeof(ForeignKeyAttribute), true)
+                .FirstOrDefault() as ForeignKeyAttribute;
+
+            // KABU TODO: REVISIT: We may allow non foreign key references (e.g. collections) in the future.
+            if (foreignKeyAttr == null)
+                throw new InvalidOperationException($"The property '{name}' of type '{_targetType.Name}' must have a 'ForeignKey' attribute.");
+
+            reference.ForeignKey = foreignKeyAttr.Name;
+
+            _mask.References.Add(reference);
+
+            var builder = new MojDataMaskBuilder(prop.PropertyType);
+            builder._parent = this;
+
+            reference.To = builder._mask;
+
+            _propTypeBuilders.Add(builder);
+
+            return builder;
+        }
+
+        public MojDataMaskBuilder EndReference()
+        {
+            return _parent;
+        }
+
+        public MojDataGraphMask Mask()
+        {
+            return _mask;
         }
     }
 
@@ -67,12 +180,12 @@ namespace Casimodo.Lib.Data
         }
 
         [DataMember]
-        public string TypeName { get; private set; }
+        public string TypeName { get; internal set; }
 
         [DataMember]
-        public List<string> Properties { get; private set; }
+        public List<string> Properties { get; internal set; }
 
         [DataMember]
-        public List<MojReferenceDataGraphMask> References { get; private set; }
+        public List<MojReferenceDataGraphMask> References { get; internal set; }
     }
 }
