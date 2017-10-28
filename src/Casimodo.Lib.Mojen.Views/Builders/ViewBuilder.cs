@@ -381,7 +381,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public MojViewBuilder CustomActionToggle(string name, string display, bool value, bool visible = true)
-        {            
+        {
             View.CustomActions.Add(new MojViewActionConfig
             {
                 Name = name,
@@ -485,6 +485,21 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder FileName(string name)
         {
             View.FileName = name;
+
+            return this;
+        }
+
+        /// <summary>
+        /// KABU TODO: ELIMINATE: This is a temporary hack for the generation of
+        /// factories for JS component spaces, because previously such component spaces
+        /// were page singletons, but now we need multiple of such components on a page.
+        /// It was a mistake to design all JS component spaces as singletons. For
+        /// lookup views it makes sense but no for all components.
+        /// </summary>
+        /// <returns></returns>
+        public MojViewBuilder Factory()
+        {
+            View.HasFactory = true;
 
             return this;
         }

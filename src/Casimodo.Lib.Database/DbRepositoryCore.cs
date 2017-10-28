@@ -65,10 +65,17 @@ namespace Casimodo.Lib.Data
         public MojDataGraphMask UpdateMask { get; set; }
 
         public DateTimeOffset Time { get; set; }
+
+        /// <summary>
+        /// The root entity of the DB operation.
+        /// </summary>
         public object Origin { get; set; }
 
         public object Item { get; set; }
 
+        /// <summary>
+        /// Only used for deletion in order to 
+        /// </summary>
         public OperationOriginInfo OriginInfo
         {
             get
@@ -97,22 +104,22 @@ namespace Casimodo.Lib.Data
                 throw new DbRepositoryException($"Expected was a repository operation context with an operation of '{op}'.");
         }
 
-        public DbRepoOperationContext SubUpdate(object item, MojDataGraphMask mask = null)
+        public DbRepoOperationContext CreateSubUpdateOperation(object item, MojDataGraphMask mask = null)
         {
             return CreateSubContext(item, DbRepoOp.Update, mask);
         }
 
-        public DbRepoOperationContext SubAdd(object item, MojDataGraphMask mask = null)
+        public DbRepoOperationContext CreateSubAddOperation(object item, MojDataGraphMask mask = null)
         {
             return CreateSubContext(item, DbRepoOp.Add, mask);
         }
 
-        public DbRepoOperationContext SubDelete(object item = null)
+        public DbRepoOperationContext CreateSubDeleteOperation(object item = null)
         {
             return CreateSubContext(item, DbRepoOp.Delete);
         }
 
-        public DbRepoOperationContext SubRestoreCascadeDeleted(object item)
+        public DbRepoOperationContext CreateSubRestoreCascadeDeletedOperation(object item)
         {
             return CreateSubContext(item);
         }
@@ -706,7 +713,7 @@ namespace Casimodo.Lib.Data
                 {
                     // This DB entity does not exist anymore in the collection.
                     // Delete **physically** from DB.
-                    db.DeleteEntityByKey(id, ctx.SubDelete());
+                    db.DeleteEntityByKey(id, ctx.CreateSubDeleteOperation());
                 }
             }
 

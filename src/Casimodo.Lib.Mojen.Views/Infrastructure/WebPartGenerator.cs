@@ -235,10 +235,25 @@ namespace Casimodo.Lib.Mojen
 
         public string BuildNewComponentSpace(string name = null)
         {
+            return BuildNewCasimodoRunObject(name, BuildComponentSpaceConstructor());          
+        }
+
+        public string BuildNewComponentSpaceFactory(string name = null)
+        {
+            return BuildNewCasimodoRunObject(name, "{}");         
+        }
+
+        public string BuildComponentSpaceConstructor()
+        {
+            return "casimodo.ui.createComponentSpace()";
+        }
+
+        string BuildNewCasimodoRunObject(string name, string constructor)
+        {
             if (string.IsNullOrWhiteSpace(name))
-                return $"casimodo.ui.createComponentSpace()";
+                return $"{constructor}";
             else
-                return $"casimodo.run.{name} || (casimodo.run.{name} = casimodo.ui.createComponentSpace())";
+                return $"casimodo.run.{name} || (casimodo.run.{name} = {constructor})";
         }
 
         public string GetViewDirPath(MojViewConfig view)

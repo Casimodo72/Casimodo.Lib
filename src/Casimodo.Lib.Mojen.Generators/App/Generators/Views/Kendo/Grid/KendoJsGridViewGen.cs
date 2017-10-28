@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
             GenerateGridViewCore(context);
 
             // Script
-            GenerateScript(context);            
+            GenerateScript(context);
         }
 
         void GenerateGridViewCore(WebViewGenContext context)
@@ -111,7 +111,18 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateJsComponentSpaceScript(WebViewGenContext context)
         {
-            OJsImmediateBegin("space");
+            if (View.HasFactory)
+            {
+                OJsImmediateBegin("factory");
+
+                O();
+                OB("factory.createSpace = function");
+
+                O();
+                O($"var space = {BuildComponentSpaceConstructor()};");
+            }
+            else
+                OJsImmediateBegin("space");
 
             // Global data source accessor.
             O();
@@ -140,15 +151,30 @@ namespace Casimodo.Lib.Mojen
                 GenerateComponentFactory(context);
             }
 
-            // End namespace.
-            if (View.Lookup.Is)
+            if (View.HasFactory)
             {
-                // KABU TODO: IMPORTANT: Better make the space of lookups anonymous.
-                // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
-                OJsImmediateEnd($"(casimodo.run.{context.ComponentViewSpaceName} = casimodo.ui.createComponentSpace())");
+                if (View.Lookup.Is)
+                    throw new NotSupportedException("JS lookup views cannot have factories yet.");
+
+                O();
+                O("return space;");
+
+                End(";"); // End factory function.
+
+                OJsImmediateEnd(BuildNewComponentSpaceFactory(context.ComponentViewSpaceFactoryName));
             }
             else
-                OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
+            {
+                // End namespace.
+                if (View.Lookup.Is)
+                {
+                    // KABU TODO: IMPORTANT: Better make the space of lookups anonymous.
+                    // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
+                    OJsImmediateEnd($"(casimodo.run.{context.ComponentViewSpaceName} = {BuildComponentSpaceConstructor()})");
+                }
+                else
+                    OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
+            }
         }
 
         public bool HasViewModelExtension
@@ -167,7 +193,7 @@ namespace Casimodo.Lib.Mojen
         {
             // Write an initial stub for the view model extension,
             // which is intended to be further manually edited.
-           
+
             if (!HasViewModelExtension)
                 return;
 
@@ -198,7 +224,7 @@ namespace Casimodo.Lib.Mojen
             O();
             if (HasViewModelExtension)
                 OScriptReference(ViewModelExtensionScriptVirtualFilePath);
-            OScriptReference(ViewModelScriptVirtualFilePath);            
+            OScriptReference(ViewModelScriptVirtualFilePath);
 
             O();
             OScriptBegin();

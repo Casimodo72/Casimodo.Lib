@@ -185,6 +185,8 @@ namespace Casimodo.Lib.Mojen
 
         public string FileName { get; set; }
 
+        public bool HasFactory { get; set; }
+
         public string Group { get; set; }
 
         public bool IsPartial { get; set; }

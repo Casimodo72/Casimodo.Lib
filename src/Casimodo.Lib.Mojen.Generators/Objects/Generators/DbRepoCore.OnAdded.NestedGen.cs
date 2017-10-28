@@ -52,7 +52,7 @@ namespace Casimodo.Lib.Mojen
             {
                 // Add the nested referenced object.
                 O($"SetIsNested({item}.{prop.Name});");
-                O($"{targetRepo}.Add(ctx.SubAdd({item}.{prop.Name}));");
+                O($"{targetRepo}.Add(ctx.CreateSubAddOperation({item}.{prop.Name}));");
             }
             else if (prop.Reference.IsToMany && !prop.IsHiddenOneToManyEntityNavigationProp)
             {
@@ -60,7 +60,7 @@ namespace Casimodo.Lib.Mojen
                 O($"foreach (var obj in {item}.{prop.Name})");
                 Begin();
                 O("SetIsNested(obj);");
-                O($"{targetRepo}.Add(ctx.SubAdd(obj));");
+                O($"{targetRepo}.Add(ctx.CreateSubAddOperation(obj));");
                 End();
             }
 

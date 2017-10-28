@@ -83,7 +83,7 @@ namespace Casimodo.Lib.Mojen
                     O($"var {target} = ctx.Repos.{targetRepo}.Find({item}.{prop.Name}.Value);");
 
                     O($"if (IsCascadeDeletedByOrigin({target}, ctx))");
-                    O($"    RestoreCascadeDeleted(ctx.SubRestoreCascadeDeleted({target}));");
+                    O($"    RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation({target}));");
 
                     End();
                     O();
@@ -97,7 +97,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => x.{prop.Reference.ChildToParentProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    if (IsCascadeDeletedByOrigin({target}, ctx))");
-                O($"        RestoreCascadeDeleted(ctx.SubRestoreCascadeDeleted({target}));");
+                O($"        RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation({target}));");
 
                 O();
             }
@@ -122,7 +122,7 @@ namespace Casimodo.Lib.Mojen
 
                     O($"foreach (var child in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}))");
                     O($"    if (IsCascadeDeletedByOrigin(child, ctx))");
-                    O($"        RestoreCascadeDeleted(ctx.SubRestoreCascadeDeleted(child));");
+                    O($"        RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation(child));");
                 }
                 else
                 {
@@ -132,7 +132,7 @@ namespace Casimodo.Lib.Mojen
 
                     O($"var {target} = ctx.Repos.{targetRepo}.LocalAndQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}).FirstOrDefault();");
                     O($"if (IsCascadeDeletedByOrigin({target}, ctx))");
-                    O($"    RestoreCascadeDeleted(ctx.SubRestoreCascadeDeleted({target}));");
+                    O($"    RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation({target}));");
                 }
             }
         }

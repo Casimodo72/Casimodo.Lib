@@ -85,7 +85,7 @@ namespace Casimodo.Lib.Mojen
                     O($"var {target} = ctx.Repos.{targetRepo}.Find({item}.{prop.Name}.Value);");
 
                     O($"if (ProcessCascadeItem({target}, ctx))");
-                    O($"    ctx.Repos.{targetRepo}.Update(ctx.SubUpdate({target}));");
+                    O($"    ctx.Repos.{targetRepo}.Update(ctx.CreateSubUpdateOperation({target}));");
 
                     End();
                     O();
@@ -99,7 +99,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(x => x.{prop.Reference.ChildToParentProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    if (ProcessCascadeItem({target}, ctx))");
-                O($"        ctx.Repos.{targetRepo}.Update(ctx.SubUpdate({target}));");
+                O($"        ctx.Repos.{targetRepo}.Update(ctx.CreateSubUpdateOperation({target}));");
 
                 O();
             }
@@ -124,7 +124,7 @@ namespace Casimodo.Lib.Mojen
 
                     O($"foreach (var child in ctx.Repos.{targetRepo}.LocalAndQuery(x => {Mex.ToLinqPredicate(reference.Condition)}))");
                     O($"    if (ProcessCascadeItem(child, ctx))");
-                    O($"        ctx.Repos.{targetRepo}.Update(ctx.SubUpdate(child));");
+                    O($"        ctx.Repos.{targetRepo}.Update(ctx.CreateSubUpdateOperation(child));");
                 }
                 else
                 {
@@ -134,7 +134,7 @@ namespace Casimodo.Lib.Mojen
 
                     O($"var {target} = ctx.Repos.{targetRepo}.LocalAndQuery(x => {Mex.ToLinqPredicate(reference.Condition)}).FirstOrDefault();");
                     O($"if (ProcessCascadeItem({target}, ctx))");
-                    O($"    ctx.Repos.{targetRepo}.Update(ctx.SubUpdate({target}));");
+                    O($"    ctx.Repos.{targetRepo}.Update(ctx.CreateSubUpdateOperation({target}));");
                 }
             }
         }

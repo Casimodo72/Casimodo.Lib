@@ -179,6 +179,7 @@ namespace Casimodo.Lib.Mojen
                 context.ComponentName = context.ComponentId.Replace("_", "");
                 context.ComponentViewModelName = context.ComponentName + "ViewModel";
                 context.ComponentViewSpaceName = context.ComponentName + (View.Lookup.Is ? "Lookup" : "") + "Space";
+                context.ComponentViewSpaceFactoryName = context.ComponentViewSpaceName + "Factory";
                 context.ComponentViewModelContainerElemClass = ConvertToCssName(context.ComponentViewModelName + "Container");
 
                 // NOTE: The grid will always have a toolbar, because we have a custom refresh button.
