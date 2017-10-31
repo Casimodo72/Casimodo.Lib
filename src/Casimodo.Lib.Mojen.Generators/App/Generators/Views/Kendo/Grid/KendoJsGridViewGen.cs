@@ -116,7 +116,7 @@ namespace Casimodo.Lib.Mojen
                 OJsImmediateBegin("factory");
 
                 O();
-                OB("factory.createSpace = function");
+                OB("factory.createSpace = function ()");
 
                 O();
                 O($"var space = {BuildComponentSpaceConstructor()};");

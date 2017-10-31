@@ -95,6 +95,8 @@ namespace Casimodo.Lib.Mojen
 
             GenerateAssignFromMethod(type);
 
+            GenerateNamedAssignFromMethods(type);
+
             End();
             End();
         }

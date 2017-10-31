@@ -262,6 +262,9 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public List<MojSoftReference> SoftReferences { get; set; } = new List<MojSoftReference>();
 
+        [DataMember]
+        public MojAssignFromCollectionConfig AssignFromConfig = MojAssignFromCollectionConfig.None;
+
         internal void AddLocalProp(MojProp prop)
         {
             prop.DeclaringType = this;

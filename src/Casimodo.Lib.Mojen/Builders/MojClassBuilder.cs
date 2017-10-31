@@ -267,7 +267,7 @@ namespace Casimodo.Lib.Mojen
             string name, string display,
             Action<MexConditionBuilder> condition)
         {
-            return AsSoftChildCore(parentType, owned, name, display, true, condition);            
+            return AsSoftChildCore(parentType, owned, name, display, true, condition);
         }
 
         public TClassBuilder AsSoftChildOf(MojType parentType, bool owned,
@@ -277,7 +277,7 @@ namespace Casimodo.Lib.Mojen
             return AsSoftChildCore(parentType, owned, name, display, false, condition);
         }
 
-        TClassBuilder AsSoftChildCore(MojType parentType, 
+        TClassBuilder AsSoftChildCore(MojType parentType,
             bool owned,
             string name, string display,
             bool collection,
@@ -376,6 +376,26 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+
+        public TClassBuilder NamedAssignFrom(string name, params string[] props)
+        {
+            if (!TypeConfig.AssignFromConfig.Is)
+                TypeConfig.AssignFromConfig = new MojAssignFromCollectionConfig();
+
+            var assignment = new MojNamedAssignFromConfig();
+            assignment.Name = name;
+
+            foreach (var prop in props)
+            {
+                TypeConfig.CheckPropExists(prop);
+                assignment.Properties.Add(prop);
+            }
+
+            TypeConfig.AssignFromConfig.Items.Add(assignment);
+
+            return This();
+        }
+
         /// <summary>
         /// NOTE: This method is reentrant. I.e. it can be called multiple times on the same type.
         /// </summary>
@@ -467,6 +487,7 @@ namespace Casimodo.Lib.Mojen
                 store.LocalPick = TypeConfig.LocalPick;
                 store.DataSetSize = TypeConfig.DataSetSize;
                 store.SoftReferences.AddRange(TypeConfig.SoftReferences.Select(x => x.CloneToEntity()));
+                store.AssignFromConfig = TypeConfig.AssignFromConfig;
 
                 if (TypeConfig.BaseClass != null && TypeConfig.BaseClass.Store != null)
                 {

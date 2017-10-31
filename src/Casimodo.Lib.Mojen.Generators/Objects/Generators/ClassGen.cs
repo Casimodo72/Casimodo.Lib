@@ -529,6 +529,25 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        public void GenerateNamedAssignFromMethods(MojType type)
+        {
+            if (!type.AssignFromConfig.Is)
+                return;
+
+            foreach (var assignment in type.AssignFromConfig.Items)
+            {
+                O();
+                O($"public void {assignment.Name}({type.ClassName} source)");
+                Begin();
+
+                foreach (var prop in assignment.Properties)
+                {
+                    O("this.{0} = source.{0};", prop);
+                }
+                End();
+            }
+        }
+
         public void GenerateAssignFromMethod(MojType type)
         {
 #if (false)
