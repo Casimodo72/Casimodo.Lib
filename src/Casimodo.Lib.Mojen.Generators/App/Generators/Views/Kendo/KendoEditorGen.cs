@@ -252,21 +252,34 @@ namespace Casimodo.Lib.Mojen
 
         public class ComponentCascadeFromInfo
         {
+            public MojCascadeFromConfig Config { get; set; }
             public MojFormedNavigationPathStep FirstLooseStep { get; set; }
             public MojProp ForeignKey { get; set; }
         }
 
-        public ComponentCascadeFromInfo ComputeCascadeFrom(MojViewPropInfo info)
+        List<ComponentCascadeFromInfo> BuildCascadeFromInfos(MojViewPropInfo info)
         {
-            var result = new ComponentCascadeFromInfo();
+            if (!info.ViewProp.CascadeFrom.Is)
+                return null;
 
-            result.FirstLooseStep = info.ViewProp.CascadeFrom.FormedNavigationFrom.FirstLooseStep;
-            if (result.FirstLooseStep == null)
-                throw new MojenException("The cascade-from path must contain a loose reference property.");
+            var items = new List<ComponentCascadeFromInfo>();
 
-            result.ForeignKey = result.FirstLooseStep.SourceProp.Reference.ForeignKey;
+            foreach (var cascade in info.ViewProp.CascadeFrom.Items)
+            {
+                var item = new ComponentCascadeFromInfo();
 
-            return result;
+                item.Config = cascade;
+
+                item.FirstLooseStep = cascade.FromType.FormedNavigationFrom.FirstLooseStep;
+                if (item.FirstLooseStep == null)
+                    throw new MojenException("The cascade-from path must contain a loose reference property.");
+
+                item.ForeignKey = item.FirstLooseStep.SourceProp.Reference.ForeignKey;
+
+                items.Add(item);
+            }
+
+            return items;
         }
 
         public void OPropEditable(WebViewGenContext context)
@@ -481,7 +494,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Type.IsTimeSpan)
             {
-                OTimeSpanInput(prop, propPath);                
+                OTimeSpanInput(prop, propPath);
             }
             else if (prop.Type.IsString)
             {
@@ -939,9 +952,9 @@ namespace Casimodo.Lib.Mojen
             OScriptBegin();
             O($"// Lookup dialog for {propPath}");
 
-            ComponentCascadeFromInfo cascadeFrom = vprop.CascadeFrom != null ? ComputeCascadeFrom(info) : null;
-            if (cascadeFrom != null)
-                O($"// Cascading from {cascadeFrom.ForeignKey.Name}");
+            var cascadeFromInfos = BuildCascadeFromInfos(info);
+            if (cascadeFromInfos != null)
+                O($"// Cascading from fields");
 
             OnSelectorButtonClick(context, () =>
             {
@@ -950,30 +963,48 @@ namespace Casimodo.Lib.Mojen
                 O($"var $container = {JQuerySelectEditorContainer()};");
 
                 // Arguments to be passed to the lookup dialog.
-                if (cascadeFrom != null)
+                if (cascadeFromInfos?.Any() == true)
                 {
-                    // There must be a reference in the lookup target type which references the same type.
-                    var cascadeType = cascadeFrom.ForeignKey.Reference.ToType;
-                    var reference = info.TargetType.FindReferenceWithForeignKey(to: cascadeType);
-                    if (reference == null)
-                        throw new MojenException("Lookup with cascade-from mismatch: " +
-                            $"There is no reference to type '{cascadeType.ClassName}' in type '{info.TargetType.ClassName}' to be used for cascade-from.");
+                    O($"args.filters = [];");
+                    O($"args.filterCommands = [];");
+                    O("var cascadeFromVal = '';");
+                    O();
+                    foreach (var cascadeFromInfo in cascadeFromInfos)
+                    {
+                        O($"// Cascading from {cascadeFromInfo.ForeignKey.Name}");
 
-                    O($"var cascadeFromVal = inputs.first().prop('kendoBindingTarget').source.{cascadeFrom.ForeignKey.Name};");
+                        // There must be a reference in the lookup target type which references the same type.
+                        var cascadeType = cascadeFromInfo.ForeignKey.Reference.ToType;
+                        var reference = info.TargetType.FindReferenceWithForeignKey(to: cascadeType);
+                        if (reference == null)
+                            throw new MojenException("Lookup with cascade-from mismatch: " +
+                                $"There is no reference to type '{cascadeType.ClassName}' in type '{info.TargetType.ClassName}' to be used for cascade-from.");
 
-                    // Notify & exit if the cascade-from field has not been assigned yet.                    
-                    OB("if (!cascadeFromVal)");
-                    // Notify
-                    // KABU TODO: LOCALIZE
-                    O($"kendomodo.showModalTextDialog($container, 'info', \"" +
-                        $"Zuerst muss '{cascadeFrom.ForeignKey.DisplayLabel}' gesetzt werden, " +
-                        $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
-                    // Exit
-                    O("return;");
-                    End();
+                        O($"cascadeFromVal = inputs.first().prop('kendoBindingTarget').source.{cascadeFromInfo.ForeignKey.Name};");
 
-                    // Filter by the cascade-from field & value.
-                    O($"args.filters = [{{ field: '{reference.ForeignKey.Name}', value: cascadeFromVal, operator: 'eq' }}];");
+                        // Notify & exit if the cascade-from field has not been assigned yet.                    
+                        OB("if (!cascadeFromVal)");
+                        // Notify
+                        // KABU TODO: LOCALIZE
+                        O($"kendomodo.showModalTextDialog($container, 'info', \"" +
+                            $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
+                            $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
+                        // Exit
+                        O("return;");
+                        End();
+
+                        // Filter by the cascade-from field & value.
+                        O($"args.filters.push({{ field: '{reference.ForeignKey.Name}', value: cascadeFromVal, operator: 'eq' }});");
+
+                        if (cascadeFromInfo.Config.IsDeactivatable)
+                        {
+                            O($"args.filterCommands.push({{ field: '{reference.ForeignKey.Name}', " +
+                                $"value: cascadeFromVal, " +
+                                $"deactivatable: {MojenUtils.ToJsValue(cascadeFromInfo.Config.IsDeactivatable)}, " +
+                                $"title: '{cascadeFromInfo.Config.Title}'}});");
+                        }
+                        O();
+                    }
                 }
 
                 if (vprop.CascadeFromScope.Is)
@@ -1064,7 +1095,7 @@ namespace Casimodo.Lib.Mojen
 
             // DropDown list            
 
-            bool cascade = vprop.CascadeFrom != null;
+            bool cascade = vprop.CascadeFrom.Is;
             string cascadeParentForeignKeyName = null;
             string cascadeParentComponentId = null;
             string cascadeQueryParameterFunc = null;
@@ -1110,9 +1141,9 @@ namespace Casimodo.Lib.Mojen
 
 #pragma warning disable CS0162 // Unreachable code detected
                 // Compute cascade information.
-                var cascadeFrom = ComputeCascadeFrom(info);
-                cascadeParentForeignKeyName = cascadeFrom.ForeignKey.Name;
-                cascadeParentComponentId = cascadeParentForeignKeyName;
+                //var cascadeFrom = ComputeCascadeFromInfos(info);
+                //cascadeParentForeignKeyName = cascadeFrom.ForeignKey.Name;
+                //cascadeParentComponentId = cascadeParentForeignKeyName;
 
                 O($"// Cascading from {cascadeParentForeignKeyName}");
 #pragma warning restore CS0162

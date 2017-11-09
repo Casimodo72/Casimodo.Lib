@@ -333,7 +333,7 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewPropBuilder CascadeFrom(MojFormedType type)
+        public MojViewPropBuilder CascadeFrom(MojFormedType type, bool deactivatable = false, string title = null)
         {
             if (!Prop.IsSelector)
                 throw new MojenException($"Cascade from is allowed for selectors only.");
@@ -344,13 +344,21 @@ namespace Casimodo.Lib.Mojen
             if (type.FormedNavigationFrom.Steps.Count > 1)
                 throw new MojenException($"Cascade from is allowed for direct properties only.");
 
-            Prop.CascadeFrom = type;
+            if (!Prop.CascadeFrom.Is)
+                Prop.CascadeFrom = new MojCascadeFromConfigCollection();
+            Prop.CascadeFrom.Items.Add(new MojCascadeFromConfig
+            {
+                FromType = type,
+                IsDeactivatable = deactivatable,
+                Title = title
+            });
+
             return this;
         }
 
         public MojViewPropBuilder CascadeFromScope(MojProp source, MojProp target)
         {
-            if (!Prop.Lookup.Is || Prop.CascadeFrom == null)
+            if (!Prop.Lookup.Is || !Prop.CascadeFrom.Is)
                 throw new MojenException("CascadeFromScope is only applicable for Lookup view properties with CascadeFrom.");
 
             var targetType = Prop.FormedNavigationTo.TargetType;

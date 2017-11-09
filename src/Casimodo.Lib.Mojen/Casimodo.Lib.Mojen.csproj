@@ -169,6 +169,7 @@
     <Compile Include="Models\Extensions.cs" />
     <Compile Include="Models\Mex.cs" />
     <Compile Include="Models\MojAnyKeysConfig.cs" />
+    <Compile Include="Models\MojCascadeFromConfig.cs" />
     <Compile Include="Models\MojAssignFromConfig.cs" />
     <Compile Include="Models\MojViewAction.cs" />
     <Compile Include="Models\MojCrudOperationConfig.cs" />

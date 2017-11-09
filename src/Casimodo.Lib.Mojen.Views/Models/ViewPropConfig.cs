@@ -307,7 +307,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojPropAutoCompleteFilter AutoCompleteFilter { get; private set; }
 
-        public MojFormedType CascadeFrom { get; set; }
+        public MojCascadeFromConfigCollection CascadeFrom { get; set; } = MojCascadeFromConfigCollection.None;
 
         public bool IsHeader { get; set; }
 
