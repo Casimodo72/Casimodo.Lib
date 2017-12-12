@@ -40,9 +40,20 @@ namespace Casimodo.Lib.Mojen
                 O($"if ({item}.{prop.Name} != null)");
                 Begin();
 
-                O($"var {target} = context.{targetType.PluralName}.Find({item}.{prop.Name}.Value);");
-                O($"if ({target} != null)");
-                O($"    context.{targetType.PluralName}.Delete({target});");
+                if (prop.Reference.IsDeletionOptimized)
+                {
+                    OComment("Optimized deletion");
+                    // var blob = new Blob { Id = parent.DataId.Value };
+                    O($"var {target} = new {targetType.Name} {{ {targetType.Key.Name} = {item}.{prop.Name}.Value }};");
+                    // db.Entry(blob).State = EntityState.Deleted;
+                    O($"db.Entry({target}).State = EntityState.Deleted;");
+                }
+                else
+                {
+                    O($"var {target} = context.{targetType.PluralName}.Find({item}.{prop.Name}.Value);");
+                    O($"if ({target} != null)");
+                    O($"    context.{targetType.PluralName}.Delete({target});");
+                }
 
                 End();
                 O();

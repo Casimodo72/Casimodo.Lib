@@ -159,6 +159,12 @@ namespace Casimodo.Lib.Mojen
                 O($"// {text} {"".PadRight(79 - indent - text.Length - 4, '~')}");
         }
 
+        public void OComment(string text = null)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+                O($"// {text}");
+        }
+
         public XBuilder XP(bool condition, string name, Action value)
         {
             return condition ? XP(name, value) : XBuilder.Null;

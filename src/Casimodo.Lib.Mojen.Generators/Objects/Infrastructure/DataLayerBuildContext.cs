@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -61,7 +62,7 @@ namespace Casimodo.Lib.Mojen
                 .EnumEntity()
                 .Display(displayName, displayNamePlural)
                 .Use<ODataConfigGen>();
-            
+
             return builder;
         }
 
@@ -116,9 +117,40 @@ namespace Casimodo.Lib.Mojen
             return Parent.PropTenantReference(builder, nullable);
         }
 
+        public MojModelPropBuilder PropDescription(MojModelBuilder builder)
+        {
+            // KABU TODO: Put length into settings.
+            return builder.Prop("Description", 2048)
+                .Id("077b11a2-e4da-4746-b131-1e4705ecaf11")
+                .Multiline()
+                .Display("Beschreibung");
+        }
+
+        public MojModelPropBuilder PropComments(MojModelBuilder builder)
+        {
+            // KABU TODO: Put length into settings.
+            return builder.Prop("Comments", 2048)
+                .Id("8eee2f85-65ce-4f04-ba38-499149a6057b")
+                .Multiline()
+                .Display("Anmerkungen");
+        }
+
         public MojEntityPropBuilder PropTenantReference(MojEntityBuilder builder, bool nullable = true)
         {
             return Parent.PropTenantReference(builder, nullable);
+        }
+
+        List<Action> _referenceResolutionActions = new List<Action>();
+
+        public void ResolveReferencesLater(Action action)
+        {
+            _referenceResolutionActions.Add(action);
+        }
+
+        public void ExecuteRegisterReferenceActions()
+        {
+            foreach (var action in _referenceResolutionActions)
+                action();
         }
     }
 }

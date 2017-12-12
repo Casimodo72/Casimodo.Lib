@@ -129,6 +129,15 @@ namespace Casimodo.Lib.Mojen
             get { return Axis == MojReferenceAxis.ToParent; }
         }
 
+        /// <summary>
+        /// The deletion of the referenced object will be optimized.
+        /// E.g. in the context of EF, the referenced entitiy will not be loaded before it is deleted.
+        /// This is needed for e.g. Blobs where we don't want to load the entire entity's data
+        /// into memory when deleting that entity.
+        /// </summary>
+        [DataMember]
+        public bool IsDeletionOptimized { get; set; }
+
         // KABU TODO: REMOVE
         ///// <summary>
         ///// If 1 then this is a child reference to a parent type.

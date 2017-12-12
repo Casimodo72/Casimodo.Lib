@@ -691,6 +691,13 @@ namespace Casimodo.Lib.Mojen
             return collectionPropBuilder;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="prop"></param>
+        /// <param name="hidden">Property will be fetched but is not part of the view and the data update mask.</param>
+        /// <param name="readOnly"></param>
+        /// <param name="external">Intended to be edited via a user-provided custom template.</param>
+        /// <returns></returns>
         public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool? readOnly = null, bool external = false)
         {
             var pbuilder = SimplePropCore(prop, readOnly: readOnly ?? false, hidden: hidden);

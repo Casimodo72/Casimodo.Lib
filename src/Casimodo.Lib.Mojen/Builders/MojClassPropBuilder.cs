@@ -175,7 +175,7 @@ namespace Casimodo.Lib.Mojen
                 else if (independent)
                     binding |= MojReferenceBinding.Independent;
                 else
-                    binding |= MojReferenceBinding.Associated;                
+                    binding |= MojReferenceBinding.Associated;
 
                 var axis = MojReferenceAxis.ToChild;
 
@@ -306,6 +306,13 @@ namespace Casimodo.Lib.Mojen
         public TPropBuilder Enum(string type, bool nullable)
         {
             PropConfig.Type.SetEnum(type, nullable);
+
+            return This();
+        }
+
+        public TPropBuilder Id(string guid)
+        {
+            PropConfig.Id = new Guid(guid);
 
             return This();
         }
@@ -540,6 +547,20 @@ namespace Casimodo.Lib.Mojen
         {
             return Reference(to, MojReferenceAxis.ToParent,
                 navigation, navigationOnModel, nullable, required, nested, owned, condition);
+        }
+
+        /// <summary>
+        /// In the context of EF, the referenced entitiy will not be loaded before it is deleted.
+        /// This is needed for e.g. Blobs where we don't want to load the entire entity's data
+        /// into memory when deleting that entity.
+        /// </summary>
+        public TPropBuilder OptimizeDeletion()
+        {
+            if (!PropConfig.Reference.Is)
+                throw new MojenException($"The option '{nameof(OptimizeDeletion)}' is available for reference properties only.");
+
+            PropConfig.Reference.IsDeletionOptimized = true;
+            return This();
         }
 
         public TPropBuilder ReferenceToChild(MojType to,
