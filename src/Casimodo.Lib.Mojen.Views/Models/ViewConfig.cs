@@ -175,6 +175,17 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCachedOnClient { get; set; }
 
+        public bool HasFilters
+        {
+            get { return IsFilteredByLoggedInPerson || SimpleFilter != null; }
+        }
+
+        public bool IsFilteredByLoggedInPerson { get; set; }
+
+        public MexExpressionNode SimpleFilter { get; set; };
+
+        public string FilteredByLoogedInPersonProp { get; set; }
+
         public bool IsForMobile { get; set; }
 
         public bool IsForDesktop { get; set; }

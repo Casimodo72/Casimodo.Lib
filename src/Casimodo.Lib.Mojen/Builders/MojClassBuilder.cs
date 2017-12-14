@@ -319,9 +319,7 @@ namespace Casimodo.Lib.Mojen
             if (build == null)
                 return null;
 
-            var conditionBuilder = new MexConditionBuilder();
-            build(conditionBuilder);
-            return conditionBuilder.Expression;
+            return MexConditionBuilder.BuildCondition(build);
         }
 
         /// <summary>

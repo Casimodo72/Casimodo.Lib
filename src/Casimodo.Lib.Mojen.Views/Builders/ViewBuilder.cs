@@ -415,6 +415,49 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder SimpleFilter(Action<MexConditionBuilder> condition)
+        {
+            var expression = BuildCondition(condition);
+            if (expression.IsEmpty)
+                return this;
+
+            View.SimpleFilters.Add(expression);
+
+            return this;
+        }
+
+        MexExpressionNode BuildCondition(Action<MexConditionBuilder> build)
+        {
+            Guard.ArgNotNull(build, nameof(build));
+
+            return MexConditionBuilder.BuildCondition(build);
+        }
+
+        public MojViewBuilder FilterByLoggedInPerson(MojFormedType personProp)
+        {
+            Guard.ArgNotNull(personProp, nameof(personProp));
+
+            if (personProp.FormedNavigationFrom.Steps.Count != 1)
+                throw new ArgumentException("The property must be a direct property of the type.");
+
+            var prop = personProp.FormedNavigationFrom.RootProp;
+            if (!prop.Reference.Is)
+                throw new ArgumentException("The property is not a reference property.");
+
+            prop = prop.ForeignKey;
+            if (prop == null)
+                throw new ArgumentException("The property has no foreign key.");
+
+            CheckIsAccessibleFromThis(prop);
+
+            //var pbuilder = CreateSimpleViewProp(personProp);
+            //pbuilder.ReadOnly();
+            View.IsFilteredByLoggedInPerson = true;
+            View.FilteredByLoogedInPersonProp = prop.Name;
+
+            return this;
+        }
+
         public MojViewBuilder Partial()
         {
             View.IsPartial = true;
@@ -730,8 +773,29 @@ namespace Casimodo.Lib.Mojen
         {
             CheckNotForeignKeyProp(prop, hidden);
 
+            var pbuilder = CreateSimpleViewProp(prop);
+
+            View.Props.Add(pbuilder.Prop);
+            pbuilder.Prop.Position = View.Props.Count;
+
+            if (readOnly)
+                pbuilder.ReadOnly();
+
+            return pbuilder;
+        }
+
+        void CheckIsAccessibleFromThis(MojProp prop)
+        {
             if (!View.TypeConfig.IsAccessibleFromThis(prop))
                 throw new MojenException($"Property '{prop}' cannot be accessed from type '{View.TypeConfig.ClassName}'.");
+        }
+
+        /// <summary>
+        /// Creates a view property based on the given property.
+        /// </summary>
+        MojViewPropBuilder CreateSimpleViewProp(MojProp prop)
+        {
+            CheckIsAccessibleFromThis(prop);
 
             var path = prop.FormedNavigationFrom;
 
@@ -763,11 +827,6 @@ namespace Casimodo.Lib.Mojen
 
             var pbuilder = MojViewPropBuilder.Create(this, prop);
             pbuilder.Prop.FormedNavigationTo = path;
-            View.Props.Add(pbuilder.Prop);
-            pbuilder.Prop.Position = View.Props.Count;
-
-            if (readOnly)
-                pbuilder.ReadOnly();
 
             return pbuilder;
         }

@@ -1,4 +1,6 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿using System;
+
+namespace Casimodo.Lib.Mojen
 {
     public class MexBuilder
     { }
@@ -89,6 +91,15 @@
             {
                 PropPath = path
             };
+        }
+
+        public static MexExpressionNode BuildCondition(Action<MexConditionBuilder> build)
+        {
+            Guard.ArgNotNull(build, nameof(build));
+
+            var conditionBuilder = new MexConditionBuilder();
+            build(conditionBuilder);
+            return conditionBuilder.Expression;
         }
     }
 }

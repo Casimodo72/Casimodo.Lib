@@ -258,5 +258,26 @@ namespace Casimodo.Lib.Mojen
                 }
             }
         }
+
+        public static string ToODataOperator(this MexOp op)
+        {
+            if (op == MexOp.None)
+                throw new ArgumentException("The operator must not be none.", nameof(op));
+
+            switch (op)
+            {
+                case MexOp.Eq: return "eq";
+                case MexOp.Neq: return "ne";
+                case MexOp.Gr: return "gt";
+                case MexOp.GrOrEq: return "ge";
+                case MexOp.Less: return "lt";
+                case MexOp.LessOrEq: return "le";
+                case MexOp.And: return "and";
+                case MexOp.Or: return "or";
+                // KABU TODO: IMPL more operators?
+                default:
+                    throw new NotImplementedException($"Conversion to OData operator of {op.ToString()} is not implemented.");
+            }
+        }
     }
 }

@@ -54,7 +54,7 @@ namespace Casimodo.Lib.Mojen
                 if (item.Kind == KendoGridEvent.Changed)
                     O("this.onCurrentItemChanged();");
 
-                End();
+                End(";");
             }
 
             // View model functions.
@@ -63,7 +63,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 OB($"fn.{func.FunctionName} = function (e)");
                 func.Body(context);
-                End();
+                End(";");
             }
 
             // Data model factory (used by the Kendo data source).
@@ -78,25 +78,47 @@ namespace Casimodo.Lib.Mojen
 
             O();
             O("return model;");
-            End(); // Data model factory.            
+            End(";"); // Data model factory.            
 
             // Data source factory.
             O();
             OB("fn.createDataSource = function ()");
             O("return this.dataSource ? this.dataSource : (this.dataSource = new kendo.data.DataSource(this.createDataSourceOptions()));");
-            End();
+            End(";");
 
             // Request url factory.
             O();
             OB("fn.createRequestUrl = function ()");
             O($"var url = \"{TransportConfig.ODataSelectUrl}\";");
             O("if (this.requestUrlFactory) return this.requestUrlFactory(url); else return url;");
-            End();
+            End(";");
+
+            // Filters
+            if (View.HasFilters)
+            {
+                O();
+                OB("fn.getDefaultFilters = function ()");
+                O("var filters = [];");
+
+                if (View.IsFilteredByLoggedInPerson)
+                {
+                    O($"filters.push({{ field: '{View.FilteredByLoogedInPersonProp}', " +
+                        $"operator: 'eq', value: window.casimodo.run.authInfo.UserId }});");
+                }
+
+                if (View.SimpleFilter != null)
+                {
+                    O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(View.SimpleFilter)});");
+                }
+
+                O("return filters;");
+                End(";");
+            }
 
             O();
             OB("fn.setRequestUrlFactory = function (factory)");
             O($"this.requestUrlFactory = factory;");
-            End();
+            End(";");
 
             // Data source options factory.
             O();
@@ -104,17 +126,17 @@ namespace Casimodo.Lib.Mojen
             O("if (this.dataSourceOptions) return this.dataSourceOptions;");
             OB("this.dataSourceOptions =");
             GenerateDataSourceOptions(context);
-            End();
+            End(";");
             // Set initial filters.
             O("if (this.filters.length)");
             O("    this.dataSourceOptions.filter = { filters: this.filters };");
             O("return this.dataSourceOptions;");
-            End(); // Data source options factory.
+            End(";"); // Data source options factory.
 
             O();
             O("return ViewModel;");
 
-            End(")(kendomodo.GridViewModelBase)"); // ViewModel class.
+            End(")(kendomodo.GridViewModelBase);"); // ViewModel class.
 
             O();
             OB("space.vm = new ViewModel(");

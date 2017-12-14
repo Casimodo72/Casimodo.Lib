@@ -401,6 +401,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder LoggedInPerson()
+        {
+            Prop.IsLoggedInPerson = true;
+
+            return this;
+        }
+
         public MojViewPropBuilder GeoPlaceLookup(GeoPlaceSourcePropMap sourcePropMap = null, bool cacheView = false)
         {
             Prop.IsSelector = true;

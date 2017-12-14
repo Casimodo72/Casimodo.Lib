@@ -311,6 +311,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsHeader { get; set; }
 
+        public bool IsLoggedInPerson { get; set; }
+
         public bool IsSelector { get; set; }
         public bool IsTagsSelector { get; set; }
 

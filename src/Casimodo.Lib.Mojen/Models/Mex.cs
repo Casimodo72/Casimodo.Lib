@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Mojen
         public static string ToLinqPredicate(MexExpressionNode node)
         {
             return new Mex().BuildLinqPredicate(node).ToString();
-        }       
+        }
 
         public Mex()
         {
@@ -123,7 +123,7 @@ namespace Casimodo.Lib.Mojen
             {
                 o(MojenUtils.ToCsValue(((MexValue)item).Value, parse: true));
             }
-            else throw new MojenException(string.Format("Unexpected Mex item '{0}'.", item.GetType().Name));
+            else throw new MojenException($"Unexpected Mex item '{item.GetType().Name}'.");
         }
 
         void O(MexOp op)
@@ -251,6 +251,27 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string PropName { get; set; }
 
+    }
+
+    public static class MexItemExtensions
+    {
+        public static MexProp AsProp(this MexItem item)
+        {
+            var prop = item as MexProp;
+            if (prop == null)
+                throw new MexException($"The item is not a {nameof(MexProp)}.");
+
+            return prop;
+        }
+
+        public static MexValue AsValue(this MexItem item)
+        {
+            var value = item as MexValue;
+            if (value == null)
+                throw new MexException($"The item is not a {nameof(MexValue)}.");
+
+            return value;
+        }
     }
 
     [DataContract(Namespace = MojContract.Ns)]

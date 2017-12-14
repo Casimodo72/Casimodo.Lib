@@ -49,8 +49,7 @@ namespace Casimodo.Lib.Mojen
 
         public virtual void GenerateController(ControllerConfig controller)
         {
-
-
+            // Stub
         }
     }
 }

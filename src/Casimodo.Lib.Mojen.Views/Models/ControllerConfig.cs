@@ -68,14 +68,14 @@ namespace Casimodo.Lib.Mojen
             return Views.FirstOrDefault(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Editor));
         }
 
-        public MojViewConfig GetIndexView(string group = null)
+        public MojViewConfig GetIndexView(string group)
         {
             return Views.SingleOrDefault(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Index));
         }
 
-        public IEnumerable<MojViewConfig> GetIndexViews(string group = null)
+        public IEnumerable<MojViewConfig> GetIndexViews()
         {
-            return Views.Where(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Index));
+            return Views.Where(x => x.Kind.Roles.HasFlag(MojViewRole.Index));
         }
 
         public MojViewConfig GetDetailsView(string group = null)

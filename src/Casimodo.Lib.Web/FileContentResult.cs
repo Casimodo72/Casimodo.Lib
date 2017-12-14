@@ -14,10 +14,10 @@ namespace Casimodo.Lib.Web
     /// </summary>
     public class FileContentResult2 : FileContentResult
     {
-        public FileContentResult2(byte[] fileContent, string contentType, bool isInline, string fileName)
+        public FileContentResult2(byte[] fileContent, string contentType, string fileName, bool inline)
             : base(fileContent, contentType)
         {
-            IsInline = isInline;
+            IsInline = inline;
             FileDownloadName = fileName;
         }
 

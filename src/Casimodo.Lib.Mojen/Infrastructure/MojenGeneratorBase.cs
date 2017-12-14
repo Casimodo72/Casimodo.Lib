@@ -83,7 +83,7 @@ namespace Casimodo.Lib.Mojen
             _buffer = null;
         }
 
-        internal void Use(TextWriter writer)
+        public void Use(TextWriter writer)
         {
             _writer = writer;
         }
