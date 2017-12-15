@@ -421,7 +421,7 @@ namespace Casimodo.Lib.Mojen
             if (expression.IsEmpty)
                 return this;
 
-            View.SimpleFilters.Add(expression);
+            View.SimpleFilter = expression;
 
             return this;
         }

@@ -97,7 +97,7 @@ namespace Casimodo.Lib.Mojen
             if (View.HasFilters)
             {
                 O();
-                OB("fn.getDefaultFilters = function ()");
+                OB("fn.getBaseFilters = function ()");
                 O("var filters = [];");
 
                 if (View.IsFilteredByLoggedInPerson)

@@ -182,7 +182,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsFilteredByLoggedInPerson { get; set; }
 
-        public MexExpressionNode SimpleFilter { get; set; };
+        public MexExpressionNode SimpleFilter { get; set; }
 
         public string FilteredByLoogedInPersonProp { get; set; }
 

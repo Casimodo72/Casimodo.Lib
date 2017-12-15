@@ -525,10 +525,12 @@ namespace Casimodo.Lib.Mojen
             Pop(); // Columns
             O("],");
 
-            if (View.Lookup.Is)
-                O("autoBind: false,");
-            else
-                O("autoBind: space.options.isManualDataLoad ? false : true,");
+            O("autoBind: false,");
+            // KABU TODO: REMOVE: We don't auto bind anymore.
+            //if (View.Lookup.Is)
+            //    O("autoBind: false,");
+            //else
+            //    O("autoBind: space.options.isManualDataLoad ? false : true,");
 
             // NOTE: The data source options are created by the view model.
             O("dataSource: space.vm.createDataSourceOptions(),");
