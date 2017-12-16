@@ -36,6 +36,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder DetailsView()
         {
+            // KABU TODO: Make detail views Partial() by default.
             return View().Details();
         }
 
