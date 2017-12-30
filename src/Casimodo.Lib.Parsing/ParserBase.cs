@@ -33,12 +33,21 @@ namespace Casimodo.Lib.SimpleParser
             Text = text;
         }
 
+        /// <summary>
+        /// Returns the currently consumed text and clears the consumed text.
+        /// </summary>
+        /// <returns></returns>
         public string GetText()
         {
             var result = TextBuilder.ToString();
             TextBuilder.Length = 0;
 
             return result;
+        }
+
+        public void ClearConsumedText()
+        {
+            TextBuilder.Length = 0;
         }
 
         public void CheckNotEnd()
@@ -80,9 +89,16 @@ namespace Casimodo.Lib.SimpleParser
                 Next();
         }
 
-        public void Next()
+        public void Next(int offset = 1)
         {
-            CurPos++;
+            CurPos += offset;
+            RestrictCurPos();
+        }
+
+        void RestrictCurPos()
+        {
+            if (CurPos > Text.Length)
+                CurPos = Text.Length;
         }
 
         public bool Skip(char ch, bool caseSensitive = true)
@@ -98,6 +114,27 @@ namespace Casimodo.Lib.SimpleParser
         {
             return !IsEnd && ((caseSensitive && ch == Cur) || (!caseSensitive && char.ToLower(ch) == char.ToLower(Cur)));
         }
+
+        public bool Skip(string text, bool caseSensitive = true)
+        {
+            if (!CheckExpected(text, caseSensitive))
+                return false;
+
+            Next(text.Length);
+            return true;
+        }
+        bool CheckExpected(string text, bool caseSensitive = true)
+        {
+            if (IsEnd)
+                return false;
+
+            var current = PeekNext(text.Length);
+            if (current == null)
+                return false;
+
+            return !IsEnd && ((caseSensitive && text == current) || (!caseSensitive && current.ToLower() == text.ToLower()));
+        }
+
 
         public bool IsDigit
         {
@@ -121,17 +158,26 @@ namespace Casimodo.Lib.SimpleParser
             return cur;
         }
 
-        public char? Peek(int offset)
+        public char? Peek(int length)
         {
-            int index = CurPos + offset;
+            int index = CurPos + length;
             if (index >= Text.Length)
                 return null;
+
             return Text[index];
         }
 
-        public bool MoveTo(int pos)
+        public string PeekNext(int length)
         {
-            if (pos >= Text.Length)
+            if (CurPos + length >= Text.Length)
+                return null;
+
+            return Text.Substring(CurPos, length);
+        }
+
+        public bool MoveBackwardsTo(int pos)
+        {
+            if (pos >= CurPos || pos < 0 || pos >= Text.Length)
                 return false;
 
             CurPos = pos;
@@ -139,6 +185,31 @@ namespace Casimodo.Lib.SimpleParser
             return true;
         }
 
+        /// <summary>
+        /// Moves forwards only.
+        /// </summary>
+        public bool MoveTo(int pos)
+        {
+            if (pos < CurPos || pos < 0 || pos >= Text.Length)
+                return false;
+
+            CurPos = pos;
+
+            return true;
+        }
+
+        public bool MoveTo(string text)
+        {
+            var pos = Text.IndexOf(text, CurPos);
+            if (pos < 0)
+                return false;
+
+            return MoveTo(pos);
+        }
+
+        /// <summary>
+        /// Consumes all subsequent characters before the given position (zero based).
+        /// </summary>
         public bool ConsumeTo(int pos)
         {
             var start = CurPos;
@@ -148,6 +219,18 @@ namespace Casimodo.Lib.SimpleParser
             TextBuilder.Append(Text, start, CurPos - start);
 
             return true;
+        }
+
+        /// <summary>
+        /// Consumes all subsequent charaters before the given character.
+        /// </summary>
+        public bool ConsumeTo(string text)
+        {
+            var pos = Text.IndexOf(text, CurPos);
+            if (pos < 0)
+                return false;
+
+            return ConsumeTo(pos);
         }
 
         public bool Skip(int length = 1)

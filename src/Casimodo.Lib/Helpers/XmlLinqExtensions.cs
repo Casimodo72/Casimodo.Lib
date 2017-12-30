@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Casimodo.Lib
@@ -51,6 +52,31 @@ namespace Casimodo.Lib
                 throw new CasimodoLibException($"The required attribute '{name}' was not found on element '{elem.Name}'.");
 
             return attr;
+        }
+
+        public static string ContentToString(this XElement elem, SaveOptions options)
+        {
+            if (elem == null)
+                return null;
+
+            var sb = new StringBuilder();
+
+            var settings = new XmlWriterSettings
+            {
+                ConformanceLevel = ConformanceLevel.Fragment,
+                NamespaceHandling = options.HasFlag(SaveOptions.OmitDuplicateNamespaces) ? NamespaceHandling.OmitDuplicates : NamespaceHandling.Default,
+                Indent = !options.HasFlag(SaveOptions.DisableFormatting)
+            };
+
+            using (var writer = XmlWriter.Create(sb, settings))
+            {
+                foreach (var child in elem.Nodes())
+                    child.WriteTo(writer);
+
+                writer.Flush();
+            }
+
+            return sb.ToString();
         }
     }
 }

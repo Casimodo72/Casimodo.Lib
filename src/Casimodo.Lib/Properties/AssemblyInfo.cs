@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Kasimier Buchcik (Casimodo)")]
 [assembly: AssemblyProduct("Casimodo.Lib")]
-[assembly: AssemblyCopyright("Copyright © 2009-2015 Kasimier Buchcik")]
+[assembly: AssemblyCopyright("Copyright © 2009-2018 Kasimier Buchcik")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
