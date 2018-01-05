@@ -126,6 +126,15 @@ namespace Casimodo.Lib.Mojen
                 .Display("Beschreibung");
         }
 
+        public MojEntityPropBuilder PropDescription(MojEntityBuilder builder)
+        {
+            // KABU TODO: Put length into settings.
+            return builder.Prop("Description", 2048)
+                .Id("077b11a2-e4da-4746-b131-1e4705ecaf11")
+                .Multiline()
+                .Display("Beschreibung");
+        }
+
         public MojModelPropBuilder PropComments(MojModelBuilder builder)
         {
             // KABU TODO: Put length into settings.

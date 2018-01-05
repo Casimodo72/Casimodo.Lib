@@ -168,7 +168,7 @@ namespace Casimodo.Lib.Mojen
                 keyProps.Select(x => FirstCharToLower(x))
                 .ToArray());
 
-            O($"if (typeof {key} === 'undefined' || {key} == null) return null;");
+            O($"if (typeof {key} === 'undefined' || {key} === null) return null;");
 
             O($"return {dictionary}['' + {key}] || null;");
 

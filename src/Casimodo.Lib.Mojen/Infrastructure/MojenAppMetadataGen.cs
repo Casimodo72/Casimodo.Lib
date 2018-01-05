@@ -234,7 +234,11 @@ namespace Casimodo.Lib.Mojen.Meta
                 End(); // Static class
                 End(); // Namespace
 
+                // KABU TODO: REMOVE?
+                // The following is just some generated code to be used in the app builder
+                // but I noticed that I never use that code.
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#if (false)
                 O("/*");
 
                 foreach (var prop in props)
@@ -249,6 +253,8 @@ namespace Casimodo.Lib.Mojen.Meta
                 O($"All props: {props.OrderByDerivedFirst().Where(x => x.Type.Type != null).Select(x => "\"" + x.Name + "\"").Join(", ")}");
 
                 O("*/");
+
+#endif
             });
 
             return result;
