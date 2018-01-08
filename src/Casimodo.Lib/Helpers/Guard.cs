@@ -27,6 +27,12 @@ namespace Casimodo.Lib
             ArgNotNullOrWhitespace(arg, name);
         }
 
+        public static void ArgNotEmpty(Guid? arg, string name)
+        {
+            if (arg == null || arg == Guid.Empty)
+                throw new ArgumentException("The given GUID must not be null or empty.", name);
+        }
+
         public static void ArgNotNullOrWhitespace(string arg, string name)
         {
             if (arg == null)

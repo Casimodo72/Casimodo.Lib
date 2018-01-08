@@ -400,6 +400,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder AuthorizedRoles(string roles)
+        {
+            View.AuthRoles = roles;
+
+            return this;
+        }
+
         public MojViewBuilder Selectable(bool multi = false, bool checkBox = false, bool allCheckBox = false)
         {
             View.ItemSelection.IsEnabled = true;

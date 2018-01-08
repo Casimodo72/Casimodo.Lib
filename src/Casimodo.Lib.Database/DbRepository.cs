@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Data
         TEntity Update(TEntity entity, MojDataGraphMask mask = null);
         void Delete(TEntity entity, DbRepoOperationContext ctx = null);
         IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> expression);
-        IQueryable<TEntity> Query(bool includeDeleted = false);
+        IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true);
         int SaveChanges();
     }
 
@@ -319,9 +319,18 @@ namespace Casimodo.Lib.Data
         /// Returns an IQueryable of TEntity with the following being applied:
         /// 1) Tenant
         /// </summary>
-        public IQueryable<TEntity> Query(bool includeDeleted = false)
+        public IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true)
         {
-            return FilterByIsDeleted(includeDeleted, FilterByTenant(EntitySet));
+            DbQuery<TEntity> dbquery = EntitySet;
+
+            if (!trackable)
+                dbquery = dbquery.AsNoTracking();
+
+            var query = FilterByTenant(dbquery);
+
+            query = FilterByIsDeleted(includeDeleted, query);
+
+            return query;
         }
 
         // CRUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
