@@ -191,12 +191,20 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewPropBuilder Rows(int value)
         {
-            if (Prop.Type.AnnotationDataType != DataType.MultilineText)
+            if (GetTargetPropType(Prop).AnnotationDataType != DataType.MultilineText)
                 throw new MojenException("The directive 'Row' can only be used on multiline text properties.");
 
             Prop.RowCount = value;
 
             return this;
+        }
+
+        MojPropType GetTargetPropType(MojViewProp vprop)
+        {
+            if (!vprop.FormedNavigationTo.Is)
+                return vprop.Type;
+
+            return vprop.FormedNavigationTo.TargetProp.Type;
         }
 
         public MojViewPropBuilder Sortable(bool sortable = true)
