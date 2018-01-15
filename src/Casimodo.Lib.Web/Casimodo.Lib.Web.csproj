@@ -251,7 +251,6 @@
     <Compile Include="Helpers\PickItemsHelper.cs" />
     <Compile Include="Helpers\SessionExtensions.cs" />
     <Compile Include="Helpers\UserExtensions.cs" />
-    <Compile Include="Helpers\WebHelper.cs" />
     <Compile Include="Infrastructure\SessionVarName.cs" />
     <Compile Include="Infrastructure\WebServiceTenantProvider.cs" />
     <Compile Include="Infrastructure\WebSessionTenantProvider.cs" />
