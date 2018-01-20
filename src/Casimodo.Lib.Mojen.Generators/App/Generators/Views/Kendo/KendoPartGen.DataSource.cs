@@ -66,7 +66,7 @@ namespace Casimodo.Lib.Mojen
                 // Fixup filter parameters
                 // http://www.telerik.com/forums/guids-in-filters
                 var mode = config.UseODataActions ? "'Action'" : "null";
-                O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}, space.vm) }},");
+                O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}, space.vm); }},");
             }
 
             // Read

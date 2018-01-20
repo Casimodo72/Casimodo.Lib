@@ -113,7 +113,7 @@ namespace Casimodo.Lib.Mojen
                     if (!prop.Reference.IsIdependent)
                     {
                         // NOTE: We delete the property in this case.
-                        O($"if (typeof item.{prop.Name} != 'undefined') delete item.{prop.Name};");
+                        O($"if (typeof item.{prop.Name} !== 'undefined') delete item.{prop.Name};");
                     }
                 }
                 else if (prop.Reference.IsToOne)

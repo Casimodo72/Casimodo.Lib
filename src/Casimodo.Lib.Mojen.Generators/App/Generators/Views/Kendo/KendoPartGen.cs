@@ -193,8 +193,8 @@ namespace Casimodo.Lib.Mojen
                 OB("fn.createDataModel = function ()");
                 OB("return");
                 GenerateDataSourceModel(transportConfig.ModelProps);
-                End();
-                End();
+                End(";");
+                End(";");
 
                 // Data source factory.
                 O();
@@ -219,7 +219,7 @@ namespace Casimodo.Lib.Mojen
                 End(");");
                 O();
                 O("return this.dataSource;");
-                End();                
+                End(";");                
             });
             O();
             OB("space.vm = new ViewModel(");
@@ -227,7 +227,7 @@ namespace Casimodo.Lib.Mojen
             End(");");
             O();
             O("return space.vm;");
-            End();            
+            End(";");            
 
             // Component factory function.
             OB("space.createComponent = function(options)");
@@ -245,8 +245,8 @@ namespace Casimodo.Lib.Mojen
                 End();
                 
             }
-            End(")");
-            End();            
+            End(");");
+            End(";");            
 
             OJsImmediateEnd(BuildNewComponentSpace(space));
         }

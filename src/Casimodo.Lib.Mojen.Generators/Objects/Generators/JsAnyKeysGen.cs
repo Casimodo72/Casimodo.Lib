@@ -39,7 +39,7 @@ namespace Casimodo.Lib.Mojen
             OJsClass(config.ClassName, true, () =>
             {
                 foreach (var item in config.Items)
-                    O($"this.{item.Key} = {MojenUtils.ToJsValue(item.Value)}");
+                    O($"this.{item.Key} = {MojenUtils.ToJsValue(item.Value)};");
             });
             O();
         }

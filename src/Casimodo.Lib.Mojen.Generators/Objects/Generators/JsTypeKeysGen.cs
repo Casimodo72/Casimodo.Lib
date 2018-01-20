@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
                 }
 
                 foreach (var type in types)
-                    O($"this.{type.Name} = '{type.Id}'");
+                    O($"this.{type.Name} = '{type.Id}';");
 
                 O();
                 OB("var _id2Name =");

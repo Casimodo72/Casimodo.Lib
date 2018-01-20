@@ -183,7 +183,7 @@ namespace Casimodo.Lib.Mojen
             O();
             O("return space.vm;");
 
-            End(); // ViewModel factory function.                        
+            End(";"); // ViewModel factory function.                        
         }
 
         protected void InitEvents(WebViewGenContext context)

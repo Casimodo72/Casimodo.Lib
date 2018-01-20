@@ -232,13 +232,6 @@ namespace Casimodo.Lib.Mojen
             // Begin component namespace.
             OB("(function (space)");
 
-            // KABU TODO: REMOVE
-            //// Factory
-            //OB("space.create = function ()");
-            //O("space.createViewModel();");
-            //O("space.createComponent();");
-            //End(";");
-
             // KABU TODO: Maybe we should throw an error if deferred and manual init was configured.            
             if (Options.IsDeferred)
             {

@@ -53,10 +53,6 @@ namespace Casimodo.Lib.Mojen
 
             var typeName = config.KeysContainerName;
 
-            //O();
-            //OB("var {0} = (function ()", typeName);
-            //OB("function {0}()", typeName);
-
             if (Options.IsNamedValueEnabled)
             {
                 O();
@@ -94,14 +90,6 @@ namespace Casimodo.Lib.Mojen
             {
                 GenerateMapping(config, mapping);
             }
-
-            //End();
-
-            //O("return {0};", typeName);
-
-            //End(")();");
-
-            //O("{0}.{1} = new {1}();", moduleName, typeName);
         }
 
         void GenerateMapping(MojValueSetContainer config, MojValueSetMapping mapping)
@@ -155,8 +143,7 @@ namespace Casimodo.Lib.Mojen
 
                 O($"{key}: {value},");
             }
-
-            End();
+            End(";");
 
             // Mapping function
             O();
