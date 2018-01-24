@@ -582,7 +582,7 @@ namespace Casimodo.Lib.Mojen
                     if (control.Attrs.FindOrDefault("AllItemsSelector") == "true")
                     {
                         O("headerAttributes: { 'class': 'all-list-items-selector' },");
-                        O($"headerTemplate: \"<input id='cb-{view.Id}' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-{view.Id}' />\",");
+                        O($"headerTemplate: \"<input id='cb-all-view-{view.Id}' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-all-view-{view.Id}' />\",");
                     }
 
                     O("attributes: { 'class': 'list-item-selector' },");
