@@ -65,6 +65,9 @@ namespace Casimodo.Lib.Mojen
         public Func<DbRepoCoreGenBase, MojType, string, string> TypeMethod { get; set; } =
             (o, type, item) => $"bool {o.OnTypeMethodName}({type.ClassName} {item}, DbContext db)";
 
+        public Func<DbRepoCoreGenBase, MojType, string, string> TypeMethodExtensionCall { get; set; } = null;
+        public Func<DbRepoCoreGenBase, MojType, string, string> TypeMethodExtension { get; set; } = null;
+
         public Func<DbRepoCoreGenBase, string> RepositoriesContextGetter { get; set; } =
             (o) => $"var context = new {o.DataConfig.DbRepoContainerName}(({o.DataConfig.DbContextName})db);";
 
@@ -180,9 +183,20 @@ namespace Casimodo.Lib.Mojen
                     OSoftReference();
                 }
 
+                if (TypeMethodExtensionCall != null)
+                {
+                    O(TypeMethodExtensionCall(this, type, item));
+                }
+
                 O("return true;");
                 End();
                 O();
+
+                if (TypeMethodExtension != null)
+                {
+                    O(TypeMethodExtension(this, type, item));
+                    O();
+                }
             }
 
             OHelpers();
