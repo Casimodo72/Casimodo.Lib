@@ -389,7 +389,11 @@ namespace Casimodo.Lib.Mojen
             }
 #endif
             // Uploadable image property
-            else if (prop.FileRef.Is && prop.FileRef.IsUploadable && prop.FileRef.IsImage)
+            else if (prop.FileRef.Is &&
+#pragma warning disable CS0618 // Type or member is obsolete
+                prop.FileRef.IsUploadable &&
+#pragma warning restore CS0618 // Type or member is obsolete
+                prop.FileRef.IsImage)
             {
                 string name = context.View.TypeConfig.ClassName + prop.Alias;
                 string alias = prop.Alias;

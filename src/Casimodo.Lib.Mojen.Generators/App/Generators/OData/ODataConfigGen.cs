@@ -45,8 +45,11 @@ namespace Casimodo.Lib.Mojen
             O("public static void ConfigureMain(HttpConfiguration config, ODataModelBuilder builder)");
             Begin();
 
-            O($"FunctionConfiguration func;");
-            O($"ActionConfiguration action;");
+            O("FunctionConfiguration func;");
+            // Disable warning in case no actions are used.
+            O("#pragma warning disable CS0168 // Variable is declared but never used");
+            O("ActionConfiguration action;");
+            O("#pragma warning restore CS0168 // Variable is declared but never used");
             O();
 
             var names = new HashSet<string>();
@@ -114,7 +117,7 @@ namespace Casimodo.Lib.Mojen
                         // NOTE: For now all view groups will share the default OData creation action.
 
                         // Add OData Update action
-                        O();                        
+                        O();
                         O($"builder.EntityType<{typeName}>().Action(\"{editorOfViewGroup.GetODataUpdateActionName()}\")");
                         O($"    .Parameter<{typeName}>(\"model\");");
                     }

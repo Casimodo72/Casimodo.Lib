@@ -117,9 +117,9 @@ namespace Casimodo.Lib.Web
         /// 1) Tenant
         /// 2) projection to TModel
         /// </summary>
-        public new IQueryable<TModel> Query(bool deleted = false)
+        public new IQueryable<TModel> Query(bool includeDeleted = false, bool trackable = true)
         {
-            var query = base.Query(deleted);
+            var query = base.Query(includeDeleted, trackable);
 
             // Project to TModel using AutoMapper.
             return query.ProjectTo<TModel>();
