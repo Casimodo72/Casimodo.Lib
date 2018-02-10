@@ -36,6 +36,8 @@ namespace Casimodo.Lib.Mojen
                 {
                     Props = type.GetReferenceProps()
                         .Where(ObjectTreeHelper.IsReferenceToChild)
+                        // Ignore if soft delete cascade was disabled for this reference property.
+                        .Where(x => x.Reference.IsSoftDeleteCascadeDisabled == false)
                         // KABU TODO: IMPORTANT: Disabled for now because I want to see if we have
                         //   scenarios where there's no delete-info on children.
                         //.Where(x => x.Reference.ToType.FindDeletedMarker(DeleteMarkers) != null)

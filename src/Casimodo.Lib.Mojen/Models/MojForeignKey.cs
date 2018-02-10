@@ -44,6 +44,9 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojReferenceBinding Binding { get; set; }
 
+        [DataMember]
+        public bool IsSoftDeleteCascadeDisabled { get; set; }
+
         // Loose or Nested
         public bool IsLoose
         {

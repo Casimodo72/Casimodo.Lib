@@ -306,6 +306,7 @@ namespace Casimodo.Lib.Data
             var keys = localItems.Select(x => GetKey(x)).ToArray();
 
             // Return local items + queried items from db.
+            // KABU TODO: VERY IMPORTANT: This could return duplicates.
             return localItems.ToArray().Concat(
                 Query(includeDeleted)
                     .Where(predicate)

@@ -53,6 +53,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public TPropBuilder CollectionOf(MojType type, bool owned, bool nested,
+            bool isSoftDeleteCascadeDisabled = false,
             bool hiddenNavigation = false,
             // @backrefNew defaults to true, but is nullable because we need to know whether specified.
             bool? backrefNew = null,
@@ -130,6 +131,7 @@ namespace Casimodo.Lib.Mojen
             return CollectionOfCore(type,
                 owned: owned,
                 nested: nested,
+                isSoftDeleteCascadeDisabled: isSoftDeleteCascadeDisabled,
                 hiddenParentToChildNavigation: hiddenNavigation,
                 childToParentProp: childToParentProp,
                 backrefExplicit: backrefExplicit,
@@ -140,6 +142,7 @@ namespace Casimodo.Lib.Mojen
         internal TPropBuilder CollectionOfCore(MojType childType,
             bool owned, bool nested, bool independent = false,
             MojProp childToParentProp = null,
+            bool isSoftDeleteCascadeDisabled = false,
             bool hiddenParentToChildNavigation = false,
             // @backrefExplicit defaults to true, but is nullable because we need to know whether specified.
             bool? backrefExplicit = null,
@@ -189,6 +192,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     Is = true,
                     Binding = binding,
+                    IsSoftDeleteCascadeDisabled = isSoftDeleteCascadeDisabled,
                     Multiplicity = MojMultiplicity.Many,
                     Axis = axis,
                     ToType = childType,
