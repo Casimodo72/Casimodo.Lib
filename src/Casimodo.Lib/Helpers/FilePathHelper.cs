@@ -39,14 +39,14 @@ namespace Casimodo.Lib
             return Path.GetFileNameWithoutExtension(filePath);
         }
 
-        public static string GetExtension(string filePath)
+        public static string GetExtension(string filePath, string defaultValue = null)
         {
             if (string.IsNullOrWhiteSpace(filePath))
-                return null;
+                return defaultValue;
 
             var ext = Path.GetExtension(filePath);
             if (string.IsNullOrWhiteSpace(ext))
-                return null;
+                return defaultValue;
 
             ext = ext.ToLower();
 

@@ -27,6 +27,11 @@ namespace Casimodo.Lib.Mojen
             return this[index];
         }
 
+        public MojProp Get(string propName)
+        {
+            return _props.Values.First(x => x.Name == propName);
+        }
+
         public MojProp this[int index]
         {
             get { return _props[index]; }

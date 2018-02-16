@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
 
                 ids.Add(type.Id.Value);
 
-                O($"public static readonly Guid {type.Name}Id = new Guid(\"{type.Id}\");");
+                O($"public static readonly Guid {type.Name} = new Guid(\"{type.Id}\");");
             }
 
             End();

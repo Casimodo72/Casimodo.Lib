@@ -157,7 +157,7 @@ namespace Casimodo.Lib.Mojen
 
             PropConfig.IsHiddenOneToManyEntityNavigationProp = hiddenParentToChildNavigation;
             PropConfig.SingleName = PropConfig.Name;
-            PropConfig.SetName(MojType.Pluralizer.Pluralize(PropConfig.Name));
+            PropConfig.SetName(MojType.Pluralize(PropConfig.Name));
 
             PropConfig.Type.IsCollection = true;
 

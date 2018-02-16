@@ -11,6 +11,13 @@ namespace Casimodo.Lib
                 throw new ArgumentNullException(name);
         }
 
+        public static void ArgNotEmpty(byte[] arg, string name)
+        {
+            Guard.ArgNotNull(arg, name);
+            if (arg.Length == 0)
+                throw new ArgumentException("The array must not be empty.", name); 
+        }
+
         public static void ArgNotNone<T>(T arg, string name)
         {
             if (object.Equals(arg, null) || object.Equals(arg, default(T)))

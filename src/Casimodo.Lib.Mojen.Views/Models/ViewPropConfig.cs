@@ -313,6 +313,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsLoggedInPerson { get; set; }
 
+        public bool IsInputOnly { get; set; }
+
         public bool IsSelector { get; set; }
         public bool IsTagsSelector { get; set; }
 

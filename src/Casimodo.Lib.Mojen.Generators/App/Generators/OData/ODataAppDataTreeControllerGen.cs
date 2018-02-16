@@ -104,7 +104,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 O($"bool Add{type.Name}Children(AppDataTreeNodeBuildContext ctx)");
                 Begin();
-                O($"if (ctx.ParentTypeId != {dataConfig.GetTypeKeysClassName()}.{type.Name}Id) return false;");
+                O($"if (ctx.ParentTypeId != {dataConfig.GetTypeKeysClassName()}.{type.Name}) return false;");
 
                 if (typeItem.IsContainer)
                 {

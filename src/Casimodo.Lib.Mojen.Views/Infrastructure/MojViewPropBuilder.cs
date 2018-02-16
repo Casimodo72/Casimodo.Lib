@@ -416,6 +416,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder InputOnly()
+        {
+            Prop.IsInputOnly = true;
+
+            return this;
+        }
+
         public MojViewPropBuilder GeoPlaceLookup(GeoPlaceSourcePropMap sourcePropMap = null, bool cacheView = false)
         {
             Prop.IsSelector = true;

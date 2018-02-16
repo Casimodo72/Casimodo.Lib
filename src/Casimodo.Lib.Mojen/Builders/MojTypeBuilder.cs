@@ -131,7 +131,7 @@ namespace Casimodo.Lib.Mojen
             if (name != null)
             {
                 map.SourceName = name;
-                map.SourcePluralName = MojType.Pluralizer.Pluralize(map.SourceName);
+                map.SourcePluralName = MojType.Pluralize(map.SourceName);
             }
             else
             {

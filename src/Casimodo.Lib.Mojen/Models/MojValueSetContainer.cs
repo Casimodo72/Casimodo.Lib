@@ -12,7 +12,7 @@ namespace Casimodo.Lib.Mojen
         public MojValueSetContainer(string name)
         {
             Name = name;
-            PluralName = MojType.Pluralizer.Pluralize(name);
+            PluralName = MojType.Pluralize(name);
             ValueType = typeof(string);
             MetaContainerName = Name + "Values";
             KeysContainerName = Name + "Keys";

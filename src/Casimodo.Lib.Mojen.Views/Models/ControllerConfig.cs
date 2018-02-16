@@ -113,19 +113,22 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public MojProp[] GetAllPropsDistinct(string viewGroup)
+        public MojProp[] GetAllPropsDistinctForRead(string viewGroup)
         {
-            return GetAllPropsDistinct(Views.Where(x => x.Group == viewGroup).ToArray());
+            return GetAllPropsDistinctForRead(Views.Where(x => x.Group == viewGroup).ToArray());
         }
 
-        public MojProp[] GetAllPropsDistinct(MojViewConfig[] views)
+        public MojProp[] GetAllPropsDistinctForRead(MojViewConfig[] views)
         {
             // Filter out non-exposable properties.
             var exposableProps = TypeConfig.GetExposableSchemaProps().Select(x => x.Name).ToList();
             // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
 
             // Get the view-properties actually used in the views.            
-            var props = GetAllViewPropsDeep(views).Cast<MojProp>().ToList();
+            var props = GetAllViewPropsDeep(views)
+                // Don't read properties which are intended for input only.
+                .Where(x => !x.IsInputOnly)
+                .Cast<MojProp>().ToList();
 
             // Insert mandatory key property.
             props.Insert(0, TypeConfig.Key);
@@ -133,7 +136,7 @@ namespace Casimodo.Lib.Mojen
             // Remove duplicates.
             // Prefer edit properties to read properties, because the edit-properties hold
             // information needed to generate the edit data-model elsewhere.
-            // Also prefer editable properties to read-only properties.
+            // Also prefer editable properties over read-only properties.
             var vprops = props.OfType<MojViewProp>().ToList();
             MojProp duplicate;
             MojViewProp vprop, vduplicate;
@@ -184,14 +187,14 @@ namespace Casimodo.Lib.Mojen
 
         public MojDataGraphNode[] BuildDataGraphForRead(string viewGroup)
         {
-            return GetAllPropsDistinct(viewGroup)
+            return GetAllPropsDistinctForRead(viewGroup)
                 .BuildDataGraph(includeKey: true, includeForeignKey: true)
                 .ToArray();
         }
 
         public MojDataGraphNode[] BuildDataGraphForRead(MojViewConfig[] views)
         {
-            return GetAllPropsDistinct(views)
+            return GetAllPropsDistinctForRead(views)
                 .BuildDataGraph(includeKey: true, includeForeignKey: true)
                 .ToArray();
         }

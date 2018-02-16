@@ -69,7 +69,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Edit button
                 if (context.View.CanEdit)
-                    O("<button type='button' class='k-button btn edit-command'><span class='k-icon k-i-edit'></span></button>");
+                    O("<button type='button' class='k-button btn edit-command'><span class='k-icon k-edit'></span></button>");
                     
                 OE("</div>");
 

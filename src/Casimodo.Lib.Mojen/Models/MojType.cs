@@ -51,7 +51,25 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojType : MojPartBase
     {
-        public static readonly PluralizationService Pluralizer = PluralizationService.CreateService(CultureInfo.GetCultureInfo("en"));
+        static readonly PluralizationService _pluralizer = PluralizationService.CreateService(CultureInfo.GetCultureInfo("en"));
+
+        public static string Pluralize(string text)
+        {
+            if (TryPluralize("Info", ref text)) return text;
+            if (TryPluralize("Kind", ref text)) return text;
+
+            return _pluralizer.Pluralize(text);
+        }
+
+        static bool TryPluralize(string endsWith, ref string text)
+        {
+            if (!text.EndsWith(endsWith))
+                return false;
+
+            text = text + "s"; // text.Substring(0, text.LastIndexOf(endsWith)) + endsWith + "s";
+
+            return true;
+        }
 
         public static MojType CreateEntity(string name)
         {
@@ -111,7 +129,6 @@ namespace Casimodo.Lib.Mojen
         {
             InitName(name);
             ClassName = name;
-
         }
 
         public MojType[] AccessPath { get; set; }
@@ -120,7 +137,7 @@ namespace Casimodo.Lib.Mojen
         {
             Name = name;
             DisplayName = name;
-            InitPluralName(Pluralizer.Pluralize(name));
+            InitPluralName(Pluralize(name));
         }
 
         public void InitPluralName(string pluralName)

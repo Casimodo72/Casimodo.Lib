@@ -73,6 +73,13 @@ namespace Casimodo.Lib.Data
 
         public object Item { get; set; }
 
+        public object TargetItem { get; set; }
+
+        public PropertyInfo Prop { get; set; }
+
+        public object OldPropValue { get; set; }
+        public object NewPropValue { get; set; }
+
         /// <summary>
         /// Only used for deletion in order to 
         /// </summary>
@@ -190,6 +197,26 @@ namespace Casimodo.Lib.Data
             throw new NotImplementedException();
         }
 
+        void ProcessPropertyModified(DbRepoOperationContext ctx, object target, PropertyInfo prop, object oldValue, object newValue)
+        {
+            try
+            {
+                ctx.TargetItem = target;
+                ctx.Prop = prop;
+                ctx.OldPropValue = oldValue;
+                ctx.NewPropValue = newValue;
+
+                OnPropertyModified(ctx);
+            }
+            finally
+            {
+                ctx.TargetItem = null;
+                ctx.Prop = null;
+                ctx.OldPropValue = null;
+                ctx.NewPropValue = null;
+            }
+        }
+
         public object UpdateUsingMask(DbRepoOperationContext ctx)
         {
             Guard.ArgNotNull(ctx, nameof(ctx));
@@ -223,21 +250,24 @@ namespace Casimodo.Lib.Data
             {
                 if (same)
                 {
-                    // KABU TODO: IMPORTANT: CLARIFY why this case is about.
+                    throw new DbRepositoryException("Unexpected update of same object.");
+                    // KABU TODO: IMPORTANT: CLARIFY what this case is about.
                     //   Why and when do we expect the source and target to be the same object.
                     //   Why do we mark properties as modified in this case.
                     //   And why do we process equal objects at all?
-                    entry.Property(propName).IsModified = true;
+                    //entry.Property(propName).IsModified = true;
                 }
                 else
                 {
                     prop = type.GetProperty(propName);
                     newValue = prop.GetValue(source);
                     // Mark as modified and assign if changed.
-                    if (!object.Equals(prop.GetValue(target), newValue))
+                    var oldValue = prop.GetValue(target);
+                    if (!object.Equals(oldValue, newValue))
                     {
                         prop.SetValue(target, newValue);
                         entry.Property(propName).IsModified = true;
+                        ProcessPropertyModified(ctx, target, prop, oldValue, newValue);
                     }
                 }
             }
@@ -435,6 +465,14 @@ namespace Casimodo.Lib.Data
         }
 
         public virtual void OnSaving(DbRepoOperationContext ctx)
+        {
+            // NOP
+        }
+
+        /// <summary>
+        /// NOTE: Called only when updating using data mask.
+        /// </summary>
+        public virtual void OnPropertyModified(DbRepoOperationContext ctx)
         {
             // NOP
         }

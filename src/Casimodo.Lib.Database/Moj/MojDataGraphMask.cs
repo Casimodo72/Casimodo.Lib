@@ -40,31 +40,11 @@ namespace Casimodo.Lib.Data
         }
     }
 
-    //public interface IMojReferenceDataMaskBuilder<TParent, TChild>
-    //    where TParent : IMojDataMaskBuilderBase
-    //    where TChild : IMojDataMaskBuilderBase
-    //{
-    //    IMojReferenceDataMaskBuilder<TParent, TChild> StartReference();
-    //    TParent EndReference();
-    //}
-
-    //public interface IMojDataMaskBuilder<TParent, TChild>
-    //     where TParent : IMojDataMaskBuilderBase
-    //     where TChild : IMojDataMaskBuilderBase
-    //{    
-    //}
-
-    //public interface IMojDataMaskBuilder      
-    //{
-    //    IMojReferenceDataMaskBuilder<IMojDataMaskBuilder, TChild> StartReference();
-    //    MojDataGraphMask Mask();
-    //}
-
-    //public interface IMojDataMaskBuilderBase
-    //{
-    //}
-
-    public class XFactory
+#if (DEBUG)
+    /// <summary>
+    /// Just a playground for the fluent API.
+    /// </summary>
+    class XFactory
     {
         public MojDataMaskBuilder Create()
         {
@@ -74,11 +54,12 @@ namespace Casimodo.Lib.Data
         public void Test()
         {
             Create()
-                .StartReference("ContentData", MojReferenceBinding.OwnedLoose, MojMultiplicity.One)              
+                .StartReference("ContentData", MojReferenceBinding.OwnedLoose, MojMultiplicity.One)
                 .EndReference()
                 .Mask();
         }
     }
+#endif
 
     public class MojDataMaskBuilder
     {
