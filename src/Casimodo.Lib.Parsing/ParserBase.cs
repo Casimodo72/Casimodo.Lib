@@ -37,10 +37,11 @@ namespace Casimodo.Lib.SimpleParser
         /// Returns the currently consumed text and clears the consumed text.
         /// </summary>
         /// <returns></returns>
-        public string GetText()
+        public string GetConsumedText(bool clear = true)
         {
             var result = TextBuilder.ToString();
-            TextBuilder.Length = 0;
+            if (clear)
+                TextBuilder.Length = 0;
 
             return result;
         }
@@ -146,7 +147,7 @@ namespace Casimodo.Lib.SimpleParser
             get { return !IsEnd && char.IsLetter(Cur); }
         }
 
-        public char Cur
+        char Cur
         {
             get { return Text[CurPos]; }
         }
@@ -158,9 +159,9 @@ namespace Casimodo.Lib.SimpleParser
             return cur;
         }
 
-        public char? Peek(int length)
+        public char? Peek(int offset)
         {
-            int index = CurPos + length;
+            int index = CurPos + offset;
             if (index >= Text.Length)
                 return null;
 
@@ -169,7 +170,7 @@ namespace Casimodo.Lib.SimpleParser
 
         public string PeekNext(int length)
         {
-            if (CurPos + length >= Text.Length)
+            if (CurPos + length - 1 >= Text.Length)
                 return null;
 
             return Text.Substring(CurPos, length);
@@ -190,6 +191,8 @@ namespace Casimodo.Lib.SimpleParser
         /// </summary>
         public bool MoveTo(int pos)
         {
+            if (IsEnd) return false;
+
             if (pos < CurPos || pos < 0 || pos >= Text.Length)
                 return false;
 
@@ -200,6 +203,8 @@ namespace Casimodo.Lib.SimpleParser
 
         public bool MoveTo(string text)
         {
+            if (IsEnd) return false;
+
             var pos = Text.IndexOf(text, CurPos);
             if (pos < 0)
                 return false;
@@ -208,10 +213,12 @@ namespace Casimodo.Lib.SimpleParser
         }
 
         /// <summary>
-        /// Consumes all subsequent characters before the given position (zero based).
+        /// Consumes all subsequent characters before the specified position (zero based).
         /// </summary>
         public bool ConsumeTo(int pos)
         {
+            if (IsEnd) return false;
+
             var start = CurPos;
             if (!MoveTo(pos))
                 return false;
@@ -222,10 +229,12 @@ namespace Casimodo.Lib.SimpleParser
         }
 
         /// <summary>
-        /// Consumes all subsequent charaters before the given character.
+        /// Consumes all subsequent charaters before the specified character.
         /// </summary>
         public bool ConsumeTo(string text)
         {
+            if (IsEnd) return false;
+
             var pos = Text.IndexOf(text, CurPos);
             if (pos < 0)
                 return false;
