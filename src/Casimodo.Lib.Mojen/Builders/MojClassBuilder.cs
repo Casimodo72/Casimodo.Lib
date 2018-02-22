@@ -264,22 +264,22 @@ namespace Casimodo.Lib.Mojen
         }
 
         public TClassBuilder AsSoftChildCollectionOf(MojType parentType, bool owned,
-            string name, string display,
+            string display,
             Action<MexConditionBuilder> condition)
         {
-            return AsSoftChildCore(parentType, owned, name, display, true, condition);
+            return AsSoftChildCore(parentType, owned, display, true, condition);
         }
 
         public TClassBuilder AsSoftChildOf(MojType parentType, bool owned,
-            string name, string display,
+            string display,
             Action<MexConditionBuilder> condition)
         {
-            return AsSoftChildCore(parentType, owned, name, display, false, condition);
+            return AsSoftChildCore(parentType, owned, display, false, condition);
         }
 
         TClassBuilder AsSoftChildCore(MojType parentType,
             bool owned,
-            string name, string display,
+            string display,
             bool collection,
             Action<MexConditionBuilder> condition)
         {
@@ -304,7 +304,8 @@ namespace Casimodo.Lib.Mojen
                 IsCollection = collection,
                 ToType = parentType,
                 ToTypeKey = parentType.Key,
-                Name = name,
+                // KABU TODO: REMOVE? Name is not used anywhere.
+                Name = null,
                 DisplayName = display,
                 Condition = c
             };
