@@ -6,18 +6,19 @@ namespace Casimodo.Lib.Data
     {
         string UploadPath { get; }
 
-        object Find(Guid guid);
+        object GetFileInfo(Guid guid, bool required = true);
 
         byte[] ReadData(Guid guid);
 
+        byte[] ReadDataAndRemove(Guid guid);
+
         string GetValidUploadRootDirPath();
 
-        string GetUri(string storeFileName);
+        void Add(Guid userId, IDbFileInfo item, string storeFilePath);
 
-        void Add(string userId, IDbFileInfo item, string storeFilePath);
+        bool Remove(Guid fileId);
 
-        void Remove(string userId, string kind, string[] fileNames);
-
-        // TODO: Delete(Guid guid);
+        // KABU TODO: REMOVE? Not used. This was intended to be called only by the KendoUpload widget.
+        //void Remove(string userId, string kind, string[] fileNames);
     }
 }

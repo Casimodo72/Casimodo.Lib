@@ -40,6 +40,9 @@ namespace Casimodo.Lib
             return JoinToString(source, separator, trim: true);
         }
 
+        /// <summary>
+        /// NOTE: Returns an empty string if source is empty.
+        /// </summary>
         public static string Join(this IEnumerable<string> source, string separator)
         {
             return JoinToString(source, separator);
@@ -51,6 +54,9 @@ namespace Casimodo.Lib
             return value.Trim();
         }
 
+        /// <summary>
+        /// NOTE: Returns an empty string if source is empty.
+        /// </summary>
         public static string JoinToString<TSource>(this IEnumerable<TSource> source, string separator, Func<TSource, string> transform = null, bool trim = false)
         {
             if (source == null || !source.Any())

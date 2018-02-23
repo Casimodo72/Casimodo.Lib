@@ -112,17 +112,19 @@ namespace Casimodo.Lib.Web
         //    return (IQueryable<TEntity>)BuildEffectiveQuery(query, settings);
         //}
 
+#if (DEBUG)
         /// <summary>
         /// KABU TODO: REVISIT: Just an example validation of odata query options.
         /// </summary>
         /// <param name="options"></param>
-        void Validate(ODataQueryOptions<TEntity> options)
+        void DevExampleValidate(ODataQueryOptions<TEntity> options)
         {
             options.Validate(new ODataValidationSettings()
             {
                 AllowedFunctions = AllowedFunctions.AllMathFunctions
             });
         }
+#endif
 
         // Add ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
 
