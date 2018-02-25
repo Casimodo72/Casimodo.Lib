@@ -29,6 +29,16 @@ namespace Casimodo.Lib.Mojen
             O();
             O("var fn = ViewModel.prototype;");
 
+            // KABU TODO: REMOVE
+            //var creationOptions = $"{{ space: space, viewId: '{View.Id}', componentId: '{context.ComponentId}', " +
+            //    $"areaName: '{View.TypeConfig.PluralName}'," + // TODO: REMOVE: componentOptions: options, " +
+            //    $"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)}, isAuthNeeded: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)} }}";
+
+            O();
+            OB("fn.createComponent = function()");
+            O($"this._createComponentCore();");
+            End(";");
+
             // Define main event handler functions and call each specific function.
             foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer))
             {
@@ -142,8 +152,13 @@ namespace Casimodo.Lib.Mojen
             OB("space.vm = new ViewModel(");
             // Constructor options
             O("space: space,");
+            O($"viewId: '{View.Id}',");
+            O($"areaName: '{View.TypeConfig.PluralName}',");
+            O($"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)},");
+            O($"isAuthRequired: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)},");
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
-                O("selectionMode: 'multiple'");
+                O("selectionMode: 'multiple',");
+            O($"componentId: '{context.ComponentId}'");
             End(");");
         }
 

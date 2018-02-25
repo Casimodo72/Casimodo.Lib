@@ -127,6 +127,20 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TBuilder CustomEditorView(string name)
+        {
+            Prop.CustomEditorViewName = name;
+
+            return This();
+        }
+
+        public TBuilder CustomView(string name)
+        {
+            Prop.CustomViewName = name;
+
+            return This();
+        }
+
         public TBuilder ShowIf(MojProp prop)
         {
             // KABU TODO: IMPL?

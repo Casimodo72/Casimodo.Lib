@@ -307,15 +307,19 @@ namespace Casimodo.Lib.Mojen
 
             CustomElemStyle(context);
 
+            // Add "form-control" class.
+            // Except for Kendo's numeric boxes, which just break if using bootstrap's form-control class.
             if (!prop.Type.IsNumber)
             {
-                //ElemStyle("width:95%");
-                // Kendo numeric boxes just break if using bootstrap's form-control class.
                 ElemClass("form-control");
             }
 
+            if (vprop.CustomEditorViewName != null)
+            {
+                O($"@Html.Partial(\"{vprop.CustomEditorViewName}\")");
+            }
             // NOTE: Enums are also numbers here, so ensure the enum handler comes first.
-            if (prop.Type.IsEnum)
+            else if (prop.Type.IsEnum)
             {
                 // .Name(\"{0}\")
                 O($"@(Html.Kendo().DropDownListFor(m => m.{propPath}).DataValueField(\"Value\").DataTextField(\"Text\").ValuePrimitive(true)");
@@ -340,7 +344,7 @@ namespace Casimodo.Lib.Mojen
                 ONumericInput(prop, propPath);
                 validationBox = false;
             }
-            // KABU TODO: REMOVE: We don't use the MVC wrapper anymore.
+            // KABU TODO: REMOVE?: We don't use the MVC wrapper anymore.
 #if (false)
             else if (prop.Type.IsNumber)
             {

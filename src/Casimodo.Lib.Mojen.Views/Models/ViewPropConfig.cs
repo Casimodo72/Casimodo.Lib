@@ -66,7 +66,7 @@ namespace Casimodo.Lib.Mojen
                     TargetType = vprop.DeclaringType,
                     CustomDisplayLabel = GetCustomDisplayLabel(vprop, vprop.DisplayLabel)
                 };
-            }            
+            }
 
             if (path.TargetProp == null)
                 throw new MojenException("The navigation path has no target property.");
@@ -133,7 +133,7 @@ namespace Casimodo.Lib.Mojen
 
         static void CheckPathSteps(MojFormedNavigationPath path)
         {
-            int depth = 0;            
+            int depth = 0;
             foreach (var step in path.Steps)
             {
                 if (step.SourceProp.Reference.IsToMany)
@@ -321,6 +321,8 @@ namespace Casimodo.Lib.Mojen
         public GeoPlaceLookupConfig GeoPlaceLookup { get; set; } = GeoPlaceLookupConfig.None;
 
         public string CustomTemplateName { get; set; }
+        public string CustomEditorViewName { get; set; }
+        public string CustomViewName { get; set; }
 
         public MojLookupViewPropConfig Lookup { get; set; } = MojLookupViewPropConfig.None;
 

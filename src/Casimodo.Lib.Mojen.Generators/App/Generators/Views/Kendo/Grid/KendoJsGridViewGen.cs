@@ -246,8 +246,13 @@ namespace Casimodo.Lib.Mojen
             GenerateComponentOptionsFactory(context);
             GenerateComponentFactory(context);
 
-            O();
-            O($"if (space.options.isManualInit !== true) space.create();");
+            if (View.Kind.Roles.HasFlag(MojViewRole.Index) ||
+                View.Kind.Roles.HasFlag(MojViewRole.Lookup))
+            {
+                O();
+                O($"if (space.options.isManualInit !== true) space.create();");
+            }
+
             O();
 
             if (Options.IsDeferred)
@@ -283,17 +288,19 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateComponentFactory(WebViewGenContext context)
         {
-            // Grid factory function.
-            O();
-            OB($"space.createComponent = function (options)");
+            // KABU TODO: REMOVE
+            //// Grid factory function.
+            //// KABU TODO: ELIMINATE
+            //O();
+            //OB($"space.createComponent = function (options)");
+            //O("alert('OBSOLETE CALL TO space.createComponent');");
+            ////var options = $"{{ space: space, viewId: '{View.Id}', componentId: '{context.ComponentId}', " +
+            ////    $"areaName: '{View.TypeConfig.PluralName}', componentOptions: options, " +
+            ////    $"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)}, isAuthNeeded: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)} }}";
 
-            var options = $"{{ space: space, viewId: '{View.Id}', componentId: '{context.ComponentId}', " +
-                $"areaName: '{View.TypeConfig.PluralName}', componentOptions: options, " +
-                $"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)}, isAuthNeeded: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)} }}";
+            ////O($"kendomodo.createGridComponentOnSpace({options});");
 
-            O($"kendomodo.createGridComponentOnSpace({options});");
-
-            End(";"); // Grid factory function.            
+            //End(";"); // Grid factory function.            
         }
 
         void GenerateGridOptions(WebViewGenContext context)
