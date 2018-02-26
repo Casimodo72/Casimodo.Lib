@@ -29,6 +29,8 @@ namespace Casimodo.Lib.Mojen
 
         public string ComponentEventName { get; set; }
 
+        public bool IsExistent { get; set; }
+
         /// <summary>
         /// When a function call, then @IsModelPart indicates whether to qualify the call with a preceeding "this." (e.g. "this.FunctionName(e)").
         /// When a function with body, then this will be generated as a view model function.
@@ -63,14 +65,14 @@ namespace Casimodo.Lib.Mojen
 
         public KendoWebGridEventsConfig()
         {
-            UseComponentEvent(KendoGridEvent.DataBinding);
-            UseComponentEvent(KendoGridEvent.DataBound);
-            UseComponentEvent(KendoGridEvent.Changed, "Change");
+            UseComponentEvent(KendoGridEvent.DataBinding, exists: true);
+            UseComponentEvent(KendoGridEvent.DataBound, exists: true);
+            UseComponentEvent(KendoGridEvent.Changed, "Change", exists: true);
             UseComponentEvent(KendoGridEvent.Editing, "Edit");
-            UseComponentEvent(KendoGridEvent.Saving, "Save", "kendomodo.onGridSaving");
-            UseComponentEvent(KendoGridEvent.DetailInit, "DetailInit", "kendomodo.onGridDetailInit");
-            UseComponentEvent(KendoGridEvent.DetailExpanding, "DetailExpand", "kendomodo.onGridDetailExpanding");
-            UseComponentEvent(KendoGridEvent.DetailCollapsing, "DetailCollapse", "kendomodo.onGridDetailCollapsing");
+            UseComponentEvent(KendoGridEvent.Saving, "Save", exists: true);
+            UseComponentEvent(KendoGridEvent.DetailInit, "DetailInit", exists: true);
+            UseComponentEvent(KendoGridEvent.DetailExpanding, "DetailExpand", exists: true);
+            UseComponentEvent(KendoGridEvent.DetailCollapsing, "DetailCollapse", exists: true);
         }
 
         public string ComponentName { get; set; }
@@ -132,7 +134,7 @@ namespace Casimodo.Lib.Mojen
         //    return result;
         //}
 
-        KendoWebFunction UseComponentEvent(KendoGridEvent eve, string name = null, string defaultFunction = null)
+        KendoWebFunction UseComponentEvent(KendoGridEvent eve, string name = null, bool exists = false, string defaultFunction = null)
         {
             if (_componentEventHandlers.ContainsKey(eve))
                 throw new MojenException($"The component event '{eve}' has already been registered.");
@@ -145,6 +147,7 @@ namespace Casimodo.Lib.Mojen
                 Event = eve,
                 ComponentEventName = name,
                 FunctionName = $"onComponent{eve}",
+                IsExistent = exists,
                 IsContainer = true,
                 IsModelPart = true
             };

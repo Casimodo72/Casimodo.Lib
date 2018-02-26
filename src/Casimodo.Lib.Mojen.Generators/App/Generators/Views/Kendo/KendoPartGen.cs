@@ -119,7 +119,7 @@ namespace Casimodo.Lib.Mojen
         public void OStandaloneEditorViewModel(MojViewConfig view, string componentName = null)
         {
             // View model for standalone editor views.
-            
+
             OJsImmediateBegin("space");
 
             var transportConfig = this.CreateODataTransport(view, view);
@@ -163,29 +163,26 @@ namespace Casimodo.Lib.Mojen
             O();
             O($"ds.filter({{ field: '{config.TypeConfig.Key.Name}', operator: 'eq', value: args.value }});");
 
-            OJsImmediateEnd(BuildNewComponentSpace(componentName));            
+            OJsImmediateEnd(BuildNewComponentSpace(componentName));
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public void OStandaloneDetailsViewModel(MojViewConfig view, string space)
+        public void OStandaloneEditableDetailsViewModel(WebViewGenContext context, string space)
         {
             // View model for standalone editor views.
 
-            OJsImmediateBegin("space");            
+            var view = context.View;
 
-            // KABU TODO: REVISIT: document.scriptElement does not work here, because
-            // Chrome and Firefox will move the script elements from their original location to somewhere else.
-            // Such a pity.
-            O($"var $view = $('#view-{view.Id}');");
+            OJsImmediateBegin("space");
 
             // View model factory function.
             O();
             OB($"space.createViewModel = function ()");
             O("if (space.vm) return space.vm;");
             O();
-            OJsClass("ViewModel", extends: "kendomodo.DetailsViewModelBase",
-                construct: null, 
+            OJsViewModelClass("ViewModel", extends: "kendomodo.EditableDetailsViewModel",
+                construct: null,
                 content: () =>
             {
                 var transportConfig = this.CreateODataTransport(view, null);
@@ -202,6 +199,8 @@ namespace Casimodo.Lib.Mojen
                 O("if (this.dataSource)");
                 O("    return this.dataSource;");
                 O();
+                O("var self = this;");
+                O();
                 OB("this.dataSource = new kendo.data.DataSource(");
                 ODataSource(new KendoDataSourceConfig
                 {
@@ -215,44 +214,74 @@ namespace Casimodo.Lib.Mojen
                     CanDelete = false,
                     PageSize = 1
                 });
-                O("change: $.proxy(space.vm.onDataSourceChanged, space.vm)");
+                O("change: $.proxy(self.onDataSourceChanged, self)");
                 End(");");
                 O();
                 O("return this.dataSource;");
-                End(";");                
+                End(";");
             });
             O();
             OB("space.vm = new ViewModel(");
-            O("space: space");
-            End(");");
-            O();
-            O("return space.vm;");
-            End(";");            
-
-            // Component factory function.
-            OB("space.createComponent = function(options)");
-            OB($"kendomodo.createStandaloneDetailsComponentOnSpace(");
-            O("space: space,");            
-            O($"viewId: '{view.Id}',");
-            O($"title: '{view.TypeConfig.DisplayName}',");
+            O("space: space,");
+            OJsViewModelConstructorOptions(context, isList: false);
             if (view.EditorView != null)
             {
                 OB("editor:");
                 O($"viewId: '{view.EditorView.Id}',");
                 O($"url: '{view.EditorView.Url}',");
-                O($"width: {MojenUtils.ToJsValue(view.EditorView.Width)},");                
+                O($"width: {MojenUtils.ToJsValue(view.EditorView.Width)},");
                 O($"height: {MojenUtils.ToJsValue(view.EditorView.MinHeight)},");
                 End();
-                
             }
             End(");");
-            End(";");            
+            O();
+            O("return space.vm;");
+            End(";");
+
+            // KABU TODO: REMOVE
+            //// Component factory function.
+            //OB("space.createComponent = function(options)");
+            //OB($"kendomodo.createStandaloneDetailsComponentOnSpace(");
+            //O("space: space,");
+            //O($"viewId: '{view.Id}',");
+            //O($"title: '{view.TypeConfig.DisplayName}',");
+            //if (view.EditorView != null)
+            //{
+            //    OB("editor:");
+            //    O($"viewId: '{view.EditorView.Id}',");
+            //    O($"url: '{view.EditorView.Url}',");
+            //    O($"width: {MojenUtils.ToJsValue(view.EditorView.Width)},");
+            //    O($"height: {MojenUtils.ToJsValue(view.EditorView.MinHeight)},");
+            //    End();
+
+            //}
+            //End(");");
+            //End(";");
 
             OJsImmediateEnd(BuildNewComponentSpace(space));
         }
 
-        public void OJsClass(string name, string extends, Action construct, Action content)
+        public void OJsViewModelConstructorOptions(WebViewGenContext context, bool isList)
         {
+            var view = context.View;
+            var title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
+            O($"title: '{title}',");
+            O($"viewId: '{view.Id}',");
+            O($"itemTypeName: '{view.TypeConfig.Name}',");
+            O($"areaName: '{view.TypeConfig.PluralName}',");
+            O($"isDialog: {MojenUtils.ToJsValue(view.Lookup.Is)},");
+            O($"isAuthRequired: {MojenUtils.ToJsValue(view.IsAuthorizationNeeded)},");
+            if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
+                O("selectionMode: 'multiple',");
+            O($"componentId: '{context.ComponentId}',");
+        }
+
+        public void OJsViewModelClass(string name, string extends, Action construct, Action content)
+        {
+            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
+            Guard.ArgNotNull(content, nameof(content));
+
             // Extend base component view model.
             OB($"var {name} = (function (_super)");
 
@@ -265,7 +294,7 @@ namespace Casimodo.Lib.Mojen
             End();
 
             O();
-            O("var fn = ViewModel.prototype;");
+            O($"var fn = {name}.prototype;");
 
             if (content != null)
             {

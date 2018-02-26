@@ -190,11 +190,12 @@ namespace Casimodo.Lib.Mojen
         }
 
         // KABU TODO: Find a ways to share JS methods with DataLayerGenerator.
-        public void OJsClass(string name, bool isstatic = false, string extends = null,
-            string args = null, Action content = null)
-        {
-            OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
-        }
+        // KABU TODO: REMOVE? Not used.
+        //public void OJsClass(string name, bool isstatic = false, string extends = null,
+        //    string args = null, Action content = null)
+        //{
+        //    OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
+        //}
 
         public void OJsClass(string ns, string name, bool isstatic = false,
             string extends = null, string args = null, Action content = null)

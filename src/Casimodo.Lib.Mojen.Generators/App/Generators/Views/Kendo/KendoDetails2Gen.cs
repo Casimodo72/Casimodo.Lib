@@ -15,10 +15,11 @@ namespace Casimodo.Lib.Mojen
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this)))
             {
-                PerformWrite(view, () => GenerateView(new WebViewGenContext
+                var context = new WebViewGenContext
                 {
                     View = view
-                }));
+                };
+                PerformWrite(view, () => GenerateView(context));
 
                 if (view.Standalone.Is)
                 {
@@ -27,7 +28,8 @@ namespace Casimodo.Lib.Mojen
                     PerformWrite(path, () =>
                     {
                         OScriptUseStrict();
-                        KendoGen.OStandaloneDetailsViewModel(view, componentName);
+
+                        KendoGen.OStandaloneEditableDetailsViewModel(context, componentName);
                     });
                 }
             }
@@ -35,7 +37,7 @@ namespace Casimodo.Lib.Mojen
 
         public override MojenGenerator Initialize(MojenApp app)
         {
-            base.Initialize(app);            
+            base.Initialize(app);
             KendoGen.SetParent(this);
 
             return this;
@@ -69,12 +71,16 @@ namespace Casimodo.Lib.Mojen
 
                 // Edit button
                 if (context.View.CanEdit)
-                    O("<button type='button' class='k-button btn edit-command'><span class='k-icon k-edit'></span></button>");
-                    
+                {
+                    // NOTE: The button is hidden intially.
+                    //   The view model will show or remove that button based on activity authorization.
+                    O("<button type='button' class='k-button btn edit-command' style='display:none'><span class='k-icon k-edit'></span></button>");
+                }
+
                 OE("</div>");
 
                 OB("<div class='details-view-content'>");
-            }           
+            }
 
             OB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
         }
@@ -82,9 +88,9 @@ namespace Casimodo.Lib.Mojen
         public override void EndView(WebViewGenContext context)
         {
             if (context.View.Template.IsEmpty)
-                return;            
+                return;
 
-            base.EndView(context);            
+            base.EndView(context);
 
             if (context.View.Standalone.Is)
             {

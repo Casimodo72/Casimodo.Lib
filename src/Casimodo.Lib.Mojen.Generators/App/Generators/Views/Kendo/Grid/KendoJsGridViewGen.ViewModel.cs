@@ -13,155 +13,134 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            // Extend base component view model.
-            OB($"var ViewModel = (function (_super)");
-
-            O("casimodo.__extends(ViewModel, _super);");
-
-            O();
-            OB("function ViewModel(options)");
-            O("_super.call(this, options);");
-            O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
-            if (HasViewModelExtension)
-                O($"this.extension = new {DataConfig.ScriptUINamespace}.{ViewModelExtensionClassName}({{ vm: this }});");
-            End();
-
-            O();
-            O("var fn = ViewModel.prototype;");
-
-            // KABU TODO: REMOVE
-            //var creationOptions = $"{{ space: space, viewId: '{View.Id}', componentId: '{context.ComponentId}', " +
-            //    $"areaName: '{View.TypeConfig.PluralName}'," + // TODO: REMOVE: componentOptions: options, " +
-            //    $"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)}, isAuthNeeded: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)} }}";
-
-            O();
-            OB("fn.createComponent = function()");
-            O($"this._createComponentCore();");
-            End(";");
-
-            // Define main event handler functions and call each specific function.
-            foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer))
+            KendoGen.OJsViewModelClass("ViewModel", extends: "kendomodo.GridViewModel",
+            construct: () =>
             {
-                O();
-                OB($"fn.{item.FunctionName} = function (e)");
+                O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
+                if (HasViewModelExtension)
+                    O($"this.extension = new {DataConfig.ScriptUINamespace}.{ViewModelExtensionClassName}({{ vm: this }});");
+            },
+            content: () =>
+            {
+                OB("fn.createComponent = function()");
+                O($"this._createComponentCore();");
+                End(";");
 
-                foreach (var func in item.BodyFunctions)
+                // Define main event handler functions and call each specific function.
+                foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer && !x.IsExistent))
                 {
-                    if (func.Call != null)
+                    O();
+                    OB($"fn.{item.FunctionName} = function (e)");
+
+                    foreach (var func in item.BodyFunctions)
                     {
-                        O(func.Call);
+                        if (func.Call != null)
+                        {
+                            O(func.Call);
+                        }
+                        else if (func.FunctionName != null)
+                        {
+                            if (func.IsModelPart)
+                                O($"this.{func.FunctionName}(e);");
+                            else
+                                O($"{func.FunctionName}(e);");
+                        }
                     }
-                    else if (func.FunctionName != null)
+
+                    // Re-trigger the widget's event using the widget's name for the event.
+                    O($"this.trigger('{item.Event.ToString().FirstLetterToLower()}', e);");
+
+                    if (item.Event == KendoGridEvent.Changed)
+                        // Call view model's current item changed handler.
+                        O("this.onCurrentItemChanged();");
+
+                    End(";");
+                }
+
+                // View model functions.
+                foreach (var func in JsFuncs.Functions.Where(x => x.IsModelPart && x.Body != null))
+                {
+                    O();
+                    OB($"fn.{func.FunctionName} = function (e)");
+                    func.Body(context);
+                    End(";");
+                }
+
+                // Data model factory (used by the Kendo data source).
+                O();
+                OB("fn.createDataModel = function ()");
+                OB("var model =");
+                KendoGen.GenerateDataSourceModel(TransportConfig.ModelProps);
+                End(";");
+                // Add custom (computed) properties to the model.
+                O();
+                O("this.extendDataModel(model);");
+
+                O();
+                O("return model;");
+                End(";"); // Data model factory.            
+
+                // Data source factory.
+                O();
+                OB("fn.createDataSource = function ()");
+                O("return this.dataSource ? this.dataSource : (this.dataSource = new kendo.data.DataSource(this.createDataSourceOptions()));");
+                End(";");
+
+                // Request url factory.
+                O();
+                OB("fn.createRequestUrl = function ()");
+                O($"var url = \"{TransportConfig.ODataSelectUrl}\";");
+                O("if (this.requestUrlFactory) return this.requestUrlFactory(url); else return url;");
+                End(";");
+
+                // Filters
+                if (View.HasFilters)
+                {
+                    O();
+                    OB("fn.getBaseFilters = function ()");
+                    O("var filters = [];");
+
+                    if (View.IsFilteredByLoggedInPerson)
                     {
-                        if (func.IsModelPart)
-                            O($"this.{func.FunctionName}(e);");
-                        else
-                            O($"{func.FunctionName}(e);");
+                        O($"filters.push({{ field: '{View.FilteredByLoogedInPersonProp}', " +
+                            $"operator: 'eq', value: window.casimodo.run.authInfo.UserId }});");
                     }
+
+                    if (View.SimpleFilter != null)
+                    {
+                        O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(View.SimpleFilter)});");
+                    }
+
+                    O("return filters;");
+                    End(";");
                 }
 
-                // Re-trigger the widget's event using the widget's name for the event.
-                O($"this.trigger('{item.Event.ToString().FirstLetterToLower()}', e);");
-
-                if (item.Event == KendoGridEvent.Changed)
-                    // Call view model's current item changed handler.
-                    O("this.onCurrentItemChanged();");
-
-                End(";");
-            }
-
-            // View model functions.
-            foreach (var func in JsFuncs.Functions.Where(x => x.IsModelPart && x.Body != null))
-            {
                 O();
-                OB($"fn.{func.FunctionName} = function (e)");
-                func.Body(context);
+                OB("fn.setRequestUrlFactory = function (factory)");
+                O($"this.requestUrlFactory = factory;");
                 End(";");
-            }
 
-            // Data model factory (used by the Kendo data source).
-            O();
-            OB("fn.createDataModel = function ()");
-            OB("var model =");
-            KendoGen.GenerateDataSourceModel(TransportConfig.ModelProps);
-            End(";");
-            // Add custom (computed) properties to the model.
-            O();
-            O("this.extendDataModel(model);");
-
-            O();
-            O("return model;");
-            End(";"); // Data model factory.            
-
-            // Data source factory.
-            O();
-            OB("fn.createDataSource = function ()");
-            O("return this.dataSource ? this.dataSource : (this.dataSource = new kendo.data.DataSource(this.createDataSourceOptions()));");
-            End(";");
-
-            // Request url factory.
-            O();
-            OB("fn.createRequestUrl = function ()");
-            O($"var url = \"{TransportConfig.ODataSelectUrl}\";");
-            O("if (this.requestUrlFactory) return this.requestUrlFactory(url); else return url;");
-            End(";");
-
-            // Filters
-            if (View.HasFilters)
-            {
+                // Data source options factory.
                 O();
-                OB("fn.getBaseFilters = function ()");
-                O("var filters = [];");
-
-                if (View.IsFilteredByLoggedInPerson)
-                {
-                    O($"filters.push({{ field: '{View.FilteredByLoogedInPersonProp}', " +
-                        $"operator: 'eq', value: window.casimodo.run.authInfo.UserId }});");
-                }
-
-                if (View.SimpleFilter != null)
-                {
-                    O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(View.SimpleFilter)});");
-                }
-
-                O("return filters;");
+                OB("fn.createDataSourceOptions = function ()");
+                O("if (this.dataSourceOptions) return this.dataSourceOptions;");
+                OB("this.dataSourceOptions =");
+                GenerateDataSourceOptions(context);
                 End(";");
-            }
+                // Set initial filters.
+                O("if (this.filters.length)");
+                O("    this.dataSourceOptions.filter = { filters: this.filters };");
+                O("return this.dataSourceOptions;");
+                End(";"); // Data source options factory.
 
-            O();
-            OB("fn.setRequestUrlFactory = function (factory)");
-            O($"this.requestUrlFactory = factory;");
-            End(";");
 
-            // Data source options factory.
-            O();
-            OB("fn.createDataSourceOptions = function ()");
-            O("if (this.dataSourceOptions) return this.dataSourceOptions;");
-            OB("this.dataSourceOptions =");
-            GenerateDataSourceOptions(context);
-            End(";");
-            // Set initial filters.
-            O("if (this.filters.length)");
-            O("    this.dataSourceOptions.filter = { filters: this.filters };");
-            O("return this.dataSourceOptions;");
-            End(";"); // Data source options factory.
+            });
 
-            O();
-            O("return ViewModel;");
-
-            End(")(kendomodo.GridViewModelBase);"); // ViewModel class.
-
+            // Create view model with options.
             O();
             OB("space.vm = new ViewModel(");
-            // Constructor options
             O("space: space,");
-            O($"viewId: '{View.Id}',");
-            O($"areaName: '{View.TypeConfig.PluralName}',");
-            O($"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)},");
-            O($"isAuthRequired: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)},");
-            if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
-                O("selectionMode: 'multiple',");
-            O($"componentId: '{context.ComponentId}'");
+            KendoGen.OJsViewModelConstructorOptions(context, isList: true);
             End(");");
         }
 
@@ -209,12 +188,9 @@ namespace Casimodo.Lib.Mojen
             JsFuncs.ComponentName = context.ComponentName;
             JsFuncs.ViewModel = context.ComponentViewModelName;
 
-            //JsFuncs.Add(KendoGridEvent.DataBound).Call = "kendomodo.onGridViewModelDataBound(this, e);";
-            //JsFuncs.Add(KendoGridEvent.Changed).Call = "kendomodo.onGridViewModelChanged(this, e);";
-
             if (EditorView != null)
             {
-                JsFuncs.Add(KendoGridEvent.Editing, "Default").Body = GenVM_JS_OnEditing_Default;
+                JsFuncs.Add(KendoGridEvent.Editing).Call = "this.onComponentEditingBase(e);";
                 JsFuncs.Add(KendoGridEvent.Editing, "Hide").Body = GenVM_JS_OnEditing_Hide;
                 JsFuncs.Add(KendoGridEvent.Editing, "OnPropChanged").Body = GenVM_JS_OnEditing_OnPropChanged;
                 JsFuncs.Add(KendoGridEvent.Editing, "QueryReferencedObject").Body = GenVM_JS_OnEditing_QueryReferencedObject;
@@ -225,12 +201,7 @@ namespace Casimodo.Lib.Mojen
                 JsFuncs.RemoveComponentEventHandler(KendoGridEvent.Editing);
             }
 
-            if (InlineDetailsView != null)
-            {
-                JsFuncs.Add(KendoGridEvent.DetailExpanding).Call = "kendomodo.onGridViewModelDetailExpanding(this, e);";
-                JsFuncs.Add(KendoGridEvent.DetailCollapsing).Call = "kendomodo.onGridViewModelDetailCollapsing(this, e);";
-            }
-            else
+            if (InlineDetailsView == null)
             {
                 JsFuncs.RemoveComponentEventHandler(KendoGridEvent.DetailInit);
                 JsFuncs.RemoveComponentEventHandler(KendoGridEvent.DetailExpanding);
@@ -287,18 +258,6 @@ namespace Casimodo.Lib.Mojen
 
                 End(");");
             }
-        }
-
-
-        protected void GenVM_JS_OnEditing_Default(WebViewGenContext context)
-        {
-            // Call the default kendomodo grid function.
-
-            var options = "";
-            if (CanDelete)
-                options = ", { canDelete: !!this.auth.canDelete }";
-
-            O($"kendomodo.onGridViewModelEditing(this, e{options});");
         }
 
         protected void GenVM_JS_OnEditing_Hide(WebViewGenContext context)
@@ -510,15 +469,6 @@ namespace Casimodo.Lib.Mojen
             {
                 var reference = looseReferenceGroup.First();
 
-                // KABU TODO: Will we actually get paths here or only prop names?
-                OB($"if (e.field === '{reference.ForeignKeyPath}')");
-
-                O($"item.set('{reference.ObjectPath}', null);");
-
-                O($"var foreignKeyValue = item.get('{reference.ForeignKeyPath}');");
-
-                OB($"if (foreignKeyValue)");
-
                 // Build OData $select and $expand expressions
                 var paths = looseReferenceGroup.Select(x => x.Prop.FormedNavigationTo).ToArray();
 
@@ -548,11 +498,42 @@ namespace Casimodo.Lib.Mojen
 
                 // Build the OData $select and $expand expression.
                 string expression = this.BuildODataSelectAndExpand(queryNodes);
-                var odata = App.Get<WebODataBuildConfig>();
-                KendoGen.ODataQuery($"'{odata.Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}()?{expression}&$filter=Id eq ' + foreignKeyValue", null, () =>
+
+                // Build OData query.
+                var odataQuery = $"{App.Get<WebODataBuildConfig>().Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}()?{expression}";
+
+                // On create triggers.
+                var sourceAssignments = new List<string>();
+                // Assign properties.
+                foreach (var setter in onCreateTriggerPropSetters)
+                    sourceAssignments.Add($"{{ t: '{setter.Target.FormedTargetPath}', s: '{setter.Source.FormedTargetPath}'}}");
+
+                O($"if (e.field === '{reference.ForeignKeyPath}') this._onEditingQueryReferencedObject(" +
+                    $"item, " +
+                    $"'{reference.ObjectPath}', " +
+                    $"e.field, '{odataQuery}', " +
+                    $"'{reference.ObjectType.Key.Name}', " +
+                    $"[{sourceAssignments.Join(", ")}]);");
+
+                // Example:
+                // if (e.field === 'ContractId') this._onEditingQueryReferencedObject(
+                //    item, 'Contract', e.field, 'Id',
+                //    '/odata/Contracts/Ga.Query()?$select=Id,City,CountryStateId,CountryId,Street,ZipCode&$expand=CountryState($select=Id,DisplayName),Country($select=Id,DisplayName)',
+                //    [{ t: 'Street', s: 'Street'}, { t: 'ZipCode', s: 'ZipCode'}]);
+
+                // KABU TODO: REMOVE: Moved this all of this to a function on the JS grid view model.
+#if (false)
+                // KABU TODO: Will we actually get paths here or only prop names?
+                OB($"if (e.field === '{reference.ForeignKeyPath}')");
+
+                O($"item.set('{reference.ObjectPath}', null);");
+
+                O($"var foreignKeyValue = item.get('{reference.ForeignKeyPath}');");
+
+                OB($"if (foreignKeyValue)");
+
+                KendoGen.ODataQueryFirstOrDefault($"'{odata.Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}()?{expression}&$filter=Id eq ' + foreignKeyValue", null, () =>
                 {
-                    // If result is available...
-                    OBegin($"if (result && result.length)");
 
                     O($"item.set('{reference.ObjectPath}', result[0]);");
 
@@ -560,39 +541,23 @@ namespace Casimodo.Lib.Mojen
                     if (onCreateTriggerPropSetters.Any())
                     {
                         O();
-                        O("var parent = result[0];");
+                        OB("if (item.isNew())");
+
+                        O("var source = result[0];");
 
                         // Assign properties.
                         foreach (var setter in onCreateTriggerPropSetters)
                         {
-                            O($"item.set('{setter.Target.FormedTargetPath}', parent.{setter.Source.FormedTargetPath});");
+                            O($"item.set('{setter.Target.FormedTargetPath}', source.{setter.Source.FormedTargetPath});");
                         }
+                        End();
                     }
-
-                    // KABU TODO: REVISIT: Do we really want to have to clear all the fields if no entity is returned from the server?
-                    //   The foreign key prop must be required in such cases anyway.
-                    // KABU TODO: REMOVE?
-                    // KABU TODO: IMPORTANT: Check that the foreign-key prop is required.
-
-                    End(); // End of result available
-#if (false)
-                if (createOp != null)
-                {
-                    OB("else");
-                    O("// Clear properties from parent.");
-                    foreach (var mapping in createOp.Map.Mappings)
-                    {
-                        // KABU TODO: Won't work for value types.
-                        O($"item.set('{mapping.Target.Name}', null);");
-                    }
-                    End();
-                }
-#endif
                 });
 
                 End(); // Property not null
 
                 End(); // Property name matches
+#endif
             }
             End(");"); // Change handler
 
