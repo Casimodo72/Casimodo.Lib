@@ -60,8 +60,11 @@ namespace Casimodo.Lib.Mojen
                     }
                 }
 
-                O($"this.trigger('{item.Kind.ToString().FirstLetterToLower()}', e);");
-                if (item.Kind == KendoGridEvent.Changed)
+                // Re-trigger the widget's event using the widget's name for the event.
+                O($"this.trigger('{item.Event.ToString().FirstLetterToLower()}', e);");
+
+                if (item.Event == KendoGridEvent.Changed)
+                    // Call view model's current item changed handler.
                     O("this.onCurrentItemChanged();");
 
                 End(";");
@@ -203,11 +206,11 @@ namespace Casimodo.Lib.Mojen
 
         protected void InitEvents(WebViewGenContext context)
         {
-            JsFuncs.Component = context.ComponentName;
+            JsFuncs.ComponentName = context.ComponentName;
             JsFuncs.ViewModel = context.ComponentViewModelName;
 
-            JsFuncs.Add(KendoGridEvent.DataBound).Call = "kendomodo.onGridViewModelDataBound(this, e);";
-            JsFuncs.Add(KendoGridEvent.Changed).Call = "kendomodo.onGridViewModelChanged(this, e);";
+            //JsFuncs.Add(KendoGridEvent.DataBound).Call = "kendomodo.onGridViewModelDataBound(this, e);";
+            //JsFuncs.Add(KendoGridEvent.Changed).Call = "kendomodo.onGridViewModelChanged(this, e);";
 
             if (EditorView != null)
             {
@@ -293,9 +296,7 @@ namespace Casimodo.Lib.Mojen
 
             var options = "";
             if (CanDelete)
-            {
-                options = ", { canDelete: true && this.auth.canDelete }";
-            }
+                options = ", { canDelete: !!this.auth.canDelete }";
 
             O($"kendomodo.onGridViewModelEditing(this, e{options});");
         }
@@ -307,17 +308,21 @@ namespace Casimodo.Lib.Mojen
                 x.HideModes != MojViewMode.All)
                 .ToArray();
 
+            // Hide properties on create.
             var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
             if (props.Any())
             {
+                // Execute when the model *is* new.
                 OB("if (e.model.isNew())");
                 GenVM_JS_HideProps(props);
                 End();
             }
 
+            // Hide properties on update.
             props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
             if (props.Any())
             {
+                // Execute when the model is *not* new.
                 OB("if (!e.model.isNew())");
                 GenVM_JS_HideProps(props);
                 End();

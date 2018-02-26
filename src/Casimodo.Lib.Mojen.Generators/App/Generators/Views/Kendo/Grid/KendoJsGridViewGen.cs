@@ -133,7 +133,11 @@ namespace Casimodo.Lib.Mojen
             GenerateJSViewModel(context);
 
             // Non-view-model functions.
+            // KABU TODO: REMOVE? There's no scenario anymore.
             var funcs = JsFuncs.Functions.Where(x => !x.IsModelPart && x.Body != null).ToArray();
+            if (funcs.Any())
+                throw new MojenException("Scenario for generation of non-model functions is not supported anymore.");
+#if (false)
             if (funcs.Any())
             {
                 O();
@@ -144,6 +148,7 @@ namespace Casimodo.Lib.Mojen
                     End();
                 }
             }
+#endif
 
             if (context.View.IsViewless)
             {

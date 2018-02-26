@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Mojen
 {
+    /// <summary>
+    /// The events of the KendoGrid.
+    /// </summary>
     public enum KendoGridEvent
     {
         Changed,
@@ -20,22 +23,36 @@ namespace Casimodo.Lib.Mojen
 
     public class KendoWebFunction
     {
-        public KendoGridEvent Kind { get; set; }
+        public KendoGridEvent Event { get; set; }
 
         public string FunctionName { get; set; }
 
         public string ComponentEventName { get; set; }
 
+        /// <summary>
+        /// When a function call, then @IsModelPart indicates whether to qualify the call with a preceeding "this." (e.g. "this.FunctionName(e)").
+        /// When a function with body, then this will be generated as a view model function.
+        /// </summary>
         public bool IsModelPart { get; set; }
 
+        /// <summary>
+        /// Indicates whether this function can have a body (i.e. is not just a function call).
+        /// </summary>
         public bool IsContainer { get; set; }
 
-        public bool IsCall { get; set; }
+        // KABU TODO: REMOVE
+        //public bool IsCall { get; set; }
 
         public string Call { get; set; }
 
+        /// <summary>
+        /// Defines the body code of this function.
+        /// </summary>
         public Action<WebViewGenContext> Body { get; set; }
 
+        /// <summary>
+        /// Dfines the functions to be called in the body of this function.
+        /// </summary>
         public List<KendoWebFunction> BodyFunctions { get; set; } = new List<KendoWebFunction>();
     }
 
@@ -46,17 +63,17 @@ namespace Casimodo.Lib.Mojen
 
         public KendoWebGridEventsConfig()
         {
-            UseComponentEvent(KendoGridEvent.DataBinding, "kendomodo.onGridDataBinding", "DataBinding");
-            UseComponentEvent(KendoGridEvent.DataBound, "kendomodo.onGridDataBound", "DataBound");
-            UseComponentEvent(KendoGridEvent.Changed, "kendomodo.onGridChanged", "Change");
-            UseComponentEvent(KendoGridEvent.Editing, null, "Edit"); // "kendomodo.onGridEditing"
-            UseComponentEvent(KendoGridEvent.Saving, "kendomodo.onGridSaving", "Save");
-            UseComponentEvent(KendoGridEvent.DetailInit, "kendomodo.onGridDetailInit", "DetailInit");
-            UseComponentEvent(KendoGridEvent.DetailExpanding, "kendomodo.onGridDetailExpanding", "DetailExpand");
-            UseComponentEvent(KendoGridEvent.DetailCollapsing, "kendomodo.onGridDetailCollapsing", "DetailCollapse");                 
+            UseComponentEvent(KendoGridEvent.DataBinding);
+            UseComponentEvent(KendoGridEvent.DataBound);
+            UseComponentEvent(KendoGridEvent.Changed, "Change");
+            UseComponentEvent(KendoGridEvent.Editing, "Edit");
+            UseComponentEvent(KendoGridEvent.Saving, "Save", "kendomodo.onGridSaving");
+            UseComponentEvent(KendoGridEvent.DetailInit, "DetailInit", "kendomodo.onGridDetailInit");
+            UseComponentEvent(KendoGridEvent.DetailExpanding, "DetailExpand", "kendomodo.onGridDetailExpanding");
+            UseComponentEvent(KendoGridEvent.DetailCollapsing, "DetailCollapse", "kendomodo.onGridDetailCollapsing");
         }
 
-        public string Component { get; set; }
+        public string ComponentName { get; set; }
 
         public string ViewModel { get; set; }
 
@@ -101,31 +118,32 @@ namespace Casimodo.Lib.Mojen
                 name += purpose;
 
             if (!vm)
-                name += "_" + Component;
+                name += "_" + ComponentName;
 
             return AddCore(eve, functionName: name, vm: vm);
         }
 
-        public KendoWebFunction AddCall(KendoGridEvent eve, string call)
+        // KABU TODO: REMOVE?
+        //public KendoWebFunction AddCall(KendoGridEvent eve, string call)
+        //{
+        //    var result = AddCore(eve, functionName: null, vm: false);
+        //    result.Call = call;
+
+        //    return result;
+        //}
+
+        KendoWebFunction UseComponentEvent(KendoGridEvent eve, string name = null, string defaultFunction = null)
         {
-            var result = AddCore(eve, functionName: null, vm: false);
-            result.Call = call;
-
-            return result;
-        }
-
-        KendoWebFunction UseComponentEvent(KendoGridEvent eve, string defaultFunction, string componentEvent)
-        {
-            //Guard.ArgNotNullOrWhitespace(functionName, nameof(functionName));
-            Guard.ArgNotNullOrWhitespace(componentEvent, nameof(componentEvent));
-
             if (_componentEventHandlers.ContainsKey(eve))
-                throw new MojenException($"A handler for the component event '{eve}' does already exist.");
+                throw new MojenException($"The component event '{eve}' has already been registered.");
+
+            if (name == null)
+                name = eve.ToString();
 
             var handler = new KendoWebFunction
             {
-                Kind = eve,
-                ComponentEventName = componentEvent,
+                Event = eve,
+                ComponentEventName = name,
                 FunctionName = $"onComponent{eve}",
                 IsContainer = true,
                 IsModelPart = true
@@ -143,26 +161,10 @@ namespace Casimodo.Lib.Mojen
             var componentHandler = GetComponentEventHandler(eve);
             if (!componentHandler.IsContainer)
                 throw new MojenException("The component event handler must be a container.");
-            //{
-            //    var container = new KendoWebFunction
-            //    {
-            //        // Compound view model function.
-            //        Kind = eve,
-            //        FunctionName = $"on{eve}Main",
-            //        ComponentEventName = componentHandler.ComponentEventName,
-            //        IsContainer = true,
-            //        IsMPart = true
-            //    };
-
-            //    container.BodyFunctions.Add(componentHandler);
-            //    _componentEventHandlers[eve] = container;
-
-            //    componentHandler = container;
-            //}
 
             KendoWebFunction func = new KendoWebFunction
             {
-                Kind = eve,
+                Event = eve,
                 FunctionName = functionName,
                 IsModelPart = vm
             };
