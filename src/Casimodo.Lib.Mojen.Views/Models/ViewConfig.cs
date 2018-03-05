@@ -175,6 +175,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCachedOnClient { get; set; }
 
+        public bool IsAutoLoadEnabled { get; set; }
+
         public bool HasFilters
         {
             get { return IsFilteredByLoggedInPerson || SimpleFilter != null; }

@@ -22,9 +22,59 @@ namespace Casimodo.Lib.Mojen
             },
             content: () =>
             {
-                OB("fn.createComponent = function()");
-                O($"this._createComponentCore();");
+                // Request url factory.
+                OB("fn.createRequestUrl = function ()");
+                O($"var url = \"{TransportConfig.ODataSelectUrl}\";");
+                O("if (this.requestUrlFactory) return this.requestUrlFactory(url); else return url;");
+                End(";"); // Request url factory.
+
+                // Data model factory (used by the Kendo data source).
+                O();
+                OB("fn.createDataModel = function ()");
+                OB("var model =");
+                KendoGen.GenerateDataSourceModel(TransportConfig.ModelProps);
                 End(";");
+                // Add custom (computed) properties to the model.
+                O();
+                O("this.extendDataModel(model);");
+                O();
+                O("return model;");
+                End(";"); // Data model factory.              
+
+                // Filters
+                if (View.HasFilters)
+                {
+                    O();
+                    OB("fn.getBaseFilters = function ()");
+                    O("var filters = [];");
+
+                    if (View.IsFilteredByLoggedInPerson)
+                    {
+                        O($"filters.push({{ field: '{View.FilteredByLoogedInPersonProp}', " +
+                            $"operator: 'eq', value: window.casimodo.run.authInfo.UserId }});");
+                    }
+
+                    if (View.SimpleFilter != null)
+                    {
+                        O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(View.SimpleFilter)});");
+                    }
+
+                    O("return filters;");
+                    End(";");
+                }
+
+                // Data source options factory.
+                O();
+                OB("fn.createDataSourceOptions = function ()");
+                O("if (this.dataSourceOptions) return this.dataSourceOptions;");
+                OB("this.dataSourceOptions =");
+                GenerateDataSourceOptions(context);
+                End(";");
+                // Set initial filters.
+                O("if (this.filters.length)");
+                O("    this.dataSourceOptions.filter = { filters: this.filters };");
+                O("return this.dataSourceOptions;");
+                End(";"); // Data source options factory.
 
                 // Define main event handler functions and call each specific function.
                 foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer && !x.IsExistent))
@@ -65,75 +115,6 @@ namespace Casimodo.Lib.Mojen
                     func.Body(context);
                     End(";");
                 }
-
-                // Data model factory (used by the Kendo data source).
-                O();
-                OB("fn.createDataModel = function ()");
-                OB("var model =");
-                KendoGen.GenerateDataSourceModel(TransportConfig.ModelProps);
-                End(";");
-                // Add custom (computed) properties to the model.
-                O();
-                O("this.extendDataModel(model);");
-
-                O();
-                O("return model;");
-                End(";"); // Data model factory.            
-
-                // Data source factory.
-                O();
-                OB("fn.createDataSource = function ()");
-                O("return this.dataSource ? this.dataSource : (this.dataSource = new kendo.data.DataSource(this.createDataSourceOptions()));");
-                End(";");
-
-                // Request url factory.
-                O();
-                OB("fn.createRequestUrl = function ()");
-                O($"var url = \"{TransportConfig.ODataSelectUrl}\";");
-                O("if (this.requestUrlFactory) return this.requestUrlFactory(url); else return url;");
-                End(";");
-
-                // Filters
-                if (View.HasFilters)
-                {
-                    O();
-                    OB("fn.getBaseFilters = function ()");
-                    O("var filters = [];");
-
-                    if (View.IsFilteredByLoggedInPerson)
-                    {
-                        O($"filters.push({{ field: '{View.FilteredByLoogedInPersonProp}', " +
-                            $"operator: 'eq', value: window.casimodo.run.authInfo.UserId }});");
-                    }
-
-                    if (View.SimpleFilter != null)
-                    {
-                        O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(View.SimpleFilter)});");
-                    }
-
-                    O("return filters;");
-                    End(";");
-                }
-
-                O();
-                OB("fn.setRequestUrlFactory = function (factory)");
-                O($"this.requestUrlFactory = factory;");
-                End(";");
-
-                // Data source options factory.
-                O();
-                OB("fn.createDataSourceOptions = function ()");
-                O("if (this.dataSourceOptions) return this.dataSourceOptions;");
-                OB("this.dataSourceOptions =");
-                GenerateDataSourceOptions(context);
-                End(";");
-                // Set initial filters.
-                O("if (this.filters.length)");
-                O("    this.dataSourceOptions.filter = { filters: this.filters };");
-                O("return this.dataSourceOptions;");
-                End(";"); // Data source options factory.
-
-
             });
 
             // Create view model with options.
@@ -155,24 +136,6 @@ namespace Casimodo.Lib.Mojen
             O("if (space.vm) return space.vm;");
             O();
             GenerateJSViewModelCore(context);
-
-            // KABU TODO: REVISIT: This does not work.
-            //// Add property data sources.
-            //if (Options.IsFilterOverCurrentDataEnabled)
-            //{
-            //    foreach (var vprop in View.Props.Where(x => !x.FormedNavigationTo.Is))
-            //    {
-            //        OB($"self.addDataSourceForProp('{vprop.Name}', new kendo.data.DataSource(");
-            //        O("type: 'odata-v4',");
-            //        // Data transport
-            //        OB("transport:");
-            //        O("parameterMap: kendomodo.parameterMapForOData,");
-            //        // Read                
-            //        O($"read: {{ url: '{DataSource.ODataReadBaseUrl}$select={vprop.Name}' }},");
-            //        End(); // transport
-            //        End("));");
-            //    }
-            //}
 
             O();
             O("space.vm.init();");
@@ -199,6 +162,7 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 JsFuncs.RemoveComponentEventHandler(KendoGridEvent.Editing);
+                JsFuncs.RemoveComponentEventHandler(KendoGridEvent.BeforeEditing);
             }
 
             if (InlineDetailsView == null)

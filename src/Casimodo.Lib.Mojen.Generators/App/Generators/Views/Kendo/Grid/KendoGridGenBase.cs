@@ -175,8 +175,8 @@ namespace Casimodo.Lib.Mojen
                 // IMPORTANT: The formating with "_" is *needed* for the kendomodo JavaScript
                 //   extract the type of object is being used -
                 //   so **don't change** this:
-                context.ComponentId = "grid_" + view.TypeConfig.Name + "_Items";
-                context.ComponentName = context.ComponentId.Replace("_", "");
+                context.ComponentId = "grid-" + view.Id;
+                context.ComponentName = $"grid{view.TypeConfig.Name}Items";
                 context.ComponentViewModelName = context.ComponentName + "ViewModel";
                 context.ComponentViewSpaceName = context.ComponentName + (View.Lookup.Is ? "Lookup" : "") + "Space";
                 context.ComponentViewSpaceFactoryName = context.ComponentViewSpaceName + "Factory";
@@ -192,7 +192,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Inline details
                 InlineDetailsView = view.InlineDetailsView;
-                InlineDetailsTemplateName = context.ComponentId + "-detail-template";
+                InlineDetailsTemplateName = "grid-detail-template-" + view.Id;
                 if (InlineDetailsView != null)
                 {
                     InlineDetailsViewVirtualFilePath = BuildVirtualFilePath(InlineDetailsView,
@@ -206,7 +206,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Editor
                 EditorView = view.EditorView;
-                EditorTemplateName = context.ComponentId + "-popup-editor-template";
+                EditorTemplateName = "grid-popup-editor-template-" + view.Id;
                 CanEdit = EditorView != null && EditorView.CanEdit;
                 CanCreate = CanEdit && EditorView != null && EditorView.CanCreate && Options.IsCreatable;
                 CanDelete = Options.IsDeletable == true || (EditorView != null && EditorView.CanDelete && (Options.IsDeletable ?? true));

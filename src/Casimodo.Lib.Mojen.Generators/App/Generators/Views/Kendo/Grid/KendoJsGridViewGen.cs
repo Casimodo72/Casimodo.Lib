@@ -28,6 +28,9 @@ namespace Casimodo.Lib.Mojen
             string jsTypeName = FirstCharToLower(type.Name);
             string keyPropName = type.Key.Name;
 
+            if (string.IsNullOrWhiteSpace(view.Id))
+                throw new MojenException("View ID is missing.");
+
             TransportConfig = this.CreateODataTransport(view, EditorView, Options.CustomQueryMethod);
 
             InitEvents(context);
@@ -255,7 +258,11 @@ namespace Casimodo.Lib.Mojen
                 View.Kind.Roles.HasFlag(MojViewRole.Lookup))
             {
                 O();
-                O($"if (space.options.isManualInit !== true) space.create();");
+                OB($"if (space.options.isManualInit !== true)");
+                O("space.create();");
+                O($"if (space.options.isManualDataLoad !== true)");
+                O("    space.vm.refresh();");
+                End(";");
             }
 
             O();
@@ -513,8 +520,11 @@ namespace Casimodo.Lib.Mojen
                     //o("<div style='white-space:nowrap'>");
 
                     if (CanEdit)
-                        // Add an edit (/) button.
-                        o(@"<a class='k-button k-grid-edit' href='#'><span class='k-icon k-edit'></span></a>");
+                        // Add an edit button.
+                        // NOTE: This is a custom button which is not handled automatically
+                        //   by the kendo.ui.Grid. The grid view model will attach
+                        //   to this button and strat the edit operation manually.
+                        o(@"<a class='k-button k-grid-custom-edit' href='#'><span class='k-icon k-edit'></span></a>");
 
                     // KABU TODO: REMOVE: The delete button now resides on the editor view.
                     //if (CanDelete)                    

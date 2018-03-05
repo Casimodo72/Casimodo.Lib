@@ -422,6 +422,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder AutoLoad()
+        {
+            View.IsAutoLoadEnabled = true;
+            return this;
+        }
+
         public MojViewBuilder SimpleFilter(Action<MexConditionBuilder> condition)
         {
             var expression = BuildCondition(condition);

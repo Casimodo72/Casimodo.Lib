@@ -5,6 +5,16 @@ using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class KendoDataSourceEventsConfig
+    {
+        public string Change { get; set; }
+        public string Error { get; set; }
+        public string Push { get; set; }
+        public string RequestStartFunction { get; set; }
+        public string RequestEndFunction { get; set; }
+        public string Sync { get; set; }
+    }
+
     public class KendoDataSourceConfig
     {
         public MojType TypeConfig { get; set; }
@@ -17,7 +27,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewProp[] InitialSortProps { get; set; }
         public string ModelFactory { get; set; }
         public string SelectUrlFactory { get; set; }
-        public string RequestEndFunction { get; set; }
+        public KendoDataSourceEventsConfig Events { get; set; } = new KendoDataSourceEventsConfig();
         public bool CanCreate { get; set; }
         public bool CanEdit { get; set; }
         public bool CanDelete { get; set; }
@@ -38,12 +48,18 @@ namespace Casimodo.Lib.Mojen
             // Data source events            
             if (config.TransportType == "odata-v4")
             {
-                // Displays server errors in the grid's pop up editor.
-                // Data source error handler: http://demos.telerik.com/aspnet-mvc/grid/editing-popup
-                O("error: kendomodo.onServerErrorOData,");
-
-                if (config.RequestEndFunction != null)
-                    O($"requestEnd: {config.RequestEndFunction},");
+                if (config.Events.Change != null)
+                    O($"change: {config.Events.Change},");
+                if (config.Events.Error != null)
+                    O($"error: {config.Events.Error},");
+                if (config.Events.Push != null)
+                    O($"push: {config.Events.Push},");
+                if (config.Events.RequestStartFunction != null)
+                    O($"requestStart: {config.Events.RequestStartFunction},");
+                if (config.Events.RequestEndFunction != null)
+                    O($"requestEnd: {config.Events.RequestEndFunction},");
+                if (config.Events.Sync != null)
+                    O($"sync: {config.Events.Sync},");
             }
             else
             {
@@ -66,7 +82,7 @@ namespace Casimodo.Lib.Mojen
                 // Fixup filter parameters
                 // http://www.telerik.com/forums/guids-in-filters
                 var mode = config.UseODataActions ? "'Action'" : "null";
-                O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}, self); }},");
+                O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}); }},");
             }
 
             // Read

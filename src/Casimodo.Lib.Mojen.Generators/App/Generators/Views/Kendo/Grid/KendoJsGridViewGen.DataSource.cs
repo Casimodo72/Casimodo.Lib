@@ -47,13 +47,19 @@ namespace Casimodo.Lib.Mojen
                 SelectUrlFactory = "space.vm.createRequestUrl()",
                 // Reload and refresh the whole grid after an update was performed.
                 // We need this because otherwise computed properties won't be updated.
-                RequestEndFunction = "kendomodo.onDataSourceRequestEnd",
+
                 CanCreate = CanCreate,
                 CanEdit = CanEdit,
                 CanDelete = CanDelete,
                 PageSize = Options.PageSize,
                 IsServerPaging = Options.IsServerPaging
             };
+
+            config.Events.Change = "$.proxy(space.vm.onDataSourceChange, space.vm)";
+            config.Events.Sync = "$.proxy(space.vm.onDataSourceSync, space.vm)";
+            config.Events.Error = "$.proxy(space.vm.onDataSourceError, space.vm)";
+            config.Events.RequestStartFunction = "$.proxy(space.vm.onDataSourceRequestStart, space.vm)";
+            config.Events.RequestEndFunction = "$.proxy(space.vm.onDataSourceRequestEnd, space.vm)";
 
             KendoGen.ODataSource(config);
         }

@@ -12,8 +12,12 @@ namespace Casimodo.Lib.Mojen
     public enum KendoGridEvent
     {
         Changed,
+        BeforeEditing,
         Editing,
+        Removing,
         Saving,
+        Syncing,
+        Cancelling,
         DataBinding,
         DataBound,
         DetailExpanding,
@@ -68,8 +72,12 @@ namespace Casimodo.Lib.Mojen
             UseComponentEvent(KendoGridEvent.DataBinding, exists: true);
             UseComponentEvent(KendoGridEvent.DataBound, exists: true);
             UseComponentEvent(KendoGridEvent.Changed, "Change", exists: true);
+            UseComponentEvent(KendoGridEvent.BeforeEditing, "BeforeEdit");
             UseComponentEvent(KendoGridEvent.Editing, "Edit");
+            UseComponentEvent(KendoGridEvent.Removing, "Remove");
             UseComponentEvent(KendoGridEvent.Saving, "Save", exists: true);
+            UseComponentEvent(KendoGridEvent.Syncing, "Sync", exists: true);
+            UseComponentEvent(KendoGridEvent.Cancelling, "Cancel", exists: true);
             UseComponentEvent(KendoGridEvent.DetailInit, "DetailInit", exists: true);
             UseComponentEvent(KendoGridEvent.DetailExpanding, "DetailExpand", exists: true);
             UseComponentEvent(KendoGridEvent.DetailCollapsing, "DetailCollapse", exists: true);
@@ -130,22 +138,21 @@ namespace Casimodo.Lib.Mojen
         //{
         //    var result = AddCore(eve, functionName: null, vm: false);
         //    result.Call = call;
-
         //    return result;
         //}
 
-        KendoWebFunction UseComponentEvent(KendoGridEvent eve, string name = null, bool exists = false, string defaultFunction = null)
+        KendoWebFunction UseComponentEvent(KendoGridEvent eve, string kendoEventName = null, bool exists = false, string defaultFunction = null)
         {
             if (_componentEventHandlers.ContainsKey(eve))
                 throw new MojenException($"The component event '{eve}' has already been registered.");
 
-            if (name == null)
-                name = eve.ToString();
+            if (kendoEventName == null)
+                kendoEventName = eve.ToString();
 
             var handler = new KendoWebFunction
             {
                 Event = eve,
-                ComponentEventName = name,
+                ComponentEventName = kendoEventName,
                 FunctionName = $"onComponent{eve}",
                 IsExistent = exists,
                 IsContainer = true,
