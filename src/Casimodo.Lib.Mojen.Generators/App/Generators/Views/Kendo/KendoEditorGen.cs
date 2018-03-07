@@ -51,7 +51,7 @@ namespace Casimodo.Lib.Mojen
 
             // View model for standalone editor views.
             OScriptBegin();
-            KendoGen.OStandaloneEditorViewModel(context.View);
+            KendoGen.OStandaloneEditorViewModel(context);
             OScriptEnd();
         }
 
@@ -865,7 +865,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"var $container = {JQuerySelectEditorContainer()};");
                 O($"var model = $container.find(\"input[name = '{propPath}']\").first().prop('kendoBindingTarget').source;");
-                O($"var info = new kendomodo.GeoPlaceEditorInfo(model);");
+                O($"var info = new kendomodo.ui.GeoPlaceEditorInfo(model);");
                 if (geoConfig.SourcePropMap != null)
                 {
                     OB("info.map(");

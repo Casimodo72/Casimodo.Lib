@@ -127,12 +127,6 @@ namespace Casimodo.Lib.Mojen
             else
                 OJsImmediateBegin("space");
 
-            // Global data source accessor.
-            O();
-            OB($"space.getDataSource = function ()");
-            O("return space.createViewModel().createDataSource();");
-            End(";");
-
             GenerateJSViewModel(context);
 
             // Non-view-model functions.
@@ -548,7 +542,8 @@ namespace Casimodo.Lib.Mojen
             //    O("autoBind: space.options.isManualDataLoad ? false : true,");
 
             // NOTE: The data source options are created by the view model.
-            O("dataSource: space.vm.createDataSourceOptions(),");
+            O("dataSource: space.vm.createDataSource(),");
+            // TOOD: REMOVE: O("dataSource: space.vm.createDataSourceOptions(),");
         }
 
         void GenerateColumns(WebViewGenContext context)

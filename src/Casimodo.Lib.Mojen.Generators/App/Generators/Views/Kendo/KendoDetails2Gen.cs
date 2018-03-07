@@ -64,10 +64,14 @@ namespace Casimodo.Lib.Mojen
             {
                 OB($"<div class='standalone-details-view' id='view-{context.View.Id}'>");
 
+                // Toolbar
                 OB("<div class='details-view-toolbar'>");
 
-                // Refresh button
-                O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
+                // Title in toolbar.
+                O("<div class='details-view-title'></div>");
+
+                // Command buttons.
+                OB("<div class='details-view-commands'>");
 
                 // Edit button
                 if (context.View.CanEdit)
@@ -77,7 +81,12 @@ namespace Casimodo.Lib.Mojen
                     O("<button type='button' class='k-button btn edit-command' style='display:none'><span class='k-icon k-edit'></span></button>");
                 }
 
-                OE("</div>");
+                // Refresh button
+                O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
+
+                OE("</div>"); // Commands
+
+                OE("</div>"); // Toolbar
 
                 OB("<div class='details-view-content'>");
             }

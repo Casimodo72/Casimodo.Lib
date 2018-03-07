@@ -116,53 +116,69 @@ namespace Casimodo.Lib.Mojen
             OJsObjectLiteral(options.Elem, trailingNewline: false, trailingComma: false);
         }
 
-        public void OStandaloneEditorViewModel(MojViewConfig view, string componentName = null)
+        public void OStandaloneEditorViewModel(WebViewGenContext context, string componentName = null)
         {
             // View model for standalone editor views.
 
+            var view = context.View;
+
             OJsImmediateBegin("space");
 
-            var transportConfig = this.CreateODataTransport(view, view);
-
-            var config = new KendoDataSourceConfig
-            {
-                TypeConfig = view.TypeConfig,
-                TransportType = "odata-v4",
-                UseODataActions = true,
-                TransportConfig = transportConfig,
-                ModelFactory = "createDataModel()",
-                CanEdit = view.CanEdit,
-                CanCreate = view.CanCreate,
-                CanDelete = view.CanDelete,
-                PageSize = 1
-            };
-
-            O($"var args = casimodo.ui.dialogArgs.consume('{view.Id}');");
-
-            // KABU TODO: REVISIT: document.scriptElement does not work here, because
-            // Chrome and Firefox will move the script elements from their original location to somewhere else.
-            // Such a pity.
-            O($"var $view = $('#view-{view.Id}');");
-            // Create a dummy view model, because we don't use one.
-            O("space.vm = {}");
+            // View model factory function.
             O();
-            OB("function createDataModel ()");
-            OB("return");
-            GenerateDataSourceModel(transportConfig.ModelProps);
-            End();
-            End();
+            OB($"space.createViewModel = function ()");
+            O("if (space.vm) return space.vm;");
+            O();
+            OJsViewModelClass("ViewModel", extends: "kendomodo.ui.DetailsEditorViewModel",
+                construct: null,
+                content: () =>
+                {
+                    var transportConfig = this.CreateODataTransport(view, view);
+
+                    OB("fn.createDataModel = function ()");
+                    OB("return");
+                    GenerateDataSourceModel(transportConfig.ModelProps);
+                    End(";");
+                    End(";");
+
+                    O();
+                    ODataSourceOptionsFactory(context, () =>
+                    {
+                        ODataSourceOptions(new KendoDataSourceConfig
+                        {
+                            TypeConfig = view.TypeConfig,
+                            TransportType = "odata-v4",
+                            UseODataActions = true,
+                            TransportConfig = transportConfig,
+                            ModelFactory = "this.createDataModel()",
+                            CanEdit = view.CanEdit,
+                            CanCreate = view.CanCreate,
+                            CanDelete = view.CanDelete,
+                            PageSize = 1
+                        });
+                    });
+                });
 
             O();
-            OB("var ds = new kendo.data.DataSource(");
-            ODataSource(config);
+            OB("space.vm = new ViewModel(");
+            O("space: space,");
+            OJsViewModelConstructorOptions(context, isList: false);
             End(");");
 
             O();
-            O("kendomodo.initStandaloneEditorDialog($view, args, ds);");
+            O("space.vm.init();");
 
             O();
-            O($"ds.filter({{ field: '{config.TypeConfig.Key.Name}', operator: 'eq', value: args.value }});");
+            O("return space.vm;");
 
+            End(";"); // View model factory.
+
+            O();
+            O("space.create();");
+            O($"space.vm.setArgs(casimodo.ui.dialogArgs.consume('{view.Id}'));");
+            O($"space.vm.edit();");
+
+            O();
             OJsImmediateEnd(BuildNewComponentSpace(componentName));
         }
 
@@ -181,7 +197,7 @@ namespace Casimodo.Lib.Mojen
             OB($"space.createViewModel = function ()");
             O("if (space.vm) return space.vm;");
             O();
-            OJsViewModelClass("ViewModel", extends: "kendomodo.EditableDetailsViewModel",
+            OJsViewModelClass("ViewModel", extends: "kendomodo.ui.EditableDetailsViewModel",
                 construct: null,
                 content: () =>
             {
@@ -193,33 +209,24 @@ namespace Casimodo.Lib.Mojen
                 End(";");
                 End(";");
 
-                // Data source factory.
                 O();
-                OB("fn.createDataSource = function ()");
-                O("if (this.dataSource)");
-                O("    return this.dataSource;");
-                O();
-                O("var self = this;");
-                O();
-                OB("this.dataSource = new kendo.data.DataSource(");
-                ODataSource(new KendoDataSourceConfig
+                ODataSourceOptionsFactory(context, () =>
                 {
-                    TypeConfig = view.TypeConfig,
-                    TransportType = "odata-v4",
-                    UseODataActions = true,
-                    TransportConfig = transportConfig,
-                    ModelFactory = "this.createDataModel()",
-                    CanEdit = false,
-                    CanCreate = false,
-                    CanDelete = false,
-                    PageSize = 1
+                    ODataSourceOptions(new KendoDataSourceConfig
+                    {
+                        TypeConfig = view.TypeConfig,
+                        TransportType = "odata-v4",
+                        UseODataActions = true,
+                        TransportConfig = transportConfig,
+                        ModelFactory = "this.createDataModel()",
+                        CanEdit = false,
+                        CanCreate = false,
+                        CanDelete = false,
+                        PageSize = 1
+                    });
                 });
-                O("change: $.proxy(self.onDataSourceChanged, self)");
-                End(");");
-                O();
-                O("return this.dataSource;");
-                End(";");
             });
+
             O();
             OB("space.vm = new ViewModel(");
             O("space: space,");
@@ -234,29 +241,14 @@ namespace Casimodo.Lib.Mojen
                 End();
             }
             End(");");
+
+            O();
+            O("space.vm.init();");
+
             O();
             O("return space.vm;");
-            End(";");
 
-            // KABU TODO: REMOVE
-            //// Component factory function.
-            //OB("space.createComponent = function(options)");
-            //OB($"kendomodo.createStandaloneDetailsComponentOnSpace(");
-            //O("space: space,");
-            //O($"viewId: '{view.Id}',");
-            //O($"title: '{view.TypeConfig.DisplayName}',");
-            //if (view.EditorView != null)
-            //{
-            //    OB("editor:");
-            //    O($"viewId: '{view.EditorView.Id}',");
-            //    O($"url: '{view.EditorView.Url}',");
-            //    O($"width: {MojenUtils.ToJsValue(view.EditorView.Width)},");
-            //    O($"height: {MojenUtils.ToJsValue(view.EditorView.MinHeight)},");
-            //    End();
-
-            //}
-            //End(");");
-            //End(";");
+            End(";"); // View model factory.
 
             OJsImmediateEnd(BuildNewComponentSpace(space));
         }
@@ -273,7 +265,7 @@ namespace Casimodo.Lib.Mojen
             O($"isAuthRequired: {MojenUtils.ToJsValue(view.IsAuthorizationNeeded)},");
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
-            O($"componentId: '{context.ComponentId}',");
+            O("componentId: {0},", string.IsNullOrWhiteSpace(context.ComponentId) ? "null" : $"'{context.ComponentId}'");
         }
 
         public void OJsViewModelClass(string name, string extends, Action construct, Action content)

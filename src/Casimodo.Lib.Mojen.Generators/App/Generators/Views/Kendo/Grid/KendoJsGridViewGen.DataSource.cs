@@ -8,17 +8,9 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoJsGridViewGen
     {
-        void GenerateDataSourceOptions(WebViewGenContext context)
-        {
-            if (Options.IsUsingLocalData)
-                GenerateLocalDataSource(context);
-            else
-                GenerateODataV4DataSource(context);
-        }
-
         // KABU TODO: REVISIT: SignalR example: https://github.com/telerik/ui-for-aspnet-mvc-examples/blob/master/grid/signalR-bound-grid/KendoUIMVC5/Views/Home/Index.cshtml
-
-        void GenerateLocalDataSource(WebViewGenContext context)
+        // KABU TODO: GenerateLocalDataSourceOptons is not used yet.
+        void GenerateLocalDataSourceOptions(WebViewGenContext context)
         {
             O("data: [],");
 
@@ -32,7 +24,7 @@ namespace Casimodo.Lib.Mojen
             End(","); // Schema
         }
 
-        void GenerateODataV4DataSource(WebViewGenContext context)
+        void GenerateODataV4DataSourceOptions(WebViewGenContext context)
         {
             var config = new KendoDataSourceConfig
             {
@@ -47,7 +39,6 @@ namespace Casimodo.Lib.Mojen
                 SelectUrlFactory = "space.vm.createRequestUrl()",
                 // Reload and refresh the whole grid after an update was performed.
                 // We need this because otherwise computed properties won't be updated.
-
                 CanCreate = CanCreate,
                 CanEdit = CanEdit,
                 CanDelete = CanDelete,
@@ -55,13 +46,7 @@ namespace Casimodo.Lib.Mojen
                 IsServerPaging = Options.IsServerPaging
             };
 
-            config.Events.Change = "$.proxy(space.vm.onDataSourceChange, space.vm)";
-            config.Events.Sync = "$.proxy(space.vm.onDataSourceSync, space.vm)";
-            config.Events.Error = "$.proxy(space.vm.onDataSourceError, space.vm)";
-            config.Events.RequestStartFunction = "$.proxy(space.vm.onDataSourceRequestStart, space.vm)";
-            config.Events.RequestEndFunction = "$.proxy(space.vm.onDataSourceRequestEnd, space.vm)";
-
-            KendoGen.ODataSource(config);
+            KendoGen.ODataSourceOptions(config);
         }
     }
 }

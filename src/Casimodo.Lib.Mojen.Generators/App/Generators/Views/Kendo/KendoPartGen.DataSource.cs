@@ -5,16 +5,6 @@ using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class KendoDataSourceEventsConfig
-    {
-        public string Change { get; set; }
-        public string Error { get; set; }
-        public string Push { get; set; }
-        public string RequestStartFunction { get; set; }
-        public string RequestEndFunction { get; set; }
-        public string Sync { get; set; }
-    }
-
     public class KendoDataSourceConfig
     {
         public MojType TypeConfig { get; set; }
@@ -27,7 +17,6 @@ namespace Casimodo.Lib.Mojen
         public MojViewProp[] InitialSortProps { get; set; }
         public string ModelFactory { get; set; }
         public string SelectUrlFactory { get; set; }
-        public KendoDataSourceEventsConfig Events { get; set; } = new KendoDataSourceEventsConfig();
         public bool CanCreate { get; set; }
         public bool CanEdit { get; set; }
         public bool CanDelete { get; set; }
@@ -37,7 +26,24 @@ namespace Casimodo.Lib.Mojen
 
     public partial class KendoPartGen : WebPartGenerator
     {
-        public void ODataSource(KendoDataSourceConfig config)
+
+        public void ODataSourceOptionsFactory(WebViewGenContext context, Action options)
+        {
+            OB("fn.createDataSourceOptions = function ()");
+            O("if (this.dataSourceOptions) return this.dataSourceOptions;");
+            OB("this.dataSourceOptions =");
+
+            options();
+
+            End(";");
+
+            O();
+            O("return this.dataSourceOptions;");
+
+            End(";"); // Data source options factory.
+        }
+
+        public void ODataSourceOptions(KendoDataSourceConfig config)
         {
             var transport = config.TransportConfig;
 
@@ -45,21 +51,11 @@ namespace Casimodo.Lib.Mojen
 
             ODataSourceOrderBy(config);
 
+            // KABU TODO: REMOVE? We moved attaching to handlers to the JS view model code.
             // Data source events            
             if (config.TransportType == "odata-v4")
             {
-                if (config.Events.Change != null)
-                    O($"change: {config.Events.Change},");
-                if (config.Events.Error != null)
-                    O($"error: {config.Events.Error},");
-                if (config.Events.Push != null)
-                    O($"push: {config.Events.Push},");
-                if (config.Events.RequestStartFunction != null)
-                    O($"requestStart: {config.Events.RequestStartFunction},");
-                if (config.Events.RequestEndFunction != null)
-                    O($"requestEnd: {config.Events.RequestEndFunction},");
-                if (config.Events.Sync != null)
-                    O($"sync: {config.Events.Sync},");
+                // Nop anymore.
             }
             else
             {

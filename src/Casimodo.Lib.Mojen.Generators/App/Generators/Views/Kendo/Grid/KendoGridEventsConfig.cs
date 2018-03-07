@@ -69,18 +69,19 @@ namespace Casimodo.Lib.Mojen
 
         public KendoWebGridEventsConfig()
         {
-            UseComponentEvent(KendoGridEvent.DataBinding, exists: true);
-            UseComponentEvent(KendoGridEvent.DataBound, exists: true);
-            UseComponentEvent(KendoGridEvent.Changed, "Change", exists: true);
-            UseComponentEvent(KendoGridEvent.BeforeEditing, "BeforeEdit");
             UseComponentEvent(KendoGridEvent.Editing, "Edit");
-            UseComponentEvent(KendoGridEvent.Removing, "Remove");
-            UseComponentEvent(KendoGridEvent.Saving, "Save", exists: true);
-            UseComponentEvent(KendoGridEvent.Syncing, "Sync", exists: true);
-            UseComponentEvent(KendoGridEvent.Cancelling, "Cancel", exists: true);
-            UseComponentEvent(KendoGridEvent.DetailInit, "DetailInit", exists: true);
-            UseComponentEvent(KendoGridEvent.DetailExpanding, "DetailExpand", exists: true);
-            UseComponentEvent(KendoGridEvent.DetailCollapsing, "DetailCollapse", exists: true);
+            // KABU TODO: REMOVE: Moved attaching handlers to the JS grid view model.
+            //UseComponentEvent(KendoGridEvent.DataBinding, exists: true);
+            //UseComponentEvent(KendoGridEvent.DataBound, exists: true);
+            //UseComponentEvent(KendoGridEvent.Changed, "Change", exists: true);
+            //UseComponentEvent(KendoGridEvent.BeforeEditing, "BeforeEdit");          
+            //UseComponentEvent(KendoGridEvent.Removing, "Remove");
+            //UseComponentEvent(KendoGridEvent.Saving, "Save", exists: true);
+            //UseComponentEvent(KendoGridEvent.Syncing, "Sync", exists: true);
+            //UseComponentEvent(KendoGridEvent.Cancelling, "Cancel", exists: true);
+            //UseComponentEvent(KendoGridEvent.DetailInit, "DetailInit", exists: true);
+            //UseComponentEvent(KendoGridEvent.DetailExpanding, "DetailExpand", exists: true);
+            //UseComponentEvent(KendoGridEvent.DetailCollapsing, "DetailCollapse", exists: true);
         }
 
         public string ComponentName { get; set; }

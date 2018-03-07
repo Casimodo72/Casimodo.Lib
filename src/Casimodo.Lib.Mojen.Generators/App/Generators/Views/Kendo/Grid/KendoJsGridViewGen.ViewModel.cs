@@ -13,7 +13,7 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            KendoGen.OJsViewModelClass("ViewModel", extends: "kendomodo.GridViewModel",
+            KendoGen.OJsViewModelClass("ViewModel", extends: "kendomodo.ui.GridViewModel",
             construct: () =>
             {
                 O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
@@ -65,16 +65,18 @@ namespace Casimodo.Lib.Mojen
 
                 // Data source options factory.
                 O();
-                OB("fn.createDataSourceOptions = function ()");
-                O("if (this.dataSourceOptions) return this.dataSourceOptions;");
-                OB("this.dataSourceOptions =");
-                GenerateDataSourceOptions(context);
-                End(";");
-                // Set initial filters.
-                O("if (this.filters.length)");
-                O("    this.dataSourceOptions.filter = { filters: this.filters };");
-                O("return this.dataSourceOptions;");
-                End(";"); // Data source options factory.
+                KendoGen.ODataSourceOptionsFactory(context, () => GenerateODataV4DataSourceOptions(context));
+                // KABU TODO: REMOVE
+                //OB("fn.createDataSourceOptions = function ()");
+                //O("if (this.dataSourceOptions) return this.dataSourceOptions;");
+                //OB("this.dataSourceOptions =");
+                //GenerateODataV4DataSourceOptions(context);
+                //End(";");
+                //// Set initial filters.
+                //O("if (this.filters.length)");
+                //O("    this.dataSourceOptions.filter = { filters: this.filters };");
+                //O("return this.dataSourceOptions;");
+                //End(";"); // Data source options factory.
 
                 // Define main event handler functions and call each specific function.
                 foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer && !x.IsExistent))

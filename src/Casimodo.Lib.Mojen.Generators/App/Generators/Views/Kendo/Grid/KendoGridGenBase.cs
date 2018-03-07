@@ -38,6 +38,9 @@ namespace Casimodo.Lib.Mojen
 
         public bool? IsDeletable { get; set; }
 
+        /// <summary>
+        /// NOTE: Not used yet. Intended for in-memory data source.
+        /// </summary>
         public bool IsUsingLocalData { get; set; }
 
         public bool IsHeaderVisible { get; set; } = true;
