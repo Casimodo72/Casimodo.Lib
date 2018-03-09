@@ -341,7 +341,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Type.IsNumber)
             {
-                ONumericInput(prop, propPath);
+                ONumericInput(vprop, prop, propPath);
                 validationBox = false;
             }
             // KABU TODO: REMOVE?: We don't use the MVC wrapper anymore.
@@ -502,7 +502,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Type.IsTimeSpan)
             {
-                OTimeSpanInput(prop, propPath);
+                OTimeSpanInput(vprop, prop, propPath);
             }
             else if (prop.Type.IsString)
             {

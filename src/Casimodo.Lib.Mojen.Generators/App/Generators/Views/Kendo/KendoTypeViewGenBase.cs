@@ -204,9 +204,11 @@ namespace Casimodo.Lib.Mojen
 
             if (item.IsContainer)
             {
-                OContainerBegin(context, item);
-                OAny(context, item.Child);
-                OContainerEnd(context, item);
+                if (OContainerBegin(context, item))
+                {
+                    OAny(context, item.Child);
+                    OContainerEnd(context, item);
+                }
 
                 if (next)
                     OAny(context, item.Next);
@@ -465,7 +467,7 @@ namespace Casimodo.Lib.Mojen
             return $"col-sm-{span}";
         }
 
-        public virtual void OContainerBegin(WebViewGenContext context, ViewTemplateItem cur)
+        public virtual bool OContainerBegin(WebViewGenContext context, ViewTemplateItem cur)
         {
             if (cur.Directive == "grid")
             {
@@ -480,17 +482,42 @@ namespace Casimodo.Lib.Mojen
             }
             else if (cur.Directive == "group-box")
             {
+                var @class = "panel panel-default";
                 var predicate = "";
-                if (cur.VisibilityPredicate != null)
+
+                if (cur.VisibilityCondition as MojFormedType != null)
                 {
-                    predicate = $" data-bind='visible: {GetBinding(cur.VisibilityPredicate)}'";
+                    predicate = $" data-bind='visible: {GetBinding(cur.VisibilityCondition)}'";
                 }
 
-                OB($"<div class='panel panel-default'{predicate}>");
+                if (cur.VisibilityCondition as MojViewMode? != null)
+                {
+                    var hideModes = (MojViewMode)cur.VisibilityCondition;
+
+                    if (context.View.IsEditor)
+                    {
+                        if (hideModes.HasFlag(MojViewMode.Create))
+                            @class += " hide-on-Create";
+
+                        if (hideModes.HasFlag(MojViewMode.Update))
+                            @class += " hide-on-Update";
+                    }
+
+                    if (!context.View.IsEditor && hideModes.HasFlag(MojViewMode.Read))
+                    {
+                        // If read-only view and shall not be visible:
+                        //   Skip this container entirely.
+                        return false;
+                    }
+                }
+
+                OB($"<div class='{@class}'{predicate}>");
                 O("<div class='panel-heading'>{0}</div>", cur.TextValue);
 
                 OB($"<div class='panel-body'{GetCssStyle(context, cur)}>");
             }
+
+            return true;
         }
 
         public virtual void OContainerEnd(WebViewGenContext context, ViewTemplateItem cur)

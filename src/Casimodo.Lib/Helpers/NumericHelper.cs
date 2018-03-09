@@ -30,15 +30,6 @@ namespace Casimodo.Lib
                  type == typeof(ushort));
         }
 
-        // KABU TODO: REMOVE: Too easily used on the wrong objects.
-        //public static bool IsNumber(this object obj)
-        //{
-        //    if (ReferenceEquals(obj, null))
-        //        return false;
-
-        //    return IsNumber(obj.GetType());
-        //}
-
         public static bool IsNumber(this Type type)
         {
             if (type == null) return false;
@@ -51,6 +42,14 @@ namespace Casimodo.Lib
                     type != typeof(IntPtr) &&
                     type != typeof(UIntPtr);
             }
+
+            return type == typeof(decimal);
+        }
+
+        public static bool IsDecimal(this Type type)
+        {
+            if (type == null) return false;
+            type = Nullable.GetUnderlyingType(type) ?? type;
 
             return type == typeof(decimal);
         }

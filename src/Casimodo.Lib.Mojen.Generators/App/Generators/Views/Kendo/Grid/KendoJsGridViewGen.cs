@@ -129,24 +129,6 @@ namespace Casimodo.Lib.Mojen
 
             GenerateJSViewModel(context);
 
-            // Non-view-model functions.
-            // KABU TODO: REMOVE? There's no scenario anymore.
-            var funcs = JsFuncs.Functions.Where(x => !x.IsModelPart && x.Body != null).ToArray();
-            if (funcs.Any())
-                throw new MojenException("Scenario for generation of non-model functions is not supported anymore.");
-#if (false)
-            if (funcs.Any())
-            {
-                O();
-                foreach (var func in funcs)
-                {
-                    OB($"function {func.FunctionName} (e)");
-                    func.Body(context);
-                    End();
-                }
-            }
-#endif
-
             if (context.View.IsViewless)
             {
                 GenerateComponentOptionsFactory(context);
@@ -337,18 +319,15 @@ namespace Casimodo.Lib.Mojen
 
             O($"scrollable: {MojenUtils.ToJsValue(Options.IsScrollable)},");
 
+            // KABU TODO: REMOVE: All events will now be atteched in the view model.
             // Grid events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            O("// Events");
-            foreach (var handler in JsFuncs.ComponentEventHandlers)
-            {
-                // E.g "save: kendomodo.onGridSaving,"
-                var eve = FirstCharToLower(handler.ComponentEventName);
-
-                if (handler.IsModelPart)
-                    O($"{eve}: $.proxy(space.vm.{handler.FunctionName}, space.vm),");
-                else
-                    O($"{eve}: {handler.FunctionName},");
-            }
+            //O("// Events");
+            //foreach (var handler in JsFuncs.EventHandlers)
+            //{
+            //    // E.g "save: kendomodo.onGridSaving,"
+            //    var eve = FirstCharToLower(handler.ComponentEventName);
+            //    O($"{eve}: $.proxy(space.vm.{handler.FunctionName}, space.vm),");
+            //}
 
             // Row selection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if (view.ItemSelection.IsEnabled && !view.ItemSelection.UseCheckBox)
@@ -989,24 +968,6 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 #endif
-        }
-
-
-        void InterestingJavaScriptStuff()
-        {
-            // Kendo data source ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-            // dataSource.query:
-            // Executes the specified query over the data items. Makes a HTTP request if bound to a remote service.
-            // http://docs.telerik.com/kendo-ui/api/javascript/data/datasource#methods-query
-            // Example:
-            // dataSource.query( {
-            //    sort: [ /* sort descriptors */], 
-            //    group: [ /* group descriptors */ ], 
-            //    page: dataSource.page(), 
-            //    pageSize:
-            //    dataSource.pageSize()
-            // });
         }
     }
 }

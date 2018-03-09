@@ -24,7 +24,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsContainer;
         public bool IsContainerEnd;
         public object GroupObj;
-        public object VisibilityPredicate;
+        public object VisibilityCondition;
 
         public override string ToString()
         {

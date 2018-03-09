@@ -48,5 +48,21 @@ namespace Casimodo.Lib.Mojen
 
             KendoGen.ODataSourceOptions(config);
         }
+
+        void InterestingJavaScriptStuff()
+        {
+            // Kendo data source ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            // dataSource.query:
+            // Executes the specified query over the data items. Makes a HTTP request if bound to a remote service.
+            // http://docs.telerik.com/kendo-ui/api/javascript/data/datasource#methods-query
+            // Example:
+            // dataSource.query( {
+            //    sort: [ /* sort descriptors */], 
+            //    group: [ /* group descriptors */ ], 
+            //    page: dataSource.page(), 
+            //    pageSize: dataSource.pageSize()
+            // });
+        }
     }
 }

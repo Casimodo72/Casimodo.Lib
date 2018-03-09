@@ -13,71 +13,130 @@ namespace Casimodo.Lib.Mojen
     {
         // NumericInput ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        void ONumericInputElemCore(string propPath, int? min, int? max)
+        void ONumericInputElemCore(MojViewProp vprop, MojProp prop, string propPath, int? min = null, int? max = null)
         {
+            min = min ?? prop.Rules.Min;
+            max = max ?? prop.Rules.Max;
+
             Oo("<input");
 
+            oAttr("data-role", "numerictextbox");
+            //oAttr("type", "text");
             oAttr("id", propPath);
             oAttr("name", propPath);
+            oAttr("data-display-name", vprop.DisplayLabel);
+            // data-bind="value: CheckNumber"
+            oAttr("data-bind", $"value: {propPath}");
+
+            if (prop.Name == "Dummy")
+            {
+
+            }
+
+            string format = "";
+            int? decimals = 0;
+            bool spinners = false;
+            if (prop.Type.AnnotationDataType == DataType.Currency)
+            {
+                format = "#.##";
+                decimals = 2;
+            }
+            else if (prop.Type.IsDecimal)
+            {
+
+                // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+                // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+                format = "#.##"; // "{0:#.##}";
+                decimals = prop.Attrs.Find<MojPrecisionAttr>()?.Scale ?? 2;
+            }
+            else
+            {
+                // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+                // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+                format = "#"; // "{0:#.##}";
+                decimals = 0;
+                spinners = true;
+            }
+
+            oAttr("data-decimals", decimals.Value);
+            // KABU TODO: IMPORTANT: KENDO: restrictDecimals is not implemented in our Kendo version.
+            //   It was added in version 2016.2.504.
+            //   See https://www.telerik.com/forums/restrictdecimals-option-not-working
+            oAttr("data-restrict-decimals", "true");
+            oAttr("data-format", format);
+            oAttr("data-spinners", MojenUtils.ToJsValue(spinners));
 
             if (min != null)
             {
                 oAttr("data-val-range-min", min);
-                oAttr("min", min);
+                //oAttr("min", min);
             }
 
             if (max != null)
             {
                 oAttr("data-val-range-max", max);
-                oAttr("max", max);
+                //oAttr("max", max);
             }
 
-            oAttr("type", "text");
+            if (prop.IsRequiredOnEdit)
+                oAttr("required", "");
 
             OElemAttrs();
 
             oO("/>");
+
+            /*
+            <input id="CheckNumber"
+                data-display-name="Kennung"
+                data-role="numerictextbox"
+                data-format="#"
+                data-decimals="0"
+                data-min="1"
+                data-max="9999"
+                data-bind="value: CheckNumber"
+                required="" /> 
+            */
         }
 
-        void ONumericInputElem(MojProp prop, string propPath)
+        void ONumericInputElem(MojViewProp vprop, MojProp prop, string propPath)
         {
-            ONumericInputElemCore(propPath, prop.Rules.Min, prop.Rules.Max);
+            ONumericInputElemCore(vprop, prop, propPath);
         }
 
-        void ONumericInputScriptCore(string propPath, string format, int? decimals)
+        //void ONumericInputScriptCore(string propPath, string format, int? decimals)
+        //{
+        //    Oo($@"jQuery(function(){{ jQuery('#{propPath}').kendoNumericTextBox({{");
+
+        //    // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+        //    // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+        //    o($"'format':'{format}'");
+
+        //    // Decimals                
+        //    if (decimals != null)
+        //        o($",'decimals':{decimals}");
+
+        //    oO("});});");
+        //}
+
+        //void ONumericInputScript(MojProp prop, string propPath)
+        //{
+        //    // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+        //    // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+        //    var format = prop.Type.IsInteger ? "#" : "#.##"; // "{0:#.##}";
+
+        //    // Decimals
+        //    int? decimals = prop.Type.IsInteger ? 0 : (int?)null;
+
+        //    ONumericInputScriptCore(propPath, format, decimals);
+        //}
+
+        void ONumericInput(MojViewProp vprop, MojProp prop, string propPath)
         {
-            Oo($@"jQuery(function(){{ jQuery('#{propPath}').kendoNumericTextBox({{");
+            ONumericInputElem(vprop, prop, propPath);
 
-            // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
-            // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
-            o($"'format':'{format}'");
-
-            // Decimals                
-            if (decimals != null)
-                o($",'decimals':{decimals}");
-
-            oO("});});");
-        }
-
-        void ONumericInputScript(MojProp prop, string propPath)
-        {
-            // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
-            // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
-            var format = prop.Type.IsInteger ? "#" : "#.##"; // "{0:#.##}";
-
-            // Decimals
-            int? decimals = prop.Type.IsInteger ? 0 : (int?)null;
-
-            ONumericInputScriptCore(propPath, format, decimals);
-        }
-
-        void ONumericInput(MojProp prop, string propPath)
-        {
-            ONumericInputElem(prop, propPath);
-
-            OScriptBegin();
-            ONumericInputScript(prop, propPath);
-            OScriptEnd();
+            //OScriptBegin();
+            //ONumericInputScript(prop, propPath);
+            //OScriptEnd();
 
             OValidationMessageElem(prop, propPath);
 
@@ -100,19 +159,19 @@ namespace Casimodo.Lib.Mojen
             */
         }
 
-        void OTimeSpanInput(MojProp prop, string propPath)
+        void OTimeSpanInput(MojViewProp vprop, MojProp prop, string propPath)
         {
             Oo("<div"); OElemAttrs(); oO(">");
             Push();
-            ONumericInputElemCore(propPath + ".Hours", min: 0, max: 23);
-            ONumericInputElemCore(propPath + ".Minutes", min: 0, max: 59);
+            ONumericInputElemCore(vprop, prop, propPath + ".Hours", min: 0, max: 23);
+            ONumericInputElemCore(vprop, prop, propPath + ".Minutes", min: 0, max: 59);
             Pop();
             O("</div>");
 
-            OScriptBegin();
-            ONumericInputScriptCore(propPath + ".Hours", format: "#", decimals: 0);
-            ONumericInputScriptCore(propPath + ".Minutes", format: "#", decimals: 0);
-            OScriptEnd();
+            //OScriptBegin();
+            //ONumericInputScriptCore(vprop, prop, propPath + ".Hours", format: "#", decimals: 0);
+            //ONumericInputScriptCore(propPath + ".Minutes", format: "#", decimals: 0);
+            //OScriptEnd();
 
             OValidationMessageElem(prop, propPath + ".Hours");
             OValidationMessageElem(prop, propPath + ".Minutes");

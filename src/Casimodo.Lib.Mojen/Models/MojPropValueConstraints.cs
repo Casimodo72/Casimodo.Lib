@@ -42,6 +42,11 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsNotRequired { get; set; }
 
+        /// <summary>
+        /// Indicates whether a value is required when being edited.
+        /// Has nothing to do with the database.
+        /// Does *not* reflect whether the value is required in the *database*.
+        /// </summary>
         [DataMember]
         public bool IsLocallyRequired { get; set; }
 

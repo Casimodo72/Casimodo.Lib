@@ -104,9 +104,9 @@ namespace Casimodo.Lib.Mojen
             var item = Items.FirstOrDefault(x => x.TargetScenario == scenario);
             if (item == null)
                 return;
-            
+
             Items.Remove(item);
-        }        
+        }
 
         void CheckIs()
         {
@@ -121,11 +121,51 @@ namespace Casimodo.Lib.Mojen
         {
             Name = "DefaultValue";
             Value = value;
-            CArg(null, value, type);
+            CArg("value", value, type);
         }
 
         [DataMember]
         public object Value { get; set; }
+    }
+
+    public abstract class MojAttrAccessor
+    {
+        public string Name { get; protected set; }
+        public MojAttr Attr { get; set; }
+    }
+
+    public class MojPrecisionAttr : MojAttrAccessor
+    {
+        public MojPrecisionAttr()
+        {
+            Name = "Precision";
+        }
+
+        public int Precision
+        {
+            get { return (int)Attr.Args.GetValue("precision"); }
+        }
+
+        public int Scale
+        {
+            get { return (int)Attr.Args.GetValue("scale"); }
+        }
+    }
+
+    public class MojAttrArgs : List<MojAttrArg>
+    {
+        public MojAttrArgs()
+        { }
+
+        public MojAttrArgs(IEnumerable<MojAttrArg> collection)
+            : base(collection)
+        { }
+
+        public object GetValue(string name)
+        {
+            name = name.ToLower();
+            return this.First(x => x.SearchName == name).Value;
+        }
     }
 
     [DataContract(Namespace = MojContract.Ns)]
@@ -138,7 +178,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojAttr()
         {
-            Args = new List<MojAttrArg>();
+            Args = new MojAttrArgs();
         }
 
         public MojAttr(string name, int order)
@@ -155,7 +195,7 @@ namespace Casimodo.Lib.Mojen
         public int Position { get; set; }
 
         [DataMember]
-        public List<MojAttrArg> Args { get; private set; }
+        public MojAttrArgs Args { get; private set; }
 
         // KABU TODO: REMOVE?
         //[DataMember]
@@ -164,7 +204,7 @@ namespace Casimodo.Lib.Mojen
         public MojAttr Clone()
         {
             var clone = (MojAttr)MemberwiseClone();
-            clone.Args = new List<MojAttrArg>(Args.Select(x => x.Clone()));
+            clone.Args = new MojAttrArgs(Args.Select(x => x.Clone()));
 
             return clone;
         }
@@ -212,16 +252,11 @@ namespace Casimodo.Lib.Mojen
 
         MojAttr ArgCore(bool isConstructor, string name, object value, Type type = null, bool verbatim = false)
         {
+            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+
             type = type ?? (value != null ? (Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType()) : null);
 
-            if (!isConstructor && string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException("name");
-
-            // KABU TODO: REMOVE: We want to support null values.
-            //if (string.IsNullOrWhiteSpace(valueStr))
-            //    throw new ArgumentNullException("valueStr");
-
-            Args.Add(new MojAttrArg { IsConstructorArg = isConstructor, Name = name, Value = value, ValueType = type, IsVerbatim = verbatim });
+            Add(new MojAttrArg { IsConstructorArg = isConstructor, Name = name, Value = value, ValueType = type, IsVerbatim = verbatim });
 
             return this;
         }
@@ -229,9 +264,15 @@ namespace Casimodo.Lib.Mojen
         public MojAttr ErrorArg(string errorMessage)
         {
             if (!string.IsNullOrWhiteSpace(errorMessage))
-                Args.Add(new MojAttrArg { Name = "ErrorMessage", Value = errorMessage, ValueType = typeof(string) });
+                Add(new MojAttrArg { Name = "ErrorMessage", Value = errorMessage, ValueType = typeof(string) });
 
             return this;
+        }
+
+        void Add(MojAttrArg arg)
+        {
+            arg.SearchName = arg.Name.ToLower();
+            Args.Add(arg);
         }
 
         public override string ToString()

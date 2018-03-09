@@ -377,9 +377,9 @@ namespace Casimodo.Lib.Mojen
                 Required();
 
                 if (PropConfig.Type.TypeNormalized == typeof(int))
-                    Attr(new MojAttr("DatabaseGenerated", 2).CArg(null, "DatabaseGeneratedOption.Identity", typeof(Enum))); // databaseGeneratedOption
+                    Attr(new MojAttr("DatabaseGenerated", 2).CArg("databaseGeneratedOption", "DatabaseGeneratedOption.Identity", typeof(Enum))); // databaseGeneratedOption
                 else
-                    Attr(new MojAttr("DatabaseGenerated", 2).CArg(null, "DatabaseGeneratedOption.None", typeof(Enum)));
+                    Attr(new MojAttr("DatabaseGenerated", 2).CArg("databaseGeneratedOption", "DatabaseGeneratedOption.None", typeof(Enum)));
             }
 
             PropConfig.IsSortable = false;

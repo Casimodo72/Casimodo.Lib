@@ -579,8 +579,19 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        void CheckViewId()
+        {
+            if (string.IsNullOrWhiteSpace(View.Id))
+                throw new MojenException($"The view for '{View.TypeConfig.Name}' has no ID.");
+        }
+
         public MojViewBuilder EditorView(MojViewConfig view)
         {
+            CheckViewId();
+
+            if (view.Id == null)
+                view.Id = View.Id;
+
             View.EditorView = view;
 
             if (view != null)
@@ -605,6 +616,11 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder InlineDetailsView(MojViewConfig view)
         {
+            CheckViewId();
+
+            if (view.Id == null)
+                view.Id = View.Id;
+
             View.InlineDetailsView = view;
 
             return this;
@@ -884,7 +900,14 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder ShowIf(MojFormedType prop)
         {
-            View.Template.Cur.VisibilityPredicate = prop;
+            View.Template.Cur.VisibilityCondition = prop;
+
+            return this;
+        }
+
+        public MojViewBuilder ShowOn(MojViewMode mode)
+        {
+            View.Template.Cur.VisibilityCondition = MojViewMode.All & ~mode;
 
             return this;
         }

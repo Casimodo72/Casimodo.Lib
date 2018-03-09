@@ -26,6 +26,8 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string Name { get; set; }
 
+        public string SearchName { get; set; }
+
         [DataMember]
         public bool IsConstructorArg { get; set; }
 
@@ -83,6 +85,8 @@ namespace Casimodo.Lib.Mojen
         {
             if (_valueTypeName != null)
                 ValueType = Type.GetType(_valueTypeName);
+            if (Name != null)
+                SearchName = Name.ToLower();
         }
     }
 }

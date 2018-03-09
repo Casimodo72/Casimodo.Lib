@@ -8,6 +8,23 @@ namespace Casimodo.Lib.Mojen
     [Serializable]
     public class MojAttrs : List<MojAttr>
     {
+        static readonly List<MojAttrAccessor> _registeredAttrs = new List<MojAttrAccessor>();
+
+        static MojAttrs()
+        {
+            Add(new MojPrecisionAttr());
+        }
+
+        static void Add(MojAttrAccessor attr)
+        {
+            _registeredAttrs.Add(attr);
+        }
+
+        void Test()
+        {
+            Type t = typeof(MojPrecisionAttr);
+        }
+
         public MojAttrArg GetDefaultValueArg()
         {
             var item = this.FirstOrDefault(x => x.Name == "DefaultValue");
@@ -25,7 +42,7 @@ namespace Casimodo.Lib.Mojen
 
 
             var arg = item.Args.First();
-            return (string)arg.Value;           
+            return (string)arg.Value;
         }
 
         public void AddOrReplace(MojAttr attr)
@@ -54,6 +71,22 @@ namespace Casimodo.Lib.Mojen
         public MojAttr Find(string name)
         {
             return this.FirstOrDefault(x => x.Name == name);
+        }
+
+        public T Find<T>() where T : MojAttrAccessor, new()
+        {
+            var accessor = _registeredAttrs.OfType<T>().FirstOrDefault();
+            if (accessor == null)
+                return null;
+
+            var attr = this.FirstOrDefault(x => x.Name == accessor.Name);
+            if (attr == null)
+                return null;
+
+            return new T
+            {
+                Attr = attr
+            };
         }
 
         public MojAttr FindOrCreate(string name, int order)

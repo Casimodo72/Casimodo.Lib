@@ -19,6 +19,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     View = view
                 };
+
                 PerformWrite(view, () => GenerateView(context));
 
                 if (view.Standalone.Is)

@@ -239,7 +239,7 @@ namespace Casimodo.Lib.Mojen
                 Type(typeof(decimal?));
             else
                 Type(typeof(decimal));
-            
+
             return This();
         }
 
@@ -247,21 +247,22 @@ namespace Casimodo.Lib.Mojen
         {
             Decimal(nullable: nullable);
             Precision(19, 4);
+            Type(DataType.Currency);
             return This();
         }
 
         public TPropBuilder VatPercent(bool nullable = true)
         {
-            Decimal(nullable: nullable);            
+            Decimal(nullable: nullable);
             Precision(19, 2);
             return This();
         }
 
         public TPropBuilder Precision(byte precision, byte scale, string error = null)
         {
-            return Attr(new MojAttr("Precision", 4).CArg("precision", precision).CArg("scale", scale)
+            return Attr(new MojAttr("Precision", 4).CArg("precision", (int)precision).CArg("scale", (int)scale)
                 .ErrorArg(error));
-        }        
+        }
 
         public TPropBuilder Date(bool nullable = true)
         {
@@ -302,7 +303,7 @@ namespace Casimodo.Lib.Mojen
 
             var info = PropConfig.Type.DateTimeInfo;
             info.IsDate = date;
-            info.IsTime = time;            
+            info.IsTime = time;
             info.IsLocal = time && local;
             info.DisplayMillisecondDigits = ms;
 

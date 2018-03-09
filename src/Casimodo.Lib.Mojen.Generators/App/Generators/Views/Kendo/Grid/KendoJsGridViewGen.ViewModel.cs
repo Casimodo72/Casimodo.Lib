@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Mojen
             var view = context.View;
 
             KendoGen.OJsViewModelClass("ViewModel", extends: "kendomodo.ui.GridViewModel",
-            construct: () =>
+            constructor: () =>
             {
                 O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
                 if (HasViewModelExtension)
@@ -66,51 +66,36 @@ namespace Casimodo.Lib.Mojen
                 // Data source options factory.
                 O();
                 KendoGen.ODataSourceOptionsFactory(context, () => GenerateODataV4DataSourceOptions(context));
-                // KABU TODO: REMOVE
-                //OB("fn.createDataSourceOptions = function ()");
-                //O("if (this.dataSourceOptions) return this.dataSourceOptions;");
-                //OB("this.dataSourceOptions =");
-                //GenerateODataV4DataSourceOptions(context);
-                //End(";");
-                //// Set initial filters.
-                //O("if (this.filters.length)");
-                //O("    this.dataSourceOptions.filter = { filters: this.filters };");
-                //O("return this.dataSourceOptions;");
-                //End(";"); // Data source options factory.
 
                 // Define main event handler functions and call each specific function.
-                foreach (var item in JsFuncs.ComponentEventHandlers.Where(x => x.IsContainer && !x.IsExistent))
+                foreach (var item in JsFuncs.EventHandlers.Where(x => x.IsContainer && !x.IsExistent))
                 {
                     O();
                     OB($"fn.{item.FunctionName} = function (e)");
 
-                    foreach (var func in item.BodyFunctions)
+                    if (item.Call != null)
+                        O(item.Call);
+
+                    item.Body?.Invoke(context);
+
+                    foreach (var child in item.Children)
                     {
-                        if (func.Call != null)
-                        {
-                            O(func.Call);
-                        }
-                        else if (func.FunctionName != null)
-                        {
-                            if (func.IsModelPart)
-                                O($"this.{func.FunctionName}(e);");
-                            else
-                                O($"{func.FunctionName}(e);");
-                        }
+                        if (child.Call != null)
+                            O(child.Call);
+
+                        if (child.FunctionName != null)
+                            O($"this.{child.FunctionName}(e);");
                     }
 
+                    // KABU TODO: REMOVE?
                     // Re-trigger the widget's event using the widget's name for the event.
-                    O($"this.trigger('{item.Event.ToString().FirstLetterToLower()}', e);");
-
-                    if (item.Event == KendoGridEvent.Changed)
-                        // Call view model's current item changed handler.
-                        O("this.onCurrentItemChanged();");
+                    //O($"this.trigger('{item.Event.ToString().FirstLetterToLower()}', e);");
 
                     End(";");
                 }
 
                 // View model functions.
-                foreach (var func in JsFuncs.Functions.Where(x => x.IsModelPart && x.Body != null))
+                foreach (var func in JsFuncs.Functions.Where(x => x.Body != null))
                 {
                     O();
                     OB($"fn.{func.FunctionName} = function (e)");
@@ -148,86 +133,32 @@ namespace Casimodo.Lib.Mojen
             End(";"); // ViewModel factory function.                        
         }
 
-        protected void InitEvents(WebViewGenContext context)
+        void InitEvents(WebViewGenContext context)
         {
             JsFuncs.ComponentName = context.ComponentName;
             JsFuncs.ViewModel = context.ComponentViewModelName;
 
             if (EditorView != null)
             {
-                JsFuncs.Add(KendoGridEvent.Editing).Call = "this.onComponentEditingBase(e);";
-                JsFuncs.Add(KendoGridEvent.Editing, "Hide").Body = GenVM_JS_OnEditing_Hide;
-                JsFuncs.Add(KendoGridEvent.Editing, "OnPropChanged").Body = GenVM_JS_OnEditing_OnPropChanged;
-                JsFuncs.Add(KendoGridEvent.Editing, "QueryReferencedObject").Body = GenVM_JS_OnEditing_QueryReferencedObject;
-                JsFuncs.Add(KendoGridEvent.Editing, "ExtendEditModel").Body = GenVM_JS_OnEditing_ExtendEditModel;
-            }
-            else
-            {
-                JsFuncs.RemoveComponentEventHandler(KendoGridEvent.Editing);
-                JsFuncs.RemoveComponentEventHandler(KendoGridEvent.BeforeEditing);
-            }
-
-            if (InlineDetailsView == null)
-            {
-                JsFuncs.RemoveComponentEventHandler(KendoGridEvent.DetailInit);
-                JsFuncs.RemoveComponentEventHandler(KendoGridEvent.DetailExpanding);
-                JsFuncs.RemoveComponentEventHandler(KendoGridEvent.DetailCollapsing);
+                JsFuncs.Use(KendoGridEvent.Editing, "edit").Body = GenOnEditing;
             }
         }
 
-        protected void GenVM_JS_OnEditing(WebViewGenContext context)
+        void GenOnEditing(WebViewGenContext context)
         {
-            // KABU TODO: REVISIT: Currently this is all not needed anymore/yet.
-            return;
+            O("var self = this;");
+            O("var item = e.model;");
 
-#pragma warning disable CS0162
-            O("// Assign the edited data item to ViewModel.editItem.");
-            O($"{context.ComponentViewModelName}.set('editItem', e.model);");
-
-            //var editorView = $("div.k-edit-form-container");
-            //editorView.each(function() {
-            //    alert("Editor window found dynamic in global");
-            //    kendo.bind($(this), grid_Contract_MainViewModel);
-            //    return false;
-            //});
-#pragma warning restore CS0162
+            GenOnEditing_Hide(context);
+            GenOnEditing_OnPropChanged(context);
+            GenOnEditing_ExtendEditModel(context);
+            GenOnEditing_QueryReferencedObject(context);
         }
 
-        protected void GenVM_JS_OnEditing_ExtendEditModel(WebViewGenContext context)
+        void GenOnEditing_Hide(WebViewGenContext context)
         {
-            var view = EditorView;
-            var type = EditorView.TypeConfig;
+            O();
 
-            var vprops = view.Props.Where(x =>
-                x.IsSelector &&
-                // IMPORTANT: Operate on store props.
-                x.StoreOrSelf.DbAnno.Sequence.Is)
-                .ToArray();
-
-            if (!vprops.Any())
-                return;
-
-            O($"var item = e.model;");
-
-            foreach (var vprop in vprops)
-            {
-                // IMPORTANT: Operate on store props.
-                var sprop = vprop.StoreOrSelf;
-
-                OB($"item.set('is{vprop.Name}SelectorEnabled', function ()");
-
-                var expression = sprop.DbAnno.Unique.GetParams()
-                    .Select(per => $"this.get('{per.Prop.Name}') != null")
-                    .Join(" && ");
-
-                O($" return {expression};");
-
-                End(");");
-            }
-        }
-
-        protected void GenVM_JS_OnEditing_Hide(WebViewGenContext context)
-        {
             var hideProps = EditorView.Props.Where(x =>
                 x.HideModes != MojViewMode.None &&
                 x.HideModes != MojViewMode.All)
@@ -235,26 +166,24 @@ namespace Casimodo.Lib.Mojen
 
             // Hide properties on create.
             var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
+            // Execute when the model *is* new.
+            OB("if (e.model.isNew())");
             if (props.Any())
-            {
-                // Execute when the model *is* new.
-                OB("if (e.model.isNew())");
-                GenVM_JS_HideProps(props);
-                End();
-            }
+                GenOnEditing_HideProps(props);
+            O($"$('div.hide-on-Create').remove();");
+            End();
 
             // Hide properties on update.
             props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
+            // Execute when the model is *not* new.
+            OB("if (!e.model.isNew())");
             if (props.Any())
-            {
-                // Execute when the model is *not* new.
-                OB("if (!e.model.isNew())");
-                GenVM_JS_HideProps(props);
-                End();
-            }
+                GenOnEditing_HideProps(props);
+            O($"$('div.hide-on-Update').remove();");
+            End();
         }
 
-        protected void GenVM_JS_HideProps(IEnumerable<MojViewProp> props)
+        void GenOnEditing_HideProps(IEnumerable<MojViewProp> props)
         {
             foreach (var prop in props)
             {
@@ -263,58 +192,9 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        IEnumerable<MiaPropSetterConfig> GetQueryPropSettersOfOnCreateTriggers(MojType queriedForeignType)
-        {
-            var type = View.TypeConfig.RequiredStore;
-            queriedForeignType = queriedForeignType.RequiredStore;
-
-            if (CanCreate)
-            {
-                // Extend the query by props which need to be assigned from a parent
-                // entity to this entity when creating a new entity.
-
-                // KABU TODO: This is for edit-create-mode only, i.e. not for edit-modify-mode.
-                //   We need to know here in which mode we operate.
-
-                foreach (var setter in queriedForeignType.Triggers
-                    .Where(x =>
-                        x.Event == MiaTypeTriggerEventKind.Create &&
-                        x.CrudOp == MojCrudOp.Create &&
-                        x.TargetType == type)
-                    .SelectMany(x => x.Operations.Items)
-                    .OfType<MiaPropSetterConfig>())
-
-                    yield return setter;
-            }
-        }
-
-        IEnumerable<MojDataGraphNode> GetQueryNodesOfPropChangedTriggers(MojType queriedForeignType)
-        {
-            var type = View.TypeConfig.RequiredStore;
-            queriedForeignType = queriedForeignType.RequiredStore;
-
-            // Select prop changed triggers which have value where the foreign type is used.
-            foreach (var setter in type.Triggers
-                .Where(x => x.Event == MiaTypeTriggerEventKind.PropChanged)
-                .SelectMany(x => x.Operations.Items)
-                .OfType<MiaPropSetterConfig>()
-                .Where(x => !x.IsNativeSource))
-            {
-                int stepIndex = setter.Source.FormedNavigationTo.StepIndexOfTarget(queriedForeignType);
-                if (stepIndex != -1)
-                {
-                    QueriedTriggerPropSetters.Add(setter);
-
-                    var node = setter.Source.FormedNavigationTo.BuildDataGraph(startDepth: stepIndex + 1);
-
-                    yield return node;
-                }
-            }
-        }
-
         public List<MiaPropSetterConfig> QueriedTriggerPropSetters { get; set; } = new List<MiaPropSetterConfig>();
 
-        protected void GenVM_JS_OnEditing_OnPropChanged(WebViewGenContext context)
+        void GenOnEditing_OnPropChanged(WebViewGenContext context)
         {
             var type = EditorView.TypeConfig.RequiredStore;
 
@@ -324,20 +204,21 @@ namespace Casimodo.Lib.Mojen
             if (!triggers.Any() && !cascadeTargetProps.Any())
                 return;
 
-            O("var item = e.model;");
+            O();
+           
 
-            OBegin("item.bind('change', function (e)");
+            OBegin("e.model.bind('change', function (e)");
 
             if (triggers.Any())
-                GenVM_JS_OnEditing_OnPropChanged_TriggersCore(context, triggers);
+                GenOnEditing_OnPropChanged_TriggersCore(context, triggers);
 
             if (cascadeTargetProps.Any())
-                GenVM_JS_OnEditing_OnPropChanged_Cascades(context, cascadeTargetProps);
+                GenOnEditing_OnPropChanged_Cascades(context, cascadeTargetProps);
 
             End(");");
         }
 
-        protected void GenVM_JS_OnEditing_OnPropChanged_Cascades(WebViewGenContext context, MojProp[] cascadeTargetProps)
+        void GenOnEditing_OnPropChanged_Cascades(WebViewGenContext context, MojProp[] cascadeTargetProps)
         {
             foreach (var cascadeTargetProp in cascadeTargetProps)
             {
@@ -383,7 +264,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        protected void GenVM_JS_OnEditing_OnPropChanged_TriggersCore(WebViewGenContext context, MiaTypeTriggerConfig[] triggers)
+        void GenOnEditing_OnPropChanged_TriggersCore(WebViewGenContext context, MiaTypeTriggerConfig[] triggers)
         {
             if (!triggers.Any())
                 return;
@@ -399,7 +280,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        protected void GenVM_JS_OnEditing_QueryReferencedObject(WebViewGenContext context)
+        void GenOnEditing_QueryReferencedObject(WebViewGenContext context)
         {
             if (EditorView == null)
                 return;
@@ -428,9 +309,9 @@ namespace Casimodo.Lib.Mojen
             if (!looseReferenceGroups.Any())
                 return;
 
-            O("var item = e.model;");
+            O();
 
-            OB("item.bind('change', function (e)");
+            OB("e.model.bind('change', function (e)");
             foreach (var looseReferenceGroup in looseReferenceGroups)
             {
                 var reference = looseReferenceGroup.First();
@@ -474,11 +355,12 @@ namespace Casimodo.Lib.Mojen
                 foreach (var setter in onCreateTriggerPropSetters)
                     sourceAssignments.Add($"{{ t: '{setter.Target.FormedTargetPath}', s: '{setter.Source.FormedTargetPath}'}}");
 
-                O($"if (e.field === '{reference.ForeignKeyPath}') this._onEditingQueryReferencedObject(" +
+                O($"if (e.field === '{reference.ForeignKeyPath}') self._onEditingQueryReferencedObject(" +
                     $"item, " +
                     $"'{reference.ObjectPath}', " +
-                    $"e.field, '{odataQuery}', " +
+                    $"'{reference.ForeignKeyPath}', " +
                     $"'{reference.ObjectType.Key.Name}', " +
+                    $"'{odataQuery}', " +
                     $"[{sourceAssignments.Join(", ")}]);");
 
                 // Example:
@@ -542,7 +424,89 @@ namespace Casimodo.Lib.Mojen
             // });
         }
 
-        protected KendoGridLookupColInfo GetLookupColInfo(MojViewProp prop)
+        void GenOnEditing_ExtendEditModel(WebViewGenContext context)
+        {
+            var view = EditorView;
+            var type = EditorView.TypeConfig;
+
+            var vprops = view.Props.Where(x =>
+                x.IsSelector &&
+                // IMPORTANT: Operate on store props.
+                x.StoreOrSelf.DbAnno.Sequence.Is)
+                .ToArray();
+
+            if (!vprops.Any())
+                return;
+
+            O();
+
+            foreach (var vprop in vprops)
+            {
+                // IMPORTANT: Operate on store props.
+                var sprop = vprop.StoreOrSelf;
+
+                OB($"item.set('is{vprop.Name}SelectorEnabled', function ()");
+
+                var expression = sprop.DbAnno.Unique.GetParams()
+                    .Select(per => $"this.get('{per.Prop.Name}') != null")
+                    .Join(" && ");
+
+                O($" return {expression};");
+
+                End(");");
+            }
+        }
+
+        IEnumerable<MiaPropSetterConfig> GetQueryPropSettersOfOnCreateTriggers(MojType queriedForeignType)
+        {
+            var type = View.TypeConfig.RequiredStore;
+            queriedForeignType = queriedForeignType.RequiredStore;
+
+            if (CanCreate)
+            {
+                // Extend the query by props which need to be assigned from a parent
+                // entity to this entity when creating a new entity.
+
+                // KABU TODO: This is for edit-create-mode only, i.e. not for edit-modify-mode.
+                //   We need to know here in which mode we operate.
+
+                foreach (var setter in queriedForeignType.Triggers
+                    .Where(x =>
+                        x.Event == MiaTypeTriggerEventKind.Create &&
+                        x.CrudOp == MojCrudOp.Create &&
+                        x.TargetType == type)
+                    .SelectMany(x => x.Operations.Items)
+                    .OfType<MiaPropSetterConfig>())
+
+                    yield return setter;
+            }
+        }
+
+        IEnumerable<MojDataGraphNode> GetQueryNodesOfPropChangedTriggers(MojType queriedForeignType)
+        {
+            var type = View.TypeConfig.RequiredStore;
+            queriedForeignType = queriedForeignType.RequiredStore;
+
+            // Select prop changed triggers which have value where the foreign type is used.
+            foreach (var setter in type.Triggers
+                .Where(x => x.Event == MiaTypeTriggerEventKind.PropChanged)
+                .SelectMany(x => x.Operations.Items)
+                .OfType<MiaPropSetterConfig>()
+                .Where(x => !x.IsNativeSource))
+            {
+                int stepIndex = setter.Source.FormedNavigationTo.StepIndexOfTarget(queriedForeignType);
+                if (stepIndex != -1)
+                {
+                    QueriedTriggerPropSetters.Add(setter);
+
+                    var node = setter.Source.FormedNavigationTo.BuildDataGraph(startDepth: stepIndex + 1);
+
+                    yield return node;
+                }
+            }
+        }
+
+        KendoGridLookupColInfo GetLookupColInfo(MojViewProp prop)
         {
             var info = new KendoGridLookupColInfo();
             var navi = prop.FormedNavigationTo;
@@ -555,7 +519,7 @@ namespace Casimodo.Lib.Mojen
             return info;
         }
 
-        protected class KendoGridLookupColInfo
+        class KendoGridLookupColInfo
         {
             public string Identifier { get; set; }
             public string LookupFunction { get; set; }
@@ -564,7 +528,7 @@ namespace Casimodo.Lib.Mojen
             public string ODataUrl { get; set; }
         }
 
-        protected string GetODataLookupUrl(MojFormedNavigationPath path)
+        string GetODataLookupUrl(MojFormedNavigationPath path)
         {
             var targetType = path.TargetType;
             var targetProp = path.TargetProp;

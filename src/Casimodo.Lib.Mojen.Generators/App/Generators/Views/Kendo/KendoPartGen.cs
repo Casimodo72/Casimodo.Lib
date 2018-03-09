@@ -130,7 +130,7 @@ namespace Casimodo.Lib.Mojen
             O("if (space.vm) return space.vm;");
             O();
             OJsViewModelClass("ViewModel", extends: "kendomodo.ui.DetailsEditorViewModel",
-                construct: null,
+                constructor: null,
                 content: () =>
                 {
                     var transportConfig = this.CreateODataTransport(view, view);
@@ -198,7 +198,7 @@ namespace Casimodo.Lib.Mojen
             O("if (space.vm) return space.vm;");
             O();
             OJsViewModelClass("ViewModel", extends: "kendomodo.ui.EditableDetailsViewModel",
-                construct: null,
+                constructor: null,
                 content: () =>
             {
                 var transportConfig = this.CreateODataTransport(view, null);
@@ -268,7 +268,7 @@ namespace Casimodo.Lib.Mojen
             O("componentId: {0},", string.IsNullOrWhiteSpace(context.ComponentId) ? "null" : $"'{context.ComponentId}'");
         }
 
-        public void OJsViewModelClass(string name, string extends, Action construct, Action content)
+        public void OJsViewModelClass(string name, string extends, Action constructor, Action content)
         {
             Guard.ArgNotNullOrWhitespace(name, nameof(name));
             Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
@@ -282,7 +282,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OB($"function {name}(options)");
             O("_super.call(this, options);");
-            construct?.Invoke();
+            constructor?.Invoke();
             End();
 
             O();

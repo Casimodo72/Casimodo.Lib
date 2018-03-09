@@ -159,6 +159,11 @@ namespace Casimodo.Lib.Mojen
             get { return !IsReference && Type.IsInteger(); }
         }
 
+        public bool IsDecimal
+        {
+            get { return !IsReference && Type.IsDecimal(); }
+        }
+
         public bool IsNumber
         {
             get { return !IsReference && Type.IsNumber(); }
