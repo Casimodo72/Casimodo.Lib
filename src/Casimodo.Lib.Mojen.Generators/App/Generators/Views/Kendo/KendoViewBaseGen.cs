@@ -52,5 +52,17 @@ namespace Casimodo.Lib.Mojen
         {
             OE("</script>");
         }
+
+        protected string GetViewHtmlId(WebViewGenContext context)
+        {
+            if (!context.IsViewIdEnabled)
+                return "";
+
+            CheckViewId(context.View);
+
+            return string.Format(" id='{0}view-{1}'",
+                    (context.ViewRole != null ? context.ViewRole + "-" : ""),
+                    context.View.Id);
+        }
     }
 }

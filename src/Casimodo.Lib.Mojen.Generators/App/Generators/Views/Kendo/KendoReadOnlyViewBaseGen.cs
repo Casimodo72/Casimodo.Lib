@@ -27,9 +27,11 @@ namespace Casimodo.Lib.Mojen
             // See http://www.c-sharpcorner.com/UploadFile/6c9ca8/using-kendo-ui-templates/
             // Render values as HTML: #= #
             // Uses HTML encoding to display values: #: #
-            // Execute arbitrary JavaScript code: # if(...){# ... #}#            
+            // Execute arbitrary JavaScript code: # if(...){# ... #}#
 
-            OB($"<div class='form-horizontal'{GetViewCssStyle(context)}>");
+            OB("<div class='form-horizontal'{0}{1}>",
+                GetViewCssStyle(context),
+                GetViewHtmlId(context));
         }
 
         public override void EndView(WebViewGenContext context)

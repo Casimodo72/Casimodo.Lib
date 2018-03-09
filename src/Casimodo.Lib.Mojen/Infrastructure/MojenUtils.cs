@@ -188,9 +188,12 @@ namespace Casimodo.Lib.Mojen
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
         }
 
-        public static string ToJsValue(object value, bool parse = true, bool verbatim = false)
+        public static string ToJsValue(object value, bool parse = true, bool verbatim = false, bool nullIfEmptyString = false)
         {
             if (value == null)
+                return "null";
+
+            if (nullIfEmptyString && value is string && string.IsNullOrEmpty((string)value))
                 return "null";
 
             return ToJsValue(value, value.GetType(), parse);
@@ -209,6 +212,8 @@ namespace Casimodo.Lib.Mojen
             return ToJsValueCore(value, type, parse, verbatim, quote: true);
         }
 
+        const string jsQuote = "\""; // "'"
+
         static string ToJsValueCore(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
         {
             if (value == null)
@@ -223,14 +228,14 @@ namespace Casimodo.Lib.Mojen
             {
                 // KABU: TODO: How to handle varbatim strings in JS?
                 if (quote)
-                    return "\"" + value + "\"";
+                    return jsQuote + value + jsQuote;
                 else
                     return (string)value;
             }
             else if (type == typeof(Enum))
             {
                 if (quote)
-                    return "\"" + value + "\"";
+                    return jsQuote + value + jsQuote;
                 else
                     return value.ToString();
             }
@@ -256,7 +261,7 @@ namespace Casimodo.Lib.Mojen
             else if (type == typeof(Guid))
             {
                 if (quote)
-                    return "\"" + value + "\"";
+                    return jsQuote + value + jsQuote;
                 else
                     return value.ToString();
             }

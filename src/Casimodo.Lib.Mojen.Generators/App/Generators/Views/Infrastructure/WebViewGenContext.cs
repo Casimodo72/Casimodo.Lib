@@ -20,6 +20,10 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewConfig View { get; set; }
 
+        public string ViewRole { get; set; }
+
+        public bool IsViewIdEnabled { get; set; }
+
         public MojViewPropInfo PropInfo { get; set; }
 
         public ViewTemplateItem Cur { get; set; }

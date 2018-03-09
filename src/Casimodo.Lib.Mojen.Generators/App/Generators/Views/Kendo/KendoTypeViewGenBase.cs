@@ -44,7 +44,6 @@ namespace Casimodo.Lib.Mojen
             //OBlockBegin = (c) => OB("<div style='display:inline-block;width:100%'>");
             //OBlockBegin = (c) => OB("<div class='row'>");
             //OBlockEnd = (c) => OE("</div>");
-
             OPropContainerBegin = (c) => OB($"<div class='{PropContainerClass}'>");
             OPropContainerEnd = (c) => OE("</div>");
         }

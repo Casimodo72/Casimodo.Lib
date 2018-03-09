@@ -29,7 +29,9 @@ namespace Casimodo.Lib.Mojen
                     PerformWrite(view, () => GenerateView(new WebViewGenContext
                     {
                         View = view,
-                        IsEditableView = true
+                        IsEditableView = true,
+                        ViewRole = "editor",
+                        IsViewIdEnabled = true
                     }));
                 }
 
@@ -101,12 +103,18 @@ namespace Casimodo.Lib.Mojen
 
             ORazorModel($"{context.View.Group ?? ""}{type.Name}Model");
 
+            CheckViewId(context.View);
+
             if (context.View.Standalone.Is)
             {
-                OB($"<div class='k-edit-form-container' id='view-{context.View.Id}'>");
+                OB("<div class='k-edit-form-container'{0}>", GetViewHtmlId(context));
+                OB("<div class='form-horizontal component-root'>"); // container-fluid // style='width:95%;float:left'
             }
-
-            OB("<div class='form-horizontal component-root'>"); // container-fluid // style='width:95%;float:left'
+            else
+            {
+                OB("<div class='form-horizontal component-root'{0}>",
+                    GetViewHtmlId(context)); // container-fluid // style='width:95%;float:left'
+            }
 
             // Placeholder div for modal dialog windows.
             O($"<div class='{ModalDialogContainerDivClass}'></div>");
@@ -130,7 +138,7 @@ namespace Casimodo.Lib.Mojen
                 var vinfo = vprop.BuildViewPropInfo();
                 UsedViewPropInfos.Add(vinfo);
             }
-        }
+        }      
 
         public override void EndView(WebViewGenContext context)
         {

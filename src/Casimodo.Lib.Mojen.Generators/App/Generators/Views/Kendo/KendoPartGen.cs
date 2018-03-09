@@ -234,10 +234,10 @@ namespace Casimodo.Lib.Mojen
             if (view.EditorView != null)
             {
                 OB("editor:");
-                O($"viewId: '{view.EditorView.Id}',");
-                O($"url: '{view.EditorView.Url}',");
-                O($"width: {MojenUtils.ToJsValue(view.EditorView.Width)},");
-                O($"height: {MojenUtils.ToJsValue(view.EditorView.MinHeight)},");
+                O("viewId: '{0}',", view.EditorView.Id);
+                O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
+                O("width: {0},", MojenUtils.ToJsValue(view.EditorView.Width));
+                O("height: {0},", MojenUtils.ToJsValue(view.EditorView.MinHeight));
                 End();
             }
             End(");");
@@ -265,7 +265,7 @@ namespace Casimodo.Lib.Mojen
             O($"isAuthRequired: {MojenUtils.ToJsValue(view.IsAuthorizationNeeded)},");
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
-            O("componentId: {0},", string.IsNullOrWhiteSpace(context.ComponentId) ? "null" : $"'{context.ComponentId}'");
+            O("componentId: {0},", MojenUtils.ToJsValue(context.ComponentId, nullIfEmptyString: true));
         }
 
         public void OJsViewModelClass(string name, string extends, Action constructor, Action content)

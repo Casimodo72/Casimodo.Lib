@@ -17,7 +17,9 @@ namespace Casimodo.Lib.Mojen
             {
                 var context = new WebViewGenContext
                 {
-                    View = view
+                    View = view,
+                    ViewRole = "details",
+                    IsViewIdEnabled = true
                 };
 
                 PerformWrite(view, () => GenerateView(context));
@@ -63,7 +65,8 @@ namespace Casimodo.Lib.Mojen
 
             if (context.View.Standalone.Is)
             {
-                OB($"<div class='standalone-details-view' id='view-{context.View.Id}'>");
+                OB("<div class='standalone-details-view'{0}>",
+                    GetViewHtmlId(context));
 
                 // Toolbar
                 OB("<div class='details-view-toolbar'>");
@@ -90,9 +93,15 @@ namespace Casimodo.Lib.Mojen
                 OE("</div>"); // Toolbar
 
                 OB("<div class='details-view-content'>");
-            }
 
-            OB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
+                OB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
+            }
+            else
+            {
+                OB("<div class='form-horizontal'{0}{1}>",
+                    GetViewCssStyle(context),
+                    GetViewHtmlId(context));
+            }
         }
 
         public override void EndView(WebViewGenContext context)

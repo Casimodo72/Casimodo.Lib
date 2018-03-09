@@ -57,5 +57,11 @@ namespace Casimodo.Lib.Mojen
         {
             PerformWrite(BuildFilePath(view), () => callback(view));
         }
+
+        protected void CheckViewId(MojViewConfig view)
+        {
+            if (string.IsNullOrWhiteSpace(view.Id))
+                throw new MojenException($"The view for '{view.TypeConfig.Name}' has no ID.");
+        }
     }
 }

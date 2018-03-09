@@ -255,7 +255,11 @@ namespace Casimodo.Lib.Mojen
                         {
                             IsEditableView = false,
                             IsModalView = View.IsModal,
-                            View = InlineDetailsView
+                            View = InlineDetailsView,
+                            ViewRole = "inline-details",
+                            // NOTE: inline view won't have an id, because
+                            // there will be multiple on a single page.
+                            IsViewIdEnabled = false
                         });
                     });
                 }
@@ -275,7 +279,9 @@ namespace Casimodo.Lib.Mojen
                             {
                                 IsEditableView = CanEdit,
                                 IsModalView = true,
-                                View = EditorView
+                                View = EditorView,
+                                ViewRole = "editor",
+                                IsViewIdEnabled = true
                             });
                         });
                     }

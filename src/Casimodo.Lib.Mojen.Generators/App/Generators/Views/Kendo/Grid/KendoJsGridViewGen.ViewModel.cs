@@ -71,7 +71,7 @@ namespace Casimodo.Lib.Mojen
                 foreach (var item in JsFuncs.EventHandlers.Where(x => x.IsContainer && !x.IsExistent))
                 {
                     O();
-                    OB($"fn.{item.FunctionName} = function (e)");
+                    OB($"fn.{item.FunctionName} = function (e, context)");
 
                     if (item.Call != null)
                         O(item.Call);
@@ -109,6 +109,15 @@ namespace Casimodo.Lib.Mojen
             OB("space.vm = new ViewModel(");
             O("space: space,");
             KendoGen.OJsViewModelConstructorOptions(context, isList: true);
+            if (view.EditorView != null)
+            {
+                OB("editor:");
+                O("viewId: '{0}',", view.EditorView.Id);
+                O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
+                O("width: {0},", MojenUtils.ToJsValue(view.EditorView.Width));
+                O("height: {0},", MojenUtils.ToJsValue(view.EditorView.MinHeight));
+                End();
+            }
             End(");");
         }
 
@@ -148,6 +157,7 @@ namespace Casimodo.Lib.Mojen
         {
             O("var self = this;");
             O("var item = e.model;");
+            O("var isNew = e.model.isNew();");
 
             GenOnEditing_Hide(context);
             GenOnEditing_OnPropChanged(context);
@@ -166,21 +176,23 @@ namespace Casimodo.Lib.Mojen
 
             // Hide properties on create.
             var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
-            // Execute when the model *is* new.
-            OB("if (e.model.isNew())");
             if (props.Any())
+            {
+                // Execute when the model *is* new.
+                OB("if (isNew)");
                 GenOnEditing_HideProps(props);
-            O($"$('div.hide-on-Create').remove();");
-            End();
+                End();
+            }
 
             // Hide properties on update.
             props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
-            // Execute when the model is *not* new.
-            OB("if (!e.model.isNew())");
             if (props.Any())
+            {
+                // Execute when the model is *not* new.
+                OB("if (!isNew)");
                 GenOnEditing_HideProps(props);
-            O($"$('div.hide-on-Update').remove();");
-            End();
+                End();
+            }
         }
 
         void GenOnEditing_HideProps(IEnumerable<MojViewProp> props)
@@ -188,7 +200,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var prop in props)
             {
                 string marker = prop.GetHideModesMarker();
-                O($"$('div.form-group.{marker}').remove();");
+                O($"context.$view.find('div.form-group.{marker}').remove();");
             }
         }
 
@@ -205,7 +217,6 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             O();
-           
 
             OBegin("e.model.bind('change', function (e)");
 
@@ -408,20 +419,6 @@ namespace Casimodo.Lib.Mojen
 #endif
             }
             End(");"); // Change handler
-
-            // Example:
-            // var item = e.model;
-            // item.bind('change', function(e) {
-            //    if (e.field === 'CustomerId') {
-            //        item.Customer = null;
-            //        if (item.CustomerId) {
-            //            kendomodo.query('odata/Customers/Ga.Query()?$select=Id,Name2,Number&$filter=Id eq ' + item.CustomerId, null, function(result) {
-            //                if (result && result.length)
-            //                    item.set('Customer', result[0]);
-            //            });
-            //        }
-            //    }
-            // });
         }
 
         void GenOnEditing_ExtendEditModel(WebViewGenContext context)
