@@ -65,7 +65,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool Is { get; set; }
 
-        public List<MojProp> Parameters { get; set; } = new List<MojProp>();
+        // KABU TODO: REMOVE? Not used
+        //public List<MojProp> Parameters { get; set; } = new List<MojProp>();
     }
 
     public class MojViewCustomControl
@@ -113,6 +114,9 @@ namespace Casimodo.Lib.Mojen
         public List<MojViewCustomControl> CustomControls { get; set; } = new List<MojViewCustomControl>();
 
         public MojViewKindConfig Kind { get; set; } = new MojViewKindConfig();
+
+        public string FileName { get; set; }
+        public string FileExtension { get; set; }
 
         /// <summary>
         /// The effective name (group name included) of the controller action.
@@ -175,8 +179,6 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCachedOnClient { get; set; }
 
-        public bool IsAutoLoadEnabled { get; set; }
-
         public bool HasFilters
         {
             get { return IsFilteredByLoggedInPerson || SimpleFilter != null; }
@@ -195,8 +197,6 @@ namespace Casimodo.Lib.Mojen
         public bool IsEscapingNeeded { get; set; } = true;
 
         public ViewTemplate Template { get; private set; } = new ViewTemplate();
-
-        public string FileName { get; set; }
 
         public bool HasFactory { get; set; }
 
@@ -220,6 +220,8 @@ namespace Casimodo.Lib.Mojen
         public MojViewConfig InlineDetailsView { get; set; }
 
         public bool IsExportableToPdf { get; set; }
+
+        public bool IsDataAutoLoadEnabled { get; set; }
 
         public bool IsExportableToExcel { get; set; }
 

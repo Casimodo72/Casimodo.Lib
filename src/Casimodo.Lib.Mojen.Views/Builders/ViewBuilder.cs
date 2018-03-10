@@ -230,13 +230,17 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder StandaloneEditorDialog(params MojProp[] parameters)
+        public MojViewBuilder StandaloneEditorDialog() // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
         {
+            if (View.Standalone.Is)
+                throw new MojenException("This view is already standalone.");
+
             View.Kind.Mode = MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
             View.Kind.ComponentRoleName = "Editor";
             View.Kind.RawAction = ActionName.Edit;
-            View.Group = "Standalone";
+            // KABU TODO: REMOVE
+            //View.Group = "Standalone";
 
             // Dialogs are currently all modal and partial.
             View.IsModal = true;
@@ -249,7 +253,8 @@ namespace Casimodo.Lib.Mojen
             View.Standalone = new MojStandaloneViewConfig
             {
                 Is = true,
-                Parameters = new List<MojProp>(parameters)
+                // KABU TODO: REMOVE? Not used
+                //Parameters = new List<MojProp>(parameters)
             };
 
             Title(View.TypeConfig.DisplayName);
@@ -259,13 +264,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder StandaloneDetailsView(params MojProp[] parameters)
+        public MojViewBuilder StandaloneDetailsView()  // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
             View.Kind.ComponentRoleName = "Details";
             View.Kind.RawAction = ActionName.Details;
-            View.Group = "Standalone";
 
             View.CanCreate = false;
             View.CanEdit = false;
@@ -276,7 +280,8 @@ namespace Casimodo.Lib.Mojen
             View.Standalone = new MojStandaloneViewConfig
             {
                 Is = true,
-                Parameters = new List<MojProp>(parameters)
+                // KABU TODO: REMOVE? Not used
+                //Parameters = new List<MojProp>(parameters)
             };
 
             Title(View.TypeConfig.DisplayName);
@@ -286,7 +291,7 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder ListDialog(params MojProp[] parameters)
+        public MojViewBuilder ListDialog()  // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
@@ -305,7 +310,8 @@ namespace Casimodo.Lib.Mojen
             View.Standalone = new MojStandaloneViewConfig
             {
                 Is = true,
-                Parameters = new List<MojProp>(parameters)
+                // KABU TODO: REMOVE? Not used
+                //Parameters = new List<MojProp>(parameters)
             };
 
             Title(View.TypeConfig.DisplayName);
@@ -422,12 +428,6 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder AutoLoad()
-        {
-            View.IsAutoLoadEnabled = true;
-            return this;
-        }
-
         public MojViewBuilder SimpleFilter(Action<MexConditionBuilder> condition)
         {
             var expression = BuildCondition(condition);
@@ -538,8 +538,18 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder AutoLoad()
+        {
+            View.IsDataAutoLoadEnabled = true;
+
+            return this;
+        }
+
         public MojViewBuilder FileName(string name)
         {
+            if (View.FileName != null)
+                throw new MojenException("The view's file name was already assigned.");
+
             View.FileName = name;
 
             return this;
@@ -579,30 +589,46 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        void CheckViewId()
+        void CheckViewId(MojViewConfig view = null)
         {
             if (string.IsNullOrWhiteSpace(View.Id))
-                throw new MojenException($"The view for '{View.TypeConfig.Name}' has no ID.");
+                throw new MojenException($"The view for '{View.TypeConfig.Name}' (roles: {view.Kind.Roles}) has no ID.");
+
+            if (view != null && string.IsNullOrWhiteSpace(view.Id))
+                throw new MojenException($"The view for '{view.TypeConfig.Name}' (roles: {view.Kind.Roles}) has no ID.");
         }
 
         public MojViewBuilder EditorView(MojViewConfig view)
         {
-            CheckViewId();
+            return Editor2(view);
+        }
 
-            if (view.Id == null)
-                view.Id = View.Id;
+        public MojViewBuilder Editor2(MojViewConfig view)
+        {
+            Guard.ArgNotNull(view, nameof(view));
+
+            CheckViewId(view);
+
+            if (view.Kind.Roles != MojViewRole.Editor)
+                throw new MojenException("The view must be an editor.");
+
+            if (view.Group != View.Group)
+                throw new MojenException("The editor must not be in a different group.");
+
+            if (!view.Standalone.Is)
+            {
+                new MojViewBuilder(view)
+                    .StandaloneEditorDialog()
+                    .CanEdit(true)
+                    .CanCreate(true)
+                    .CanDelete(true);
+            }
 
             View.EditorView = view;
 
-            if (view != null)
-            {
-                if (view.Kind.Roles != MojViewRole.Editor)
-                    throw new MojenException("The given views must be an editor view.");
-
-                // Add mandatory IsReadOnly and IsDeletable props.
-                AddCommandPredicatePropIfMissing("IsReadOnly");
-                AddCommandPredicatePropIfMissing("IsDeletable");
-            }
+            // Add mandatory IsReadOnly and IsDeletable props.
+            AddCommandPredicatePropIfMissing("IsReadOnly");
+            AddCommandPredicatePropIfMissing("IsDeletable");
 
             return this;
         }

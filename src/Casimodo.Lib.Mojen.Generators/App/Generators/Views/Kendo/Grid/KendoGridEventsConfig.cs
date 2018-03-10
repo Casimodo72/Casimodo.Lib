@@ -1,11 +1,55 @@
-﻿using System;
+﻿// KABU TODO: REMOVE? Not used anymore.
+#if (false)
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if (false)
+void Example() {
+    // Define main event handler functions and call each specific function.
+    foreach (var item in JsFuncs.EventHandlers.Where(x => x.IsContainer && !x.IsExistent))
+    {
+        O();
+        OB($"fn.{item.FunctionName} = function (e, context)");
+
+        if (item.Call != null)
+            O(item.Call);
+
+        item.Body?.Invoke(context);
+
+        foreach (var child in item.Children)
+        {
+            if (child.Call != null)
+                O(child.Call);
+
+            if (child.FunctionName != null)
+                O($"this.{child.FunctionName}(e);");
+        }
+
+        // KABU TODO: REMOVE?
+        // Re-trigger the widget's event using the widget's name for the event.
+        //O($"this.trigger('{item.Event.ToString().FirstLetterToLower()}', e);");
+
+        End(";");
+    }
+
+    // View model functions.
+    foreach (var func in JsFuncs.Functions.Where(x => x.Body != null))
+    {
+        O();
+        OB($"fn.{func.FunctionName} = function (e)");
+        func.Body(context);
+        End(";");
+    }
+}
+#endif
+
 namespace Casimodo.Lib.Mojen
 {
+
     /// <summary>
     /// The events of the KendoGrid.
     /// </summary>
@@ -151,3 +195,4 @@ namespace Casimodo.Lib.Mojen
         }
     }
 }
+#endif

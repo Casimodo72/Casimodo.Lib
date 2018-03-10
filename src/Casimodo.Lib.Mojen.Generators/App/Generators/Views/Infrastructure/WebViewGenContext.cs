@@ -24,6 +24,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsViewIdEnabled { get; set; }
 
+        public bool? IsStandaloneView { get; set; }
+
         public MojViewPropInfo PropInfo { get; set; }
 
         public ViewTemplateItem Cur { get; set; }

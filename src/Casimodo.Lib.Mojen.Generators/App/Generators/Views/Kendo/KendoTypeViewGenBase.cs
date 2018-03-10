@@ -14,8 +14,6 @@ namespace Casimodo.Lib.Mojen
         public string LabelClass { get; set; } = "col-sm-3 col-xs-12 control-label"; // k-label label-field
         public string PropContainerClass { get; set; } = "col-sm-9 col-xs-12"; // k-edit-field editor-field
 
-        public string ModalDialogContainerDivClass { get; set; } = "modal-dialog-container";
-
         public void GenerateView(WebViewGenContext context)
         {
             Define(context);

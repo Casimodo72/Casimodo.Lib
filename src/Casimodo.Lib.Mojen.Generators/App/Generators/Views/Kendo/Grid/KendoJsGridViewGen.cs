@@ -33,8 +33,6 @@ namespace Casimodo.Lib.Mojen
 
             TransportConfig = this.CreateODataTransport(view, EditorView, Options.CustomQueryMethod);
 
-            InitEvents(context);
-
             InitialSortProps = View.Props
                 .Where(x => x.InitialSort.Is)
                 .OrderBy(x => x.InitialSort.Index)
@@ -45,6 +43,9 @@ namespace Casimodo.Lib.Mojen
 
             // Script
             GenerateScript(context);
+
+            // Style
+            GenerateStyle(context);
         }
 
         void GenerateGridViewCore(WebViewGenContext context)
@@ -132,7 +133,6 @@ namespace Casimodo.Lib.Mojen
             if (context.View.IsViewless)
             {
                 GenerateComponentOptionsFactory(context);
-                GenerateComponentFactory(context);
             }
 
             if (View.HasFactory)
@@ -150,14 +150,13 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 // End namespace.
-                if (View.Lookup.Is)
-                {
-                    // KABU TODO: IMPORTANT: Better make the space of lookups anonymous.
-                    // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
-                    OJsImmediateEnd($"(casimodo.run.{context.ComponentViewSpaceName} = {BuildComponentSpaceConstructor()})");
-                }
-                else
-                    OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
+
+                // KABU TODO: IMPORTANT: We can't make lookup spaces anonymous yet,
+                //   because the space is still defined in the js file *and* the cshtml file.
+                // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
+                // if (View.Lookup.Is) ?
+
+                OJsImmediateEnd(BuildNewComponentSpace(context.ComponentViewSpaceName));
             }
         }
 
@@ -228,17 +227,12 @@ namespace Casimodo.Lib.Mojen
             }
 
             GenerateComponentOptionsFactory(context);
-            GenerateComponentFactory(context);
 
-            if (View.Kind.Roles.HasFlag(MojViewRole.Index) ||
+            if (View.IsDataAutoLoadEnabled ||
+                View.Kind.Roles.HasFlag(MojViewRole.Index) ||
                 View.Kind.Roles.HasFlag(MojViewRole.Lookup))
             {
-                O();
-                OB($"if (space.options.isManualInit !== true)");
-                O("space.create();");
-                O($"if (space.options.isManualDataLoad !== true)");
-                O("    space.vm.refresh();");
-                End(";");
+                GenComponentSpaceAutoLoad(context);
             }
 
             O();
@@ -254,6 +248,21 @@ namespace Casimodo.Lib.Mojen
             End($")(casimodo.run.{context.ComponentViewSpaceName});");
 
             OScriptEnd();
+        }
+
+        void GenComponentSpaceAutoLoad(WebViewGenContext context)
+        {
+            O();
+            O("// Auto create and load.");
+            O("space.create();");
+            O("space.vm.refresh();");
+
+            // KABU TOOD: REMOVE
+            //OB($"if (space.options.isManualInit !== true)");
+            //O("space.create();");
+            //O($"if (space.options.isManualDataLoad !== true)");
+            //O("    space.vm.refresh();");
+            //End(";");
         }
 
         public void GenerateComponentOptionsFactory(WebViewGenContext context)
@@ -273,24 +282,7 @@ namespace Casimodo.Lib.Mojen
             O("return options;");
             End(";"); // Grid options factory function.            
         }
-
-        public void GenerateComponentFactory(WebViewGenContext context)
-        {
-            // KABU TODO: REMOVE
-            //// Grid factory function.
-            //// KABU TODO: ELIMINATE
-            //O();
-            //OB($"space.createComponent = function (options)");
-            //O("alert('OBSOLETE CALL TO space.createComponent');");
-            ////var options = $"{{ space: space, viewId: '{View.Id}', componentId: '{context.ComponentId}', " +
-            ////    $"areaName: '{View.TypeConfig.PluralName}', componentOptions: options, " +
-            ////    $"isDialog: {MojenUtils.ToJsValue(View.Lookup.Is)}, isAuthNeeded: {MojenUtils.ToJsValue(View.IsAuthorizationNeeded)} }}";
-
-            ////O($"kendomodo.createGridComponentOnSpace({options});");
-
-            //End(";"); // Grid factory function.            
-        }
-
+    
         void GenerateGridOptions(WebViewGenContext context)
         {
             MojViewConfig view = context.View;
@@ -430,6 +422,10 @@ namespace Casimodo.Lib.Mojen
                                     // Add a create (+) button.
                                     // NOTE: Escaping # needs 2 backslashes here.
                                     o("<a class='k-button k-grid-add hide' href='#'><span class='k-icon k-add'></span></a>");
+
+                                    // Add a create (+) button.
+                                    // NOTE: Escaping # needs 2 backslashes here.
+                                    o("<a class='k-button k-grid-custom-add hide' href='#'><span class='k-icon k-add'></span></a>");
                                 }
 
                                 o("</div>");
@@ -497,7 +493,7 @@ namespace Casimodo.Lib.Mojen
                         // NOTE: This is a custom button which is not handled automatically
                         //   by the kendo.ui.Grid. The grid view model will attach
                         //   to this button and strat the edit operation manually.
-                        o(@"<a class='k-button k-grid-custom-edit' href='#'><span class='k-icon k-edit'></span></a>");
+                        o(@"<a class='k-button k-grid-custom-edit' href='#' style='display:none'><span class='k-icon k-edit'></span></a>");
 
                     // KABU TODO: REMOVE: The delete button now resides on the editor view.
                     //if (CanDelete)                    
@@ -554,6 +550,39 @@ namespace Casimodo.Lib.Mojen
 
                 index++;
             }
+        }
+
+        void GenerateStyle(WebViewGenContext context)
+        {
+            var props = context.View.Props.Where(x => x.HideModes != MojViewMode.All).ToArray();
+
+            O();
+            OB("<style>");
+            var pos = 0;
+            foreach (var vprop in props)
+            {
+                pos++;
+                vprop.VisiblePosition = pos;
+                if (vprop.FontWeight == MojFontWeight.Bold)
+                {
+                    OB("{0}", GetCssSelector(context, vprop));
+                    O("font-weight: bold;");
+                    End();
+                }
+            }
+            OE("</Style>");
+            /*
+             <style>
+    #grid-393a3bc1-2e06-4516-8d29-220dde0668fe tr[role='row'] td[role='gridcell']:nth-child(5) {
+        font-weight: bold;
+    }
+</style>
+            */
+        }
+
+        string GetCssSelector(WebViewGenContext context, MojViewProp vprop)
+        {
+            return $"#{context.ComponentId} tr[role='row'] > td[role='gridcell']:nth-child({vprop.VisiblePosition})";
         }
 
         void GenerateCustomControlColumns(WebViewGenContext context, MojViewCustomControl control)

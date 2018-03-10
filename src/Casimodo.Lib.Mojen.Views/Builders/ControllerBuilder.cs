@@ -34,31 +34,30 @@ namespace Casimodo.Lib.Mojen
             Controller.Views.Add(view);
         }
 
-        public MojViewBuilder DetailsView()
+        public MojViewBuilder DetailsView(string id)
         {
             // KABU TODO: Make detail views Partial() by default.
-            return View().Details();
+            return View(id).Details();
         }
 
-        public MojViewBuilder IndexView()
+        public MojViewBuilder IndexView(string id)
         {
-            return View().Index();
+            return View(id).Index();
         }
 
-        public MojViewBuilder ListView()
+        public MojViewBuilder ListView(string id)
         {
-            return View().List();
+            return View(id).List();
         }
 
-        public MojViewBuilder EditorView()
+        public MojViewBuilder EditorView(string id)
         {
-            return View().Editor();
+            return View(id).Editor();
         }
 
         public MojViewBuilder StandaloneEditorDialog(string id)
         {
-            return View().StandaloneEditorDialog()
-                .Id(id)
+            return View(id).StandaloneEditorDialog()
                 .CanEdit(true)
                 .CanCreate(false)
                 .CanDelete(false);
@@ -66,14 +65,12 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder StandaloneDetailsView(string id)
         {
-            return View().StandaloneDetailsView()
-                .Id(id);
+            return View(id).StandaloneDetailsView();
         }
 
         public MojViewBuilder ListDialog(string id)
         {
-            return View().ListDialog()
-                .Id(id)
+            return View(id).ListDialog()
                 .CanEdit(false)
                 .CanCreate(false)
                 .CanDelete(false);
@@ -84,7 +81,7 @@ namespace Casimodo.Lib.Mojen
             return View().LookupSingle(parameters);
         }
 
-        MojViewBuilder View()
+        MojViewBuilder View(string id = null)
         {
             var view = new MojControllerViewConfig();
             view.Controller = Controller;
@@ -95,6 +92,9 @@ namespace Casimodo.Lib.Mojen
             view.Template.ViewBuilder = vbuilder;
             Controller.Views.Add(vbuilder.View);
             ViewBuilders.Add(vbuilder);
+
+            if (id != null)
+                vbuilder.Id(id);
 
             return vbuilder;
         }

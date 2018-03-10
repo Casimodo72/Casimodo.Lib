@@ -11,7 +11,7 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoEditorGen : KendoTypeViewGenBase
     {
-        public KendoDetails2Gen ReadOnlyGen { get; set; } = new KendoDetails2Gen();
+        public KendoEditableDetailsGen ReadOnlyGen { get; set; } = new KendoEditableDetailsGen();
 
         public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
 
@@ -48,12 +48,12 @@ namespace Casimodo.Lib.Mojen
 
         public override void AfterView(WebViewGenContext context)
         {
-            if (!context.View.Standalone.Is)
+            if (!IsEffectiveStandaloneView(context))
                 return;
 
             // View model for standalone editor views.
             OScriptBegin();
-            KendoGen.OStandaloneEditorViewModel(context);
+            KendoGen.OEditorViewModel(context);
             OScriptEnd();
         }
 
@@ -94,6 +94,11 @@ namespace Casimodo.Lib.Mojen
             OPropContainerEnd = (c) => OE("</div>");
         }
 
+        bool IsEffectiveStandaloneView(WebViewGenContext context)
+        {
+            return context.IsStandaloneView == true || context.View.Standalone.Is;
+        }
+
         public override void BeginView(WebViewGenContext context)
         {
             ORazorGeneratedFileComment();
@@ -105,7 +110,7 @@ namespace Casimodo.Lib.Mojen
 
             CheckViewId(context.View);
 
-            if (context.View.Standalone.Is)
+            if (IsEffectiveStandaloneView(context))
             {
                 OB("<div class='k-edit-form-container'{0}>", GetViewHtmlId(context));
                 OB("<div class='form-horizontal component-root'>"); // container-fluid // style='width:95%;float:left'
@@ -115,9 +120,6 @@ namespace Casimodo.Lib.Mojen
                 OB("<div class='form-horizontal component-root'{0}>",
                     GetViewHtmlId(context)); // container-fluid // style='width:95%;float:left'
             }
-
-            // Placeholder div for modal dialog windows.
-            O($"<div class='{ModalDialogContainerDivClass}'></div>");
 
             // Validation error box.
             O("<ul class='validation-errors-box' id='validation-errors-box'></ul>");
@@ -143,7 +145,7 @@ namespace Casimodo.Lib.Mojen
         public override void EndView(WebViewGenContext context)
         {
             OE("</div>");
-            if (context.View.Standalone.Is)
+            if (IsEffectiveStandaloneView(context))
             {
                 OB("<div class='k-edit-buttons k-state-default'>");
                 O("<a class='k-button k-button-icontext k-primary k-update k-state-disabled' href='#'><span class='k-icon k-update'></span>Speichern</a>");
@@ -823,13 +825,6 @@ namespace Casimodo.Lib.Mojen
             return $"$(this).closest('.component-root')";
         }
 
-        string JQuerySelectDialogContainer(string container)
-        {
-            if (container != null)
-                return $"{container}.children('.modal-dialog-container').first()";
-            return JQuerySelectEditorContainer();
-        }
-
         // KABU TODO: MAGIC
         class GeoPlaceLookupWebViewConfig
         {
@@ -1291,7 +1286,7 @@ namespace Casimodo.Lib.Mojen
                 }
 
                 // Fetch the partial view from server into a Kendo modal window.
-                Oo($"var wnd = $('<div/>').appendTo({JQuerySelectDialogContainer(null)}).kendoWindow(");
+                Oo($"var wnd = $('<div/>').appendTo({JQuerySelectEditorContainer()}).kendoWindow(");
                 KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
                 {
                     IsParentModal = context.View.IsModal,

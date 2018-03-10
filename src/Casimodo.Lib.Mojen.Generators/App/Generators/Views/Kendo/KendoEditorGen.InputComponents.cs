@@ -24,14 +24,11 @@ namespace Casimodo.Lib.Mojen
             //oAttr("type", "text");
             oAttr("id", propPath);
             oAttr("name", propPath);
+            oAttr("type", "number");
+            oAttr("data-type", "number");
             oAttr("data-display-name", vprop.DisplayLabel);
             // data-bind="value: CheckNumber"
             oAttr("data-bind", $"value: {propPath}");
-
-            if (prop.Name == "Dummy")
-            {
-
-            }
 
             string format = "";
             int? decimals = 0;
@@ -66,17 +63,25 @@ namespace Casimodo.Lib.Mojen
             oAttr("data-format", format);
             oAttr("data-spinners", MojenUtils.ToJsValue(spinners));
 
+            // KABU TODO: VERY IMPORTANT: We can't use min/max because our kendo version
+            //   will not display an error but just set the value automatically to the
+            //   next value in range - which is unacceptable.
+#if (false)
             if (min != null)
             {
+                oAttr("min", min);
                 oAttr("data-val-range-min", min);
+                oAttr("aria-valmin", min);
                 //oAttr("min", min);
             }
 
             if (max != null)
             {
+                oAttr("max", max);
                 oAttr("data-val-range-max", max);
-                //oAttr("max", max);
+                oAttr("aria-valmax", max);
             }
+#endif
 
             if (prop.IsRequiredOnEdit)
                 oAttr("required", "");

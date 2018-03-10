@@ -15,10 +15,10 @@ namespace Casimodo.Lib.Mojen
         public bool UseODataActions { get; set; }
         public MojHttpRequestConfig TransportConfig { get; set; }
         public MojViewProp[] InitialSortProps { get; set; }
-        public string ModelFactory { get; set; }
-        public string SelectUrlFactory { get; set; }
+        public string DataModelFactory { get; set; }
+        public string ReadQueryFactory { get; set; }
         public bool CanCreate { get; set; }
-        public bool CanEdit { get; set; }
+        public bool CanModify { get; set; }
         public bool CanDelete { get; set; }
         public int PageSize { get; set; }
         public bool IsServerPaging { get; set; } = true;
@@ -26,75 +26,52 @@ namespace Casimodo.Lib.Mojen
 
     public partial class KendoPartGen : WebPartGenerator
     {
+        public void OPropValueFactory(string prop, object value)
+        {
+            var func = "create" + prop.FirstLetterToUpper();
+            OB($"fn.{func} = function ()");
+            O($"return this.{prop} || (this.{prop} = {MojenUtils.ToJsValue(value)});");
+            End(";");
+        }
+
+        public void OOptionsFactory(string prop, Action options)
+        {
+            var func = "create" + prop.FirstLetterToUpper();
+            OB($"fn.{func} = function ()");
+
+            OB($"return this.{prop} || (this.{prop} =");
+            options();
+            End(");");
+
+            End(";");
+        }
 
         public void ODataSourceOptionsFactory(WebViewGenContext context, Action options)
         {
-            OB("fn.createDataSourceOptions = function ()");
-            O("if (this.dataSourceOptions) return this.dataSourceOptions;");
-            OB("this.dataSourceOptions =");
-
-            options();
-
-            End(";");
-
-            O();
-            O("return this.dataSourceOptions;");
-
-            End(";"); // Data source options factory.
+            OOptionsFactory("dataSourceOptions", options);
         }
 
-        public void ODataSourceOptions(KendoDataSourceConfig config)
+        public void ODataSourceTransportOptions(WebViewGenContext context, KendoDataSourceConfig config)
         {
-            var transport = config.TransportConfig;
-
-            O($"type: '{config.TransportType}',");
-
-            ODataSourceOrderBy(config);
-
-            // KABU TODO: REMOVE? We moved attaching to handlers to the JS view model code.
-            // Data source events            
-            if (config.TransportType == "odata-v4")
-            {
-                // Nop anymore.
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-
-            // Data schema
-            OB("schema:");
-
-            // Data model            
-            O($"model: {config.ModelFactory}");
-
-            End(","); // Schema
-
-            // Data transport
-            OB("transport:");
-
-            if (config.TransportType == "odata-v4")
-            {
-                // Fixup filter parameters
-                // http://www.telerik.com/forums/guids-in-filters
-                var mode = config.UseODataActions ? "'Action'" : "null";
-                O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}); }},");
-            }
+            // Fixup filter parameters
+            // http://www.telerik.com/forums/guids-in-filters
+            var mode = config.UseODataActions ? "'Action'" : "null";
+            O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}); }},");
 
             // Read
-            var readUrl = config.SelectUrlFactory ?? $"'{transport.ODataSelectUrl}'";
+            var readUrl = config.ReadQueryFactory ?? $"'{config.TransportConfig.ODataSelectUrl}'";
             O($"read: {{ url: {readUrl} }},");
 
             // Create
             if (config.CanCreate)
             {
-                O($"create: {{ url: '{transport.ODataCreateUrl}' }},");
+                O($"create: {{ url: '{config.TransportConfig.ODataCreateUrl}' }},");
             }
 
             // Update
-            if (config.CanEdit)
+            if (config.CanModify)
             {
-                var url = string.Format(transport.ODataUpdateUrlTemplate, $"' + data.{config.TypeConfig.Key.Name} + '");
+                var url = string.Format(config.TransportConfig.ODataUpdateUrlTemplate, $"' + data.{config.TypeConfig.Key.Name} + '");
                 var verb = config.UseODataActions ? "type: 'POST', " : "";
 
                 O($"update: {{ {verb}url: function (data) {{ return '{url}'; }} }},");
@@ -102,8 +79,28 @@ namespace Casimodo.Lib.Mojen
 
             // Delete
             if (config.CanDelete)
-                O($"destroy: {{ url: function (data) {{ return '{transport.ODataDeleteUrl}(' + data.{config.TypeConfig.Key.Name} + ')'; }} }},");
+                O($"destroy: {{ url: function (data) {{ return '{config.TransportConfig.ODataDeleteUrl}(' + data.{config.TypeConfig.Key.Name} + ')'; }} }},");
+        }
 
+        public void ODataSourceOptions(WebViewGenContext context, KendoDataSourceConfig config)
+        {
+            var transport = config.TransportConfig;
+
+            O($"type: '{config.TransportType}',");
+
+            ODataSourceOrderBy(config);
+
+            // Data schema
+            OB("schema:");
+
+            // Data model            
+            O($"model: {config.DataModelFactory}");
+
+            End(","); // Schema
+
+            // Data transport
+            OB("transport:");
+            ODataSourceTransportOptions(context, config);
             End(","); // Transport
 
             O($"pageSize: {config.PageSize},");
@@ -141,7 +138,7 @@ namespace Casimodo.Lib.Mojen
             return prop.IsRequiredOnEdit || prop.Rules.Is;
         }
 
-        public void GenerateDataSourceModel(MojProp[] props)
+        public void ODataSourceModelOptions(MojProp[] props)
         {
             var key = props.FirstOrDefault(x => x.IsKey);
             if (key != null)
@@ -149,12 +146,12 @@ namespace Casimodo.Lib.Mojen
 
             OB("fields:");
 
-            GenerateDataSourceFields(props);
+            ODataSourceModelFieldsOptions(props);
 
             End(","); // Fields
         }
 
-        void GenerateDataSourceFields(MojProp[] props) // WebViewGenContext context
+        void ODataSourceModelFieldsOptions(MojProp[] props) // WebViewGenContext context
         {
             // Available model options are: defaultValue, editable, nullable, parse,
             // type, from, validation.

@@ -340,6 +340,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojFontWeight FontWeight { get; set; }
 
+        public int VisiblePosition { get; set; }
+
         /// <summary>
         /// In case of collection properties this will hold the collection item view.
         /// </summary>

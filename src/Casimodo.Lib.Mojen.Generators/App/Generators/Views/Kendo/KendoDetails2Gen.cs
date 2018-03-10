@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class KendoDetails2Gen : KendoReadOnlyViewGenBase
+    public class KendoEditableDetailsGen : KendoReadOnlyViewGenBase
     {
         public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
 
@@ -32,7 +32,7 @@ namespace Casimodo.Lib.Mojen
                     {
                         OScriptUseStrict();
 
-                        KendoGen.OStandaloneEditableDetailsViewModel(context, componentName);
+                        KendoGen.OReadOnlyViewModel(context, componentName);
                     });
                 }
             }

@@ -85,7 +85,6 @@ namespace Casimodo.Lib.Mojen
             Context = new WebViewGenContext();
             UseEntity = true;
             AutoCompleteFilters = new List<MojPropAutoCompleteFilter>();
-            JsFuncs = new KendoWebGridEventsConfig();
         }
 
         public WebViewGenContext Context { get; set; }
@@ -126,13 +125,9 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojPropAutoCompleteFilter> AutoCompleteFilters { get; set; }
 
-        public KendoWebGridEventsConfig JsFuncs { get; set; }
-
         public MojViewProp[] InitialSortProps { get; set; }
 
         public KendoGridOptions Options { get; set; } = new KendoGridOptions();
-
-        public string DataSourceType { get; set; } = "odata-v4";
 
         public MojHttpRequestConfig TransportConfig { get; set; }
 
@@ -143,11 +138,9 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public string AutoCompletePartialViewName { get; set; } = "_KendoAutoComplete";
 
-        public string InlineDetailsViewFileName { get; set; } = "Details.Inline";
         public string InlineDetailsViewFilePath { get; set; }
         public string InlineDetailsViewVirtualFilePath { get; set; }
 
-        public string EditorViewFileName { get; set; } = "Editor";
         public string EditorViewFilePath { get; set; }
         public string EditorViewVirtualFilePath { get; set; }
 
@@ -198,13 +191,8 @@ namespace Casimodo.Lib.Mojen
                 InlineDetailsTemplateName = "grid-detail-template-" + view.Id;
                 if (InlineDetailsView != null)
                 {
-                    InlineDetailsViewVirtualFilePath = BuildVirtualFilePath(InlineDetailsView,
-                            name: InlineDetailsViewFileName,
-                            partial: true);
-
-                    InlineDetailsViewFilePath = BuildFilePath(InlineDetailsView,
-                            name: InlineDetailsViewFileName,
-                            partial: true);
+                    InlineDetailsViewVirtualFilePath = BuildVirtualFilePath(InlineDetailsView, name: "Details.Inline", partial: true);
+                    InlineDetailsViewFilePath = BuildFilePath(InlineDetailsView, name: "Details.Inline", partial: true);
                 }
 
                 // Editor
@@ -215,13 +203,8 @@ namespace Casimodo.Lib.Mojen
                 CanDelete = Options.IsDeletable == true || (EditorView != null && EditorView.CanDelete && (Options.IsDeletable ?? true));
                 if (EditorView != null)
                 {
-                    EditorViewVirtualFilePath = BuildVirtualFilePath(EditorView,
-                        name: EditorViewFileName,
-                        partial: true);
-
-                    EditorViewFilePath = BuildFilePath(EditorView,
-                        name: EditorViewFileName,
-                        partial: true);
+                    EditorViewVirtualFilePath = BuildVirtualFilePath(EditorView, name: "Editor", partial: true);
+                    EditorViewFilePath = BuildFilePath(EditorView, name: "Editor", partial: true);
                 }
 
                 // View model script file path
@@ -281,7 +264,8 @@ namespace Casimodo.Lib.Mojen
                                 IsModalView = true,
                                 View = EditorView,
                                 ViewRole = "editor",
-                                IsViewIdEnabled = true
+                                IsViewIdEnabled = true,
+                                //IsStandaloneView = true
                             });
                         });
                     }

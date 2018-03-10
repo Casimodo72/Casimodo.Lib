@@ -116,7 +116,83 @@ namespace Casimodo.Lib.Mojen
             OJsObjectLiteral(options.Elem, trailingNewline: false, trailingComma: false);
         }
 
-        public void OStandaloneEditorViewModel(WebViewGenContext context, string componentName = null)
+        KendoDataSourceConfig GetDataSourceConfig(WebViewGenContext context, MojHttpRequestConfig transport,
+            bool create = false, bool modify = false, bool delete = false)
+        {
+            return new KendoDataSourceConfig
+            {
+                TypeConfig = context.View.TypeConfig,
+                TransportType = "odata-v4",
+                TransportConfig = transport,
+                // NOTE: Grouped views will use OData *actions* for updates.
+                UseODataActions = context.View.Group != null,
+                DataModelFactory = "this.createDataModel()",
+                ReadQueryFactory = "this.createReadQuery()",
+                CanCreate = create,
+                CanModify = modify,
+                CanDelete = context.View.CanDelete,
+                PageSize = 1
+            };
+        }
+
+        void ODataSourceSingleOptions(WebViewGenContext context, MojHttpRequestConfig transport,
+            bool create, bool modify, bool delete)
+        {
+            ODataSourceOptions(context, GetDataSourceConfig(context, transport, create, modify, delete));
+        }
+
+        public void OBaseFilters(WebViewGenContext context)
+        {
+            // Filters
+            if (!context.View.HasFilters)
+                return;
+
+            O();
+            OB("fn.getBaseFilters = function ()");
+            O("var filters = [];");
+
+            if (context.View.IsFilteredByLoggedInPerson)
+            {
+                O($"filters.push({{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
+                    $"operator: 'eq', value: window.casimodo.run.authInfo.PersonId }});");
+            }
+
+            if (context.View.SimpleFilter != null)
+            {
+                O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)});");
+            }
+
+            O("return filters;");
+            End(";");
+        }
+
+        public void ODataSourceListOptions(WebViewGenContext context, MojHttpRequestConfig transport,
+            bool create, bool modify, bool delete,
+            int pageSize, bool isServerPaging, MojViewProp[] initialSortProps)
+        {
+            ODataSourceOptions(context, new KendoDataSourceConfig
+            {
+                TypeConfig = context.View.TypeConfig,
+                TransportType = "odata-v4",
+                TransportConfig = transport,
+                // NOTE: Grouped views will use OData *actions* for updates.
+                UseODataActions = context.View.Group != null,
+
+                // The data-source's model is created by the view model.
+                DataModelFactory = "space.vm.createDataModel()",
+                ReadQueryFactory = "space.vm.createReadQuery()",
+
+                CanCreate = create,
+                CanModify = modify,
+                CanDelete = delete,
+
+                PageSize = pageSize,
+                IsServerPaging = isServerPaging,
+                InitialSortProps = initialSortProps,
+            });
+        }
+
+        public void OEditorViewModel(WebViewGenContext context, string componentName = null)
         {
             // View model for standalone editor views.
 
@@ -124,45 +200,41 @@ namespace Casimodo.Lib.Mojen
 
             OJsImmediateBegin("space");
 
-            // View model factory function.
+            // View model factory
             O();
-            OB($"space.createViewModel = function ()");
+            OB($"space.createViewModel = function (options)");
             O("if (space.vm) return space.vm;");
+
             O();
-            OJsViewModelClass("ViewModel", extends: "kendomodo.ui.DetailsEditorViewModel",
-                constructor: null,
+            OViewModelClass("ViewModel", extends: "kendomodo.ui.DetailsEditorViewModel",
+                constructor: () =>
+                {
+                    O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
+                },
                 content: () =>
                 {
-                    var transportConfig = this.CreateODataTransport(view, view);
+                    var transport = this.CreateODataTransport(view, view);
 
-                    OB("fn.createDataModel = function ()");
-                    OB("return");
-                    GenerateDataSourceModel(transportConfig.ModelProps);
-                    End(";");
-                    End(";");
+                    // OData read query URL factory
+                    OPropValueFactory("readQuery", transport.ODataSelectUrl);
+
+                    O();
+                    ODataSourceModelFactory(context, transport);
 
                     O();
                     ODataSourceOptionsFactory(context, () =>
-                    {
-                        ODataSourceOptions(new KendoDataSourceConfig
-                        {
-                            TypeConfig = view.TypeConfig,
-                            TransportType = "odata-v4",
-                            UseODataActions = true,
-                            TransportConfig = transportConfig,
-                            ModelFactory = "this.createDataModel()",
-                            CanEdit = view.CanEdit,
-                            CanCreate = view.CanCreate,
-                            CanDelete = view.CanDelete,
-                            PageSize = 1
-                        });
-                    });
+                        ODataSourceSingleOptions(context, transport,
+                            create: context.View.CanCreate,
+                            modify: context.View.CanEdit,
+                            delete: context.View.CanDelete
+                        ));
+
+                    OViewModelOnEditing(context.View, context.View.CanCreate);
                 });
 
             O();
             OB("space.vm = new ViewModel(");
-            O("space: space,");
-            OJsViewModelConstructorOptions(context, isList: false);
+            OViewModelOptions(context, isList: false);
             End(");");
 
             O();
@@ -173,6 +245,7 @@ namespace Casimodo.Lib.Mojen
 
             End(";"); // View model factory.
 
+            // Create space, pass parameters and start editing.
             O();
             O("space.create();");
             O($"space.vm.setArgs(casimodo.ui.dialogArgs.consume('{view.Id}'));");
@@ -182,64 +255,40 @@ namespace Casimodo.Lib.Mojen
             OJsImmediateEnd(BuildNewComponentSpace(componentName));
         }
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        public void OStandaloneEditableDetailsViewModel(WebViewGenContext context, string space)
+        public void OReadOnlyViewModel(WebViewGenContext context, string space)
         {
-            // View model for standalone editor views.
+            // View model for standalone read-only views.
 
             var view = context.View;
 
             OJsImmediateBegin("space");
 
-            // View model factory function.
+            // View model factory
             O();
-            OB($"space.createViewModel = function ()");
+            OB($"space.createViewModel = function (options)");
             O("if (space.vm) return space.vm;");
+
             O();
-            OJsViewModelClass("ViewModel", extends: "kendomodo.ui.EditableDetailsViewModel",
+            OViewModelClass("ViewModel", extends: "kendomodo.ui.EditableDetailsViewModel",
                 constructor: null,
                 content: () =>
             {
-                var transportConfig = this.CreateODataTransport(view, null);
+                var transport = this.CreateODataTransport(view, null);
 
-                OB("fn.createDataModel = function ()");
-                OB("return");
-                GenerateDataSourceModel(transportConfig.ModelProps);
-                End(";");
-                End(";");
+                // OData read query URL factory
+                OPropValueFactory("readQuery", transport.ODataSelectUrl);
 
                 O();
-                ODataSourceOptionsFactory(context, () =>
-                {
-                    ODataSourceOptions(new KendoDataSourceConfig
-                    {
-                        TypeConfig = view.TypeConfig,
-                        TransportType = "odata-v4",
-                        UseODataActions = true,
-                        TransportConfig = transportConfig,
-                        ModelFactory = "this.createDataModel()",
-                        CanEdit = false,
-                        CanCreate = false,
-                        CanDelete = false,
-                        PageSize = 1
-                    });
-                });
+                ODataSourceModelFactory(context, transport);
+
+                O();
+                OOptionsFactory("dataSourceTransportOptions", () =>
+                    ODataSourceTransportOptions(context, GetDataSourceConfig(context, transport)));
             });
 
             O();
             OB("space.vm = new ViewModel(");
-            O("space: space,");
-            OJsViewModelConstructorOptions(context, isList: false);
-            if (view.EditorView != null)
-            {
-                OB("editor:");
-                O("viewId: '{0}',", view.EditorView.Id);
-                O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
-                O("width: {0},", MojenUtils.ToJsValue(view.EditorView.Width));
-                O("height: {0},", MojenUtils.ToJsValue(view.EditorView.MinHeight));
-                End();
-            }
+            OViewModelOptions(context, isList: false);
             End(");");
 
             O();
@@ -248,15 +297,17 @@ namespace Casimodo.Lib.Mojen
             O();
             O("return space.vm;");
 
-            End(";"); // View model factory.
+            End(";"); // View model factory
 
             OJsImmediateEnd(BuildNewComponentSpace(space));
         }
 
-        public void OJsViewModelConstructorOptions(WebViewGenContext context, bool isList)
+        public void OViewModelOptions(WebViewGenContext context, bool isList)
         {
             var view = context.View;
             var title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
+            O("space: space,");
+            O("options: options,");
             O($"title: '{title}',");
             O($"viewId: '{view.Id}',");
             O($"itemTypeName: '{view.TypeConfig.Name}',");
@@ -266,9 +317,24 @@ namespace Casimodo.Lib.Mojen
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
             O("componentId: {0},", MojenUtils.ToJsValue(context.ComponentId, nullIfEmptyString: true));
+
+            if (view.EditorView != null)
+            {
+                OB("editor:");
+                O("viewId: '{0}',", view.EditorView.Id);
+                O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
+                O("width: {0},", MojenUtils.ToJsValue(view.EditorView.Width));
+                O("height: {0},", MojenUtils.ToJsValue(view.EditorView.MinHeight));
+                End();
+            }
         }
 
-        public void OJsViewModelClass(string name, string extends, Action constructor, Action content)
+        public void ODataSourceModelFactory(WebViewGenContext context, MojHttpRequestConfig transport)
+        {
+            OOptionsFactory("dataModel", () => ODataSourceModelOptions(transport.ModelProps));
+        }
+
+        public void OViewModelClass(string name, string extends, Action constructor, Action content)
         {
             Guard.ArgNotNullOrWhitespace(name, nameof(name));
             Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
