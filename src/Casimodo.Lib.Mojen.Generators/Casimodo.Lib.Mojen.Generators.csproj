@@ -169,9 +169,9 @@
     <Compile Include="App\Generators\Repositories\WebPickItemsContainerGen.cs" />
     <Compile Include="App\Generators\OData\ODataConfigGen.cs" />
     <Compile Include="App\Generators\Views\Infrastructure\WebViewGenContext.cs" />
-    <Compile Include="App\Generators\Views\Kendo\Grid\KendoDetailsInlineTemplate2Gen.cs" />
-    <Compile Include="App\Generators\Views\Kendo\Grid\KendoJsGridViewGen.cs" />
-    <Compile Include="App\Generators\Views\Kendo\Grid\MojHttpRequestConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridInlineDetailsViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\MojHttpRequestConfig.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoFxConfig.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoPagerOptions.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoWindowConfig.cs" />
