@@ -52,7 +52,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OB("space.vm = new ViewModel(");
             KendoGen.OViewModelOptions(context, isList: true);
-            End(");");
+            End(").init();");
         }
 
         void GenerateJSViewModel(WebViewGenContext context)
@@ -64,9 +64,6 @@ namespace Casimodo.Lib.Mojen
             O();
 
             GenerateJSViewModelCore(context);
-
-            O();
-            O("space.vm.init();");
 
             O();
             O("return space.vm;");
