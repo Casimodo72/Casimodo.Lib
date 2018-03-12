@@ -1,0 +1,377 @@
+﻿using Casimodo.Lib.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Casimodo.Lib.Mojen
+{
+    public partial class KendoPartGen : WebPartGenerator
+    {
+        public void OViewModelOnEditing(MojViewConfig view, bool canCreate)
+        {
+            OB("fn.onEditingGenerated = function(context)");
+            O("var self = this;");           
+
+            GenOnEditing_Hide(view);
+            GenOnEditing_OnPropChanged(view);
+            GenOnEditing_ExtendEditModel(view);
+            GenOnEditing_QueryReferencedObject(view, canCreate);
+            GenOnEditing_SetLoggedInPerson(view);
+
+            End(";");
+        }
+
+        void GenOnEditing_SetLoggedInPerson(MojViewConfig view)
+        {
+            var loggedInPersonProps = view.Props.Where(x => x.IsLoggedInPerson).ToArray();
+            if (!loggedInPersonProps.Any())
+                return;
+
+            O();
+            OB("if (context.isNew)");
+            foreach (var prop in loggedInPersonProps)
+                O($"context.item.set('{prop.Reference.ForeignKey.Name}', window.casimodo.run.authInfo.PersonId);");
+            End();
+        }
+
+        void GenOnEditing_Hide(MojViewConfig view)
+        {
+            var hideProps = view.Props.Where(x =>
+                x.HideModes != MojViewMode.None &&
+                x.HideModes != MojViewMode.All)
+                .ToArray();
+
+            if (!hideProps.Any())
+                return;
+
+            O();
+
+            // Hide properties on create.
+            var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
+            if (props.Any())
+            {
+                // Execute when the model *is* new.
+                OB("if (context.isNew)");
+                GenOnEditing_HideProps(props);
+                End();
+            }
+
+            // Hide properties on update.
+            props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
+            if (props.Any())
+            {
+                // Execute when the model is *not* new.
+                OB("if (!context.isNew)");
+                GenOnEditing_HideProps(props);
+                End();
+            }
+        }
+
+        void GenOnEditing_HideProps(IEnumerable<MojViewProp> props)
+        {
+            foreach (var prop in props)
+            {
+                string marker = prop.GetHideModesMarker();
+                O($"context.$view.find('div.form-group.{marker}').remove();");
+            }
+        }
+
+        public List<MiaPropSetterConfig> QueriedTriggerPropSetters { get; set; } = new List<MiaPropSetterConfig>();
+
+        void GenOnEditing_OnPropChanged(MojViewConfig view)
+        {
+            var type = view.TypeConfig.RequiredStore;
+
+            var triggers = type.Triggers.Where(x => x.Event == MiaTypeTriggerEventKind.PropChanged).ToArray();
+            var cascadeTargetProps = type.GetProps()
+                // Get all cascade target props from the MojType.
+                .Where(x => x.CascadeFromProps.Any())
+                // Use only what's in the view.
+                .Where(x => view.Props.Any(y => y.Id == x.Id))
+                .ToArray();
+
+            if (!triggers.Any() && !cascadeTargetProps.Any())
+                return;
+
+            O();
+
+            OBegin("context.item.bind('change', function (e)");
+
+            if (triggers.Any())
+                GenOnEditing_OnPropChanged_TriggersCore(triggers);
+
+            if (cascadeTargetProps.Any())
+                GenOnEditing_OnPropChanged_Cascades(view, cascadeTargetProps);
+
+            End(");");
+        }
+
+        void GenOnEditing_OnPropChanged_Cascades(MojViewConfig view, MojProp[] cascadeTargetProps)
+        {
+            foreach (var cascadeTargetProp in cascadeTargetProps)
+            {
+                var viewCascadeTargetProp = view.Props.FirstOrDefault(x => x.Id == cascadeTargetProp.Id);
+                if (viewCascadeTargetProp == null)
+                {
+                    throw new MojenException($"Cascade target property '{cascadeTargetProp.Name}' is missing in the editor view.");
+                }
+
+                // If any of the cascade-from props has changed...
+                Oo($"if (");
+
+                int i = 0;
+                foreach (var cascadeFromProp in cascadeTargetProp.CascadeFromProps)
+                {
+                    var viewCascadeFromProp = view.Props.FirstOrDefault(x => x.Id == cascadeTargetProp.Id);
+                    if (viewCascadeFromProp == null)
+                        throw new MojenException($"Cascade-from property '{cascadeTargetProp.Name}' is missing in the editor view.");
+
+                    o($"e.field === '{cascadeFromProp.Name}'");
+
+                    if (++i < cascadeTargetProp.CascadeFromProps.Count)
+                        o(" || ");
+                }
+
+                oO(") {");
+                Push();
+
+                // Set cascade target prop to NULL.
+                O($"context.item.set('{cascadeTargetProp.Name}', null);");
+
+                // If applicable then also set the foreign key to null.
+                // Otherwise the referenced entity will not be fully cleared out.
+                if (cascadeTargetProp.Reference.Is &&
+                    cascadeTargetProp.Reference.IsNavigation)
+                {
+                    O($"context.item.set('{cascadeTargetProp.Reference.ForeignKey.Name}', null);");
+                }
+
+                Pop();
+                O("}");
+            }
+        }
+
+        void GenOnEditing_OnPropChanged_TriggersCore(MiaTypeTriggerConfig[] triggers)
+        {
+            if (!triggers.Any())
+                return;
+
+            foreach (var trigger in triggers)
+            {
+                OB($"if (e.field === '{trigger.ContextProp.FormedTargetPath}')");
+                foreach (var map in trigger.Operations.Items.OfType<MiaPropSetterConfig>())
+                {
+                    O($"context.item.set('{map.Target.FormedTargetPath}', context.item.get('{map.Source.FormedTargetPath}') || null);");
+                }
+                End();
+            }
+        }
+
+        void GenOnEditing_QueryReferencedObject(MojViewConfig view, bool canCreate)
+        {
+            if (view == null)
+                return;
+
+            var type = view.TypeConfig;
+
+            var looseReferenceGroups =
+                (from prop in view.Props
+                     // Select all read-only props with *loose* references.
+                 where !prop.IsEditable
+                 let step = prop.FormedNavigationTo.FirstLooseStep
+                 where step != null
+                 select new
+                 {
+                     Prop = prop,
+                     Step = step,
+                     ForeignKeyPath = step.SourceProp.GetFormedForeignKeyPath(),
+                     ObjectPath = step.SourceProp.FormedTargetPath,
+                     ObjectType = step.SourceProp.Reference.ToType,
+                     ObjectPluralName = step.SourceProp.Reference.ToType.PluralName
+                 } into item
+                 // Group by foreign key path.
+                 group item by item.ForeignKeyPath)
+                .ToArray();
+
+            if (!looseReferenceGroups.Any())
+                return;
+
+            O();
+
+            OB("context.item.bind('change', function (e)");
+            foreach (var looseReferenceGroup in looseReferenceGroups)
+            {
+                var reference = looseReferenceGroup.First();
+
+                // Build OData $select and $expand expressions
+                var paths = looseReferenceGroup.Select(x => x.Prop.FormedNavigationTo).ToArray();
+
+                var queryNodes = paths
+                    .BuildDataGraph(
+                        includeKey: true,
+                        includeForeignKey: true,
+                        startDepth: reference.Prop.FormedNavigationTo.Steps.Count);
+
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                var onCreateTriggerPropSetters = GetQueryPropSettersOfOnCreateTriggers(view, canCreate, reference.ObjectType).ToArray();
+                if (onCreateTriggerPropSetters.Any())
+                {
+                    // Merge
+                    queryNodes = queryNodes.Merge(onCreateTriggerPropSetters.Select(x => x.Source).BuildDataGraph()).ToList();
+                }
+
+                var onPropChangedTriggerGraphNodes = GetQueryNodesOfPropChangedTriggers(view, reference.ObjectType).ToArray();
+                if (onPropChangedTriggerGraphNodes.Any())
+                {
+                    // Merge
+                    queryNodes = queryNodes.Merge(onPropChangedTriggerGraphNodes).ToList();
+                }
+
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                // Build the OData $select and $expand expression.
+                string expression = this.BuildODataSelectAndExpand(queryNodes);
+
+                // Build OData query.
+                var odataQuery = $"{App.Get<WebODataBuildConfig>().Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}()?{expression}";
+
+                // On create triggers.
+                var sourceAssignments = new List<string>();
+                // Assign properties.
+                foreach (var setter in onCreateTriggerPropSetters)
+                    sourceAssignments.Add($"{{ t: '{setter.Target.FormedTargetPath}', s: '{setter.Source.FormedTargetPath}'}}");
+
+                O($"if (e.field === '{reference.ForeignKeyPath}') self._setNestedItem(" +
+                    $"'{reference.ObjectPath}', " +
+                    $"'{reference.ForeignKeyPath}', " +
+                    $"'{reference.ObjectType.Key.Name}', " +
+                    $"'{odataQuery}', " +
+                    $"[{sourceAssignments.Join(", ")}]);");
+
+                // Example:
+                // if (e.field === 'ContractId') this._setNestedItem(
+                //    'Contract', 'ContractId', 'Id',
+                //    '/odata/Contracts/Ga.Query()?$select=Id,City,CountryStateId,CountryId,Street,ZipCode&$expand=CountryState($select=Id,DisplayName),Country($select=Id,DisplayName)',
+                //    [{ t: 'Street', s: 'Street'}, { t: 'ZipCode', s: 'ZipCode'}]);
+            }
+            End(");"); // Change handler
+        }
+
+        void GenOnEditing_ExtendEditModel(MojViewConfig view)
+        {
+            var type = view.TypeConfig;
+
+            var vprops = view.Props.Where(x =>
+                x.IsSelector &&
+                // IMPORTANT: Operate on store props.
+                x.StoreOrSelf.DbAnno.Sequence.Is)
+                .ToArray();
+
+            if (!vprops.Any())
+                return;
+
+            O();
+
+            foreach (var vprop in vprops)
+            {
+                // IMPORTANT: Operate on store props.
+                var sprop = vprop.StoreOrSelf;
+
+                OB($"context.item.set('is{vprop.Name}SelectorEnabled', function ()");
+
+                var expression = sprop.DbAnno.Unique.GetParams()
+                    .Select(per => $"this.get('{per.Prop.Name}') != null")
+                    .Join(" && ");
+
+                O($" return {expression};");
+
+                End(");");
+            }
+        }
+
+        IEnumerable<MiaPropSetterConfig> GetQueryPropSettersOfOnCreateTriggers(MojViewConfig view, bool canCreate, MojType queriedForeignType)
+        {
+            var type = view.TypeConfig.RequiredStore;
+            queriedForeignType = queriedForeignType.RequiredStore;
+
+            if (canCreate)
+            {
+                // Extend the query by props which need to be assigned from a parent
+                // entity to this entity when creating a new entity.
+
+                // KABU TODO: This is for edit-create-mode only, i.e. not for edit-modify-mode.
+                //   We need to know here in which mode we operate.
+
+                foreach (var setter in queriedForeignType.Triggers
+                    .Where(x =>
+                        x.Event == MiaTypeTriggerEventKind.Create &&
+                        x.CrudOp == MojCrudOp.Create &&
+                        x.TargetType == type)
+                    .SelectMany(x => x.Operations.Items)
+                    .OfType<MiaPropSetterConfig>())
+
+                    yield return setter;
+            }
+        }
+
+        IEnumerable<MojDataGraphNode> GetQueryNodesOfPropChangedTriggers(MojViewConfig view, MojType queriedForeignType)
+        {
+            var type = view.TypeConfig.RequiredStore;
+            queriedForeignType = queriedForeignType.RequiredStore;
+
+            // Select prop changed triggers which have value where the foreign type is used.
+            foreach (var setter in type.Triggers
+                .Where(x => x.Event == MiaTypeTriggerEventKind.PropChanged)
+                .SelectMany(x => x.Operations.Items)
+                .OfType<MiaPropSetterConfig>()
+                .Where(x => !x.IsNativeSource))
+            {
+                int stepIndex = setter.Source.FormedNavigationTo.StepIndexOfTarget(queriedForeignType);
+                if (stepIndex != -1)
+                {
+                    QueriedTriggerPropSetters.Add(setter);
+
+                    var node = setter.Source.FormedNavigationTo.BuildDataGraph(startDepth: stepIndex + 1);
+
+                    yield return node;
+                }
+            }
+        }
+
+        KendoGridLookupColInfo GetLookupColInfo(MojViewProp prop)
+        {
+            var info = new KendoGridLookupColInfo();
+            var navi = prop.FormedNavigationTo;
+            info.Identifier = navi.TargetPath.Replace(".", "");
+            info.LookupFunction = "lookup" + info.Identifier;
+            info.ODataUrl = this.GetODataLookupUrl(navi);
+            info.ValueProp = navi.TargetType.Key;
+            info.DisplayProp = navi.TargetProp;
+
+            return info;
+        }
+
+        class KendoGridLookupColInfo
+        {
+            public string Identifier { get; set; }
+            public string LookupFunction { get; set; }
+            public MojProp ValueProp { get; set; }
+            public MojProp DisplayProp { get; set; }
+            public string ODataUrl { get; set; }
+        }
+
+        string GetODataLookupUrl(MojFormedNavigationPath path)
+        {
+            var targetType = path.TargetType;
+            var targetProp = path.TargetProp;
+            var url =
+                this.GetODataPath(targetType) +
+                $"/{this.GetODataQueryFunc()}()?$select={targetType.Key.Name},{targetProp.Name}";
+
+            return url;
+        }
+
+    }
+}

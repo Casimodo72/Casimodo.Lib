@@ -215,7 +215,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsGuidFilterable { get; set; }
 
-        public List<MojViewActionConfig> CustomActions { get; set; } = new List<MojViewActionConfig>();
+        // KABU TODO: REMOVE: public List<MojViewActionConfig> CustomActions { get; set; } = new List<MojViewActionConfig>();
 
         public MojViewConfig InlineDetailsView { get; set; }
 

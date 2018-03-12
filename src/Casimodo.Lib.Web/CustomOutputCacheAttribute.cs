@@ -10,12 +10,12 @@ namespace Casimodo.Lib.Web
 {
     public class CustomOutputCacheAttribute : OutputCacheAttribute
     {
-        public override void OnResultExecuting(ResultExecutingContext filterContext)
-        {
-            if (Location == OutputCacheLocation.ServerAndClient)
-                filterContext.HttpContext.Response.Cache.SetOmitVaryStar(true);
+        //public override void OnResultExecuting(ResultExecutingContext filterContext)
+        //{
+        //    if (Location == OutputCacheLocation.ServerAndClient)
+        //        filterContext.HttpContext.Response.Cache.SetOmitVaryStar(true);
 
-            base.OnResultExecuting(filterContext);
-        }
+        //    base.OnResultExecuting(filterContext);
+        //}
     }
 }

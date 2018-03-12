@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
     /// <summary>
     /// Inline details view for the Kendo grid.
     /// </summary>
-    public class KendoWebDisplayTemplate2Gen : KendoReadOnlyViewGenBase
+    public class KendoGridInlineDetailsViewGen : KendoReadOnlyViewGenBase
     {
         public override void OPropLabel(WebViewGenContext context)
         {
