@@ -170,6 +170,7 @@
     <Compile Include="App\Generators\OData\ODataConfigGen.cs" />
     <Compile Include="App\Generators\Views\Infrastructure\WebViewGenContext.cs" />
     <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridInlineDetailsViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridOptions.cs" />
     <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\MojHttpRequestConfig.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoFxConfig.cs" />

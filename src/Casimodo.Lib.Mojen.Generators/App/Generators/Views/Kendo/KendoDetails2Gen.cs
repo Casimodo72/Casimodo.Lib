@@ -1,12 +1,8 @@
-﻿using Casimodo.Lib.Data;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class KendoEditableDetailsGen : KendoReadOnlyViewGenBase
+    public class KendoFormReadOnlyViewGen : KendoReadOnlyViewGenBase
     {
         public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
 
@@ -26,7 +22,7 @@ namespace Casimodo.Lib.Mojen
 
                 if (view.Standalone.Is)
                 {
-                    var path = BuildJsScriptFilePath(view, suffix: ".vm.generated", newConvention: true);
+                    var path = BuildJsScriptFilePath(view, suffix: ".vm.generated");
                     var componentName = view.TypeConfig.Name.FirstLetterToLower() + (view.Group ?? "") + "DetailsSpace";
                     PerformWrite(path, () =>
                     {

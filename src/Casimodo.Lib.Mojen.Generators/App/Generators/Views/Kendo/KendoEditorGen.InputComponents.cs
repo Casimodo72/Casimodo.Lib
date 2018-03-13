@@ -1,15 +1,8 @@
-﻿using Casimodo.Lib;
-using Casimodo.Lib.Data;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Casimodo.Lib.Mojen
 {
-    public partial class KendoEditorGen : KendoTypeViewGenBase
+    public partial class KendoFormEditorViewGen : KendoTypeViewGenBase
     {
         // NumericInput ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

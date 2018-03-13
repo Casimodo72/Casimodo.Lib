@@ -18,10 +18,18 @@ namespace Casimodo.Lib.Mojen
 
     public class MojControllerViewConfig : MojViewConfig
     {
-        public ControllerConfig Controller { get; set; }
+        public MojControllerConfig Controller { get; set; }
 
         public override MojDataGraphNode[] BuildDataGraphForRead()
         {
+            var views = new List<MojViewConfig> { this };
+            if (InlineDetailsView != null)
+                views.Add(InlineDetailsView);
+
+            return Controller.BuildDataGraphForRead(views.ToArray());
+
+            // KABU TODO: REMOVE: Now each view will only hold the data it displays.
+            //   I.e. grid view will not include properties of its details and editor views anymore.
             if (Lookup.Is || Standalone.Is)
                 return Controller.BuildDataGraphForRead(new[] { this });
             else
@@ -152,8 +160,6 @@ namespace Casimodo.Lib.Mojen
         public bool CanEdit { get; set; }
 
         public bool CanDelete { get; set; }
-
-        public bool IsViewModelOnly { get; set; }
 
         public bool IsViewless { get; set; }
 

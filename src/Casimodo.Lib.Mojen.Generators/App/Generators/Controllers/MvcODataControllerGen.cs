@@ -5,7 +5,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class MvcODataControllerGen : MvcControllerBaseGen
     {
-        public override void GenerateController(ControllerConfig controller)
+        public override void GenerateController(MojControllerConfig controller)
         {
             foreach (var view in controller.GetIndexViews())            
             {

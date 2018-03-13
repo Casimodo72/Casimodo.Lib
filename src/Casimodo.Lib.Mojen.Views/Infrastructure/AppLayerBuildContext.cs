@@ -20,12 +20,12 @@ namespace Casimodo.Lib.Mojen
             return vbuilder;
         }
 
-        public ControllerBuilder AddController(MojType type)
+        public MojControllerBuilder AddController(MojType type)
         {
-            var config = new ControllerConfig(type.PluralName);
+            var config = new MojControllerConfig(type.PluralName);
             Items.Add(config);
 
-            var builder = new ControllerBuilder(config);
+            var builder = new MojControllerBuilder(config);
             builder.Init(App);
             builder.Model(type);
             builder.Controller.Namespace = App.Config<WebBuildConfig>().WebControllersNamespace;

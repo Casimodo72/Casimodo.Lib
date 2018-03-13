@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Mojen
         {
             ODataConfig = App.Get<WebODataBuildConfig>();
 
-            var controllers = App.GetItems<ControllerConfig>().Where(x => x.Uses<ODataControllerGen>()).ToArray();
+            var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>()).ToArray();
             string allControllersFilePath = Path.Combine(ODataConfig.WebODataControllersDirPath, "_ODataControllerTypes.generated.cs");
             PerformWrite(allControllersFilePath, () =>
             {

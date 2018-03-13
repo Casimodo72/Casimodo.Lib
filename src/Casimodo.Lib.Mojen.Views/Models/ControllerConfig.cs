@@ -9,9 +9,9 @@ namespace Casimodo.Lib.Mojen
 {
     public static class MojenWebAppExtensions
     {
-        public static ControllerConfig GetControllerFor(this MojenApp app, MojType type)
+        public static MojControllerConfig GetControllerFor(this MojenApp app, MojType type)
         {
-            var controller = app.GetItems<ControllerConfig>().FirstOrDefault(x => x.TypeConfig == type);
+            var controller = app.GetItems<MojControllerConfig>().FirstOrDefault(x => x.TypeConfig == type);
             if (controller == null)
                 throw new MojenException($"Controller not found for type '{type.ClassName}'.");
 
@@ -19,9 +19,9 @@ namespace Casimodo.Lib.Mojen
         }
     }
 
-    public class ControllerConfig : MojPartBase
+    public class MojControllerConfig : MojPartBase
     {
-        public ControllerConfig(string pluralName)
+        public MojControllerConfig(string pluralName)
         {
             PluralName = pluralName;
             ClassName = pluralName + "Controller";

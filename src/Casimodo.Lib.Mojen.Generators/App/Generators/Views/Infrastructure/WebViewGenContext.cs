@@ -12,7 +12,7 @@ namespace Casimodo.Lib.Mojen
 
         public string ComponentViewModelName { get; set; }
 
-        public string ComponentViewSpaceName { get; set; }
+        public string SpaceName { get; set; }
 
         public string ComponentViewSpaceFactoryName { get; set; }
 
@@ -23,8 +23,6 @@ namespace Casimodo.Lib.Mojen
         public string ViewRole { get; set; }
 
         public bool IsViewIdEnabled { get; set; }
-
-        public bool? IsStandaloneView { get; set; }
 
         public MojViewPropInfo PropInfo { get; set; }
 

@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
     {
         protected override void GenerateCore()
         {
-            foreach (var controller in App.GetItems<ControllerConfig>().Where(x => x.Uses(this)))
+            foreach (var controller in App.GetItems<MojControllerConfig>().Where(x => x.Uses(this)))
                 PerformWrite(controller, GenerateControllerCore);
         }
 
@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
             O($"[CustomOutputCache(Duration = {WebConfig.ClientOutputCacheDurationSec}, Location = OutputCacheLocation.{WebConfig.ClientOutputCacheLocation})]");
         }
 
-        void GenerateControllerCore(ControllerConfig controller)
+        void GenerateControllerCore(MojControllerConfig controller)
         {
             ONamespace(controller.Namespace);
             OUsing("System", "System.Collections.Generic", "System.Data", "System.Data.Entity",
@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Mojen
             End(); // Namespace
         }
 
-        public virtual void GenerateController(ControllerConfig controller)
+        public virtual void GenerateController(MojControllerConfig controller)
         {
             // Stub
         }

@@ -60,13 +60,13 @@ namespace Casimodo.Lib.Mojen
 
     public class MojControllerViewBuilder : MojViewBuilder
     {
-        public MojControllerViewBuilder(ControllerBuilder controller, MojViewConfig view)
+        public MojControllerViewBuilder(MojControllerBuilder controller, MojViewConfig view)
             : base(view)
         {
-            Controller = controller;
+            ControllerBuilder = controller;
         }
 
-        public ControllerBuilder Controller { get; private set; }
+        public MojControllerBuilder ControllerBuilder { get; private set; }
 
         public override MojViewBuilder Editor()
         {
@@ -110,12 +110,6 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder ViewModelOnly()
-        {
-            View.IsViewModelOnly = true;
-            return this;
-        }
-
         public MojViewBuilder Viewless()
         {
             View.IsViewless = true;
@@ -142,7 +136,7 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Index | MojViewRole.List;
-            View.Kind.ComponentRoleName = ActionName.Index;
+            View.Kind.RoleName = ActionName.Index;
             View.Kind.RawAction = ActionName.Index;
 
             View.CanCreate = true;
@@ -158,7 +152,7 @@ namespace Casimodo.Lib.Mojen
             View.IsPartial = true;
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
-            View.Kind.ComponentRoleName = "List";
+            View.Kind.RoleName = "List";
 
             View.CanCreate = true;
             View.CanEdit = true;
@@ -192,19 +186,20 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder ComponentRole(string name)
         {
-            View.Kind.ComponentRoleName = name;
+            View.Kind.RoleName = name;
             OnNamingChanged();
 
             return this;
         }
 
-        public MojViewBuilder LookupSingle(params MojProp[] parameters)
+        public MojViewBuilder LookupSingle(string id, params MojProp[] parameters)
         {
+            View.Id = id;
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Lookup | MojViewRole.List;
             //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
             View.Kind.RawAction = ActionName.Lookup;
-            View.Kind.ComponentRoleName = "Lookup";
+            View.Kind.RoleName = "Lookup";
             View.Group = null; // "Lookup";
 
             View.CanCreate = false;
@@ -230,14 +225,14 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder StandaloneEditorDialog() // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
+        public MojViewBuilder StandaloneEditorView() // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
         {
             if (View.Standalone.Is)
                 throw new MojenException("This view is already standalone.");
 
             View.Kind.Mode = MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
-            View.Kind.ComponentRoleName = "Editor";
+            View.Kind.RoleName = "Editor";
             View.Kind.RawAction = ActionName.Edit;
             // KABU TODO: REMOVE
             //View.Group = "Standalone";
@@ -264,11 +259,11 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder StandaloneDetailsView()  // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
+        public MojViewBuilder StandaloneReadOnlyView()  // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
-            View.Kind.ComponentRoleName = "Details";
+            View.Kind.RoleName = "Details";
             View.Kind.RawAction = ActionName.Details;
 
             View.CanCreate = false;
@@ -295,7 +290,7 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
-            View.Kind.ComponentRoleName = "List";
+            View.Kind.RoleName = "List";
             View.Kind.RawAction = "List";
             View.Group = "Standalone";
 
@@ -336,7 +331,7 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
-            View.Kind.ComponentRoleName = ActionName.Details;
+            View.Kind.RoleName = ActionName.Details;
             View.Kind.RawAction = ActionName.Details;
 
             View.CanCreate = false;
@@ -351,7 +346,7 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Create | MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
-            View.Kind.ComponentRoleName = "Editor";
+            View.Kind.RoleName = "Editor";
             View.Kind.RawAction = ActionName.Edit;
 
             View.CanDelete = true;
@@ -496,6 +491,21 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Content(Action<MojViewBuilder> build)
+        {
+            build(this);
+            Build();
+
+            return this;
+        }
+
+        public MojViewBuilder Content(Func<MojViewBuilder, MojViewBuilder> build)
+        {
+            build(this);
+
+            return this;
+        }
+
         public MojViewBuilder MinHeight(int height)
         {
             View.MinHeight = height;
@@ -599,31 +609,27 @@ namespace Casimodo.Lib.Mojen
                 throw new MojenException($"The view for '{view.TypeConfig.Name}' (roles: {view.Kind.Roles}) has no ID.");
         }
 
-        public MojViewBuilder EditorView(MojViewConfig view)
+        public MojViewBuilder Editor(Func<MojControllerBuilder, MojViewBuilder> build)
         {
-            return Editor2(view);
+            var vbuilder = build(((MojControllerViewBuilder)this).ControllerBuilder);
+
+            return Editor(vbuilder);
         }
 
-        public MojViewBuilder Editor2(MojViewConfig view)
+        public MojViewBuilder Editor(MojViewBuilder vbuilder)
+        {
+            return Editor(vbuilder.Build());
+        }
+
+        public MojViewBuilder Editor(MojViewConfig view)
         {
             Guard.ArgNotNull(view, nameof(view));
-
-            CheckViewId(view);
 
             if (view.Kind.Roles != MojViewRole.Editor)
                 throw new MojenException("The view must be an editor.");
 
             if (view.Group != View.Group)
                 throw new MojenException("The editor must not be in a different group.");
-
-            if (!view.Standalone.Is)
-            {
-                new MojViewBuilder(view)
-                    .StandaloneEditorDialog()
-                    .CanEdit(true)
-                    .CanCreate(true)
-                    .CanDelete(true);
-            }
 
             View.EditorView = view;
 
@@ -641,12 +647,15 @@ namespace Casimodo.Lib.Mojen
                 Prop(prop, hidden: true);
         }
 
-        public MojViewBuilder InlineDetailsView(MojViewConfig view)
+        public MojViewBuilder InlineDetails(MojViewBuilder vbuilder)
         {
-            CheckViewId();
+            return InlineDetails(vbuilder.Build());
+        }
 
-            if (view.Id == null)
-                view.Id = View.Id;
+        public MojViewBuilder InlineDetails(MojViewConfig view)
+        {
+            if (view.Group != View.Group)
+                throw new MojenException("The editor must not be in a different group.");
 
             View.InlineDetailsView = view;
 

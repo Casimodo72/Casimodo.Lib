@@ -4,15 +4,15 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class ControllerBuilder
+    public class MojControllerBuilder
     {
-        public ControllerBuilder(ControllerConfig config)
+        public MojControllerBuilder(MojControllerConfig config)
         {
             Controller = config;
             ViewBuilders = new List<MojViewBuilder>();
         }
 
-        public ControllerConfig Controller { get; private set; }
+        public MojControllerConfig Controller { get; private set; }
 
         public List<MojViewBuilder> ViewBuilders { get; private set; }
 
@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Mojen
             App = app;
         }
 
-        public ControllerBuilder Model(MojType model)
+        public MojControllerBuilder Model(MojType model)
         {
             Controller.TypeConfig = model;
             return this;
@@ -55,17 +55,17 @@ namespace Casimodo.Lib.Mojen
             return View(id).Editor();
         }
 
-        public MojViewBuilder StandaloneEditorDialog(string id)
+        public MojViewBuilder StandaloneEditorView(string id)
         {
-            return View(id).StandaloneEditorDialog()
+            return View(id).StandaloneEditorView()
                 .CanEdit(true)
                 .CanCreate(false)
                 .CanDelete(false);
         }
 
-        public MojViewBuilder StandaloneDetailsView(string id)
+        public MojViewBuilder StandaloneReadOnlyView(string id)
         {
-            return View(id).StandaloneDetailsView();
+            return View(id).StandaloneReadOnlyView();
         }
 
         public MojViewBuilder ListDialog(string id)
@@ -76,9 +76,9 @@ namespace Casimodo.Lib.Mojen
                 .CanDelete(false);
         }
 
-        public MojViewBuilder LookupSingleView(params MojProp[] parameters)
+        public MojViewBuilder LookupSingleView(string id, params MojProp[] parameters)
         {
-            return View().LookupSingle(parameters);
+            return View().LookupSingle(id, parameters);
         }
 
         MojViewBuilder View(string id = null)
@@ -99,7 +99,7 @@ namespace Casimodo.Lib.Mojen
             return vbuilder;
         }
 
-        public ControllerBuilder Use<T>(object args = null)
+        public MojControllerBuilder Use<T>(object args = null)
             where T : MojenGenerator
         {
             var use = MojenBuildExtensions.Use<T>(Controller.UsingGenerators, args);
@@ -108,12 +108,12 @@ namespace Casimodo.Lib.Mojen
             {
                 UsedType = use.Type,
                 UsedByObject = Controller.TypeConfig
-            });            
+            });
 
             return this;
         }
 
-        public ControllerBuilder AddAttr(string name, params MojAttrArg[] args)
+        public MojControllerBuilder AddAttr(string name, params MojAttrArg[] args)
         {
             //Args.Add(new PropAttrArg { IsConstructorArg = isConstructor, Name = name, Value = value, IsString = isString, IsStringUnescaped = isStringUnescaped });
             var attr = new MojAttr(name, 1);

@@ -35,7 +35,7 @@ namespace Casimodo.Lib.Mojen
 
         ODataControllerOptions Options { get; set; }
 
-        ControllerConfig Controller { get; set; }
+        MojControllerConfig Controller { get; set; }
 
         public MojType Type { get; set; }
 
@@ -50,7 +50,7 @@ namespace Casimodo.Lib.Mojen
         {
             OData = App.Get<WebODataBuildConfig>();
 
-            var controllers = App.GetItems<ControllerConfig>().Where(x => x.Uses(this)).ToArray();
+            var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses(this)).ToArray();
 
             foreach (var controller in controllers)
             {

@@ -7,10 +7,9 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoPartGen : WebPartGenerator
     {
-        public void OEditorViewModel(WebViewGenContext context, string componentName = null)
+        public void OEditorViewModel(WebViewGenContext context)
         {
             // View model for standalone editor views.
-
             var view = context.View;
 
             OJsImmediateBegin("space");
@@ -72,15 +71,15 @@ namespace Casimodo.Lib.Mojen
             O($"space.vm.start();");
 
             O();
-            OJsImmediateEnd(BuildNewComponentSpace(componentName));
+            OJsImmediateEnd(BuildGetOrCreateSpace());
         }
 
-        public void OReadOnlyViewModel(WebViewGenContext context, string space)
+        public void OReadOnlyViewModel(WebViewGenContext context, string componentName)
         {
             // View model for standalone read-only views.
 
             var view = context.View;
-
+            
             OJsImmediateBegin("space");
 
             // View model factory
@@ -116,7 +115,7 @@ namespace Casimodo.Lib.Mojen
 
             End(";"); // View model factory
 
-            OJsImmediateEnd(BuildNewComponentSpace(space));
+            OJsImmediateEnd(BuildGetOrCreateSpace(componentName));
         }
 
         public string GetPlainDisplayTemplate(MojViewProp prop, bool checkLastProp = false)

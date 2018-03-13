@@ -52,7 +52,7 @@ namespace Casimodo.Lib.Mojen
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "WebRepository";
         }
 
-        public void PerformWrite(ControllerConfig controller, Action<ControllerConfig> callback)
+        public void PerformWrite(MojControllerConfig controller, Action<MojControllerConfig> callback)
         {
             string outputFilePath =
                 Path.Combine(
@@ -81,6 +81,11 @@ namespace Casimodo.Lib.Mojen
         public void OScriptEnd()
         {
             OE("</script>");
+        }
+
+        public void OInlineScriptSourceUrl(string fileName)
+        {
+            O("//# sourceUrl=" + fileName);
         }
 
         public void OJsDocReadyBegin()
@@ -179,8 +184,10 @@ namespace Casimodo.Lib.Mojen
             O("\"use strict\";");
         }
 
-        public void OJsImmediateBegin(string parameters = "")
+        public void OJsImmediateBegin(string parameters = "", string variable = null)
         {
+            if (!string.IsNullOrWhiteSpace(variable))
+                O($"var {variable};");
             OB($"(function ({parameters})");
         }
 
@@ -234,27 +241,22 @@ namespace Casimodo.Lib.Mojen
                 O("{0}.{1} = {1};", ns, name);
         }
 
-        public string BuildNewComponentSpace(string name = null)
-        {
-            return BuildNewCasimodoRunObject(name, BuildComponentSpaceConstructor());          
-        }
+        public const string SpaceConstructorFunc = "casimodo.ui.createComponentSpace()";
 
-        public string BuildNewComponentSpaceFactory(string name = null)
+        public string BuildGetOrCreateSpace(string spaceName = null, string constructor = SpaceConstructorFunc)
         {
-            return BuildNewCasimodoRunObject(name, "{}");         
-        }
-
-        public string BuildComponentSpaceConstructor()
-        {
-            return "casimodo.ui.createComponentSpace()";
-        }
-
-        string BuildNewCasimodoRunObject(string name, string constructor)
-        {
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(spaceName))
                 return $"{constructor}";
             else
-                return $"casimodo.run.{name} || (casimodo.run.{name} = {constructor})";
+            {
+                var space = BuildSpacePath(spaceName);
+                return $"{space} || ({space} = {constructor})";
+            }
+        }
+
+        public string BuildSpacePath(string componentName)
+        {
+            return $"casimodo.run.{componentName}";
         }
 
         public string GetViewDirPath(MojViewConfig view)
@@ -262,9 +264,9 @@ namespace Casimodo.Lib.Mojen
             return Path.Combine(App.Get<WebBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
         }
 
-        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string suffix = null, bool newConvention = false)
+        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string suffix = null)
         {
-            return Path.Combine(App.Get<WebBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix, newConvention: newConvention));
+            return Path.Combine(App.Get<WebBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix));
         }
 
         public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string suffix = null)
@@ -272,24 +274,23 @@ namespace Casimodo.Lib.Mojen
             return App.Get<WebBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
         }
 
-        public string BuildJsScriptFileName(MojViewConfig view, string name = null, string suffix = null,
-            bool extension = true, bool newConvention = false)
+        public string BuildJsScriptFileName(MojViewConfig view, string name = null,
+            string suffix = null, bool extension = true)
         {
             if (name == null)
             {
                 name = view.TypeConfig.Name;
 
-                if (newConvention)
-                {
-                    if (view.Group != null &&
-                        !view.Group.Equals("lookup", StringComparison.OrdinalIgnoreCase))
-                    {
-                        name += "." + view.Group.FirstLetterToLower();
-                    }
-                }
+                if (view.Group != null)
+                    name += "." + view.Group;
 
-                string role = null;
                 var roles = view.Kind.Roles;
+                string lookup = null;
+                string role = null;
+
+                if (roles.HasFlag(MojViewRole.Lookup))
+                    lookup = "lookup";
+
                 if (roles.HasFlag(MojViewRole.Editor))
                     role = "editor";
                 else if (roles.HasFlag(MojViewRole.Details))
@@ -299,22 +300,10 @@ namespace Casimodo.Lib.Mojen
                 else if (roles.HasFlag(MojViewRole.List))
                     role = "list";
 
-                if (roles.HasFlag(MojViewRole.Lookup))
-                    role = "lookup" + (role != null ? "." + role : "");
-
                 if (role == null)
                     throw new MojenException("Failed to build a JS file name.");
 
-                name += "." + role;
-
-                if (!newConvention)
-                {
-                    if (view.Group != null &&
-                        !view.Group.Equals("lookup", StringComparison.OrdinalIgnoreCase))
-                    {
-                        name += "." + view.Group.FirstLetterToLower();
-                    }
-                }
+                name += "." + (lookup != null ? lookup + "." : "") + role;
 
                 if (suffix != null)
                     name += suffix.FirstLetterToLower();
@@ -328,12 +317,16 @@ namespace Casimodo.Lib.Mojen
             return name;
         }
 
-        public string BuildViewModelFileName(MojViewConfig view)
+        public string BuildEditorDataModelFileName(MojViewConfig view)
         {
+            string name = "";
+
             if (view.Group != null)
-                return "_" + view.Group + ".DataViewModel.cs";
-            else
-                return "DataViewModel.cs";
+                name = "_" + view.Group + ".";
+
+            name += "EditorDataViewModel.cs";
+
+            return name;
         }
 
         public string BuildFilePath(MojViewConfig view, string name = null, bool partial = false)
@@ -366,7 +359,7 @@ namespace Casimodo.Lib.Mojen
 
             if (name == null)
             {
-                name = view.FileName ?? view.Name ?? view.Kind.ComponentRoleName ?? view.CustomControllerActionName;
+                name = view.FileName ?? view.Name ?? view.Kind.RoleName ?? view.CustomControllerActionName;
 
                 // NOTE: We now use the PluaralName for index pages. I.e "People.cshtml" instead of "Index.cshtml".
                 if (!partial && name == view.Kind.RawAction && view.Kind.Roles.HasFlag(MojViewRole.Index))
@@ -401,7 +394,7 @@ namespace Casimodo.Lib.Mojen
                 //}
                 //else
                 //{
-                name = $"_{name}";
+                name = "_" + name;
             }
 
             if (view.IsForMobile)

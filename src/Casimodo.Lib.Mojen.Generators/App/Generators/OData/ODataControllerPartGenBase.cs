@@ -20,7 +20,7 @@ namespace Casimodo.Lib.Mojen
 
         public Func<MojProp, bool> SelectProp { get; set; } = (prop) => true;
 
-        public Func<IEnumerable<ControllerConfig>, IEnumerable<ControllerConfig>> SelectControllers { get; set; } = (controllers) => controllers;
+        public Func<IEnumerable<MojControllerConfig>, IEnumerable<MojControllerConfig>> SelectControllers { get; set; } = (controllers) => controllers;
 
         protected override void GenerateCore()
         {
@@ -31,9 +31,9 @@ namespace Casimodo.Lib.Mojen
             PerformWrite(path, () => OForAllTypes());
         }
 
-        protected ControllerConfig[] GetControllers()
+        protected MojControllerConfig[] GetControllers()
         {
-            return SelectControllers(App.GetItems<ControllerConfig>().Where(x => x.Uses<ODataControllerGen>())).ToArray();
+            return SelectControllers(App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>())).ToArray();
         }
 
         public virtual void OType(MojType type)

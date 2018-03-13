@@ -1,21 +1,22 @@
-﻿using Casimodo.Lib;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public partial class KendoEditorGen : KendoTypeViewGenBase
+    public partial class KendoFormEditorViewGen : KendoTypeViewGenBase
     {
-        public KendoEditableDetailsGen ReadOnlyGen { get; set; } = new KendoEditableDetailsGen();
+        public KendoFormReadOnlyViewGen ReadOnlyGen { get; set; } = new KendoFormReadOnlyViewGen();
 
         public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
 
         public List<MojViewPropInfo> UsedViewPropInfos { get; set; } = new List<MojViewPropInfo>();
+
+        public string ViewFilePath { get; set; }
+        public string ViewFileName { get; set; }
 
         protected override void GenerateCore()
         {
@@ -37,7 +38,8 @@ namespace Casimodo.Lib.Mojen
 
                 var dataViewModelGen = new WebDataEditViewModelGen();
                 dataViewModelGen.Initialize(App);
-                dataViewModelGen.PerformWrite(Path.Combine(GetViewDirPath(view), BuildViewModelFileName(view)), () =>
+
+                dataViewModelGen.PerformWrite(Path.Combine(GetViewDirPath(view), BuildEditorDataModelFileName(view)), () =>
                 {
                     dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group);
                 });
@@ -54,6 +56,9 @@ namespace Casimodo.Lib.Mojen
             // View model for standalone editor views.
             OScriptBegin();
             KendoGen.OEditorViewModel(context);
+
+            O();
+            OInlineScriptSourceUrl("inline." + BuildJsScriptFileName(context.View, suffix: ".vm"));
             OScriptEnd();
         }
 
@@ -96,7 +101,7 @@ namespace Casimodo.Lib.Mojen
 
         bool IsEffectiveStandaloneView(WebViewGenContext context)
         {
-            return context.IsStandaloneView == true || context.View.Standalone.Is;
+            return context.View.Standalone.Is;
         }
 
         public override void BeginView(WebViewGenContext context)
@@ -140,7 +145,7 @@ namespace Casimodo.Lib.Mojen
                 var vinfo = vprop.BuildViewPropInfo();
                 UsedViewPropInfos.Add(vinfo);
             }
-        }      
+        }
 
         public override void EndView(WebViewGenContext context)
         {
@@ -883,7 +888,7 @@ namespace Casimodo.Lib.Mojen
                 O($"casimodo.ui.dialogArgs.add(args);");
 
                 var cachedWindow = geoConfig.IsViewCached
-                    ? $"casimodo.run.{context.ComponentViewSpaceName}cachedDialogFor{propPath.Replace(".", "")}"
+                    ? $"casimodo.run.{context.SpaceName}cachedDialogFor{propPath.Replace(".", "")}"
                     : "null";
 
                 // Fetch the partial view from server into a Kendo modal window.
@@ -1115,8 +1120,9 @@ namespace Casimodo.Lib.Mojen
             string key = "Value";
             string display = "Text";
 
-            // NOTE: We now perform client queries data sets greater than extra small.
-            bool clientQuery = cascade || targetType.DataSetSize != MojDataSetSizeKind.ExtraSmall;
+            // TODO: REMOVE: -> NOTE: We now perform client queries data sets greater than extra small.
+            // NOTE: We now always perform client queries.
+            bool clientQuery = cascade || true || targetType.DataSetSize != MojDataSetSizeKind.ExtraSmall;
             string clientQueryUrl = null;
 
             O($"<!-- Drop down selector for {propPath} -->");
