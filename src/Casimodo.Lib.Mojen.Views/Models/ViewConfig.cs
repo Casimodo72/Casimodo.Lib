@@ -72,9 +72,6 @@ namespace Casimodo.Lib.Mojen
         { }
 
         public bool Is { get; set; }
-
-        // KABU TODO: REMOVE? Not used
-        //public List<MojProp> Parameters { get; set; } = new List<MojProp>();
     }
 
     public class MojViewCustomControl

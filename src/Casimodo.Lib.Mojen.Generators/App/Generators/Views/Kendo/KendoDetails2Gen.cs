@@ -6,11 +6,32 @@ namespace Casimodo.Lib.Mojen
     {
         public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
 
+        public string ScriptFilePath { get; set; }
+        public string ScriptVirtualFilePath { get; set; }
+
         protected override void GenerateCore()
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this)))
             {
+                if (view.EditorView == null && view is MojControllerViewConfig)
+                {
+                    var controller = (view as MojControllerViewConfig).Controller;
+                    // Try to find a matching editor.
+                    view.EditorView = App.GetItems<MojControllerViewConfig>()
+                        .Where(x =>
+                            x.Controller == controller &&
+                            x.Group == view.Group &&
+                            x.Uses<KendoFormEditorViewGen>() &&
+                            x.CanEdit)
+                        .SingleOrDefault();
+
+                    if (view.EditorView != null)
+                    {
+                        new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
+                    }
+                }
+
                 var context = new WebViewGenContext
                 {
                     View = view,
@@ -18,13 +39,15 @@ namespace Casimodo.Lib.Mojen
                     IsViewIdEnabled = true
                 };
 
+                ScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
+                ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
+
                 PerformWrite(view, () => GenerateView(context));
 
                 if (view.Standalone.Is)
                 {
-                    var path = BuildJsScriptFilePath(view, suffix: ".vm.generated");
                     var componentName = view.TypeConfig.Name.FirstLetterToLower() + (view.Group ?? "") + "DetailsSpace";
-                    PerformWrite(path, () =>
+                    PerformWrite(ScriptFilePath, () =>
                     {
                         OScriptUseStrict();
 
@@ -74,7 +97,7 @@ namespace Casimodo.Lib.Mojen
                 OB("<div class='details-view-commands'>");
 
                 // Edit button
-                if (context.View.CanEdit)
+                if (context.View.EditorView != null && context.View.EditorView.CanEdit)
                 {
                     // NOTE: The button is hidden intially.
                     //   The view model will show or remove that button based on activity authorization.
@@ -112,6 +135,8 @@ namespace Casimodo.Lib.Mojen
                 OE($"</div>"); // standalone details view content
                 OE($"</div>"); // standalone details view
             }
+
+            // KABU TODO: REMOVE: OScriptReference(ScriptVirtualFilePath, async: true);
         }
 
         public override void OProp(WebViewGenContext context)

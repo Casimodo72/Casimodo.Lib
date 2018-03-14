@@ -53,20 +53,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder EditorView(string id)
         {
             return View(id).Editor();
-        }
-
-        public MojViewBuilder StandaloneEditorView(string id)
-        {
-            return View(id).StandaloneEditorView()
-                .CanEdit(true)
-                .CanCreate(false)
-                .CanDelete(false);
-        }
-
-        public MojViewBuilder StandaloneReadOnlyView(string id)
-        {
-            return View(id).StandaloneReadOnlyView();
-        }
+        } 
 
         public MojViewBuilder ListDialog(string id)
         {

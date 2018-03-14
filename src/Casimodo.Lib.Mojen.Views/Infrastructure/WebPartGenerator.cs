@@ -62,9 +62,10 @@ namespace Casimodo.Lib.Mojen
             PerformWrite(outputFilePath, () => callback(controller));
         }
 
-        public void OScriptReference(string path)
+        public void OScriptReference(string path, bool async = false)
         {
-            O($"<script src='{path}' type='text/javascript'></script>");
+            O("<script src='{0}' type='text/javascript'{1}></script>",
+                path, (async ? " async" : ""));
         }
 
         public void OScriptBegin()

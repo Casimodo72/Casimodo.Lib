@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class WebOutputCacheConfig : MojenBuildConfig
+    {
+        public bool IsEnabled { get; set; }
+        public string CacheProfile { get; set; } = "Default";
+        public bool Revalidate { get; set; } = true;
+    }
+
     public class WebBuildConfig : MojenBuildConfig
     {
         public string WebNamespace { get; set; }
@@ -19,8 +26,7 @@ namespace Casimodo.Lib.Mojen
 
         public string WebPickItemsDirPath { get; set; }
 
-        public object ClientOutputCacheDurationSec { get; set; } = "60 * 60 * 24";
-        public string ClientOutputCacheLocation { get; set; } = "ServerAndClient";
+        public WebOutputCacheConfig OutputCache { get; private set; } = new WebOutputCacheConfig();
 
         // Web MVC controllers
         public string WebControllersOutputDirPath { get; set; }

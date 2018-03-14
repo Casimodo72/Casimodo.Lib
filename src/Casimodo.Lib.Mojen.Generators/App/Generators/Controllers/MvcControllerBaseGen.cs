@@ -12,7 +12,12 @@ namespace Casimodo.Lib.Mojen
 
         public void OOutputCacheAttribute()
         {
-            O($"[CustomOutputCache(Duration = {WebConfig.ClientOutputCacheDurationSec}, Location = OutputCacheLocation.{WebConfig.ClientOutputCacheLocation})]");
+            if (WebConfig.OutputCache.IsEnabled)
+            {
+                O("[CustomOutputCache(CacheProfile = \"{0}\"{1})]",
+                    WebConfig.OutputCache.CacheProfile,
+                    WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
+            }
         }
 
         void GenerateControllerCore(MojControllerConfig controller)

@@ -41,8 +41,6 @@ namespace Casimodo.Lib.Mojen
 
         public bool UseClientTemplates { get; set; }
 
-        //public MojViewConfig InlineDetailsView { get; set; }
-
         public WebScriptGen ScriptGen { get; set; } = new WebScriptGen();
 
         public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
@@ -55,8 +53,6 @@ namespace Casimodo.Lib.Mojen
 
         public KendoFormEditorViewGen EditorGen { get; set; } = new KendoFormEditorViewGen();
 
-        public string EditorTemplateName { get; set; }
-
         public bool CanCreate { get; set; }
 
         public bool CanModify { get; set; }
@@ -68,8 +64,6 @@ namespace Casimodo.Lib.Mojen
         // KABU TODO: REMOVE? Not really used.
         public List<MojPropAutoCompleteFilter> AutoCompleteFilters { get; set; }
 
-        // KABU TODO: REMOVE: public MojViewProp[] InitialSortProps { get; set; }
-
         public KendoGridOptions Options { get; set; } = new KendoGridOptions();
 
         public MojHttpRequestConfig TransportConfig { get; set; }
@@ -77,10 +71,8 @@ namespace Casimodo.Lib.Mojen
         public string InlineDetailsViewFilePath { get; set; }
         public string InlineDetailsViewVirtualFilePath { get; set; }
 
-        public string EditorViewFilePath { get; set; }
-        public string EditorViewVirtualFilePath { get; set; }
-
         public string GridScriptFilePath { get; set; }
+        public string GridScriptVirtualFilePath { get; set; }
 
         // KABU TODO: REMOVE: public string ViewModelScriptVirtualFilePath { get; set; }
         // KABU TODO: REMOVE: public string ViewModelExtensionScriptFilePath { get; set; }
@@ -101,12 +93,6 @@ namespace Casimodo.Lib.Mojen
 
                 Options = view.GetGeneratorConfig<KendoGridOptions>() ?? new KendoGridOptions();
 
-                // ID of component
-                // KABU TODO: Introduce a component GUID when we need to generate nested grids.
-                // NOTE: We can't use "." as separator because Kendo will convert "." to "_" anyway.
-                // IMPORTANT: The formating with "_" is *needed* for the kendomodo JavaScript
-                //   extract the type of object is being used -
-                //   so **don't change** this:
                 context.ComponentId = "grid-" + view.Id;
                 context.ComponentName = $"grid{view.TypeConfig.Name}Items";
                 context.ComponentViewModelName = context.ComponentName + "ViewModel";
@@ -122,38 +108,21 @@ namespace Casimodo.Lib.Mojen
                     .Where(x => x.IsEnabled)
                     .OrderBy(x => x.Position));
 
-                // Inline details
-                InlineDetailsTemplateName = "grid-detail-template-" + view.Id;
+                // Inline details              
                 if (view.InlineDetailsView != null)
                 {
+                    InlineDetailsTemplateName = "grid-details-template-" + view.Id;
                     InlineDetailsViewVirtualFilePath = BuildVirtualFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
                     InlineDetailsViewFilePath = BuildFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
                 }
 
                 // Editor               
-                EditorTemplateName = "grid-popup-editor-template-" + view.Id;
                 CanModify = view.EditorView != null && view.EditorView.CanEdit;
                 CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
                 CanDelete = Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
-                if (view.EditorView != null)
-                {
-                    EditorViewVirtualFilePath = BuildVirtualFilePath(view.EditorView, name: "Editor", partial: true);
-                    EditorViewFilePath = BuildFilePath(view.EditorView, name: "Editor", partial: true);
-                }
 
-                // View model script file path
-                var viewModelScriptSuffix = ".vm.generated";
-                GridScriptFilePath = BuildJsScriptFilePath(View, suffix: viewModelScriptSuffix);
-                // KABU TODO: REMOVE: ViewModelScriptVirtualFilePath = BuildJsScriptVirtualFilePath(View, suffix: viewModelScriptSuffix);
-
-                // KABU TODO: REMOVE: 
-                //viewModelScriptSuffix = ".vm.extension";
-                //ViewModelExtensionScriptFilePath = BuildJsScriptFilePath(View, suffix: viewModelScriptSuffix);
-                //ViewModelExtensionScriptVirtualFilePath = BuildJsScriptVirtualFilePath(View, suffix: viewModelScriptSuffix);
-                //ViewModelExtensionClassName = BuildJsScriptFileName(View, suffix: viewModelScriptSuffix, extension: false)
-                //    .Split('.')
-                //    .Select(x => MojenUtils.FirstCharToUpper(x))
-                //    .Join("");
+                GridScriptFilePath = BuildJsScriptFilePath(View, suffix: ".vm.generated");
+                GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(View, suffix: ".vm.generated");
 
                 // Generate grid.
                 if (!context.View.IsCustom)
@@ -231,12 +200,32 @@ namespace Casimodo.Lib.Mojen
             TransportConfig = this.CreateODataTransport(view, null, Options.CustomQueryMethod);
 
             // View & style
-            PerformWrite(context.View, () =>
+            if (!context.View.IsViewless)
             {
-                GenGridView(context);
+                PerformWrite(context.View, () =>
+                {
+                    GenGridView(context);
 
-                GenGridStyle(context);
-            });
+                    O();
+                    GenGridStyle(context);
+
+                    if (View.IsDataAutoLoadEnabled ||
+                        View.Kind.Roles.HasFlag(MojViewRole.Index) ||
+                        View.Kind.Roles.HasFlag(MojViewRole.Lookup))
+                    {
+                        O();
+                        OScriptBegin();
+                        O("{0}.create().vm.refresh();", BuildSpacePath(context.SpaceName));
+                        OScriptEnd();
+                        // KABU TODO: REMOVE: Don't autoload in space.
+                        //O();
+                        //O("// Auto create and load.");
+                        //O("space.create();");
+                        //O("space.vm.refresh();");
+                    }
+                    //OScriptReference(GridScriptVirtualFilePath, async: context.View.Kind.RoleName == MojViewRole.Lookup.ToString());
+                });
+            }
 
             // Script
             WriteTo(ScriptGen, () =>
@@ -246,9 +235,6 @@ namespace Casimodo.Lib.Mojen
 
         void GenGridView(WebViewGenContext context)
         {
-            if (context.View.IsViewless)
-                return;
-
             ORazorGeneratedFileComment();
 
             ORazorUsing("Casimodo.Lib", "Casimodo.Lib.Web",
@@ -279,22 +265,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 OKendoTemplateBegin($"{InlineDetailsTemplateName}");
 
-                O("@Html.Partial(\"{0}\"){1}",
-                    InlineDetailsViewVirtualFilePath,
-                    (context.View.InlineDetailsView.IsEscapingNeeded ? ".ToKendoTemplate()" : ""));
-
-                OKendoTemplateEnd();
-            }
-
-            // Editor view Kendo template
-            if (context.View.EditorView != null)
-            {
-                O();
-                OKendoTemplateBegin($"{EditorTemplateName}");
-
-                O("@Html.Partial(\"{0}\"){1}",
-                    EditorViewVirtualFilePath,
-                    (context.View.EditorView.IsEscapingNeeded ? ".ToKendoTemplate()" : ""));
+                OMvcPartialView(InlineDetailsViewVirtualFilePath, kendoEscape: context.View.InlineDetailsView.IsEscapingNeeded);
 
                 OKendoTemplateEnd();
             }
@@ -327,10 +298,11 @@ namespace Casimodo.Lib.Mojen
                 View.Kind.Roles.HasFlag(MojViewRole.Index) ||
                 View.Kind.Roles.HasFlag(MojViewRole.Lookup))
             {
-                O();
-                O("// Auto create and load.");
-                O("space.create();");
-                O("space.vm.refresh();");
+                // KABU TODO: REMOVE: Don't autoload in space.
+                //O();
+                //O("// Auto create and load.");
+                //O("space.create();");
+                //O("space.vm.refresh();");
             }
 
             if (View.HasFactory)
@@ -515,8 +487,9 @@ namespace Casimodo.Lib.Mojen
                     // NOTE: Without that Kendo will not display a deletion-confirmation dialog prior to deletion.
                     "confirmation: true",
 
-                    // Editor template
-                    $"template: kendo.template($('#{EditorTemplateName}').html())",
+                    // KABU TODO: REMOVE: We are not using the built in popup editor anymore.
+                    //// Editor template
+                    //$"template: kendo.template($('#{EditorTemplateName}').html())",
 
                     // Editor window
                     XP("window",

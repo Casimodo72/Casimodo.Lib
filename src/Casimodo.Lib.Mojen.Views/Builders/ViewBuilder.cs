@@ -199,7 +199,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Roles = MojViewRole.Lookup | MojViewRole.List;
             //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
             View.Kind.RawAction = ActionName.Lookup;
-            View.Kind.RoleName = "Lookup";
+            View.Kind.RoleName = MojViewRole.Lookup.ToString();
             View.Group = null; // "Lookup";
 
             View.CanCreate = false;
@@ -225,63 +225,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder StandaloneEditorView() // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
+        public MojViewBuilder Standalone() // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
         {
             if (View.Standalone.Is)
                 throw new MojenException("This view is already standalone.");
 
-            View.Kind.Mode = MojViewMode.Update;
-            View.Kind.Roles = MojViewRole.Editor;
-            View.Kind.RoleName = "Editor";
-            View.Kind.RawAction = ActionName.Edit;
-            // KABU TODO: REMOVE
-            //View.Group = "Standalone";
-
-            // Dialogs are currently all modal and partial.
-            View.IsModal = true;
-            View.IsPartial = true;
-
-            View.CanCreate = false;
-            View.CanEdit = false;
-            View.CanDelete = false;
-
-            View.Standalone = new MojStandaloneViewConfig
-            {
-                Is = true,
-                // KABU TODO: REMOVE? Not used
-                //Parameters = new List<MojProp>(parameters)
-            };
-
-            Title(View.TypeConfig.DisplayName);
-
-            OnNamingChanged();
-
-            return this;
-        }
-
-        public MojViewBuilder StandaloneReadOnlyView()  // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
-        {
-            View.Kind.Mode = MojViewMode.Read;
-            View.Kind.Roles = MojViewRole.Details;
-            View.Kind.RoleName = "Details";
-            View.Kind.RawAction = ActionName.Details;
-
-            View.CanCreate = false;
-            View.CanEdit = false;
-            View.CanDelete = false;
-
-            View.IsPartial = true;
-
-            View.Standalone = new MojStandaloneViewConfig
-            {
-                Is = true,
-                // KABU TODO: REMOVE? Not used
-                //Parameters = new List<MojProp>(parameters)
-            };
-
-            Title(View.TypeConfig.DisplayName);
-
-            OnNamingChanged();
+            View.Standalone = new MojStandaloneViewConfig { Is = true };
 
             return this;
         }
@@ -339,6 +288,8 @@ namespace Casimodo.Lib.Mojen
             View.CanDelete = false;
 
             Title(View.TypeConfig.DisplayName);
+            OnNamingChanged();
+
             return this;
         }
 
@@ -349,9 +300,13 @@ namespace Casimodo.Lib.Mojen
             View.Kind.RoleName = "Editor";
             View.Kind.RawAction = ActionName.Edit;
 
-            View.CanDelete = true;
+            View.CanCreate = false;
+            View.CanEdit = false;
+            View.CanDelete = false;
 
             Title(View.TypeConfig.DisplayName);
+            OnNamingChanged();
+
             return this;
         }
 
@@ -470,6 +425,12 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder Partial()
         {
             View.IsPartial = true;
+            return this;
+        }
+
+        public MojViewBuilder Modal()
+        {
+            View.IsModal = true;
             return this;
         }
 
@@ -633,6 +594,14 @@ namespace Casimodo.Lib.Mojen
 
             View.EditorView = view;
 
+            EnsureEditAuthControlPropsIfMissing();
+
+            return this;
+        }
+
+        public MojViewBuilder EnsureEditAuthControlPropsIfMissing()
+        {
+            // KABU TODO: IMPORTANT: Make this configurable for consumer.
             // Add mandatory IsReadOnly and IsDeletable props.
             AddCommandPredicatePropIfMissing("IsReadOnly");
             AddCommandPredicatePropIfMissing("IsDeletable");
@@ -640,11 +609,20 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        void AddCommandPredicatePropIfMissing(string name)
+        MojViewBuilder AddCommandPredicatePropIfMissing(string name)
         {
             var prop = View.TypeConfig.FindProp(name);
             if (prop != null && !View.Props.Any(x => x.Name == prop.Name))
                 Prop(prop, hidden: true);
+
+            return this;
+        }     
+
+        public MojViewBuilder InlineDetails(Func<MojControllerBuilder, MojViewBuilder> build)
+        {
+            var vbuilder = build(((MojControllerViewBuilder)this).ControllerBuilder);
+
+            return InlineDetails(vbuilder);
         }
 
         public MojViewBuilder InlineDetails(MojViewBuilder vbuilder)
