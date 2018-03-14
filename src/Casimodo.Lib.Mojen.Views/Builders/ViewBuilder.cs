@@ -99,6 +99,8 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 
+            OnNamingChanged();
+
             return View;
         }
 
@@ -510,12 +512,6 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder AutoLoad()
-        {
-            View.IsDataAutoLoadEnabled = true;
-
-            return this;
-        }
 
         public MojViewBuilder FileName(string name)
         {

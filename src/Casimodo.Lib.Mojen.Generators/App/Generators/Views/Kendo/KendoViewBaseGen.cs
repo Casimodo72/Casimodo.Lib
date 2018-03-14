@@ -9,6 +9,14 @@ namespace Casimodo.Lib.Mojen
 {
     public abstract class KendoViewGenBase : WebViewGenerator
     {
+        public KendoViewGenBase()
+        {
+            KendoGen = AddSub<KendoPartGen>();
+            KendoGen.SetParent(this);
+        }
+
+        public KendoPartGen KendoGen { get; private set; }
+
         public void KendoJsTemplate(Action action)
         {
             // Buffer any output in order to transform to Kendo template.

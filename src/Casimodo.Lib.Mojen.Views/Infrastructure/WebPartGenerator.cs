@@ -18,6 +18,56 @@ namespace Casimodo.Lib.Mojen
             WebConfig = App.Get<WebBuildConfig>();
         }
 
+        public DataLayerConfig GetDataConfig(MojViewConfig view)
+        {
+            return App.GetDataLayerConfig(view.TypeConfig.DataContextName);
+        }
+
+        public string GetJsScriptNamespace(MojViewConfig view)
+        {
+            return WebConfig.ScriptNamespace;
+        }
+
+        public string GetJsScriptUINamespace(MojViewConfig view)
+        {
+            var ns = WebConfig.ScriptUINamespace;
+            if (string.IsNullOrWhiteSpace(ns))
+                throw new MojenException($"No UI namespace defined for data layer config '{GetDataConfig(view).Name}'.");
+
+            return ns;
+        }
+
+        public void RegisterComponent(WebViewGenContext context)
+        {
+            var view = context.View;
+
+            // Register component.
+            string role = null;
+            var roles = view.Kind.Roles;
+            if (roles.HasFlag(MojViewRole.Index))
+                role = "Main";
+            else if (roles.HasFlag(MojViewRole.Lookup))
+                role = "Lookup";
+            else if (roles.HasFlag(MojViewRole.List))
+                role = "List";
+            else if (roles.HasFlag(MojViewRole.Editor))
+                role = "Editor";
+            else if (roles.HasFlag(MojViewRole.Details))
+                role = "Details";
+
+            App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
+            {
+                Id = view.Id,
+                Item = view.TypeConfig.Name,
+                Role = role,
+                Group = view.Group,
+                Name = context.ComponentName,
+                Namespace = context.UINamespace,
+                Url = view.Url
+            });
+        }
+
+        // KABU TODO: REMOVE? Not used.
         public string ConvertToCssName(string text)
         {
             Guard.ArgNotNullOrWhitespace(text, nameof(text));
@@ -97,6 +147,15 @@ namespace Casimodo.Lib.Mojen
         public void OJsDocReadyEnd()
         {
             End(");");
+        }
+
+        public void OJsComment(params string[] comment)
+        {
+            if (comment == null)
+                return;
+
+            foreach (var item in comment)
+                O("// " + item);
         }
 
         public class MojNamespaceContext
@@ -244,20 +303,14 @@ namespace Casimodo.Lib.Mojen
 
         public const string SpaceConstructorFunc = "casimodo.ui.createComponentSpace()";
 
-        public string BuildGetOrCreateSpace(string spaceName = null, string constructor = SpaceConstructorFunc)
+        public string BuildJSGetOrCreateSpace(WebViewGenContext context, string constructor = SpaceConstructorFunc)
         {
-            if (string.IsNullOrWhiteSpace(spaceName))
-                return $"{constructor}";
-            else
-            {
-                var space = BuildSpacePath(spaceName);
-                return $"{space} || ({space} = {constructor})";
-            }
+            return BuildJSGetOrCreate(context.SpaceName, constructor);
         }
 
-        public string BuildSpacePath(string componentName)
+        public string BuildJSGetOrCreate(string name, string constructor)
         {
-            return $"casimodo.run.{componentName}";
+            return $"{name} || ({name} = {constructor})";
         }
 
         public string GetViewDirPath(MojViewConfig view)
@@ -273,6 +326,36 @@ namespace Casimodo.Lib.Mojen
         public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string suffix = null)
         {
             return App.Get<WebBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
+        }
+
+
+        public string BuildJsClassName(MojViewConfig view)
+        {
+            var name = view.TypeConfig.Name;
+
+            if (view.Group != null)
+                name += "_" + view.Group + "_";
+
+            var roles = view.Kind.Roles;
+            string role = null;
+
+            if (roles.HasFlag(MojViewRole.Lookup))
+                role = "Lookup";
+            else if (roles.HasFlag(MojViewRole.List))
+                role = "List";
+            else if (roles.HasFlag(MojViewRole.Details))
+                role = "Details";
+            else if (roles.HasFlag(MojViewRole.Editor))
+                role = "Editor";
+            else if (roles.HasFlag(MojViewRole.Delete))
+                role = "Delete";
+
+            if (role == null)
+                throw new MojenException("Failed to build a JS component name.");
+
+            name += role;
+
+            return name;
         }
 
         public string BuildJsScriptFileName(MojViewConfig view, string name = null,

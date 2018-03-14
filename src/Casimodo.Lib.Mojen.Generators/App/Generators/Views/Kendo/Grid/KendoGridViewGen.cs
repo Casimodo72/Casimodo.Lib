@@ -8,50 +8,52 @@ namespace Casimodo.Lib.Mojen
     public class WebScriptGen : WebPartGenerator
     { }
 
+    public partial class CustomMainViewGen : WebViewGenerator
+    {
+        protected override void GenerateCore()
+        {
+            foreach (MojViewConfig view in App.GetItems<MojViewConfig>().Where(x => x.Uses(this)))
+            {
+                if (!view.IsCustom)
+                    throw new MojenException("This view must be custom.");
+
+                if (!view.Kind.Roles.HasFlag(MojViewRole.Index))
+                    throw new MojenException("This view must have an index role.");
+
+                var context = new WebViewGenContext
+                {
+                    View = view
+                };
+                RegisterComponent(context);
+            }
+        }
+    }
+
     public partial class KendoGridViewGen : KendoViewGenBase
     {
-        public override MojenGenerator Initialize(MojenApp app)
+        public KendoGridViewGen()
         {
-            base.Initialize(app);
-
-            EditorGen.Initialize(app);
-            EditorDataModelGen.Initialize(app);
-            InlineDetailsGen.Initialize(app);
-            ScriptGen.Initialize(app);
-            KendoGen.SetParent(this);
-
-            return this;
+            EditorGen = AddSub<KendoFormEditorViewGen>();
+            ScriptGen = AddSub<WebScriptGen>();
+            InlineDetailsGen = AddSub<KendoGridInlineDetailsViewGen>();
+            EditorDataModelGen = AddSub<WebDataEditViewModelGen>();
         }
 
         void Reset()
         {
-            Context = new WebViewGenContext();
-            AutoCompleteFilters = new List<MojPropAutoCompleteFilter>();
-            UseClientTemplates = true;
-
+            TransportConfig = null;
+            InlineDetailsTemplateName = null;
         }
 
-        public WebViewGenContext Context { get; set; }
+        public WebScriptGen ScriptGen { get; set; }
 
-        public DataLayerConfig DataConfig { get; set; }
-
-        public bool UseEntity { get; set; }
-
-        public MojViewConfig View { get; private set; }
-
-        public bool UseClientTemplates { get; set; }
-
-        public WebScriptGen ScriptGen { get; set; } = new WebScriptGen();
-
-        public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
-
-        public KendoGridInlineDetailsViewGen InlineDetailsGen { get; set; } = new KendoGridInlineDetailsViewGen();
+        public KendoGridInlineDetailsViewGen InlineDetailsGen { get; set; }
 
         public string InlineDetailsTemplateName { get; set; }
 
-        public WebDataEditViewModelGen EditorDataModelGen { get; set; } = new WebDataEditViewModelGen();
+        public WebDataEditViewModelGen EditorDataModelGen { get; set; }
 
-        public KendoFormEditorViewGen EditorGen { get; set; } = new KendoFormEditorViewGen();
+        public KendoFormEditorViewGen EditorGen { get; set; }
 
         public bool CanCreate { get; set; }
 
@@ -59,12 +61,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool CanDelete { get; set; }
 
-        public bool HasToolbar { get; set; }
-
-        // KABU TODO: REMOVE? Not really used.
-        public List<MojPropAutoCompleteFilter> AutoCompleteFilters { get; set; }
-
-        public KendoGridOptions Options { get; set; } = new KendoGridOptions();
+        public KendoGridOptions Options { get; set; }
 
         public MojHttpRequestConfig TransportConfig { get; set; }
 
@@ -74,11 +71,6 @@ namespace Casimodo.Lib.Mojen
         public string GridScriptFilePath { get; set; }
         public string GridScriptVirtualFilePath { get; set; }
 
-        // KABU TODO: REMOVE: public string ViewModelScriptVirtualFilePath { get; set; }
-        // KABU TODO: REMOVE: public string ViewModelExtensionScriptFilePath { get; set; }
-        // KABU TODO: REMOVE: public string ViewModelExtensionScriptVirtualFilePath { get; set; }
-        // KABU TODO: REMOVE: public string ViewModelExtensionClassName { get; set; }
-
         protected override void GenerateCore()
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
@@ -86,27 +78,18 @@ namespace Casimodo.Lib.Mojen
             {
                 Reset();
 
-                var context = Context = new WebViewGenContext { View = view };
-                DataConfig = App.GetDataLayerConfig(context.View.TypeConfig.DataContextName);
-
-                View = view;
+                KendoGen.ImplicitelyBindEditorView<KendoFormEditorViewGen>(view);
 
                 Options = view.GetGeneratorConfig<KendoGridOptions>() ?? new KendoGridOptions();
+                TransportConfig = this.CreateODataTransport(view, null, Options.CustomQueryMethod);
 
+                var context = new WebViewGenContext
+                {
+                    View = view,
+                    UINamespace = GetJsScriptUINamespace(view)
+                };
+                KendoGen.InitComponentNames(context);
                 context.ComponentId = "grid-" + view.Id;
-                context.ComponentName = $"grid{view.TypeConfig.Name}Items";
-                context.ComponentViewModelName = context.ComponentName + "ViewModel";
-                context.SpaceName = context.ComponentName + (View.Lookup.Is ? "Lookup" : "") + "Space";
-                context.ComponentViewSpaceFactoryName = context.SpaceName + "Factory";
-                context.ComponentViewModelContainerElemClass = ConvertToCssName(context.ComponentViewModelName + "Container");
-
-                // NOTE: The grid will always have a toolbar, because we have a custom refresh button.
-                HasToolbar = true;
-
-                AutoCompleteFilters.AddRange(context.View.Props
-                    .Select(x => x.AutoCompleteFilter)
-                    .Where(x => x.IsEnabled)
-                    .OrderBy(x => x.Position));
 
                 // Inline details              
                 if (view.InlineDetailsView != null)
@@ -116,19 +99,19 @@ namespace Casimodo.Lib.Mojen
                     InlineDetailsViewFilePath = BuildFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
                 }
 
-                // Editor               
+                // Edit capabilities
                 CanModify = view.EditorView != null && view.EditorView.CanEdit;
                 CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
                 CanDelete = Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
 
-                GridScriptFilePath = BuildJsScriptFilePath(View, suffix: ".vm.generated");
-                GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(View, suffix: ".vm.generated");
+                GridScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
+                GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
                 // Generate grid.
-                if (!context.View.IsCustom)
-                {
-                    GenerateGrid(context);
-                }
+                if (view.IsCustom)
+                    throw new MojenException("KendoGridView must not be custom.");
+
+                GenerateGrid(context);
 
                 // Generate inline details view
                 if (view.InlineDetailsView != null && !view.InlineDetailsView.IsCustom)
@@ -138,54 +121,23 @@ namespace Casimodo.Lib.Mojen
                         InlineDetailsGen.GenerateView(new WebViewGenContext
                         {
                             IsEditableView = false,
-                            IsModalView = View.IsModal,
+                            IsModalView = view.IsModal,
                             View = view.InlineDetailsView,
                             ViewRole = "inline-details",
-                            // NOTE: inline view won't have an id, because
+                            // NOTE: inline views won't have an ID, because
                             // there will be multiple on a single page.
                             IsViewIdEnabled = false
                         });
                     });
                 }
 
-#if (false)
-                // Generate editor view.
-                if (view.EditorView != null)
-                {
-                    EditorGen.UsedViewPropInfos.Clear();
-                    // KABU TODO: IMPORTANT: BUG: EditorGen.UsedViewPropInfos will be empty if the view is custom.
-                    //   Thus the data view model will be empty.
-
-                    if (!view.EditorView.IsCustom)
-                    {
-                        EditorGen.PerformWrite(EditorViewFilePath, () =>
-                        {
-                            EditorGen.GenerateView(new WebViewGenContext
-                            {
-                                IsEditableView = CanModify,
-                                IsModalView = true,
-                                View = view.EditorView,
-                                ViewRole = "editor",
-                                IsViewIdEnabled = true
-                            });
-                        });
-                    }
-
-                    // Generate editor view's data view model.
-                    EditorDataModelGen.PerformWrite(Path.Combine(GetViewDirPath(View), BuildViewModelFileName(view.EditorView)), () =>
-                    {
-                        EditorDataModelGen.GenerateEditViewModel(view.EditorView.TypeConfig, EditorGen.UsedViewPropInfos, view.EditorView.Group);
-                    });
-                }
-#endif
+                RegisterComponent(context);
             }
         }
 
         void GenerateGrid(WebViewGenContext context)
         {
             ValidateView(context);
-
-            // REMEMBER: Always escape "#" with "\#" in Kendo templates.
 
             // http://docs.telerik.com/kendo-ui/web/grid/appearance
 
@@ -197,8 +149,6 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(view.Id))
                 throw new MojenException("View ID is missing.");
 
-            TransportConfig = this.CreateODataTransport(view, null, Options.CustomQueryMethod);
-
             // View & style
             if (!context.View.IsViewless)
             {
@@ -208,22 +158,6 @@ namespace Casimodo.Lib.Mojen
 
                     O();
                     GenGridStyle(context);
-
-                    if (View.IsDataAutoLoadEnabled ||
-                        View.Kind.Roles.HasFlag(MojViewRole.Index) ||
-                        View.Kind.Roles.HasFlag(MojViewRole.Lookup))
-                    {
-                        O();
-                        OScriptBegin();
-                        O("{0}.create().vm.refresh();", BuildSpacePath(context.SpaceName));
-                        OScriptEnd();
-                        // KABU TODO: REMOVE: Don't autoload in space.
-                        //O();
-                        //O("// Auto create and load.");
-                        //O("space.create();");
-                        //O("space.vm.refresh();");
-                    }
-                    //OScriptReference(GridScriptVirtualFilePath, async: context.View.Kind.RoleName == MojViewRole.Lookup.ToString());
                 });
             }
 
@@ -275,18 +209,7 @@ namespace Casimodo.Lib.Mojen
         {
             OUseStrict();
 
-            if (View.HasFactory)
-            {
-                OJsImmediateBegin("factory");
-
-                O();
-                OB("factory.createSpace = function ()");
-
-                O();
-                O($"var space = {SpaceConstructorFunc};");
-            }
-            else
-                OJsImmediateBegin("space");
+            KendoGen.OBeginComponentSpace(context);
 
             O();
             GenGridViewModelFactory(context);
@@ -294,46 +217,13 @@ namespace Casimodo.Lib.Mojen
             O();
             GenGridOptionsFactory(context);
 
-            if (View.IsDataAutoLoadEnabled ||
-                View.Kind.Roles.HasFlag(MojViewRole.Index) ||
-                View.Kind.Roles.HasFlag(MojViewRole.Lookup))
-            {
-                // KABU TODO: REMOVE: Don't autoload in space.
-                //O();
-                //O("// Auto create and load.");
-                //O("space.create();");
-                //O("space.vm.refresh();");
-            }
-
-            if (View.HasFactory)
-            {
-                if (View.Lookup.Is)
-                    throw new NotSupportedException("JS lookup views cannot have factories yet.");
-
-                O();
-                O("return space;");
-
-                End(";"); // End factory function.
-
-                OJsImmediateEnd(BuildGetOrCreateSpace(context.ComponentViewSpaceFactoryName, "{}"));
-            }
-            else
-            {
-                // End namespace.
-
-                // KABU TODO: IMPORTANT: We can't make lookup spaces anonymous yet,
-                //   because the space is still defined in the js file *and* the cshtml file.
-                // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
-                // if (View.Lookup.Is) ?
-
-                OJsImmediateEnd(BuildGetOrCreateSpace(context.SpaceName));
-            }
+            KendoGen.OEndComponentSpace(context);
         }
 
         void GenGridViewModelFactory(WebViewGenContext context)
         {
             // View model factory          
-            OB($"space.createViewModel = function (options)");
+            OB($"space.createViewModel = function (spaceOptions)");
             O("if (space.vm) return space.vm;");
             O();
 
@@ -353,9 +243,6 @@ namespace Casimodo.Lib.Mojen
             constructor: () =>
             {
                 O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
-                // KABU TODO: REMOVE:
-                //if (HasViewModelExtension)
-                //    O($"this.extension = new {DataConfig.ScriptUINamespace}.{ViewModelExtensionClassName}({{ vm: this }});");
             },
             content: () =>
             {
@@ -394,8 +281,6 @@ namespace Casimodo.Lib.Mojen
             KendoGen.OViewModelOptions(context, isList: true);
             End(").init();");
         }
-
-
 
         public void GenGridOptionsFactory(WebViewGenContext context)
         {
@@ -515,7 +400,7 @@ namespace Casimodo.Lib.Mojen
 
             // Tool bar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // NOTE: The grid will now always have a toolbar, because we have a custom refresh button.
-            if (HasToolbar && Options.IsHeaderVisible)
+            if (Options.IsHeaderVisible)
             {
                 OXArr("toolbar",
                     XObj(
@@ -1143,45 +1028,5 @@ namespace Casimodo.Lib.Mojen
             }
 #endif
         }
-
-        // KABU TODO: REMOVE
-        //public bool HasViewModelExtension
-        //{
-        //    get
-        //    {
-        //        // Only if there are custom actions defined.
-        //        if (!View.CustomActions.Any())
-        //            return false;
-
-        //        return true;
-        //    }
-        //}
-
-        // KABU TODO: REMOVE
-        //public void GenerateViewModelExtensionJsScript(WebViewGenContext context)
-        //{
-        //    // Write an initial stub for the view model extension,
-        //    // which is intended to be further manually edited.
-
-        //    if (!HasViewModelExtension)
-        //        return;
-
-        //    // Only if the file does not exist already.
-        //    if (System.IO.File.Exists(ViewModelExtensionScriptFilePath))
-        //        return;
-
-        //    WriteTo(ScriptGen, () =>
-        //    {
-        //        ScriptGen.PerformWrite(ViewModelExtensionScriptFilePath, () =>
-        //        {
-        //            OJsNamespace(DataConfig.ScriptUINamespace, (nscontext) =>
-        //            {
-        //                OJsClass(nscontext.Current, ViewModelExtensionClassName,
-        //                    extends: "casimodo.ui.ComponentViewModelExtensionBase",
-        //                    args: "options");
-        //            });
-        //        });
-        //    });
-        //}
     }
 }

@@ -11,12 +11,13 @@ namespace Casimodo.Lib.Mojen
     {
         public KendoFormReadOnlyViewGen ReadOnlyGen { get; set; } = new KendoFormReadOnlyViewGen();
 
-        public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
-
         public List<MojViewPropInfo> UsedViewPropInfos { get; set; } = new List<MojViewPropInfo>();
 
         public string ViewFilePath { get; set; }
         public string ViewFileName { get; set; }
+
+        public string ScriptFilePath { get; set; }
+        public string ScriptVirtualFilePath { get; set; }
 
         protected override void GenerateCore()
         {
@@ -25,16 +26,31 @@ namespace Casimodo.Lib.Mojen
             {
                 UsedViewPropInfos.Clear();
 
-                if (!view.IsCustom)
+                ScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
+                ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
+
+                var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
-                    PerformWrite(view, () => GenerateView(new WebViewGenContext
-                    {
-                        View = view,
-                        IsEditableView = true,
-                        ViewRole = "editor",
-                        IsViewIdEnabled = true
-                    }));
+                    View = view,
+                    IsEditableView = true,
+                    ViewRole = "editor",
+                    IsViewIdEnabled = true
+                });
+
+                if (view.IsCustom)
+                    throw new Exception("'Custom' is not supported for editor views. Use 'Viewless' instead.");
+
+                if (!view.IsViewless && !view.IsCustom)
+                {
+                    PerformWrite(view, () => GenerateView(context));
                 }
+
+                PerformWrite(ScriptFilePath, () =>
+                {
+                    OScriptUseStrict();
+
+                    KendoGen.OEditorViewModel(context);
+                });
 
                 var dataViewModelGen = new WebDataEditViewModelGen();
                 dataViewModelGen.Initialize(App);
@@ -43,6 +59,8 @@ namespace Casimodo.Lib.Mojen
                 {
                     dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group);
                 });
+
+                RegisterComponent(context);
             }
         }
 
@@ -50,16 +68,7 @@ namespace Casimodo.Lib.Mojen
 
         public override void AfterView(WebViewGenContext context)
         {
-            if (!IsEffectiveStandaloneView(context))
-                return;
-
-            // View model for standalone editor views.
-            OScriptBegin();
-            KendoGen.OEditorViewModel(context);
-
-            O();
-            OInlineScriptSourceUrl("inline." + BuildJsScriptFileName(context.View, suffix: ".vm"));
-            OScriptEnd();
+            // NOP
         }
 
         public override MojenGenerator Initialize(MojenApp app)
@@ -887,8 +896,9 @@ namespace Casimodo.Lib.Mojen
                 O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', info.PlaceInfo);");
                 O($"casimodo.ui.dialogArgs.add(args);");
 
+                // KABU TODO: VERY IMPORTANT: Check if this is still sane. I think we don't use this anymore.
                 var cachedWindow = geoConfig.IsViewCached
-                    ? $"casimodo.run.{context.SpaceName}cachedDialogFor{propPath.Replace(".", "")}"
+                    ? $"{context.SpaceName}CachedDialogFor{propPath.Replace(".", "")}"
                     : "null";
 
                 // Fetch the partial view from server into a Kendo modal window.

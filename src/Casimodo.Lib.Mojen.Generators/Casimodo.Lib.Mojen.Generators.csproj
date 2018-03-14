@@ -157,6 +157,7 @@
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
+    <Compile Include="App\Generators\Models\WebComponentRegistryGen.cs" />
     <Compile Include="App\Generators\Models\WebDataEditViewModelGen.cs" />
     <Compile Include="App\Generators\Models\XamlEntityViewModelGen.cs" />
     <Compile Include="App\Generators\OData\Infrastructure\ODataControllerOptions.cs" />
@@ -168,7 +169,6 @@
     <Compile Include="App\Generators\OData\ODataControllerPartGenBase.cs" />
     <Compile Include="App\Generators\Repositories\WebPickItemsContainerGen.cs" />
     <Compile Include="App\Generators\OData\ODataConfigGen.cs" />
-    <Compile Include="App\Generators\Views\Infrastructure\WebViewGenContext.cs" />
     <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridInlineDetailsViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridOptions.cs" />
     <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridViewGen.cs" />
@@ -268,6 +268,7 @@
     <Compile Include="DataInteractionLayer\Generators\DbRepositoryCore.OnEventGen.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="App\Generators\Views\Infrastructure\" />
     <Folder Include="App\Generators\Views\Trash\" />
     <Folder Include="App\Models\" />
     <Folder Include="DataInteractionLayer\Builders\" />

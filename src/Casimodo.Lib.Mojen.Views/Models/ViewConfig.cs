@@ -106,6 +106,8 @@ namespace Casimodo.Lib.Mojen
         // KABU TODO: REMOVE? Never used.
         public string Name { get; set; }
 
+        public string Alias { get; set; }
+
         public string Url { get; set; }
 
         public string Title { get; set; }
@@ -223,8 +225,6 @@ namespace Casimodo.Lib.Mojen
         public MojViewConfig InlineDetailsView { get; set; }
 
         public bool IsExportableToPdf { get; set; }
-
-        public bool IsDataAutoLoadEnabled { get; set; }
 
         public bool IsExportableToExcel { get; set; }
 

@@ -4,8 +4,6 @@ namespace Casimodo.Lib.Mojen
 {
     public class KendoFormReadOnlyViewGen : KendoReadOnlyViewGenBase
     {
-        public KendoPartGen KendoGen { get; set; } = new KendoPartGen();
-
         public string ScriptFilePath { get; set; }
         public string ScriptVirtualFilePath { get; set; }
 
@@ -14,30 +12,15 @@ namespace Casimodo.Lib.Mojen
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this)))
             {
-                if (view.EditorView == null && view is MojControllerViewConfig)
-                {
-                    var controller = (view as MojControllerViewConfig).Controller;
-                    // Try to find a matching editor.
-                    view.EditorView = App.GetItems<MojControllerViewConfig>()
-                        .Where(x =>
-                            x.Controller == controller &&
-                            x.Group == view.Group &&
-                            x.Uses<KendoFormEditorViewGen>() &&
-                            x.CanEdit)
-                        .SingleOrDefault();
+                KendoGen.ImplicitelyBindEditorView<KendoFormEditorViewGen>(view);
 
-                    if (view.EditorView != null)
-                    {
-                        new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
-                    }
-                }
-
-                var context = new WebViewGenContext
+                var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
                     View = view,
                     ViewRole = "details",
                     IsViewIdEnabled = true
-                };
+
+                });
 
                 ScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
                 ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
@@ -46,13 +29,14 @@ namespace Casimodo.Lib.Mojen
 
                 if (view.Standalone.Is)
                 {
-                    var componentName = view.TypeConfig.Name.FirstLetterToLower() + (view.Group ?? "") + "DetailsSpace";
                     PerformWrite(ScriptFilePath, () =>
                     {
                         OScriptUseStrict();
 
-                        KendoGen.OReadOnlyViewModel(context, componentName);
+                        KendoGen.OReadOnlyViewModel(context);
                     });
+
+                    RegisterComponent(context);
                 }
             }
         }

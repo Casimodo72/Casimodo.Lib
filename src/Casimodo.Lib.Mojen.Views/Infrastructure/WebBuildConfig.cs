@@ -13,6 +13,22 @@ namespace Casimodo.Lib.Mojen
         public bool Revalidate { get; set; } = true;
     }
 
+    public class WebResultComponentInfo : MojBase
+    {
+        public string Id { get; set; }
+        public string Item { get; set; }
+        public string Role { get; set; }
+        public string Group { get; set; }
+        public string Name { get; set; }
+        public string Namespace { get; set; }
+        public string Url { get; set; }
+    }
+
+    public class WebResultBuildInfo : MojBase
+    {
+        public List<WebResultComponentInfo> Components { get; set; } = new List<WebResultComponentInfo>();
+    }
+
     public class WebBuildConfig : MojenBuildConfig
     {
         public string WebNamespace { get; set; }
@@ -38,11 +54,14 @@ namespace Casimodo.Lib.Mojen
         // Web views
         public string WebViewsDirPath { get; set; }
 
+        public string WebRegistryJavaScriptDirPath { get; set; }
+
         public string WebViewsJavaScriptDirPath { get; set; }
 
         public string WebViewsJavaScriptVirtualDirPath { get; set; }
 
         public bool ThrowIfControllerActionIsMissing { get; set; }
-
+        public string ScriptNamespace { get; set; }
+        public string ScriptUINamespace { get; set; }
     }
 }

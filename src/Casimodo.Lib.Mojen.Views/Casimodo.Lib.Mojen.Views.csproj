@@ -71,6 +71,7 @@
     <Compile Include="Infrastructure\WebBuildConfig.cs" />
     <Compile Include="Infrastructure\WebODataBuildConfig.cs" />
     <Compile Include="Infrastructure\WebPartGenerator.cs" />
+    <Compile Include="Infrastructure\WebViewGenContext.cs" />
     <Compile Include="Infrastructure\WebViewGenerator.cs" />
     <Compile Include="Models\ControllerConfig.cs" />
     <Compile Include="Models\ViewActionConfig.cs" />

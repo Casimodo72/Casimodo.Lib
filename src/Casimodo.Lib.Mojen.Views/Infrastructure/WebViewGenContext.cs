@@ -6,17 +6,20 @@ namespace Casimodo.Lib.Mojen
 {
     public class WebViewGenContext
     {
+        public string UINamespace { get; set; }
+
         public string ComponentId { get; set; }
 
         public string ComponentName { get; set; }
 
-        public string ComponentViewModelName { get; set; }
+        // KABU TODO: REMOVE? Not used.
+        // public string ComponentViewModelName { get; set; }
 
         public string SpaceName { get; set; }
 
-        public string ComponentViewSpaceFactoryName { get; set; }
+        public string SpaceFactoryName { get; set; }
 
-        public string ComponentViewModelContainerElemClass { get; set; }
+        // KABU TODO: REMOVE: public string ComponentViewModelContainerElemClass { get; set; }
 
         public MojViewConfig View { get; set; }
 

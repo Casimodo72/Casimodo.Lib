@@ -19,18 +19,29 @@ namespace Casimodo.Lib.Mojen
 
         public virtual void Prepare()
         {
-            // NOP
+            SubGens.ForEach(x => x.Prepare());
         }
 
         public virtual MojenGenerator Initialize(MojenApp app)
         {
             App = app;
+            SubGens.ForEach(x => x.Initialize(app));
             return this;
         }
 
         public MojenApp App { get; private set; }
 
         public string Scope { get; set; }
+
+        public T AddSub<T>() where T : MojenGenerator, new()
+        {
+            var gen = new T();
+            SubGens.Add(gen);
+            return gen;
+        }
+
+        public List<MojenGenerator> SubGens { get; set; } = new List<MojenGenerator>();
+
 
         protected virtual void GenerateCore()
         {

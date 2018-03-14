@@ -12,11 +12,11 @@ namespace Casimodo.Lib.Mojen
             // View model for standalone editor views.
             var view = context.View;
 
-            OJsImmediateBegin("space");
+            OBeginComponentSpace(context);
 
             // View model factory
             O();
-            OB($"space.createViewModel = function (options)");
+            OB($"space.createViewModel = function (spaceOptions)");
             O("if (space.vm) return space.vm;");
 
             O();
@@ -64,27 +64,28 @@ namespace Casimodo.Lib.Mojen
 
             End(";"); // View model factory.
 
-            // Create space, pass parameters and start editing.
-            O();
-            O("space.create();");
-            O($"space.vm.setArgs(casimodo.ui.dialogArgs.consume('{view.Id}'));");
-            O($"space.vm.start();");
+            // KABU TODO: REMOVE
+            //// Create space, pass parameters and start editing.
+            //O();
+            //O("space.create();");
+            //O($"space.vm.setArgs(casimodo.ui.dialogArgs.consume('{view.Id}'));");
+            //O($"space.vm.start();");
 
             O();
-            OJsImmediateEnd(BuildGetOrCreateSpace());
+            OEndComponentSpace(context);
         }
 
-        public void OReadOnlyViewModel(WebViewGenContext context, string componentName)
+        public void OReadOnlyViewModel(WebViewGenContext context)
         {
             // View model for standalone read-only views.
 
             var view = context.View;
-            
-            OJsImmediateBegin("space");
+
+            OBeginComponentSpace(context);
 
             // View model factory
             O();
-            OB($"space.createViewModel = function (options)");
+            OB($"space.createViewModel = function (spaceOptions)");
             O("if (space.vm) return space.vm;");
 
             O();
@@ -115,7 +116,65 @@ namespace Casimodo.Lib.Mojen
 
             End(";"); // View model factory
 
-            OJsImmediateEnd(BuildGetOrCreateSpace(componentName));
+            OEndComponentSpace(context);
+        }
+
+        public void OBeginComponentSpace(WebViewGenContext context)
+        {
+            if (context.View.HasFactory)
+            {
+                OJsImmediateBegin("factory");
+
+                O();
+                OB("factory.create = function (spaceOptions)");
+
+                O();
+                O($"var space = {SpaceConstructorFunc};");
+            }
+            else
+                OJsImmediateBegin("space");
+        }
+
+        public void OEndComponentSpace(WebViewGenContext context)
+        {
+            if (context.View.HasFactory)
+            {
+                O();
+                O("space.create(spaceOptions);");
+
+                O();
+                O("return space;");
+
+                End(";"); // End factory function.
+
+                OJsImmediateEnd(BuildJSGetOrCreate(context.SpaceFactoryName, "{}"));
+            }
+            else
+            {
+                // End namespace.
+
+                // KABU TODO: IMPORTANT: We can't make lookup spaces anonymous yet,
+                //   because the space is still defined in the js file *and* the cshtml file.
+                // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
+                // if (View.Lookup.Is) ?
+
+                OJsImmediateEnd(BuildJSGetOrCreateSpace(context));
+            }
+        }
+
+        public WebViewGenContext InitComponentNames(WebViewGenContext context)
+        {
+            context.UINamespace = GetJsScriptUINamespace(context.View);
+            context.ComponentName = BuildJsClassName(context.View);
+            context.SpaceName = GetSpaceName(context.View);
+            context.SpaceFactoryName = context.SpaceName + "Factory";
+
+            return context;
+        }
+
+        public string GetSpaceName(MojViewConfig view)
+        {
+            return GetJsScriptUINamespace(view) + "." + BuildJsClassName(view) + "Space";
         }
 
         public string GetPlainDisplayTemplate(MojViewProp prop, bool checkLastProp = false)
@@ -308,9 +367,11 @@ namespace Casimodo.Lib.Mojen
             var view = context.View;
             var title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
             O("space: space,");
-            O("options: options,");
+            //O("options: options,");
             O($"title: '{title}',");
             O($"viewId: '{view.Id}',");
+            O($"viewName: '{context.ComponentName}',");
+            O("$component: spaceOptions? spaceOptions.$component || null : null,");
             O($"itemTypeName: '{view.TypeConfig.Name}',");
             O($"areaName: '{view.TypeConfig.PluralName}',");
             O($"isDialog: {MojenUtils.ToJsValue(view.Lookup.Is)},");
@@ -326,6 +387,7 @@ namespace Casimodo.Lib.Mojen
                 O("title: '{0}',", view.EditorView.TypeConfig.DisplayName);
                 O("viewId: '{0}',", view.EditorView.Id);
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
+                O("space: {0},", GetSpaceName(view.EditorView));
                 OViewDimensionOptions(view.EditorView);
                 End();
             }
@@ -376,6 +438,28 @@ namespace Casimodo.Lib.Mojen
             O($"return {name};");
 
             End($")({extends});");
+        }
+
+        public void ImplicitelyBindEditorView<TEditorGen>(MojViewConfig view)
+            where TEditorGen : KendoTypeViewGenBase
+        {
+            if (view.EditorView == null && view is MojControllerViewConfig)
+            {
+                var controller = (view as MojControllerViewConfig).Controller;
+                // Try to find a matching editor.
+                view.EditorView = App.GetItems<MojControllerViewConfig>()
+                    .Where(x =>
+                        x.Controller == controller &&
+                        x.Group == view.Group &&
+                        x.Uses<TEditorGen>() &&
+                        x.CanEdit)
+                    .SingleOrDefault();
+
+                if (view.EditorView != null)
+                {
+                    new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
+                }
+            }
         }
     }
 }
