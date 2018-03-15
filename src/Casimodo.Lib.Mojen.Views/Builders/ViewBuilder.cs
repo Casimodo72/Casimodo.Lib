@@ -612,7 +612,7 @@ namespace Casimodo.Lib.Mojen
                 Prop(prop, hidden: true);
 
             return this;
-        }     
+        }
 
         public MojViewBuilder InlineDetails(Func<MojControllerBuilder, MojViewBuilder> build)
         {

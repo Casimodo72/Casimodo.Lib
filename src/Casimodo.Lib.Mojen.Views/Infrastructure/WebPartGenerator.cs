@@ -57,6 +57,7 @@ namespace Casimodo.Lib.Mojen
 
             App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
             {
+                View = view,
                 Id = view.Id,
                 Item = view.TypeConfig.Name,
                 Role = role,

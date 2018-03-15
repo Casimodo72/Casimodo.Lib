@@ -22,6 +22,8 @@ namespace Casimodo.Lib.Mojen
         public string Name { get; set; }
         public string Namespace { get; set; }
         public string Url { get; set; }
+
+        public MojViewConfig View { get; set; }
     }
 
     public class WebResultBuildInfo : MojBase
@@ -41,6 +43,8 @@ namespace Casimodo.Lib.Mojen
         public string WebRepositoriesDirPath { get; set; }
 
         public string WebPickItemsDirPath { get; set; }
+
+        public string WebConfigurationDirPath { get; set; }
 
         public WebOutputCacheConfig OutputCache { get; private set; } = new WebOutputCacheConfig();
 

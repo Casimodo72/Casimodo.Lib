@@ -157,7 +157,8 @@
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
-    <Compile Include="App\Generators\Models\WebComponentRegistryGen.cs" />
+    <Compile Include="App\Generators\Views\WebComponentRegistryGen.cs" />
+    <Compile Include="App\Generators\Views\WebJsComponentRegistryGen.cs" />
     <Compile Include="App\Generators\Models\WebDataEditViewModelGen.cs" />
     <Compile Include="App\Generators\Models\XamlEntityViewModelGen.cs" />
     <Compile Include="App\Generators\OData\Infrastructure\ODataControllerOptions.cs" />
