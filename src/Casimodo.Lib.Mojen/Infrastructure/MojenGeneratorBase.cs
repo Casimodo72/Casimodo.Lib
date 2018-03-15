@@ -109,6 +109,11 @@ namespace Casimodo.Lib.Mojen
 
         public void End(string text = "", params object[] args)
         {
+            OEnd(text, args);
+        }
+
+        void OEnd(string text = "", params object[] args)
+        {
             var block = PopBlockIndent();
             if (string.IsNullOrWhiteSpace(text))
                 O(block.EndToken);
@@ -116,6 +121,18 @@ namespace Casimodo.Lib.Mojen
             {
                 Oo(block.EndToken);
                 oO(text, args);
+            }
+        }
+
+        public void Oeo(string text = "", params object[] args)
+        {
+            var block = PopBlockIndent();
+            if (string.IsNullOrWhiteSpace(text))
+                Oo(block.EndToken);
+            else
+            {
+                Oo(block.EndToken);
+                o(text, args);
             }
         }
 
@@ -317,8 +334,6 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         protected void OB(string text, params object[] args)
         {
-            //if (string.IsNullOrWhiteSpace(text)) throw new ArgumentNullException("text");
-
             Write(true, text, args);
 
             if (!text.StartsWith("<"))
@@ -335,13 +350,20 @@ namespace Casimodo.Lib.Mojen
             PushBlockIndent();
         }
 
+        protected void XB(string text, params object[] args)
+        {
+            Write(true, text, args);
+            Br();
+            PushBlockIndent();
+        }
+
         /// <summary>
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.
         /// </summary>
-        protected void oB(string text, params object[] args)
+        protected void ob(string text, params object[] args)
         {
-            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentNullException("text");
+            Guard.ArgNotNull(text, nameof(text));
 
             Write(false, text, args);
 
@@ -356,7 +378,7 @@ namespace Casimodo.Lib.Mojen
         /// <summary>
         /// Ends an HTML/XML element. Used by HTML/XML generators only.
         /// </summary>
-        protected void OE(string tag, params object[] args)
+        protected void XE(string tag, params object[] args)
         {
             if (string.IsNullOrWhiteSpace(tag)) throw new ArgumentNullException("text");
             if (!tag.StartsWith("</")) throw new ArgumentException("Not an XML end tag.");
@@ -755,12 +777,12 @@ namespace Casimodo.Lib.Mojen
             return new XAttribute(name, value);
         }
 
-        public XElement XE(string name, object content)
+        public XElement XEl(string name, object content)
         {
             return new XElement(name, content);
         }
 
-        public XElement XE(string name, params object[] content)
+        public XElement XEl(string name, params object[] content)
         {
             return new XElement(name, content);
         }

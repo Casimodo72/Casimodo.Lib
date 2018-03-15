@@ -60,12 +60,12 @@ namespace Casimodo.Lib.Mojen
 
         public void OKendoTemplateBegin(string templateId)
         {
-            OB($"<script id='{templateId}' type='text/x-kendo-template'>");
+            XB($"<script id='{templateId}' type='text/x-kendo-template'>");
         }
 
         public void OKendoTemplateEnd()
         {
-            OE("</script>");
+            XE("</script>");
         }
 
         protected string GetViewHtmlId(WebViewGenContext context)

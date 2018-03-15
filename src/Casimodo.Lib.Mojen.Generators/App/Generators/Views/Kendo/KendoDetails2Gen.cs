@@ -68,17 +68,17 @@ namespace Casimodo.Lib.Mojen
 
             if (context.View.Standalone.Is)
             {
-                OB("<div class='standalone-details-view'{0}>",
+                XB("<div class='standalone-details-view'{0}>",
                     GetViewHtmlId(context));
 
                 // Toolbar
-                OB("<div class='details-view-toolbar'>");
+                XB("<div class='details-view-toolbar'>");
 
                 // Title in toolbar.
                 O("<div class='details-view-title'></div>");
 
                 // Command buttons.
-                OB("<div class='details-view-commands'>");
+                XB("<div class='details-view-commands'>");
 
                 // Edit button
                 if (context.View.EditorView != null && context.View.EditorView.CanEdit)
@@ -90,18 +90,18 @@ namespace Casimodo.Lib.Mojen
 
                 // Refresh button
                 O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
+                
+                XE("</div>"); // Commands
 
-                OE("</div>"); // Commands
+                XE("</div>"); // Toolbar
 
-                OE("</div>"); // Toolbar
+                XB("<div class='details-view-content'>");
 
-                OB("<div class='details-view-content'>");
-
-                OB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
+                XB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
             }
             else
             {
-                OB("<div class='form-horizontal'{0}{1}>",
+                XB("<div class='form-horizontal'{0}{1}>",
                     GetViewCssStyle(context),
                     GetViewHtmlId(context));
             }
@@ -116,8 +116,8 @@ namespace Casimodo.Lib.Mojen
 
             if (context.View.Standalone.Is)
             {
-                OE($"</div>"); // standalone details view content
-                OE($"</div>"); // standalone details view
+                XE($"</div>"); // standalone details view content
+                XE($"</div>"); // standalone details view
             }
 
             // KABU TODO: REMOVE: OScriptReference(ScriptVirtualFilePath, async: true);

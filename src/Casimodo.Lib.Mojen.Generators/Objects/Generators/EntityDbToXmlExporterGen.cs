@@ -84,7 +84,7 @@ namespace Casimodo.Lib.Mojen
 
             var type = origType.GetNearestStore();
 
-            var rootElem = XE("Items", XA("EntityType", type.ClassName));
+            var rootElem = XEl("Items", XA("EntityType", type.ClassName));
 
             var props = type.GetProps()
                 .Where(x => x.Type.Type != null)
@@ -100,7 +100,7 @@ namespace Casimodo.Lib.Mojen
             {
                 foreach (var entity in db.Database.SqlQuery(queryType, $"select {fields} from {table}"))
                 {
-                    var itemElem = XE("Item");
+                    var itemElem = XEl("Item");
                     rootElem.Add(itemElem);
 
                     foreach (var prop in props)
@@ -112,7 +112,7 @@ namespace Casimodo.Lib.Mojen
                             // NULL values are expressed by leaving out the property.
                             continue;
 
-                        itemElem.Add(XE("Prop", XA("Name", prop.Name), MojenUtils.ToXmlValue(value)));
+                        itemElem.Add(XEl("Prop", XA("Name", prop.Name), MojenUtils.ToXmlValue(value)));
                     }
                 }
             }

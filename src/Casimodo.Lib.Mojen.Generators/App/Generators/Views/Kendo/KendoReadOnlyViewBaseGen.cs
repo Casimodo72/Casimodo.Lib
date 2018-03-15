@@ -29,7 +29,7 @@ namespace Casimodo.Lib.Mojen
             // Uses HTML encoding to display values: #: #
             // Execute arbitrary JavaScript code: # if(...){# ... #}#
 
-            OB("<div class='form-horizontal'{0}{1}>",
+            XB("<div class='form-horizontal'{0}{1}>",
                 GetViewCssStyle(context),
                 GetViewHtmlId(context));
         }
@@ -39,17 +39,17 @@ namespace Casimodo.Lib.Mojen
             if (context.View.Template.IsEmpty)
                 return;
 
-            OE("</div>");
+            XE("</div>");
         }
 
         public override void ORunBegin(WebViewGenContext context)
         {
-            OB($"<div class='{FormGroupClass}'>");
+            XB($"<div class='{FormGroupClass}'>");
         }
 
         public override void ORunEnd(WebViewGenContext context)
         {
-            OE("</div>");
+            XE("</div>");
         }
 
         // KABU TODO: REMOVE:

@@ -120,7 +120,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OScriptBegin()
         {
-            OB("<script>");
+            XB("<script>");
             OScriptUseStrict();
         }
 
@@ -131,7 +131,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OScriptEnd()
         {
-            OE("</script>");
+            XE("</script>");
         }
 
         public void OInlineScriptSourceUrl(string fileName)

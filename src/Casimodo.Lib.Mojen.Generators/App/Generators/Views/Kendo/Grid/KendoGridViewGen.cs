@@ -100,9 +100,9 @@ namespace Casimodo.Lib.Mojen
                 }
 
                 // Edit capabilities
-                CanModify = view.EditorView != null && view.EditorView.CanEdit;
+                CanModify = !view.Kind.Roles.HasFlag(MojViewRole.Lookup) && view.EditorView != null && view.EditorView.CanEdit;
                 CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
-                CanDelete = Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
+                CanDelete = CanModify && Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
 
                 GridScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
                 GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
@@ -182,12 +182,12 @@ namespace Casimodo.Lib.Mojen
                 // Lookup view will have an ID assigned.
                 if (string.IsNullOrWhiteSpace(context.View.Id)) throw new MojenException("The lookup view has no ID.");
 
-                OB($"<div class='casimodo-dialog-toolbar' id='dialog-commands-{context.View.Id}'>");
+                XB($"<div class='casimodo-dialog-toolbar' id='dialog-commands-{context.View.Id}'>");
 
                 O("<button class='k-button cancel-button casimodo-dialog-button'>Abbrechen</button>");
                 O("<button class='k-button ok-button casimodo-dialog-button'>OK</button>");
 
-                OE("</div>");
+                XE("</div>");
             }
 
             // Container element for the Kendo grid widget.
@@ -444,11 +444,8 @@ namespace Casimodo.Lib.Mojen
                                 if (CanCreate)
                                 {
                                     // Add a create (+) button.
-                                    // NOTE: Escaping # needs 2 backslashes here.
-                                    o("<a class='k-button k-grid-add hide' href='#'><span class='k-icon k-add'></span></a>");
-
-                                    // Add a create (+) button.
-                                    // NOTE: Escaping # needs 2 backslashes here.
+                                    // NOTE: We are using a custom "create" button (k-grid-custom-add) instead of
+                                    //   kendo grid's default button (k-grid-add).
                                     o("<a class='k-button k-grid-custom-add hide' href='#'><span class='k-icon k-add'></span></a>");
                                 }
 
@@ -581,7 +578,8 @@ namespace Casimodo.Lib.Mojen
             var props = context.View.Props.Where(x => x.HideModes != MojViewMode.All).ToArray();
 
             O();
-            OB("<style>");
+
+            XB("<style>");
             var pos = 0;
             foreach (var vprop in props)
             {
@@ -594,7 +592,7 @@ namespace Casimodo.Lib.Mojen
                     End();
                 }
             }
-            OE("</Style>");
+            XE("</Style>");
             /*
              <style>
 # grid-393a3bc1-2e06-4516-8d29-220dde0668fe tr[role='row'] td[role='gridcell']:nth-child(5) {

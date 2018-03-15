@@ -119,6 +119,26 @@ namespace Casimodo.Lib.Mojen
             OEndComponentSpace(context);
         }
 
+        public void OOpenLookupView(WebViewGenContext context, MojViewConfig lookupView, Action ok, object options = null)
+        {
+            Oo($"kendomodo.ui.openById('{lookupView.Id}',");
+
+            if (options is Action)
+            {
+                ob("");
+                (options as Action)?.Invoke();
+                Oeo(",");
+            }
+            else
+                o(" {0},", MojenUtils.ToJsValue(options, quote: false));
+
+            ob(" function (result)");
+            OB("if (result.isOk)");
+            ok();
+            End();
+            End(");");
+        }
+
         public void OBeginComponentSpace(WebViewGenContext context)
         {
             if (context.View.HasFactory)
@@ -365,7 +385,11 @@ namespace Casimodo.Lib.Mojen
         public void OViewModelOptions(WebViewGenContext context, bool isList)
         {
             var view = context.View;
-            var title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
+
+            var title = context.View.Title;
+            if (string.IsNullOrWhiteSpace(title))
+                title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
+
             O("space: space,");
             //O("options: options,");
             O($"title: '{title}',");
@@ -443,12 +467,16 @@ namespace Casimodo.Lib.Mojen
         public void ImplicitelyBindEditorView<TEditorGen>(MojViewConfig view)
             where TEditorGen : KendoTypeViewGenBase
         {
-            if (view.EditorView == null && view is MojControllerViewConfig)
+            if (view.EditorView == null &&
+                !view.Kind.Roles.HasFlag(MojViewRole.Editor) &&
+                !view.Kind.Roles.HasFlag(MojViewRole.Lookup) &&
+                view is MojControllerViewConfig)
             {
                 var controller = (view as MojControllerViewConfig).Controller;
                 // Try to find a matching editor.
                 view.EditorView = App.GetItems<MojControllerViewConfig>()
                     .Where(x =>
+                        x != view &&
                         x.Controller == controller &&
                         x.Group == view.Group &&
                         x.Uses<TEditorGen>() &&

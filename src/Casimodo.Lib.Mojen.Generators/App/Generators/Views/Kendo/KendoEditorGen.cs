@@ -91,21 +91,21 @@ namespace Casimodo.Lib.Mojen
             LabelContainerClass = "col-sm-3 col-xs-12";
             OLabelContainerBegin = (c) =>
             {
-                if (c.IsRunEditable) OB($"<div class='{LabelContainerClass}'>");
+                if (c.IsRunEditable) XB($"<div class='{LabelContainerClass}'>");
             };
             OLabelContainerEnd = (c) =>
             {
-                if (c.IsRunEditable) OE("</div>");
+                if (c.IsRunEditable) XE("</div>");
             };
 
             OPropContainerBegin = (c) =>
             {
                 if (c.IsRunEditable)
-                    OB($"<div class='{PropContainerClass}'>"); // KABU TODO: Do I need this "data-container-for='{c.PropInfo.PropPath}'" ?
+                    XB($"<div class='{PropContainerClass}'>"); // KABU TODO: Do I need this "data-container-for='{c.PropInfo.PropPath}'" ?
                 else
-                    OB($"<div class='{PropContainerClass}'>");
+                    XB($"<div class='{PropContainerClass}'>");
             };
-            OPropContainerEnd = (c) => OE("</div>");
+            OPropContainerEnd = (c) => XE("</div>");
         }
 
         bool IsEffectiveStandaloneView(WebViewGenContext context)
@@ -126,12 +126,12 @@ namespace Casimodo.Lib.Mojen
 
             if (IsEffectiveStandaloneView(context))
             {
-                OB("<div class='k-edit-form-container'{0}>", GetViewHtmlId(context));
-                OB("<div class='form-horizontal component-root'>"); // container-fluid // style='width:95%;float:left'
+                XB("<div class='k-edit-form-container'{0}>", GetViewHtmlId(context));
+                XB("<div class='form-horizontal component-root'>"); // container-fluid // style='width:95%;float:left'
             }
             else
             {
-                OB("<div class='form-horizontal component-root'{0}>",
+                XB("<div class='form-horizontal component-root'{0}>",
                     GetViewHtmlId(context)); // container-fluid // style='width:95%;float:left'
             }
 
@@ -158,15 +158,15 @@ namespace Casimodo.Lib.Mojen
 
         public override void EndView(WebViewGenContext context)
         {
-            OE("</div>");
+            XE("</div>");
             if (IsEffectiveStandaloneView(context))
             {
-                OB("<div class='k-edit-buttons k-state-default'>");
+                XB("<div class='k-edit-buttons k-state-default'>");
                 O("<a class='k-button k-button-icontext k-primary k-update k-state-disabled' href='#'><span class='k-icon k-update'></span>Speichern</a>");
                 O("<a class='k-button k-button-icontext k-cancel' href='#'><span class='k-icon k-cancel'></span>Abbrechen</a>");
-                OE("</div>");
+                XE("</div>");
 
-                OE("</div>");
+                XE("</div>");
             }
         }
 
@@ -175,14 +175,14 @@ namespace Casimodo.Lib.Mojen
             if (context.Cur.Directive == "custom-view") return;
 
             // Form group
-            OB($"<div class='{GetFormGroupClass(context)}'>");
+            XB($"<div class='{GetFormGroupClass(context)}'>");
         }
 
         public override void ORunEnd(WebViewGenContext context)
         {
             if (context.Cur.Directive == "custom-view") return;
 
-            OE("</div>");
+            XE("</div>");
         }
 
         string GetFormGroupClass(WebViewGenContext context)
@@ -438,7 +438,7 @@ namespace Casimodo.Lib.Mojen
                 if (prop.FileRef.IsImage)
                 {
                     // Image-thumbnail
-                    OB("<div class='edit-image-thumbnail'>");
+                    XB("<div class='edit-image-thumbnail'>");
                     Oo($"<img id='{alias}ImageThumbnail' alt=''");
                     // KABU TODO: REMOVE: We don't have an URI property anymore.
                     //o($"data-bind='attr: {{ src: {alias}Uri }}'");
@@ -448,8 +448,8 @@ namespace Casimodo.Lib.Mojen
 
                 // Kendo upload template.
                 O();
-                OB("<script id='{0}' type='text/x-kendo-template'>", uploadTemplateId);
-                OB("<div class='file-wrapper'>");
+                XB("<script id='{0}' type='text/x-kendo-template'>", uploadTemplateId);
+                XB("<div class='file-wrapper'>");
                 O("<div style='font-size: 0.9em; text-align:left'>#=name#</div>");
                 OE("</div>");
                 O("<span class='k-progress' style='height: 10px;'></span>");
@@ -644,12 +644,12 @@ namespace Casimodo.Lib.Mojen
         {
             var propPath = context.PropInfo.PropPath;
 
-            OB("<span class='input-group-btn'>");
-            OB($"<button class='btn btn-default selector-btn' id='editor-btn-for-{propPath}'{GetElemAttrs()}>");
+            XB("<span class='input-group-btn'>");
+            XB($"<button class='btn btn-default selector-btn' id='editor-btn-for-{propPath}'{GetElemAttrs()}>");
             //if (!string.IsNullOrEmpty(text)) O($"<span>{text}</span>");
             O("<span class='glyphicon glyphicon-search'></span>");
-            OE("</button>");
-            OE("</span>");
+            XE("</button>");
+            XE("</span>");
         }
 
         void OSelectorControlInvisibleInput(WebViewGenContext context)
@@ -679,9 +679,9 @@ namespace Casimodo.Lib.Mojen
             var targetType = vprop.Reference.ToType;
             var dialog = vprop.LookupDialog;
 
-            OB("<div class='input-group'>");
+            XB("<div class='input-group'>");
 
-            //OB("<div class='kmodo-tags-container'>");
+            //XB("<div class='kmodo-tags-container'>");
 
             O($"<div class='kmodo-tags-listview' data-role='listview' data-bind='source: {propPath}' data-template='tag-template'/>");
 
@@ -693,7 +693,7 @@ namespace Casimodo.Lib.Mojen
 
             //OE("</div>"); // container
 
-            OE("</div>"); // input-group
+            XE("</div>"); // input-group
 
             OScriptBegin();
             O($"// Lookup view for {propPath}");
@@ -701,48 +701,25 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"var $container = {JQuerySelectEditorContainer()};");
                 O($"var item = $container.find('input').first().prop('kendoBindingTarget').source;");
-                O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}');");
-                O($"casimodo.ui.dialogArgs.add(args);");
 
-                // Fetch the partial view from server into a Kendo modal window.
-                Oo($"var wnd = $('<div/>').appendTo($container).kendoWindow(");
-                KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
-                {
-                    IsModal = true,
-                    OnClosing = new Action(() =>
-                    {
-                        // Closing event handler
-                        oB($"function (e)");
-                        OB("if (args.dialogResult === true)");
-                        // Set value and fire the "change" event for the binding to pick up the new value.
-                        O($"kendomodo.addEntityToObservableArray(item.{propPath}, args.item, '{targetType.Key.Name}');");
-                        End();
-                        End();
-                    })
-                });
-                oO(").data('kendoWindow');"); // Kendo window
-
-                O("kendomodo.setModalWindowBehavior(wnd);");
-
-                O("wnd.center().open();");
-
-                O($"wnd.refresh({{ url: '{dialog.Url}', cache: {MojenUtils.ToJsValue(dialog.IsCachedOnClient)} }});");
-
+                KendoGen.OOpenLookupView(context, dialog,
+                    // Set value and fire the "change" event for the binding to pick up the new value.
+                    ok: () => O($"kendomodo.addEntityToObservableArray(item.{propPath}, result.item, '{targetType.Key.Name}');"));
             });
             OScriptEnd();
 
             // Tag item template
             OKendoTemplateBegin("tag-template");
-            OB("<div class='kmodo-tag-item'>");
+            XB("<div class='kmodo-tag-item'>");
             var firstProp = vprop.ContentView?.Props.FirstOrDefault();
             if (firstProp != null)
             {
                 O($"<span>#:{firstProp.FormedNavigationTo.TargetProp.Name}#</span>");
             }
-            OB("<a class='k-delete-button' href='\\\\#'>");
+            XB("<a class='k-delete-button' href='\\\\#'>");
             O("<i class='remove glyphicon glyphicon-remove-sign'></i>");
-            OE("</a>");
-            OE("</div>");
+            XE("</a>");
+            XE("</div>");
             OKendoTemplateEnd();
 
             return true;
@@ -784,7 +761,7 @@ namespace Casimodo.Lib.Mojen
                 throw new MojenException("Sequence value selectors do not support property navigation.");
 
             // Input group with sequence value (read-only) and a button.
-            OB("<div class='input-group'>");
+            XB("<div class='input-group'>");
 
             // Readonly value display.
             //ElemClass("form-control");
@@ -798,7 +775,7 @@ namespace Casimodo.Lib.Mojen
             ElemDataBindAttr($"enabled: is{propPath}SelectorEnabled");
             OSelectorControlButton(context);
 
-            OE("</div>"); // input-group
+            XE("</div>"); // input-group
 
             // Validation message
             O($"@Html.ValidationMessageFor(m => m.{propPath})");
@@ -863,7 +840,7 @@ namespace Casimodo.Lib.Mojen
             var geoConfig = vprop.GeoPlaceLookup;
 
             // Input group
-            OB("<div class='input-group'>");
+            XB("<div class='input-group'>");
 
             ElemClass("with-selector");
             OPropEditableCore(context);
@@ -871,7 +848,7 @@ namespace Casimodo.Lib.Mojen
             // Button for popping up the lookup dialog.
             OSelectorControlButton(context);
 
-            OE("</div>"); // Input group
+            XE("</div>"); // Input group
 
             OScriptBegin();
             O("// Geo place lookup dialog.");
@@ -965,7 +942,7 @@ namespace Casimodo.Lib.Mojen
             var dialog = vprop.LookupDialog;
 
             // Input group
-            OB("<div class='input-group'>");
+            XB("<div class='input-group'>");
 
             // Invisible input for binding & validation.
             OSelectorControlInvisibleInput(context);
@@ -973,7 +950,7 @@ namespace Casimodo.Lib.Mojen
             // Button for popping up the lookup dialog.
             OSelectorControlButton(context);
 
-            OE("</div>"); // Input group
+            XE("</div>"); // Input group
 
             OScriptBegin();
             O($"// Lookup dialog for {propPath}");
@@ -984,15 +961,15 @@ namespace Casimodo.Lib.Mojen
 
             OnSelectorButtonClick(context, () =>
             {
-                O($"var inputs = $(\"input[name='{propPath}']\");");
-                O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', inputs.first().val());");
+                O($"var $inputs = $(\"input[name='{propPath}']\");");
                 O($"var $container = {JQuerySelectEditorContainer()};");
+                O("var options = {};");
 
                 // Arguments to be passed to the lookup dialog.
                 if (cascadeFromInfos?.Any() == true)
                 {
-                    O($"args.filters = [];");
-                    O($"args.filterCommands = [];");
+                    O($"options.filters = [];");
+                    O($"options.filterCommands = [];");
                     O("var cascadeFromVal = '';");
                     O();
                     foreach (var cascadeFromInfo in cascadeFromInfos)
@@ -1006,7 +983,7 @@ namespace Casimodo.Lib.Mojen
                             throw new MojenException("Lookup with cascade-from mismatch: " +
                                 $"There is no reference to type '{cascadeType.ClassName}' in type '{info.TargetType.ClassName}' to be used for cascade-from.");
 
-                        O($"cascadeFromVal = inputs.first().prop('kendoBindingTarget').source.{cascadeFromInfo.ForeignKey.Name};");
+                        O($"cascadeFromVal = $inputs.first().prop('kendoBindingTarget').source.{cascadeFromInfo.ForeignKey.Name};");
 
                         // Notify & exit if the cascade-from field has not been assigned yet.                    
                         OB("if (!cascadeFromVal)");
@@ -1020,11 +997,11 @@ namespace Casimodo.Lib.Mojen
                         End();
 
                         // Filter by the cascade-from field & value.
-                        O($"args.filters.push({{ field: '{reference.ForeignKey.Name}', value: cascadeFromVal, operator: 'eq' }});");
+                        O($"options.filters.push({{ field: '{reference.ForeignKey.Name}', value: cascadeFromVal, operator: 'eq' }});");
 
                         if (cascadeFromInfo.Config.IsDeactivatable)
                         {
-                            O($"args.filterCommands.push({{ field: '{reference.ForeignKey.Name}', " +
+                            O($"options.filterCommands.push({{ field: '{reference.ForeignKey.Name}', " +
                                 $"value: cascadeFromVal, " +
                                 $"deactivatable: {MojenUtils.ToJsValue(cascadeFromInfo.Config.IsDeactivatable)}, " +
                                 $"title: '{cascadeFromInfo.Config.Title}'}});");
@@ -1065,34 +1042,16 @@ namespace Casimodo.Lib.Mojen
 
 
                     O($"var filter = {{ field: '{targetPath}', value: cascadeFromVal, operator: 'eq' }};");
-                    O($"args.filters.push(filter);");
+                    O($"options.filters.push(filter);");
                 }
 
-                O($"casimodo.ui.dialogArgs.add(args);");
+                KendoGen.OOpenLookupView(context, dialog,
+                    // Set value and fire the "change" event for the binding to pick up the new value.
+                    ok: () => O($"$inputs.val(result.value).change();"),
+                    options: "options");
+                //options: "options");
 
-                // Fetch the partial view from server into a Kendo modal window.
-                Oo($"var wnd = $('<div/>').appendTo($container).kendoWindow(");
-                KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
-                {
-                    IsModal = true,
-                    OnClosing = new Action(() =>
-                    {
-                        // Closing event handler
-                        oB($"function (e)");
-                        OB("if (args.dialogResult === true)");
-                        // Set value and fire the "change" event for the binding to pick up the new value.
-                        O($"inputs.val(args.value).change();");
-                        End();
-                        End();
-                    })
-                });
-                oO(").data('kendoWindow');"); // Kendo window
 
-                O("kendomodo.setModalWindowBehavior(wnd);");
-
-                O("wnd.center().open();");
-
-                O($"wnd.refresh({{ url: '{dialog.Url}', cache: {MojenUtils.ToJsValue(dialog.IsCachedOnClient)} }});");
 
             });
             OScriptEnd();
@@ -1181,13 +1140,13 @@ namespace Casimodo.Lib.Mojen
                 // JS function that will query the lookup values based on the
                 //   currently selected cascade-from source value.
 
-                OB("<script>");
+                XB("<script>");
                 O($"function {cascadeQueryParameterFunc}() {{");
                 O("    return {");
                 O($"     '$select': '{key},{display}'");
                 O("    }");
                 O("}");
-                OE("</script>");
+                XE("</script>");
             }
 
             // DropDown list
@@ -1269,7 +1228,7 @@ namespace Casimodo.Lib.Mojen
             var dialog = App.Get<MojSnippetsEditorConfig>().View;
 
             // Input group with text editor and button.
-            OB("<div class='input-group'>");
+            XB("<div class='input-group'>");
 
             // Text editor            
             ElemClass("form-control");
@@ -1280,7 +1239,7 @@ namespace Casimodo.Lib.Mojen
             // Button for popping up the lookup dialog.            
             OSelectorControlButton(context);
 
-            OE("</div>"); // input-group
+            XE("</div>"); // input-group
 
             OScriptBegin();
             O($"// Snippet editor for {propPath}");
@@ -1310,7 +1269,7 @@ namespace Casimodo.Lib.Mojen
                     OnClosing = new Action(() =>
                     {
                         // Closing event handler
-                        oB($"function (e)");
+                        ob($"function (e)");
                         OB("if (args.dialogResult === true)");
                         // Set value and fire the change event for the binding to pick up the new value.
                         O($"inputs.val(args.value).change();");
@@ -1332,14 +1291,14 @@ namespace Casimodo.Lib.Mojen
             return true;
         }
 
-        void OnSelectorButtonClick(WebViewGenContext context, Action action)
+        void OnSelectorButtonClick(WebViewGenContext context, Action content)
         {
             var propPath = context.PropInfo.PropPath;
 
             // On button click...
             OB($"$('#editor-btn-for-{propPath}').click(function (e)");
 
-            action();
+            content();
 
             End(");"); // Click handler
         }

@@ -39,11 +39,11 @@ namespace Casimodo.Lib.Mojen
 
         public virtual void Define(WebViewGenContext context)
         {
-            //OBlockBegin = (c) => OB("<div style='display:inline-block;width:100%'>");
-            //OBlockBegin = (c) => OB("<div class='row'>");
+            //OBlockBegin = (c) => XB("<div style='display:inline-block;width:100%'>");
+            //OBlockBegin = (c) => XB("<div class='row'>");
             //OBlockEnd = (c) => OE("</div>");
-            OPropContainerBegin = (c) => OB($"<div class='{PropContainerClass}'>");
-            OPropContainerEnd = (c) => OE("</div>");
+            OPropContainerBegin = (c) => XB($"<div class='{PropContainerClass}'>");
+            OPropContainerEnd = (c) => XE("</div>");
         }
 
         public void ORazorModel(string className)
@@ -468,14 +468,14 @@ namespace Casimodo.Lib.Mojen
         {
             if (cur.Directive == "grid")
             {
-                //OB("<div class='container' style='width:100%'>");
-                OB("<div class='row'>");
+                //XB("<div class='container' style='width:100%'>");
+                XB("<div class='row'>");
             }
             else if (cur.Directive == "column")
             {
-                OB($"<div class='{GetColumnClasses(context, cur)}'{GetCssStyle(context, cur)}>");
+                XB($"<div class='{GetColumnClasses(context, cur)}'{GetCssStyle(context, cur)}>");
 
-                //OB($"<div class='col-lg-{span} col-md-{span} col-sm-6 col-xs-12'>"); //  style='vertical-align:top'
+                //XB($"<div class='col-lg-{span} col-md-{span} col-sm-6 col-xs-12'>"); //  style='vertical-align:top'
             }
             else if (cur.Directive == "group-box")
             {
@@ -508,10 +508,10 @@ namespace Casimodo.Lib.Mojen
                     }
                 }
 
-                OB($"<div class='{@class}'{predicate}>");
+                XB($"<div class='{@class}'{predicate}>");
                 O("<div class='panel-heading'>{0}</div>", cur.TextValue);
 
-                OB($"<div class='panel-body'{GetCssStyle(context, cur)}>");
+                XB($"<div class='panel-body'{GetCssStyle(context, cur)}>");
             }
 
             return true;
@@ -521,17 +521,17 @@ namespace Casimodo.Lib.Mojen
         {
             if (cur.Directive == "grid")
             {
-                OE("</div>"); // row
+                XE("</div>"); // row
                 //OE("</div>"); // container
             }
             else if (cur.Directive == "column")
             {
-                OE("</div>");
+                XE("</div>");
             }
             else if (cur.Directive == "group-box")
             {
-                OE("</div>"); // Group box content
-                OE("</div>"); // Group box
+                XE("</div>"); // Group box content
+                XE("</div>"); // Group box
             }
         }
 

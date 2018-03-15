@@ -188,7 +188,7 @@ namespace Casimodo.Lib.Mojen
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
         }
 
-        public static string ToJsValue(object value, bool parse = true, bool verbatim = false, bool nullIfEmptyString = false)
+        public static string ToJsValue(object value, bool parse = true, bool verbatim = false, bool quote = true, bool nullIfEmptyString = false)
         {
             if (value == null)
                 return "null";
@@ -196,7 +196,7 @@ namespace Casimodo.Lib.Mojen
             if (nullIfEmptyString && value is string && string.IsNullOrEmpty((string)value))
                 return "null";
 
-            return ToJsValue(value, value.GetType(), parse);
+            return ToJsValue(value, value.GetType(), parse: parse, quote: quote);
         }
 
         public static string ToJsXAttrValue(object value)
@@ -209,7 +209,7 @@ namespace Casimodo.Lib.Mojen
 
         public static string ToJsValue(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
         {
-            return ToJsValueCore(value, type, parse, verbatim, quote: true);
+            return ToJsValueCore(value, type, parse, verbatim, quote: quote);
         }
 
         const string jsQuote = "\""; // "'"
