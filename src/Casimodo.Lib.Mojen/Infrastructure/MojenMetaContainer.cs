@@ -37,6 +37,11 @@ namespace Casimodo.Lib.Mojen
             Items.Add(item.MetadataId, item);
         }
 
+        public IEnumerable<T> GetItems<T>()
+        {
+            return Items.Values.OfType<T>();
+        }
+
         public T Get<T>(string id)
         {
             if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException("id");

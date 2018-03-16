@@ -20,6 +20,7 @@ namespace Casimodo.Lib.Mojen
             {
                 typeof(string[]),
                 typeof(MojenMetaContainer),
+                typeof(AppBuildConfig),
                 typeof(DataLayerConfig),
                 typeof(DateTimeOffset),
                 typeof(MojType), typeof(MojProp), typeof(MojType),

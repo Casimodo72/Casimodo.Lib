@@ -6,17 +6,20 @@ using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
-    public sealed class WebMvcComponentRegistryGen : AppPartGenerator
+    public sealed class WebComponentRegistryGen : AppPartGenerator
     {
         protected override void GenerateCore()
         {
-            var filePath = Path.Combine(App.Get<WebBuildConfig>().WebConfigurationDirPath, "WebComponentRegistry.generated.cs");
+            var filePath = Path.Combine(
+                App.Get<WebBuildConfig>().WebConfigurationDirPath,
+                "WebComponentRegistry.generated.cs");
 
             PerformWrite(filePath, () =>
             {
-                OUsing("System", "Casimodo.Lib.Web");
+                OUsing("System", "Casimodo.Lib.Web.Auth");
                 ONamespace("Ga.Web");
-                O("public partial class WebComponentRegistry : WebComponentRegistryBase");
+                O("public partial class {0}WebComponentRegistry : WebComponentRegistry",
+                    App.Get<AppBuildConfig>().AppNamePrefix);
                 Begin();
 
                 O("public void Configure()");
@@ -32,32 +35,40 @@ namespace Casimodo.Lib.Mojen
                     return 0;
                 };
 
-                var comparer = Comparer<WebResultComponentInfo>.Create((a, b) =>
-                {
-                    return a.Role.CompareTo(b.Role);
-                    //return roleToInt(a).CompareTo(roleToInt(b));
-                });
-
                 foreach (var item in App.Get<WebResultBuildInfo>().Components
                 .OrderBy(x => x.Role)
-                    //.OrderBy(x => x.Item)
-                    //.OrderBy(x => comparer)
-                    //.ThenBy(x => x.Group)
-                    //.ThenBy(x => x.Role)
-                    //.ThenBy(x => comparer)
-                    )
+                    .OrderBy(x => x.Item)
+                    .ThenBy(x => x.Group)
+                    .ThenBy(x => x.Role))
                 {
-                    O("Add(new WebComponentRegItem {{ Name = {0}, Role = {1}, Group = {2}, Url = {3}, JsTypeName = {4}, ViewId = {5} }});",
-                        MojenUtils.ToCsValue(item.Item),
+                    O("Add(new WebComponentRegItem {{ ItemName = {0}, ViewRole = {1}, ViewGroup = {2}, HasComponent = {3}, Url = {4}, ViewId = {5} }});",
+                        MojenUtils.ToCsValue(item.View.TypeConfig.Name),
                         MojenUtils.ToCsValue(item.Role),
                         MojenUtils.ToCsValue(item.Group),
-                        MojenUtils.ToCsValue(item.Url),
-                        MojenUtils.ToCsValue(item.Name != null ? item.Namespace + "." + item.Name : null),
+                        MojenUtils.ToCsValue(item.Name != null),
+                        MojenUtils.ToCsValue(BuildUrl(item.Url)),
                         MojenUtils.ToCsValue(item.Id));
                 }
 
                 End();
+                End();
+                End();
             });
+        }
+
+        string BuildUrl(string url)
+        {
+            if (url == null)
+                return null;
+
+            if (url.StartsWith("/"))
+                url = url.Substring(1);
+
+            var idx = url.LastIndexOf("/Index");
+            if (idx != -1)
+                url = url.Substring(0, idx);
+
+            return url;
         }
     }
 }

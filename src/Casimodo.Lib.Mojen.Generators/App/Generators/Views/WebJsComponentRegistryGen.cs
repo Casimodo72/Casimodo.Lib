@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
-    public sealed class WebComponentRegistryGen : WebPartGenerator
+    public sealed class WebJsComponentRegistryGen : WebPartGenerator
     {
         protected override void GenerateCore()
         {

@@ -167,6 +167,7 @@
     <Compile Include="Builders\MojTypeComparisonBuilder.cs" />
     <Compile Include="Builders\MojTypeInteractionBuilder.cs" />
     <Compile Include="Builders\MojValueSetBuilder.cs" />
+    <Compile Include="BuildConfig\MojAppBuildConfig.cs" />
     <Compile Include="Infrastructure\MojenAppMetadataGen.cs" />
     <Compile Include="Infrastructure\MojenBuildConfig.cs" />
     <Compile Include="Infrastructure\MojenBuildContext.cs" />
@@ -201,7 +202,7 @@
     <Compile Include="Models\MojForeignKey.cs" />
     <Compile Include="Models\MojAttr.cs" />
     <Compile Include="Models\MojAttrs.cs" />
-    <Compile Include="Models\MojDataContext.cs" />
+    <Compile Include="BuildConfig\MojDataContext.cs" />
     <Compile Include="Builders\MojEntityBuilder.cs" />
     <Compile Include="Builders\MojEntityPropBuilder.cs" />
     <Compile Include="Builders\MojModelBuilder.cs" />

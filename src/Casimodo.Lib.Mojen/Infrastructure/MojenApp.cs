@@ -22,6 +22,11 @@ namespace Casimodo.Lib.Mojen
             Contexts = new List<MojenBuildContext>();
             Configs = new List<MojenBuildConfig>();
         }
+        public void LoadMeta(MojenMetaContainer container)
+        {
+            var items = container.GetItems<AppBuildConfig>().ToArray();
+            Items.AddRange(items);
+        }
 
         public static void HandleUsingBy(MojUsedByEventArgs args)
         {
@@ -241,10 +246,20 @@ namespace Casimodo.Lib.Mojen
 
         public IEnumerable<MojBase> GetItems(Type type)
         {
-            if (CurrentBuildContext != null)
-                return Items.Where(x => x.GetType() == type).Concat(CurrentBuildContext.Items.Where(x => x.GetType() == type)).Distinct().ToArray();
+            var result = Items.Where(x => x.GetType() == type);
 
-            return Items.Where(x => x.GetType() == type).Concat(Contexts.SelectMany(x => x.Items.Where(y => y.GetType() == type))).Distinct().ToArray();
+            result = result.Concat(Configs.Where(x => x.GetType() == type));
+
+            if (CurrentBuildContext != null)
+            {
+                result = result.Concat(CurrentBuildContext.Items.Where(x => x.GetType() == type));
+            }
+            else
+            {
+                result = result.Concat(Contexts.SelectMany(ctx => ctx.Items.Where(x => x.GetType() == type)));
+            }
+
+            return result.Distinct().ToArray();
         }
 
         public IEnumerable<T> GetItems<T>()
