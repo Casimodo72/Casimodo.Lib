@@ -62,16 +62,9 @@ namespace Casimodo.Lib.Web
             return (UrlHelper)htmlHelper.ViewContext.HttpContext.Items[itemKey];
         }
 
-        public static string ActiveClass(this UrlHelper urlHelper, string controller)
+        public static bool GetIsCurrentController(this HtmlHelper helper, string controller)
         {
-            string result = "active";
-
-            string controllerName = urlHelper.RequestContext.RouteData.Values["controller"].ToString();
-
-            if (!controllerName.Equals(controller, StringComparison.OrdinalIgnoreCase))
-                result = null;
-
-            return result;
+            return string.Equals(controller, helper.UrlHelper().RequestContext.RouteData.Values["controller"].ToString(), StringComparison.OrdinalIgnoreCase);
         }
     }
 }
