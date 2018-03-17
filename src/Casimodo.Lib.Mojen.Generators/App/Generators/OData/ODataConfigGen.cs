@@ -95,6 +95,17 @@ namespace Casimodo.Lib.Mojen
 
                     OPropertyConstraints(type);
 
+                    // Entity properties which are not in the DB and are
+                    // explicitely configured to be added to OData.
+                    foreach (var prop in type.GetProps())
+                    {
+                        if (prop.IsExcludedFromDb && prop.IsExplicitelyIncludedInOData)
+                        {
+                            O("builder.StructuralTypes.First(t => t.ClrType == typeof({0})).AddProperty(typeof({0}).GetProperty(\"{1}\"));",
+                                typeName, prop.Name);
+                        }
+                    }
+
                     // Default query function
                     O($"{item}.Collection");
                     O($"    .Function(\"{ODataConfig.Query}\")");

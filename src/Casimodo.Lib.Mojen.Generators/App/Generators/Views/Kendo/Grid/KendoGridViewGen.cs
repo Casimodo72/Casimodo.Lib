@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Mojen
     public class WebScriptGen : WebPartGenerator
     { }
 
-    public partial class CustomMainViewGen : WebViewGenerator
+    public partial class CustomPageViewGen : WebViewGenerator
     {
         protected override void GenerateCore()
         {
@@ -17,8 +17,8 @@ namespace Casimodo.Lib.Mojen
                 if (!view.IsCustom)
                     throw new MojenException("This view must be custom.");
 
-                if (!view.Kind.Roles.HasFlag(MojViewRole.Index))
-                    throw new MojenException("This view must have an index role.");
+                if (!view.Kind.Roles.HasFlag(MojViewRole.Page))
+                    throw new MojenException("This view must have a page role.");
 
                 var context = new WebViewGenContext
                 {

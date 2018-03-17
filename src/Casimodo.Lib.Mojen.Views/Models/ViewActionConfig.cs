@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
     public enum MojViewRole
     {
         None = 0,
-        Index = 1 << 0,
+        Page = 1 << 0,
         List = 1 << 1,
         Lookup = 1 << 2,
         Details = 1 << 3,

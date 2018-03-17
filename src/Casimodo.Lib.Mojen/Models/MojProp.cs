@@ -564,6 +564,9 @@ namespace Casimodo.Lib.Mojen
         public bool IsExcludedFromDb { get; set; }
 
         [DataMember]
+        public bool IsExplicitelyIncludedInOData{ get; set; }
+
+        [DataMember]
         [MapFromModel]
         public bool IsCustom { get; set; }
 

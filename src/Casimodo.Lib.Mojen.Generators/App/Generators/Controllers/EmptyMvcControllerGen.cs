@@ -7,7 +7,7 @@ namespace Casimodo.Lib.Mojen
         public override void GenerateController(MojControllerConfig controller)
         {
             // Index
-            var view = controller.GetIndexViews().FirstOrDefault();
+            var view = controller.GetPageViews().FirstOrDefault();
             if (view == null)
                 return;
 

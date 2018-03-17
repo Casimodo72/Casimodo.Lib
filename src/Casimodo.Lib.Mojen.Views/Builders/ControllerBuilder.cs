@@ -42,7 +42,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder IndexView(string id)
         {
-            return View(id).Index();
+            return View(id).Page();
         }
 
         public MojViewBuilder ListView(string id)
@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder EditorView(string id)
         {
             return View(id).Editor();
-        } 
+        }
 
         public MojViewBuilder ListDialog(string id)
         {
@@ -65,23 +65,26 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder LookupSingleView(string id, params MojProp[] parameters)
         {
-            return View().LookupSingle(id, parameters);
+            return View(id).LookupSingle(parameters);
         }
 
         MojViewBuilder View(string id = null)
         {
+            Guard.ArgNotNullOrWhitespace(id, nameof(id));
+
             var view = new MojControllerViewConfig();
+            view.Id = id;
             view.Controller = Controller;
             view.TypeConfig = Controller.TypeConfig;
+
+            if (App.Items.Any(x => (x as MojViewConfig)?.Id == id))
+                throw new MojenException($"Duplicate view ID '{id}'.");
             App.Add(view);
 
             var vbuilder = new MojControllerViewBuilder(this, view);
             view.Template.ViewBuilder = vbuilder;
             Controller.Views.Add(vbuilder.View);
             ViewBuilders.Add(vbuilder);
-
-            if (id != null)
-                vbuilder.Id(id);
 
             return vbuilder;
         }

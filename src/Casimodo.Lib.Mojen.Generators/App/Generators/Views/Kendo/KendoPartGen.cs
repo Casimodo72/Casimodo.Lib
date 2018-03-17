@@ -399,7 +399,7 @@ namespace Casimodo.Lib.Mojen
             O($"itemTypeName: '{view.TypeConfig.Name}',");
             O($"areaName: '{view.TypeConfig.PluralName}',");
             O($"isDialog: {MojenUtils.ToJsValue(view.Lookup.Is)},");
-            O($"isAuthRequired: {MojenUtils.ToJsValue(view.IsAuthorizationNeeded)},");
+            O($"isAuthRequired: {MojenUtils.ToJsValue(view.IsAuthEnabled)},");
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
             OViewDimensionOptions(view);

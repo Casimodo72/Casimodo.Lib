@@ -163,6 +163,8 @@ namespace Casimodo.Lib.Mojen
             Generators.Add(generator);
         }
 
+
+
         public void Add(MojBase item)
         {
             if (item == null) throw new ArgumentNullException("item");

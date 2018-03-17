@@ -41,6 +41,16 @@ namespace Casimodo.Lib.Mojen
         }
 
         /// <summary>
+        /// Force inclusion in OData model even if this properties in not part of the DB model.
+        /// </summary>
+        public MojEntityPropBuilder ForceOData()
+        {
+            PropConfig.IsExplicitelyIncludedInOData = true;
+
+            return this;
+        }
+
+        /// <summary>
         /// Creates an index in the DB.
         /// </summary>
         public MojEntityPropBuilder Index()

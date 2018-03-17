@@ -157,6 +157,7 @@
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
+    <Compile Include="App\Generators\Views\WebComponentApplyAmbientAuth.cs" />
     <Compile Include="App\Generators\Views\WebComponentRegistryGen.cs" />
     <Compile Include="App\Generators\Views\WebJsComponentRegistryGen.cs" />
     <Compile Include="App\Generators\Models\WebDataEditViewModelGen.cs" />

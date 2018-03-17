@@ -22,12 +22,12 @@ namespace Casimodo.Lib.Mojen
                     App.Get<AppBuildConfig>().AppNamePrefix);
                 Begin();
 
-                O("public void Configure()");
+                O("public override void Configure()");
                 Begin();
 
                 Func<WebResultComponentInfo, int> roleToInt = (x) =>
                 {
-                    if (x.Role == "Main") return 1;
+                    if (x.Role == "Page") return 1;
                     if (x.Role == "List") return 2;
                     if (x.Role == "Editor") return 3;
                     if (x.Role == "Details") return 4;
@@ -35,25 +35,82 @@ namespace Casimodo.Lib.Mojen
                     return 0;
                 };
 
-                foreach (var item in App.Get<WebResultBuildInfo>().Components
-                .OrderBy(x => x.Role)
+                var components = App.Get<WebResultBuildInfo>().Components
                     .OrderBy(x => x.Item)
                     .ThenBy(x => x.Group)
-                    .ThenBy(x => x.Role))
+                    .ThenBy(x => x.Role)
+                    .ToList();
+
+                foreach (var item in components)
                 {
-                    O("Add(new WebComponentRegItem {{ ItemName = {0}, ViewRole = {1}, ViewGroup = {2}, HasComponent = {3}, Url = {4}, ViewId = {5} }});",
+                    Oo("Add(new WebComponentRegItem {{ ItemName = {0}, " +
+                        "ViewGroup = {1}, ViewRole = {2}, ViewActions = {3}, " +
+                        "Title = {4}, HasComponent = {5}, Url = {6}, " +
+                        "ViewControllerName = {7}, ViewControllerActionName = {8}, " +
+                        "ViewId = {9} }})",
                         MojenUtils.ToCsValue(item.View.TypeConfig.Name),
-                        MojenUtils.ToCsValue(item.Role),
                         MojenUtils.ToCsValue(item.Group),
+                        MojenUtils.ToCsValue(item.Role),
+                        MojenUtils.ToCsValue(BuildActions(item.View)),
+                        MojenUtils.ToCsValue(item.View.Kind.Roles.HasFlag(MojViewRole.List) ? item.View.TypeConfig.DisplayPluralName : item.View.TypeConfig.DisplayName),
                         MojenUtils.ToCsValue(item.Name != null),
                         MojenUtils.ToCsValue(BuildUrl(item.Url)),
+                        MojenUtils.ToCsValue(item.View.TypeConfig.PluralName),
+                        MojenUtils.ToCsValue(item.View.ControllerActionName),
                         MojenUtils.ToCsValue(item.Id));
+
+                    if (item.View.Permissions.Any())
+                    {
+                        Br();
+                        Push();
+                        foreach (var perm in item.View.Permissions)
+                        {
+                            O(".SetRoles({0}, {1}, {2})",
+                                MojenUtils.ToCsValue(perm.Roles),
+                                MojenUtils.ToCsValue(perm.Permit),
+                                MojenUtils.ToCsValue(perm.Deny));
+                        }
+                        O(";");
+                        Pop();
+                    }
+                    else
+                        oO(";");
+
                 }
 
                 End();
                 End();
                 End();
+
+                O("/*");
+                foreach (var item in components.Where(x => x.Role == "Page"))
+                {
+                    O("Set(CommonUserRole.Manager, item: {0}, viewRole: \"Page\", permit: \"View\");",
+                         MojenUtils.ToCsValue(item.View.TypeConfig.Name));
+                }
+                O("*/");
             });
+        }
+
+        string BuildActions(MojViewConfig view)
+        {
+            var actions = "";
+            if (view.Kind.Roles.HasFlag(MojViewRole.Editor))
+            {
+                if (view.CanCreate)
+                    actions += ",Create";
+                if (view.CanCreate)
+                    actions += ",Modify";
+                if (view.CanDelete)
+                    actions += ",Delete";
+            }
+            else
+                actions = "View";
+
+            if (actions.StartsWith(","))
+                actions = actions.Substring(1);
+
+            return actions;
         }
 
         string BuildUrl(string url)

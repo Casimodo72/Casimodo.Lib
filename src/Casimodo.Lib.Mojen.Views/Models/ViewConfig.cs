@@ -213,8 +213,10 @@ namespace Casimodo.Lib.Mojen
 
         public bool UseMVVM { get; set; }
 
-        public bool IsAuthorizationNeeded { get; set; } = true;
-        public string AuthRoles { get; set; }
+        public bool IsAuthEnabled { get; set; } = true;
+        public bool IsAuthCascadeToGroupEnabled { get; set; }
+
+        public List<MojAuthPermission> Permissions { get; set; } = new List<MojAuthPermission>();
 
         public bool IsFilterable { get; set; } = true;
 

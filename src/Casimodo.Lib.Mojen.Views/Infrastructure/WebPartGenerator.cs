@@ -44,8 +44,8 @@ namespace Casimodo.Lib.Mojen
             // Register component.
             string role = null;
             var roles = view.Kind.Roles;
-            if (roles.HasFlag(MojViewRole.Index))
-                role = "Main";
+            if (roles.HasFlag(MojViewRole.Page))
+                role = "Page";
             else if (roles.HasFlag(MojViewRole.Lookup))
                 role = "Lookup";
             else if (roles.HasFlag(MojViewRole.List))
@@ -446,8 +446,8 @@ namespace Casimodo.Lib.Mojen
             {
                 name = view.FileName ?? view.Name ?? view.Kind.RoleName ?? view.CustomControllerActionName;
 
-                // NOTE: We now use the PluaralName for index pages. I.e "People.cshtml" instead of "Index.cshtml".
-                if (!partial && name == view.Kind.RawAction && view.Kind.Roles.HasFlag(MojViewRole.Index))
+                // NOTE: We now use the PluaralName for pages. I.e "People.cshtml" instead of "Index.cshtml".
+                if (!partial && name == view.Kind.RawAction && view.Kind.Roles.HasFlag(MojViewRole.Page))
                     name = view.TypeConfig.PluralName;
             }
 

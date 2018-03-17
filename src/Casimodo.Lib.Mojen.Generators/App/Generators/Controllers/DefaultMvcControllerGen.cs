@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
                 MojType model = view.TypeConfig;
                 MojType entity = view.TypeConfig.Store;
 
-                if (controller.HasRole(MojViewRole.Index))
+                if (controller.HasRole(MojViewRole.Page))
                 {
                     // Index
 

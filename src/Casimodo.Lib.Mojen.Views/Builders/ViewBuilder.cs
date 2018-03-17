@@ -134,10 +134,10 @@ namespace Casimodo.Lib.Mojen
             get { return !IsEditor; }
         }
 
-        public virtual MojViewBuilder Index()
+        public virtual MojViewBuilder Page()
         {
             View.Kind.Mode = MojViewMode.Read;
-            View.Kind.Roles = MojViewRole.Index | MojViewRole.List;
+            View.Kind.Roles = MojViewRole.Page | MojViewRole.List;
             View.Kind.RoleName = ActionName.Index;
             View.Kind.RawAction = ActionName.Index;
 
@@ -194,9 +194,8 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder LookupSingle(string id, params MojProp[] parameters)
+        public MojViewBuilder LookupSingle(params MojProp[] parameters)
         {
-            View.Id = id;
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Lookup | MojViewRole.List;
             //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
@@ -352,16 +351,22 @@ namespace Casimodo.Lib.Mojen
         //    return this;
         //}
 
-        public MojViewBuilder Auth(bool value = true)
+        public MojViewBuilder Auth(bool value = true, bool cascade = true)
         {
-            View.IsAuthorizationNeeded = value;
+            View.IsAuthEnabled = value;
+            View.IsAuthCascadeToGroupEnabled = cascade;
 
             return this;
         }
 
-        public MojViewBuilder AuthorizedRoles(string roles)
+        public MojViewBuilder AuthRoles(string roles, string permit = "*", string deny = null)
         {
-            View.AuthRoles = roles;
+            View.Permissions.Add(new MojAuthPermission
+            {
+                Roles = roles,
+                Permit = permit,
+                Deny = deny
+            });
 
             return this;
         }
