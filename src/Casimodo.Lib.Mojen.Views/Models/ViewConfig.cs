@@ -209,6 +209,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsPartial { get; set; }
 
+        public bool IsInline { get; set; }
+
         public ViewItemSelection ItemSelection { get; private set; } = new ViewItemSelection();
 
         public bool UseMVVM { get; set; }

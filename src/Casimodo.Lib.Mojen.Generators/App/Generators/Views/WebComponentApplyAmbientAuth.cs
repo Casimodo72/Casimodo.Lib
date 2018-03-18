@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
                 .ToList();
 
             var components = App.GetItems<MojControllerViewConfig>()
-                .Where(x => !x.Kind.Roles.HasFlag(MojViewRole.Page))
+                .Where(x => !x.Kind.Roles.HasFlag(MojViewRole.Page) && !x.IsInline)
                 .ToList();
 
             foreach (var item in components)
@@ -28,7 +28,12 @@ namespace Casimodo.Lib.Mojen
                     continue;
 
                 if (item.Permissions.Any())
-                    throw new MojenException("This view has explicit auth assigned.");
+                {
+                    if (!item.IsAuthAmbientOverwritten)
+                        throw new MojenException("This view has explicit auth assigned and ambient auth was configured to be overwritten.");
+
+                    continue;
+                }
 
                 foreach (var perm in page.Permissions)
                     item.Permissions.Add(perm);

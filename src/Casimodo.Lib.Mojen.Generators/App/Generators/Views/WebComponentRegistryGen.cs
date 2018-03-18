@@ -36,6 +36,7 @@ namespace Casimodo.Lib.Mojen
                 };
 
                 var components = App.Get<WebResultBuildInfo>().Components
+                    .Where(x => !x.View.IsInline)
                     .OrderBy(x => x.Item)
                     .ThenBy(x => x.Group)
                     .ThenBy(x => x.Role)

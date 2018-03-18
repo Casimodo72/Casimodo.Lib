@@ -437,6 +437,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Inline()
+        {
+            View.IsInline = true;
+            return this;
+        }
+
         public MojViewBuilder Modal()
         {
             View.IsModal = true;
