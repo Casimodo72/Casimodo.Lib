@@ -65,7 +65,7 @@ namespace Casimodo.Lib.Mojen
                         Push();
                         foreach (var perm in item.View.Permissions)
                         {
-                            O(".SetRoles({0}, {1}, {2})",
+                            O(".SetRole({0}, {1}, {2})",
                                 MojenUtils.ToCsValue(perm.Role),
                                 MojenUtils.ToCsValue(perm.Permit),
                                 MojenUtils.ToCsValue(perm.Deny));
