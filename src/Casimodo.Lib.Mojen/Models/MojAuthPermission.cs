@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojAuthPermission
     {
-        public string Roles { get; set; }
+        public string Role { get; set; }
 
         public string Permit { get; set; }
         public string Deny { get; set; }

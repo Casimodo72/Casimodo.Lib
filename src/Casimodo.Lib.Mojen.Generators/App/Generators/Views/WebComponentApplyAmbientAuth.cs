@@ -24,7 +24,7 @@ namespace Casimodo.Lib.Mojen
                 if (page == null)
                     continue;
 
-                if (!page.IsAuthCascadeToGroupEnabled)
+                if (!page.IsAuthAmbientForGroup)
                     continue;
 
                 if (item.Permissions.Any())

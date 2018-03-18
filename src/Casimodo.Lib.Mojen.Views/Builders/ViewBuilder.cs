@@ -351,19 +351,21 @@ namespace Casimodo.Lib.Mojen
         //    return this;
         //}
 
-        public MojViewBuilder Auth(bool value = true, bool cascade = true)
+        public MojViewBuilder Auth(bool value = true, bool cascade = true, bool? overwrite = null)
         {
             View.IsAuthEnabled = value;
-            View.IsAuthCascadeToGroupEnabled = cascade;
+            View.IsAuthAmbientForGroup = cascade;
+            if (overwrite != null)
+                View.IsAuthAmbientOverwritten = overwrite.Value;
 
             return this;
         }
 
-        public MojViewBuilder AuthRoles(string roles, string permit = "*", string deny = null)
+        public MojViewBuilder AuthRole(string role, string permit = "*", string deny = null)
         {
             View.Permissions.Add(new MojAuthPermission
             {
-                Roles = roles,
+                Role = role,
                 Permit = permit,
                 Deny = deny
             });
