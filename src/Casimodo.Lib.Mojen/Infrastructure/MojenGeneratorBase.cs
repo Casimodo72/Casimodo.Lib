@@ -556,7 +556,8 @@ namespace Casimodo.Lib.Mojen
 
         protected void ORazorGeneratedFileComment()
         {
-            O("@* This file was generated *@");
+            O("@* [Casimodo.Lib.Mojen:file-origin=generated]");
+            O("   This is a GENERATED file. Manual changes will be overwritten. *@");
         }
 
         protected void ORazorUsing(params string[] namespaces)

@@ -41,34 +41,12 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            // KABU TODO: REVISIT: Currently we need to add "Page,List" components
-            //   twice, because we need "Page" for e.g. navigation to pages and
-            //   "List" for authorization of the "List" component itself.
-            // KABU TODO: IMPORTANT: Find a way to eliminate this hack.
-            //   Basically we need a dedicated object to represent a page.
-            //   A single view should have only *one* view role.
-
-            if (view.Kind.Roles.HasFlag(MojViewRole.Page))
+            App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
             {
-                App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
-                {
-                    View = view,
-                    Role = view.MainRoleName,
-                    Url = view.Url
-                });
-            }           
-
-            if (view.Kind.Roles.HasFlag(MojViewRole.Page) && view.Kind.Roles.HasFlag(MojViewRole.List))
-            {
-                App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
-                {
-                    View = view,
-                    Role = "List",
-                    Name = context.ComponentName,
-                    Namespace = context.UINamespace,
-                    Url = view.Url
-                });
-            }
+                View = view,
+                Role = view.MainRoleName,
+                Url = view.Url
+            });
         }
 
         // KABU TODO: REMOVE? Not used.
@@ -92,12 +70,16 @@ namespace Casimodo.Lib.Mojen
             return "return RedirectToAction(\"Index\");";
         }
 
-        protected void WriteTitleAndMessage(MojViewConfig view)
-        {
-            if (!string.IsNullOrWhiteSpace(view.Title))
-                O("ViewBag.Title = \"{0}\";", view.Title);
+        //protected void WriteViewBagPageTitle(MojViewConfig view)
+        //{
+        //    var title = view.GetDefaultTitle();
+        //    if (!string.IsNullOrEmpty(title))
+        //        O("ViewBag.Title = \"{0}\";", title);
+        //}
 
-            if (!string.IsNullOrWhiteSpace(view.Message))
+        protected void WriteViewBagMessage(MojViewConfig view)
+        {
+            if (!string.IsNullOrEmpty(view.Message))
                 O("ViewBag.Message = \"{0}\";", view.Message);
         }
 
@@ -340,24 +322,7 @@ namespace Casimodo.Lib.Mojen
             if (view.Group != null)
                 name += "_" + view.Group + "_";
 
-            var roles = view.Kind.Roles;
-            string role = null;
-
-            if (roles.HasFlag(MojViewRole.Lookup))
-                role = "Lookup";
-            else if (roles.HasFlag(MojViewRole.List))
-                role = "List";
-            else if (roles.HasFlag(MojViewRole.Details))
-                role = "Details";
-            else if (roles.HasFlag(MojViewRole.Editor))
-                role = "Editor";
-            else if (roles.HasFlag(MojViewRole.Delete))
-                role = "Delete";
-
-            if (role == null)
-                throw new MojenException("Failed to build a JS component name.");
-
-            name += role;
+            name += view.MainRoleName;
 
             return name;
         }
@@ -372,26 +337,14 @@ namespace Casimodo.Lib.Mojen
                 if (view.Group != null)
                     name += "." + view.Group;
 
-                var roles = view.Kind.Roles;
-                string lookup = null;
-                string role = null;
+                name += "." + view.MainRoleName.ToLower();
 
-                if (roles.HasFlag(MojViewRole.Lookup))
-                    lookup = "lookup";
-
-                if (roles.HasFlag(MojViewRole.Editor))
-                    role = "editor";
-                else if (roles.HasFlag(MojViewRole.Details))
-                    role = "details";
-                else if (roles.HasFlag(MojViewRole.Delete))
-                    role = "delete";
-                else if (roles.HasFlag(MojViewRole.List))
-                    role = "list";
-
-                if (role == null)
-                    throw new MojenException("Failed to build a JS file name.");
-
-                name += "." + (lookup != null ? lookup + "." : "") + role;
+                // KABU TODO: ELIMINATE: Currently we need a hack to compensate for
+                //   the issue that lookup views are also lists.
+                //   There should be two separate views instead: one lookup view and its
+                //   content would be the list view
+                if (view.IsLookup)
+                    name += ".list";
 
                 if (suffix != null)
                     name += suffix.FirstLetterToLower();

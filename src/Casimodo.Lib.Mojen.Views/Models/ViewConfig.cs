@@ -112,6 +112,17 @@ namespace Casimodo.Lib.Mojen
 
         public string Title { get; set; }
 
+        public string GetDefaultTitle()
+        {
+            if (!string.IsNullOrEmpty(Title))
+                return Title;
+
+            if (IsPage || IsList || IsLookup)
+                return TypeConfig.DisplayPluralName;
+            else
+                return TypeConfig.DisplayName;
+        }
+
         public string Message { get; set; }
 
         public MojType TypeConfig { get; set; }
@@ -127,6 +138,16 @@ namespace Casimodo.Lib.Mojen
             get { return Kind.Roles.HasFlag(MojViewRole.Page); }
         }
 
+        public bool IsList
+        {
+            get { return Kind.Roles.HasFlag(MojViewRole.List); }
+        }
+
+        public bool IsEditor
+        {
+            get { return Kind.Roles.HasFlag(MojViewRole.Editor); }
+        }
+
         public bool IsLookup
         {
             get { return Kind.Roles.HasFlag(MojViewRole.Lookup); }
@@ -137,13 +158,13 @@ namespace Casimodo.Lib.Mojen
             get
             {
                 var roles = Kind.Roles;
-                if (roles.HasFlag(MojViewRole.Page))
+                if (IsPage)
                     return "Page";
-                else if (roles.HasFlag(MojViewRole.Lookup))
+                else if (IsLookup)
                     return "Lookup";
-                else if (roles.HasFlag(MojViewRole.List))
+                else if (IsList)
                     return "List";
-                else if (roles.HasFlag(MojViewRole.Editor))
+                else if (IsEditor)
                     return "Editor";
                 else if (roles.HasFlag(MojViewRole.Details))
                     return "Details";
@@ -174,11 +195,6 @@ namespace Casimodo.Lib.Mojen
         }
 
         public string CustomControllerActionName { get; set; }
-
-        public bool IsEditor
-        {
-            get { return Kind.Roles.HasFlag(MojViewRole.Editor); }
-        }
 
         public MojViewConfig RootView { get; set; }
 

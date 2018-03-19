@@ -426,7 +426,7 @@ namespace Casimodo.Lib.Mojen
             O($"isRequired: {MojenUtils.ToJsValue(view.IsAuthEnabled)},");
             if (view.IsAuthEnabled)
             {
-                O("part: {0},", MojenUtils.ToJsValue(view.Kind.Roles.HasFlag(MojViewRole.List) ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName));
+                O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
                 O("group: {0},", MojenUtils.ToJsValue(view.Group));
                 O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
             }

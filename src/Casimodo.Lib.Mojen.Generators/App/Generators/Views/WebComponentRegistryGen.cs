@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Mojen
                         MojenUtils.ToCsValue(item.View.Group),
                         MojenUtils.ToCsValue(item.View.MainRoleName),
                         MojenUtils.ToCsValue(BuildActions(item.View)),
-                        MojenUtils.ToCsValue(item.View.Kind.Roles.HasFlag(MojViewRole.List) ? item.View.TypeConfig.DisplayPluralName : item.View.TypeConfig.DisplayName),
+                        MojenUtils.ToCsValue(item.View.GetDefaultTitle()),
                         MojenUtils.ToCsValue(item.Name != null),
                         MojenUtils.ToCsValue(BuildUrl(item.Url)),
                         MojenUtils.ToCsValue(item.View.TypeConfig.PluralName),

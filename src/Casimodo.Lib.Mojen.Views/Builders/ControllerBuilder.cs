@@ -65,7 +65,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder LookupSingleView(string id, params MojProp[] parameters)
         {
-            return View(id).LookupSingle(parameters);
+            return View(id).SingleLookupListView(parameters);
         }
 
         MojViewBuilder View(string id = null)

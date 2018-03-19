@@ -177,7 +177,7 @@ namespace Casimodo.Lib.Mojen
         public virtual MojViewBuilder Page()
         {
             View.Kind.Mode = MojViewMode.Read;
-            View.Kind.Roles = MojViewRole.Page | MojViewRole.List;
+            View.Kind.Roles = MojViewRole.Page;
             View.Kind.RoleName = ActionName.Index;
             View.Kind.RawAction = ActionName.Index;
 
@@ -234,10 +234,16 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder LookupSingle(params MojProp[] parameters)
+        public MojViewBuilder SingleLookupListView(params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
-            View.Kind.Roles = MojViewRole.Lookup; // TODO: REMOVE: | MojViewRole.List;
+
+            // KABU TODO: ELIMINATE: Currently we need a hack to compensate for
+            //   the issue that lookup views are also lists.
+            //   There should be two separate views instead: one lookup view and its
+            //   content would be the list view.
+            View.Kind.Roles = MojViewRole.Lookup;
+
             //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
             View.Kind.RawAction = ActionName.Lookup;
             View.Kind.RoleName = MojViewRole.Lookup.ToString();

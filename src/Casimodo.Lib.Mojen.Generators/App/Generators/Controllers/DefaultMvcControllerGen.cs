@@ -15,14 +15,15 @@ namespace Casimodo.Lib.Mojen
                 MojType model = view.TypeConfig;
                 MojType entity = view.TypeConfig.Store;
 
-                if (controller.HasRole(MojViewRole.Page))
+                if (controller.HasViewWithRole(MojViewRole.Page))
                 {
                     // Index
 
                     O();
                     O("public ActionResult Index()");
                     Begin();
-                    WriteTitleAndMessage(view);
+
+                    WriteViewBagMessage(view);
                     O();
                     O("var models = _db.{0}{1}.Select(x => new {2} {{ State = x }});", entity.PluralName, LinqOrderBy(view), model.ClassName);
                     O();
@@ -31,14 +32,15 @@ namespace Casimodo.Lib.Mojen
                     End();
                 }
 
-                if (controller.HasRole(MojViewRole.Details))
+                if (controller.HasViewWithRole(MojViewRole.Details))
                 {
                     // Details
 
                     O();
                     O("public ActionResult Details(Guid? id = null)");
                     Begin();
-                    WriteTitleAndMessage(view);
+
+                    WriteViewBagMessage(view);
                     O("if (id == null)");
                     O("    return HttpNotFound();");
                     O();
@@ -52,14 +54,15 @@ namespace Casimodo.Lib.Mojen
                     End();
                 }
 
-                if (controller.HasRole(MojViewRole.Editor | MojViewRole.ForUpdate))
+                if (controller.HasViewWithRole(MojViewRole.Editor | MojViewRole.ForUpdate))
                 {
                     // Edit
 
                     O();
                     O("public ActionResult Edit(Guid? id = null)");
                     Begin();
-                    WriteTitleAndMessage(view);
+
+                    WriteViewBagMessage(view);
                     O("if (id == null)");
                     O("    return HttpNotFound();");
                     O();
@@ -81,7 +84,7 @@ namespace Casimodo.Lib.Mojen
                     O("public ActionResult Edit({0} model)", model.ClassName);
                     Begin();
 
-                    WriteTitleAndMessage(view);
+                    WriteViewBagMessage(view);
                     O("if (ModelState.IsValid)");
                     Begin();
 
@@ -95,7 +98,7 @@ namespace Casimodo.Lib.Mojen
                     End();
                 }
 
-                if (controller.HasRole(MojViewRole.Editor | MojViewRole.ForCreate))
+                if (controller.HasViewWithRole(MojViewRole.Editor | MojViewRole.ForCreate))
                 {
                     O();
                     O("public ActionResult Create()", model.ClassName);
@@ -111,7 +114,8 @@ namespace Casimodo.Lib.Mojen
                     O("[ValidateAntiForgeryToken]");
                     O("public ActionResult Create({0} model)", model.ClassName);
                     Begin();
-                    WriteTitleAndMessage(view);
+
+                    WriteViewBagMessage(view);
                     O("if (ModelState.IsValid)");
                     Begin();
                     O("_db.{0}.Add(model.State);");
@@ -128,7 +132,8 @@ namespace Casimodo.Lib.Mojen
                     O();
                     O("public ActionResult Delete(Guid? id = null)");
                     Begin();
-                    WriteTitleAndMessage(view);
+
+                    WriteViewBagMessage(view);
                     O("if (id == null)");
                     O("    return HttpNotFound();");
                     O();

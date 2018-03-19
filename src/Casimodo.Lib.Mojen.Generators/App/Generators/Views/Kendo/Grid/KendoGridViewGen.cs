@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
         }
     }
 
-    public partial class KendoGridPageViewGen : KendoViewGenBase
+    public partial class KendoPageWithGridContentViewGen : KendoViewGenBase
     {
         protected override void GenerateCore()
         {
@@ -35,9 +35,9 @@ namespace Casimodo.Lib.Mojen
                 if (view.IsCustom) throw new MojenException("This view must not be custom.");
                 if (!view.IsPage) throw new MojenException("This view must have a page role.");
 
-                // Bind conten views.
+                // Bind content views.
                 KendoGen.BindPageContentView(view, MojViewRole.List);
-                           
+
                 var context = new WebViewGenContext
                 {
                     View = view
@@ -47,7 +47,11 @@ namespace Casimodo.Lib.Mojen
                 {
                     var grid = view.ContentViews.First(x => x.Uses<KendoGridViewGen>());
 
-                    string gridVirtualFilePath = BuildJsScriptVirtualFilePath(grid, suffix: ".vm.generated");
+                    string gridVirtualFilePath = BuildVirtualFilePath(grid);
+
+                    var title = view.Title ?? grid.GetDefaultTitle();
+                    if (!string.IsNullOrEmpty(title))
+                        O($"@{{ ViewBag.Title = \"{title}\"; }}");
 
                     OMvcPartialView(gridVirtualFilePath);
                 });
@@ -99,10 +103,15 @@ namespace Casimodo.Lib.Mojen
         public string GridScriptFilePath { get; set; }
         public string GridScriptVirtualFilePath { get; set; }
 
+        public override void Prepare()
+        {
+            base.Prepare();
+        }
+
         protected override void GenerateCore()
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
-                .Where(x => x.Uses(this) && !x.IsCustom && x.Kind.Roles.HasFlag(MojViewRole.List)))
+                .Where(x => x.Uses(this) && !x.IsCustom))
             {
                 if (view.IsCustom)
                     throw new MojenException("KendoGridView must not be custom.");
@@ -190,10 +199,9 @@ namespace Casimodo.Lib.Mojen
         {
             ORazorGeneratedFileComment();
 
-            ORazorUsing("Casimodo.Lib", "Casimodo.Lib.Web",
-                App.GetDataLayerConfig(context.View.TypeConfig.DataContextName).DataNamespace);
-
-            O($"@{{ ViewBag.Title = \"{context.View.Title}\"; }}");
+            // KABU TODO: REMOVE
+            //ORazorUsing("Casimodo.Lib", "Casimodo.Lib.Web",
+            //    App.GetDataLayerConfig(context.View.TypeConfig.DataContextName).DataNamespace);
 
             O();
             if (context.View.IsLookup)

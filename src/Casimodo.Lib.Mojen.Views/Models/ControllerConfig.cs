@@ -42,7 +42,7 @@ namespace Casimodo.Lib.Mojen
 
         public string ClassName { get; set; }
 
-        public bool HasRole(MojViewRole role)
+        public bool HasViewWithRole(MojViewRole role)
         {
             return Views.Any(x => x.Kind.Roles.HasFlag(role));
         }
