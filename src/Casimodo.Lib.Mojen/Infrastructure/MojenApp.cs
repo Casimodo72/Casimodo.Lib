@@ -39,20 +39,36 @@ namespace Casimodo.Lib.Mojen
 
         public void Execute()
         {
-            if (Prepare != null)
-                Prepare(this);
+            foreach (var item in GetItems<MojPartBase>())
+                item.Prepare(this);
 
+            Prepare?.Invoke(this);
+
+            ExecuteStage("Prepare");
+            ExecuteStage(null);
+
+            // Generate meta data (e.g. for transfer to a higher level builder layer).
+            foreach (var meta in GetItems<MojenAppMetadataConfig>())
+            {
+                CurrentScopeObject = meta;
+                ExecuteGenerators(null, "Meta");
+                CurrentScopeObject = null;
+            }
+        }
+
+        void ExecuteStage(string stage)
+        {
             CurrentBuildContext = null;
             foreach (var context in Contexts)
             {
                 CurrentBuildContext = context;
-                ExecuteGenerators("Context");
+                ExecuteGenerators(stage, "Context");
 
                 foreach (var ctx in context.GetItems<DataLayerConfig>())
                 {
                     CurrentScopeObject = ctx;
                     context.CurrentDataContext = ctx;
-                    ExecuteGenerators("DataContext");
+                    ExecuteGenerators(stage, "DataContext");
                 }
                 CurrentScopeObject = null;
                 context.CurrentDataContext = null;
@@ -61,7 +77,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     CurrentScopeObject = ctx;
                     context.CurrentModelContext = ctx;
-                    ExecuteGenerators("ModelContext");
+                    ExecuteGenerators(stage, "ModelContext");
                 }
                 context.CurrentModelContext = null;
                 CurrentScopeObject = null;
@@ -69,19 +85,12 @@ namespace Casimodo.Lib.Mojen
             }
             CurrentBuildContext = null;
 
-            ExecuteGenerators("App");
-
-            foreach (var meta in GetItems<MojenAppMetadataConfig>())
-            {
-                CurrentScopeObject = meta;
-                ExecuteGenerators(scope: "Meta");
-                CurrentScopeObject = null;
-            }
+            ExecuteGenerators(stage, "App");
         }
 
-        void ExecuteGenerators(string scope)
+        void ExecuteGenerators(string stage, string scope)
         {
-            foreach (var generatorPrototype in Generators.Where(x => x.Scope == scope))
+            foreach (var generatorPrototype in Generators.Where(x => x.Stage == stage && x.Scope == scope))
             {
                 var generator = (MojenGenerator)Activator.CreateInstance(generatorPrototype.GetType());
                 generator.Initialize(this);

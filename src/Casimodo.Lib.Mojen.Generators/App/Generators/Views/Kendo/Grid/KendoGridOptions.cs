@@ -1,6 +1,8 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿using System;
+
+namespace Casimodo.Lib.Mojen
 {
-    public class KendoGridOptions
+    public class KendoGridOptions : ICloneable
     {
         // We need to use a custom OData method e.g. for querying of return Mos with IsDeleted and IsRecyclableDeleted.
         public string CustomQueryMethod { get; set; }
@@ -27,5 +29,13 @@
         public bool IsServerPaging { get; set; } = true;
 
         public KendoPagerOptions Pager { get; set; } = new KendoPagerOptions();
+
+        public object Clone()
+        {
+            var clone = (KendoGridOptions)this.MemberwiseClone();
+            clone.Pager = (KendoPagerOptions)Pager.Clone();
+
+            return clone;
+        }
     }
 }

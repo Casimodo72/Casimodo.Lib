@@ -70,12 +70,12 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewConfig GetPageView(string group)
         {
-            return Views.SingleOrDefault(x => x.Group == group && x.Kind.Roles.HasFlag(MojViewRole.Page));
+            return Views.SingleOrDefault(x => x.Group == group && x.IsPage);
         }
 
         public IEnumerable<MojViewConfig> GetPageViews()
         {
-            return Views.Where(x => x.Kind.Roles.HasFlag(MojViewRole.Page));
+            return Views.Where(x => x.IsPage);
         }
 
         public MojViewConfig GetDetailsView(string group = null)

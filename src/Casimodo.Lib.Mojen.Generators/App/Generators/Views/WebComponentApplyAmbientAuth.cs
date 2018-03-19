@@ -8,35 +8,41 @@ namespace Casimodo.Lib.Mojen
 {
     public sealed class WebComponentApplyAmbientAuth : AppPartGenerator
     {
+        public WebComponentApplyAmbientAuth()
+        {
+            Stage = "Prepare";
+        }
+
         protected override void GenerateCore()
         {
             var pages = App.GetItems<MojControllerViewConfig>()
-                .Where(x => x.Kind.Roles.HasFlag(MojViewRole.Page))
+                .Where(x => x.IsPage)
                 .ToList();
 
-            var components = App.GetItems<MojControllerViewConfig>()
-                .Where(x => !x.Kind.Roles.HasFlag(MojViewRole.Page) && !x.IsInline)
+            var views = App.GetItems<MojControllerViewConfig>()
+                .Where(x => !x.IsPage && !x.IsInline)
                 .ToList();
 
-            foreach (var item in components)
+            foreach (var view in views)
             {
-                var page = pages.FirstOrDefault(x => x.Controller == item.Controller && x.Group == item.Group);
+                var page = pages.FirstOrDefault(x => x.Controller == view.Controller && x.Group == view.Group);
                 if (page == null)
+                    // KABU TODO: IMPORTANT: Do we want to enforce all view groups to have a page view?
                     continue;
 
                 if (!page.IsAuthAmbientForGroup)
                     continue;
 
-                if (item.Permissions.Any())
+                if (view.Permissions.Any())
                 {
-                    if (!item.IsAuthAmbientOverwritten)
+                    if (!view.IsAuthAmbientOverwritten)
                         throw new MojenException("This view has explicit auth assigned and ambient auth was configured to be overwritten.");
 
                     continue;
                 }
 
                 foreach (var perm in page.Permissions)
-                    item.Permissions.Add(perm);
+                    view.Permissions.Add(perm);
             }
         }
     }

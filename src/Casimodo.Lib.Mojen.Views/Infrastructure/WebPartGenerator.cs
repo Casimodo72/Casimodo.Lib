@@ -41,31 +41,34 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            // Register component.
-            string role = null;
-            var roles = view.Kind.Roles;
-            if (roles.HasFlag(MojViewRole.Page))
-                role = "Page";
-            else if (roles.HasFlag(MojViewRole.Lookup))
-                role = "Lookup";
-            else if (roles.HasFlag(MojViewRole.List))
-                role = "List";
-            else if (roles.HasFlag(MojViewRole.Editor))
-                role = "Editor";
-            else if (roles.HasFlag(MojViewRole.Details))
-                role = "Details";
+            // KABU TODO: REVISIT: Currently we need to add "Page,List" components
+            //   twice, because we need "Page" for e.g. navigation to pages and
+            //   "List" for authorization of the "List" component itself.
+            // KABU TODO: IMPORTANT: Find a way to eliminate this hack.
+            //   Basically we need a dedicated object to represent a page.
+            //   A single view should have only *one* view role.
 
-            App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
+            if (view.Kind.Roles.HasFlag(MojViewRole.Page))
             {
-                View = view,
-                Id = view.Id,
-                Item = view.TypeConfig.Name,
-                Role = role,
-                Group = view.Group,
-                Name = context.ComponentName,
-                Namespace = context.UINamespace,
-                Url = view.Url
-            });
+                App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
+                {
+                    View = view,
+                    Role = view.MainRoleName,
+                    Url = view.Url
+                });
+            }           
+
+            if (view.Kind.Roles.HasFlag(MojViewRole.Page) && view.Kind.Roles.HasFlag(MojViewRole.List))
+            {
+                App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
+                {
+                    View = view,
+                    Role = "List",
+                    Name = context.ComponentName,
+                    Namespace = context.UINamespace,
+                    Url = view.Url
+                });
+            }
         }
 
         // KABU TODO: REMOVE? Not used.
@@ -447,7 +450,7 @@ namespace Casimodo.Lib.Mojen
                 name = view.FileName ?? view.Name ?? view.Kind.RoleName ?? view.CustomControllerActionName;
 
                 // NOTE: We now use the PluaralName for pages. I.e "People.cshtml" instead of "Index.cshtml".
-                if (!partial && name == view.Kind.RawAction && view.Kind.Roles.HasFlag(MojViewRole.Page))
+                if (!partial && name == view.Kind.RawAction && view.IsPage)
                     name = view.TypeConfig.PluralName;
             }
 

@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
             return View(id).Details();
         }
 
-        public MojViewBuilder IndexView(string id)
+        public MojViewBuilder PageView(string id)
         {
             return View(id).Page();
         }

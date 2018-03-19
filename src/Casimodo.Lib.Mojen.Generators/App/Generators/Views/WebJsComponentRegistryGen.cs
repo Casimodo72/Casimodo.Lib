@@ -21,15 +21,15 @@ namespace Casimodo.Lib.Mojen
                     O("var reg = casimodo.ui.componentRegistry;");
                     O();
                     foreach (var item in App.Get<WebResultBuildInfo>().Components
-                        .OrderBy(x => x.Item))
+                        .OrderBy(x => x.View.TypeConfig.Name))
                     {
                         O("reg.add({{ item: {0}, role: {1}, group: {2}, url: {3}, type: {4}, id: {5} }});",                          
-                            MojenUtils.ToJsValue(item.Item),
+                            MojenUtils.ToJsValue(item.View.TypeConfig.Name),
                             MojenUtils.ToJsValue(item.Role),
-                            MojenUtils.ToJsValue(item.Group),
+                            MojenUtils.ToJsValue(item.View.Group),
                             MojenUtils.ToJsValue(item.Url),
                             MojenUtils.ToJsValue(item.Name != null ? item.Namespace + "." + item.Name : null),
-                            MojenUtils.ToJsValue(item.Id));
+                            MojenUtils.ToJsValue(item.View.Id));
                     }
                 });
             });

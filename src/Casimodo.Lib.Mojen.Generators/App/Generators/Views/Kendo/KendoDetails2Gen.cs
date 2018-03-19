@@ -12,7 +12,7 @@ namespace Casimodo.Lib.Mojen
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this)))
             {
-                KendoGen.ImplicitelyBindEditorView<KendoFormEditorViewGen>(view);
+                KendoGen.BindEditorView<KendoFormEditorViewGen>(view);
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {

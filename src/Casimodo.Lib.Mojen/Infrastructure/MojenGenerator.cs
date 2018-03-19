@@ -31,6 +31,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojenApp App { get; private set; }
 
+        public string Stage { get; set; }
         public string Scope { get; set; }
 
         public T AddSub<T>() where T : MojenGenerator, new()
@@ -98,12 +99,12 @@ namespace Casimodo.Lib.Mojen
         public string GetRepositoryName(MojType type)
         {
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "Repository";
-        }       
+        }
 
         public void oQuote(string text)
         {
             if (text.Contains("{")) o("$");
             o("\"" + text + "\"");
-        }       
+        }
     }
 }

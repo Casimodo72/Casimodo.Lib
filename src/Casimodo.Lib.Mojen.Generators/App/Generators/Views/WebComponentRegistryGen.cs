@@ -27,19 +27,19 @@ namespace Casimodo.Lib.Mojen
 
                 Func<WebResultComponentInfo, int> roleToInt = (x) =>
                 {
-                    if (x.Role == "Page") return 1;
-                    if (x.Role == "List") return 2;
-                    if (x.Role == "Editor") return 3;
-                    if (x.Role == "Details") return 4;
-                    if (x.Role == "Lookup") return 5;
+                    if (x.View.MainRoleName == "Page") return 1;
+                    if (x.View.MainRoleName == "List") return 2;
+                    if (x.View.MainRoleName == "Editor") return 3;
+                    if (x.View.MainRoleName == "Details") return 4;
+                    if (x.View.MainRoleName == "Lookup") return 5;
                     return 0;
                 };
 
                 var components = App.Get<WebResultBuildInfo>().Components
                     .Where(x => !x.View.IsInline)
-                    .OrderBy(x => x.Item)
-                    .ThenBy(x => x.Group)
-                    .ThenBy(x => x.Role)
+                    .OrderBy(x => x.View.TypeConfig.Name)
+                    .ThenBy(x => x.View.Group)
+                    .ThenBy(x => x.View.MainRoleName)
                     .ToList();
 
                 foreach (var item in components)
@@ -50,15 +50,15 @@ namespace Casimodo.Lib.Mojen
                         "ViewControllerName = {7}, ViewControllerActionName = {8}, " +
                         "ViewId = {9} }})",
                         MojenUtils.ToCsValue(item.View.TypeConfig.Name),
-                        MojenUtils.ToCsValue(item.Group),
-                        MojenUtils.ToCsValue(item.Role),
+                        MojenUtils.ToCsValue(item.View.Group),
+                        MojenUtils.ToCsValue(item.View.MainRoleName),
                         MojenUtils.ToCsValue(BuildActions(item.View)),
                         MojenUtils.ToCsValue(item.View.Kind.Roles.HasFlag(MojViewRole.List) ? item.View.TypeConfig.DisplayPluralName : item.View.TypeConfig.DisplayName),
                         MojenUtils.ToCsValue(item.Name != null),
                         MojenUtils.ToCsValue(BuildUrl(item.Url)),
                         MojenUtils.ToCsValue(item.View.TypeConfig.PluralName),
                         MojenUtils.ToCsValue(item.View.ControllerActionName),
-                        MojenUtils.ToCsValue(item.Id));
+                        MojenUtils.ToCsValue(item.View.Id));
 
                     if (item.View.Permissions.Any())
                     {
@@ -83,13 +83,13 @@ namespace Casimodo.Lib.Mojen
                 End();
                 End();
 
-                O("/*");
-                foreach (var item in components.Where(x => x.Role == "Page"))
-                {
-                    O("Set(CommonUserRole.Manager, item: {0}, viewRole: \"Page\", permit: \"View\");",
-                         MojenUtils.ToCsValue(item.View.TypeConfig.Name));
-                }
-                O("*/");
+                //O("/*");
+                //foreach (var item in components.Where(x => x.View.IsPage))
+                //{
+                //    O("Set(CommonUserRole.Manager, item: {0}, viewRole: \"Page\", permit: \"View\");",
+                //         MojenUtils.ToCsValue(item.View.TypeConfig.Name));
+                //}
+                //O("*/");
             });
         }
 

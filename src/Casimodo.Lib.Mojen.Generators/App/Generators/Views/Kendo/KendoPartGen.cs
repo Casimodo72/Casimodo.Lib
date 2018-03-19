@@ -399,7 +399,9 @@ namespace Casimodo.Lib.Mojen
             O($"itemTypeName: '{view.TypeConfig.Name}',");
             O($"areaName: '{view.TypeConfig.PluralName}',");
             O($"isDialog: {MojenUtils.ToJsValue(view.Lookup.Is)},");
-            O($"isAuthRequired: {MojenUtils.ToJsValue(view.IsAuthEnabled)},");
+
+            OViewModelAuthOptions(view);
+
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
             OViewDimensionOptions(view);
@@ -411,10 +413,24 @@ namespace Casimodo.Lib.Mojen
                 O("title: '{0}',", view.EditorView.TypeConfig.DisplayName);
                 O("viewId: '{0}',", view.EditorView.Id);
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
+                OViewModelAuthOptions(view.EditorView);
                 O("space: {0},", GetSpaceName(view.EditorView));
                 OViewDimensionOptions(view.EditorView);
                 End();
             }
+        }
+
+        public void OViewModelAuthOptions(MojViewConfig view)
+        {
+            OB("auth:");
+            O($"isRequired: {MojenUtils.ToJsValue(view.IsAuthEnabled)},");
+            if (view.IsAuthEnabled)
+            {
+                O("part: {0},", MojenUtils.ToJsValue(view.Kind.Roles.HasFlag(MojViewRole.List) ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName));
+                O("group: {0},", MojenUtils.ToJsValue(view.Group));
+                O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
+            }
+            End(",");
         }
 
         void OViewDimensionOptions(MojViewConfig view)
@@ -464,7 +480,23 @@ namespace Casimodo.Lib.Mojen
             End($")({extends});");
         }
 
-        public void ImplicitelyBindEditorView<TEditorGen>(MojViewConfig view)
+        public void BindPageContentView(MojControllerViewConfig view, MojViewRole role)
+        {
+            var controller = view.Controller;
+
+            foreach (var contentView in App.GetItems<MojControllerViewConfig>()
+                .Where(x =>
+                    x.Controller == view.Controller &&
+                    x != view &&
+                    x.Group == view.Group &&
+                    x.Kind.Roles.HasFlag(role)))
+            {
+                if (!view.ContentViews.Contains(contentView))
+                    view.ContentViews.Add(contentView);
+            }
+        }
+
+        public void BindEditorView<TEditorGen>(MojViewConfig view)
             where TEditorGen : KendoTypeViewGenBase
         {
             if (view.EditorView == null &&

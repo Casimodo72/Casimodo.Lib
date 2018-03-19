@@ -85,6 +85,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewConfig View { get; private set; }
 
+
+
         public MojViewConfig Build()
         {
             // Initial sort props
@@ -110,6 +112,44 @@ namespace Casimodo.Lib.Mojen
             var use = MojenBuildExtensions.Use<T>(View.UsingGenerators, args);
 
             return this;
+        }
+
+        public MojViewBuilder OverrideOptions<T>(Action<T> build)
+           where T : class, ICloneable
+        {
+            Guard.ArgNotNull(build, nameof(build));
+
+            var info = GetOptions<T>();
+            info.UsingGen.Args.Remove(info.Options);
+
+            info.Options = (T)info.Options.Clone();
+
+            build(info.Options);
+
+            info.UsingGen.Args.Add(info.Options);
+
+            return this;
+        }
+
+        class OptionsInfo<T> where T : class
+        {
+            public MojUsingGeneratorConfig UsingGen { get; set; }
+            public T Options { get; set; }
+        }
+
+        OptionsInfo<T> GetOptions<T>()
+            where T : class
+        {
+            var info = new OptionsInfo<T>();
+            foreach (var gen in View.UsingGenerators)
+            {
+                info.UsingGen = gen;
+                info.Options = gen.Args.OfType<T>().FirstOrDefault();
+                if (info.Options != null)
+                    return info;
+            }
+
+            throw new MojenException($"Options '{nameof(T)}' not found.");
         }
 
         public MojViewBuilder Viewless()
@@ -197,7 +237,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder LookupSingle(params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
-            View.Kind.Roles = MojViewRole.Lookup | MojViewRole.List;
+            View.Kind.Roles = MojViewRole.Lookup; // TODO: REMOVE: | MojViewRole.List;
             //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
             View.Kind.RawAction = ActionName.Lookup;
             View.Kind.RoleName = MojViewRole.Lookup.ToString();

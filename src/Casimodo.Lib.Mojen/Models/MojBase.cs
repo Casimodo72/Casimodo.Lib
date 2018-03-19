@@ -60,5 +60,10 @@ namespace Casimodo.Lib.Mojen
         {
             return UsingGenerators.SelectMany(x => x.Args).FirstOrDefault(x => x != null && x is T) as T;
         }
+
+        public virtual void Prepare(MojenApp app)
+        {
+            // NOP
+        }
     }
 }

@@ -338,7 +338,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsExternal { get; set; }
 
-        public MojFontWeight FontWeight { get; set; }
+        public MojFontWeight FontWeight { get; set; }       
 
         public int VisiblePosition { get; set; }
 

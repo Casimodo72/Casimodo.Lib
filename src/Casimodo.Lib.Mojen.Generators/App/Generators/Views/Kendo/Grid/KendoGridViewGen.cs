@@ -14,16 +14,44 @@ namespace Casimodo.Lib.Mojen
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>().Where(x => x.Uses(this)))
             {
-                if (!view.IsCustom)
-                    throw new MojenException("This view must be custom.");
-
-                if (!view.Kind.Roles.HasFlag(MojViewRole.Page))
-                    throw new MojenException("This view must have a page role.");
+                if (!view.IsCustom) throw new MojenException("This view must be custom.");
+                if (!view.IsPage) throw new MojenException("This view must have a page role.");
 
                 var context = new WebViewGenContext
                 {
                     View = view
                 };
+                RegisterComponent(context);
+            }
+        }
+    }
+
+    public partial class KendoGridPageViewGen : KendoViewGenBase
+    {
+        protected override void GenerateCore()
+        {
+            foreach (var view in App.GetItems<MojControllerViewConfig>().Where(x => x.Uses(this)))
+            {
+                if (view.IsCustom) throw new MojenException("This view must not be custom.");
+                if (!view.IsPage) throw new MojenException("This view must have a page role.");
+
+                // Bind conten views.
+                KendoGen.BindPageContentView(view, MojViewRole.List);
+                           
+                var context = new WebViewGenContext
+                {
+                    View = view
+                };
+
+                PerformWrite(context.View, () =>
+                {
+                    var grid = view.ContentViews.First(x => x.Uses<KendoGridViewGen>());
+
+                    string gridVirtualFilePath = BuildJsScriptVirtualFilePath(grid, suffix: ".vm.generated");
+
+                    OMvcPartialView(gridVirtualFilePath);
+                });
+
                 RegisterComponent(context);
             }
         }
@@ -76,9 +104,12 @@ namespace Casimodo.Lib.Mojen
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this) && !x.IsCustom && x.Kind.Roles.HasFlag(MojViewRole.List)))
             {
+                if (view.IsCustom)
+                    throw new MojenException("KendoGridView must not be custom.");
+
                 Reset();
 
-                KendoGen.ImplicitelyBindEditorView<KendoFormEditorViewGen>(view);
+                KendoGen.BindEditorView<KendoFormEditorViewGen>(view);
 
                 Options = view.GetGeneratorConfig<KendoGridOptions>() ?? new KendoGridOptions();
                 TransportConfig = this.CreateODataTransport(view, null, Options.CustomQueryMethod);
@@ -91,14 +122,6 @@ namespace Casimodo.Lib.Mojen
                 KendoGen.InitComponentNames(context);
                 context.ComponentId = "grid-" + view.Id;
 
-                // Inline details              
-                if (view.InlineDetailsView != null)
-                {
-                    InlineDetailsTemplateName = "grid-details-template-" + view.Id;
-                    InlineDetailsViewVirtualFilePath = BuildVirtualFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
-                    InlineDetailsViewFilePath = BuildFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
-                }
-
                 // Edit capabilities
                 CanModify = !view.Kind.Roles.HasFlag(MojViewRole.Lookup) && view.EditorView != null && view.EditorView.CanEdit;
                 CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
@@ -107,9 +130,13 @@ namespace Casimodo.Lib.Mojen
                 GridScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
                 GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
-                // Generate grid.
-                if (view.IsCustom)
-                    throw new MojenException("KendoGridView must not be custom.");
+                // Inline details              
+                if (view.InlineDetailsView != null)
+                {
+                    InlineDetailsTemplateName = "grid-details-template-" + view.Id;
+                    InlineDetailsViewVirtualFilePath = BuildVirtualFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
+                    InlineDetailsViewFilePath = BuildFilePath(view.InlineDetailsView, name: "Details.Inline", partial: true);
+                }
 
                 GenerateGrid(context);
 
@@ -141,14 +168,6 @@ namespace Casimodo.Lib.Mojen
 
             // http://docs.telerik.com/kendo-ui/web/grid/appearance
 
-            MojViewConfig view = context.View;
-            MojType type = view.TypeConfig;
-            string jsTypeName = FirstCharToLower(type.Name);
-            string keyPropName = type.Key.Name;
-
-            if (string.IsNullOrWhiteSpace(view.Id))
-                throw new MojenException("View ID is missing.");
-
             // View & style
             if (!context.View.IsViewless)
             {
@@ -177,7 +196,7 @@ namespace Casimodo.Lib.Mojen
             O($"@{{ ViewBag.Title = \"{context.View.Title}\"; }}");
 
             O();
-            if (context.View.Kind.Roles.HasFlag(MojViewRole.Lookup))
+            if (context.View.IsLookup)
             {
                 // Lookup view will have an ID assigned.
                 if (string.IsNullOrWhiteSpace(context.View.Id)) throw new MojenException("The lookup view has no ID.");
@@ -575,13 +594,19 @@ namespace Casimodo.Lib.Mojen
 
         void GenGridStyle(WebViewGenContext context)
         {
-            var props = context.View.Props.Where(x => x.HideModes != MojViewMode.All).ToArray();
+            var propsWithStyle = context.View.Props
+                .Where(x => x.HideModes != MojViewMode.All)
+                .Where(x => HasColumnStyle(x))
+                .ToArray();
+
+            if (!propsWithStyle.Any())
+                return;
 
             O();
 
             XB("<style>");
             var pos = 0;
-            foreach (var vprop in props)
+            foreach (var vprop in propsWithStyle)
             {
                 pos++;
                 vprop.VisiblePosition = pos;
@@ -594,12 +619,18 @@ namespace Casimodo.Lib.Mojen
             }
             XE("</Style>");
             /*
-             <style>
-# grid-393a3bc1-2e06-4516-8d29-220dde0668fe tr[role='row'] td[role='gridcell']:nth-child(5) {
-        font-weight: bold;
-    }
-</style>
+                Example:
+                <style>
+                    # grid-393a3bc1-2e06-4516-8d29-220dde0668fe tr[role='row'] td[role='gridcell']:nth-child(5) {
+                        font-weight: bold;
+                    }
+                </style>
             */
+        }
+
+        bool HasColumnStyle(MojViewProp vprop)
+        {
+            return vprop.FontWeight != MojFontWeight.Normal;
         }
 
         string GetGridColCssSelector(WebViewGenContext context, MojViewProp vprop)

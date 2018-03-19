@@ -122,6 +122,36 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewKindConfig Kind { get; set; } = new MojViewKindConfig();
 
+        public bool IsPage
+        {
+            get { return Kind.Roles.HasFlag(MojViewRole.Page); }
+        }
+
+        public bool IsLookup
+        {
+            get { return Kind.Roles.HasFlag(MojViewRole.Lookup); }
+        }
+
+        public string MainRoleName
+        {
+            get
+            {
+                var roles = Kind.Roles;
+                if (roles.HasFlag(MojViewRole.Page))
+                    return "Page";
+                else if (roles.HasFlag(MojViewRole.Lookup))
+                    return "Lookup";
+                else if (roles.HasFlag(MojViewRole.List))
+                    return "List";
+                else if (roles.HasFlag(MojViewRole.Editor))
+                    return "Editor";
+                else if (roles.HasFlag(MojViewRole.Details))
+                    return "Details";
+
+                throw new MojenException("Failed to compute main role for view.");
+            }
+        }
+
         public string FileName { get; set; }
         public string FileExtension { get; set; }
 
@@ -153,6 +183,8 @@ namespace Casimodo.Lib.Mojen
         public MojViewConfig RootView { get; set; }
 
         public MojViewConfig EditorView { get; set; }
+
+        public List<MojViewConfig> ContentViews { get; set; } = new List<MojViewConfig>();
 
         public bool CanCreate { get; set; }
 
@@ -246,8 +278,14 @@ namespace Casimodo.Lib.Mojen
             return UsingGenerators.Any(x => x.Type == generator.GetType());
         }
 
-        public void Prepare(MojenApp app)
+        public override void Prepare(MojenApp app)
         {
+            base.Prepare(app);
+
+            // KABU TODO: REVISIT: Not sure if we can call Build() as many times as we want
+            //   but we need to ensure that it has been called after any modification to the view.
+            new MojViewBuilder(this).Build();
+
             // Mark all non-selectors with loose references as read-only.
             foreach (var prop in Props)
             {
