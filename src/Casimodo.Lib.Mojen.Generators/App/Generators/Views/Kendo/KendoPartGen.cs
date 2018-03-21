@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Mojen
                     OOptionsFactory("dataSourceTransportOptions", () =>
                         ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport,
                             create: context.View.CanCreate,
-                            modify: context.View.CanEdit,
+                            modify: context.View.CanModify,
                             delete: context.View.CanDelete)));
 
                     O();
@@ -390,47 +390,32 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(title))
                 title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
 
+            O("title: {0},", MojenUtils.ToJsValue(title));
+            O("id: {0},", MojenUtils.ToJsValue(view.Id));
+            O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
+            O("group: {0},", MojenUtils.ToJsValue(view.Group));
+            O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
             O("space: space,");
-            //O("options: options,");
-            O($"title: '{title}',");
-            O($"viewId: '{view.Id}',");
-            O($"viewName: '{context.ComponentName}',");
             O("$component: spaceOptions? spaceOptions.$component || null : null,");
-            O($"itemTypeName: '{view.TypeConfig.Name}',");
-            O($"areaName: '{view.TypeConfig.PluralName}',");
-            O($"isDialog: {MojenUtils.ToJsValue(view.Lookup.Is)},");
-
-            OViewModelAuthOptions(view);
+            O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
+            O("isDialog: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
+            O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
 
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
+
             OViewDimensionOptions(view);
-            O("componentId: {0},", MojenUtils.ToJsValue(context.ComponentId, nullIfEmptyString: true));
 
             if (view.EditorView != null)
             {
                 OB("editor:");
-                O("title: '{0}',", view.EditorView.TypeConfig.DisplayName);
-                O("viewId: '{0}',", view.EditorView.Id);
+                O("title: {0},", MojenUtils.ToJsValue(view.EditorView.TypeConfig.DisplayName));
+                O("id: {0},", MojenUtils.ToJsValue(view.EditorView.Id));
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
-                OViewModelAuthOptions(view.EditorView);
                 O("space: {0},", GetSpaceName(view.EditorView));
                 OViewDimensionOptions(view.EditorView);
                 End();
             }
-        }
-
-        public void OViewModelAuthOptions(MojViewConfig view)
-        {
-            OB("auth:");
-            O($"isRequired: {MojenUtils.ToJsValue(view.IsAuthEnabled)},");
-            if (view.IsAuthEnabled)
-            {
-                O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
-                O("group: {0},", MojenUtils.ToJsValue(view.Group));
-                O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
-            }
-            End(",");
         }
 
         void OViewDimensionOptions(MojViewConfig view)
@@ -454,30 +439,37 @@ namespace Casimodo.Lib.Mojen
             Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
             Guard.ArgNotNull(content, nameof(content));
 
-            // Extend base component view model.
-            OB($"var {name} = (function (_super)");
+            OJsClass(null, name, extends, isPrivate: true,
+                constructorOptions: "options",
+                constructor: constructor,
+                content: content);
 
-            O($"casimodo.__extends({name}, _super);");
+            // KABU TODO: REMOVE
 
-            O();
-            OB($"function {name}(options)");
-            O("_super.call(this, options);");
-            constructor?.Invoke();
-            End();
+            //// Extend base component view model.
+            //OB($"var {name} = (function (_super)");
 
-            O();
-            O($"var fn = {name}.prototype;");
+            //O($"casimodo.__extends({name}, _super);");
 
-            if (content != null)
-            {
-                O();
-                content();
-            }
+            //O();
+            //OB($"function {name}(options)");
+            //O("_super.call(this, options);");
+            //constructor?.Invoke();
+            //End();
 
-            O();
-            O($"return {name};");
+            //O();
+            //O($"var fn = {name}.prototype;");
 
-            End($")({extends});");
+            //if (content != null)
+            //{
+            //    O();
+            //    content();
+            //}
+
+            //O();
+            //O($"return {name};");
+
+            //End($")({extends});");
         }
 
         public void BindPageContentView(MojControllerViewConfig view, MojViewRole role)
@@ -499,27 +491,26 @@ namespace Casimodo.Lib.Mojen
         public void BindEditorView<TEditorGen>(MojViewConfig view)
             where TEditorGen : KendoTypeViewGenBase
         {
-            if (view.EditorView == null &&
-                !view.Kind.Roles.HasFlag(MojViewRole.Editor) &&
-                !view.Kind.Roles.HasFlag(MojViewRole.Lookup) &&
-                view is MojControllerViewConfig)
-            {
-                var controller = (view as MojControllerViewConfig).Controller;
-                // Try to find a matching editor.
-                view.EditorView = App.GetItems<MojControllerViewConfig>()
-                    .Where(x =>
-                        x != view &&
-                        x.Controller == controller &&
-                        x.Group == view.Group &&
-                        x.Uses<TEditorGen>() &&
-                        x.CanEdit)
-                    .SingleOrDefault();
+            if (view.EditorView != null || view.IsEditor || view.IsLookup || !(view is MojControllerViewConfig))
+                return;
 
-                if (view.EditorView != null)
-                {
-                    new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
-                }
+            var controller = (view as MojControllerViewConfig).Controller;
+
+            // Try to find a matching editor.
+            view.EditorView = App.GetItems<MojControllerViewConfig>()
+                .Where(x =>
+                    x != view &&
+                    x.Controller == controller &&
+                    x.Group == view.Group &&
+                    x.Uses<TEditorGen>() &&
+                    x.CanModify)
+                .SingleOrDefault();
+
+            if (view.EditorView != null)
+            {
+                new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
             }
+
         }
     }
 }

@@ -182,7 +182,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.RawAction = ActionName.Index;
 
             View.CanCreate = true;
-            View.CanEdit = true;
+            View.CanModify = true;
             View.CanDelete = true;
 
             Title(View.TypeConfig.DisplayPluralName);
@@ -197,7 +197,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.RoleName = "List";
 
             View.CanCreate = true;
-            View.CanEdit = true;
+            View.CanModify = true;
             View.CanDelete = true;
 
             // NOTE: Has no action name.
@@ -250,7 +250,7 @@ namespace Casimodo.Lib.Mojen
             View.Group = null; // "Lookup";
 
             View.CanCreate = false;
-            View.CanEdit = false;
+            View.CanModify = false;
             View.CanDelete = false;
 
             // Dialogs are currently all modal and partial.
@@ -291,7 +291,7 @@ namespace Casimodo.Lib.Mojen
             View.Group = "Standalone";
 
             View.CanCreate = false;
-            View.CanEdit = false;
+            View.CanModify = false;
             View.CanDelete = false;
 
             // Dialogs are currently all modal and partial.
@@ -331,7 +331,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.RawAction = ActionName.Details;
 
             View.CanCreate = false;
-            View.CanEdit = false;
+            View.CanModify = false;
             View.CanDelete = false;
 
             Title(View.TypeConfig.DisplayName);
@@ -348,7 +348,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.RawAction = ActionName.Edit;
 
             View.CanCreate = false;
-            View.CanEdit = false;
+            View.CanModify = false;
             View.CanDelete = false;
 
             Title(View.TypeConfig.DisplayName);
@@ -409,7 +409,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder AuthRole(string role, string permit = "*", string deny = null)
         {
-            View.Permissions.Add(new MojAuthPermission
+            View.AuthPermissions.Add(new MojAuthPermission
             {
                 Role = role,
                 Permit = permit,
@@ -737,7 +737,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder CanEdit(bool value = true)
         {
-            View.CanEdit = value;
+            View.CanModify = value;
             return this;
         }
 

@@ -15,11 +15,6 @@ namespace Casimodo.Lib.Mojen
 
     public class WebResultComponentInfo : MojBase
     {
-        public string Name { get; set; }
-        public string Role { get; set; }
-        public string Namespace { get; set; }
-        public string Url { get; set; }
-
         public MojViewConfig View { get; set; }
     }
 

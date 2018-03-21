@@ -81,7 +81,7 @@ namespace Casimodo.Lib.Mojen
                 XB("<div class='details-view-commands'>");
 
                 // Edit button
-                if (context.View.EditorView != null && context.View.EditorView.CanEdit)
+                if (context.View.EditorView != null && context.View.EditorView.CanModify)
                 {
                     // NOTE: The button is hidden intially.
                     //   The view model will show or remove that button based on activity authorization.

@@ -43,9 +43,7 @@ namespace Casimodo.Lib.Mojen
 
             App.Get<WebResultBuildInfo>().Components.Add(new WebResultComponentInfo
             {
-                View = view,
-                Role = view.MainRoleName,
-                Url = view.Url
+                View = view
             });
         }
 
@@ -186,8 +184,6 @@ namespace Casimodo.Lib.Mojen
 
         public void OJsNamespace(string ns, Action<MojNamespaceContext> action)
         {
-            OUseStrict();
-
             OJsNamespaceCore(new MojNamespaceContext(ns), action);
         }
 
@@ -250,41 +246,61 @@ namespace Casimodo.Lib.Mojen
         //    OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
         //}
 
-        public void OJsClass(string ns, string name, bool isstatic = false,
-            string extends = null, string args = null, Action content = null)
+        public void OJsClass(string ns, string name, string extends = null,
+            bool isStatic = false, bool isPrivate = false,
+            string constructorOptions = null,
+            Action constructor = null,
+            Action content = null)
         {
-            var isderived = !string.IsNullOrWhiteSpace(extends);
-            var hasargs = !string.IsNullOrWhiteSpace(args);
+            if (string.IsNullOrWhiteSpace(extends))
+                extends = "";
 
-            OB($"var {name} = (function ({(isderived ? "_super" : "")})");
+            var isDerived = !string.IsNullOrEmpty(extends);
+            var hasOptions = !string.IsNullOrWhiteSpace(constructorOptions);
 
-            if (isderived)
+            OB($"var {name} = (function ({(isDerived ? "_super" : "")})");
+
+            if (isDerived)
                 O($"casimodo.__extends({name}, _super);");
 
-            // Constructor function.
+            // Constructor
             O();
-            OB($"function {name}({(hasargs ? args : "")})");
+            OB($"function {name}({(hasOptions ? constructorOptions : "")})");
 
-            if (isderived)
+            if (isDerived)
             {
-                O($"_super.call(this{(hasargs ? ", " + args : "")});");
-                O();
+                O($"_super.call(this{(hasOptions ? ", " + constructorOptions : "")});");
             }
 
-            if (content != null)
-                content();
+            if (constructor != null)
+            {
+                O();
+                constructor();
+            }
 
-            End();
+            End(); // End of constructor
+
+            O();
+            O($"var fn = {name}.prototype;");
+
+            if (content != null)
+            {
+                O();
+                content();
+            }
 
             O();
             O($"return {name};");
 
-            End($")({(isderived ? extends : "")});");
+            End($")({extends});");
 
-            if (isstatic)
-                O("{0}.{1} = new {1}();", ns, name);
-            else
-                O("{0}.{1} = {1};", ns, name);
+            if (!isPrivate)
+            {
+                if (isStatic)
+                    O("{0}.{1} = new {1}();", ns, name);
+                else
+                    O("{0}.{1} = {1};", ns, name);
+            }
         }
 
         public const string SpaceConstructorFunc = "casimodo.ui.createComponentSpace()";

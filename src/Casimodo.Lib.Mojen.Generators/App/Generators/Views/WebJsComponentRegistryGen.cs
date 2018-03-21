@@ -14,22 +14,49 @@ namespace Casimodo.Lib.Mojen
 
             PerformWrite(filePath, () =>
             {
+                var components = App.Get<WebResultBuildInfo>().Components
+                        .OrderBy(x => x.View.TypeConfig.Name)
+                        .ToArray();
+
+                if (!components.Any())
+                    return;
+
                 OScriptUseStrict();
 
                 OJsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
-                {                   
-                    O("var reg = casimodo.ui.componentRegistry;");
+                {
+                    OJsClass(nscontext.Current, "ComponentRegistry",
+                        isPrivate: false, isStatic: true,
+                        extends: "casimodo.ui.ComponentRegistry",
+                        constructor: () =>
+                        {
+                            O("this.namespace = {0};", MojenUtils.ToJsValue(WebConfig.ScriptUINamespace));
+                        },
+                        content: () =>
+                        {
+                            foreach (var item in components.Where(x => x.View?.Id != null))
+                            {
+                                O("fn.get{0}{1}{2} = function () {{ return this.getById({3}); }};",
+                                    item.View.TypeConfig.Name,
+                                    item.View.MainRoleName,
+                                    (item.View.Group != null ? "_" + item.View.Group : ""),
+                                    MojenUtils.ToJsValue(item.View.Id));
+                            }
+                        });
+
                     O();
-                    foreach (var item in App.Get<WebResultBuildInfo>().Components
-                        .OrderBy(x => x.View.TypeConfig.Name))
+                    O("var reg = casimodo.ui.componentRegistry = {0}.ComponentRegistry;", nscontext.Current);
+
+                    O();
+                    foreach (var item in components)
                     {
-                        O("reg.add({{ item: {0}, role: {1}, group: {2}, url: {3}, type: {4}, id: {5} }});",                          
+                        O("reg.add({{ part: {0}, group: {1}, role: {2}, url: {3}, id: {4}, editorId: {5} }});",
                             MojenUtils.ToJsValue(item.View.TypeConfig.Name),
-                            MojenUtils.ToJsValue(item.Role),
                             MojenUtils.ToJsValue(item.View.Group),
-                            MojenUtils.ToJsValue(item.Url),
-                            MojenUtils.ToJsValue(item.Name != null ? item.Namespace + "." + item.Name : null),
-                            MojenUtils.ToJsValue(item.View.Id));
+                            MojenUtils.ToJsValue(item.View.MainRoleName),
+                            MojenUtils.ToJsValue(item.View.Url),
+                            MojenUtils.ToJsValue(item.View.Id),
+                            MojenUtils.ToJsValue(item.View.EditorView?.Id));
                     }
                 });
             });

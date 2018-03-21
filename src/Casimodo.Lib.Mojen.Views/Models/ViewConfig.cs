@@ -92,7 +92,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewConfig()
         {
             CanCreate = true;
-            CanEdit = true;
+            CanModify = true;
             CanDelete = true;
         }
 
@@ -141,6 +141,11 @@ namespace Casimodo.Lib.Mojen
         public bool IsList
         {
             get { return Kind.Roles.HasFlag(MojViewRole.List); }
+        }
+
+        public bool IsDetails
+        {
+            get { return Kind.Roles.HasFlag(MojViewRole.Details); }
         }
 
         public bool IsEditor
@@ -204,7 +209,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool CanCreate { get; set; }
 
-        public bool CanEdit { get; set; }
+        public bool CanModify { get; set; }
 
         public bool CanDelete { get; set; }
 
@@ -265,9 +270,10 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsAuthEnabled { get; set; } = true;
         public bool IsAuthAmbientForGroup { get; set; }
+        public bool IsAuthAmbientApplied { get; set; }
         public bool IsAuthAmbientOverwritten { get; set; }
 
-        public List<MojAuthPermission> Permissions { get; set; } = new List<MojAuthPermission>();
+        public List<MojAuthPermission> AuthPermissions { get; set; } = new List<MojAuthPermission>();
 
         public bool IsFilterable { get; set; } = true;
 

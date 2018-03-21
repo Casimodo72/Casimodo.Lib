@@ -44,27 +44,23 @@ namespace Casimodo.Lib.Mojen
 
                 foreach (var item in components)
                 {
-                    Oo("Add(new WebComponentRegItem {{ ItemName = {0}, " +
-                        "ViewGroup = {1}, ViewRole = {2}, ViewActions = {3}, " +
-                        "Title = {4}, HasComponent = {5}, Url = {6}, " +
-                        "ViewControllerName = {7}, ViewControllerActionName = {8}, " +
-                        "ViewId = {9} }})",
+                    Oo("Add(new WebComponentRegItem {{ Part = {0}, " +
+                        "Group = {1}, Role = {2}, Actions = {3}, " +
+                        "Title = {4}, Url = {5}, " +
+                        "Id = {6} }})",
                         MojenUtils.ToCsValue(item.View.TypeConfig.Name),
                         MojenUtils.ToCsValue(item.View.Group),
                         MojenUtils.ToCsValue(item.View.MainRoleName),
                         MojenUtils.ToCsValue(BuildActions(item.View)),
                         MojenUtils.ToCsValue(item.View.GetDefaultTitle()),
-                        MojenUtils.ToCsValue(item.Name != null),
-                        MojenUtils.ToCsValue(BuildUrl(item.Url)),
-                        MojenUtils.ToCsValue(item.View.TypeConfig.PluralName),
-                        MojenUtils.ToCsValue(item.View.ControllerActionName),
+                        MojenUtils.ToCsValue(BuildUrl(item.View.Url)),
                         MojenUtils.ToCsValue(item.View.Id));
 
-                    if (item.View.Permissions.Any())
+                    if (item.View.AuthPermissions.Any())
                     {
                         Br();
                         Push();
-                        foreach (var perm in item.View.Permissions)
+                        foreach (var perm in item.View.AuthPermissions)
                         {
                             O(".SetRole({0}, {1}, {2})",
                                 MojenUtils.ToCsValue(perm.Role),
@@ -95,21 +91,21 @@ namespace Casimodo.Lib.Mojen
 
         string BuildActions(MojViewConfig view)
         {
-            var actions = "";
+            var actions = "View";
             if (view.Kind.Roles.HasFlag(MojViewRole.Editor))
             {
                 if (view.CanCreate)
                     actions += ",Create";
-                if (view.CanCreate)
+                if (view.CanModify)
                     actions += ",Modify";
                 if (view.CanDelete)
                     actions += ",Delete";
             }
-            else
-                actions = "View";
+            //else
+            //    actions = "View";
 
-            if (actions.StartsWith(","))
-                actions = actions.Substring(1);
+            //if (actions.StartsWith(","))
+            //    actions = actions.Substring(1);
 
             return actions;
         }
