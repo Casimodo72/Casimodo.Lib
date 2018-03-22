@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
             if (type == null) throw new ArgumentNullException(nameof(type));
 
             var path = EnsureNavigationPath();
-            path.Steps.Add(new MojFormedNavigationPathStep { SourceType = type, SourceProp = prop, TargetType = _Type });
+            path.Steps.Add(new MojFormedNavigationPathStep { SourceType = type, SourceProp = prop, TargetFormedType = this, TargetType = _Type });
             path.Build();
         }
 
@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Mojen
                 if (FormedNavigationFrom.Is && !prop.FormedNavigationFrom.Is)
                 {
                     prop = prop.Clone();
-                    prop.FormedNavigationFrom = FormedNavigationFrom.BuildFor(prop);
+                    prop.FormedNavigationFrom = FormedNavigationFrom.BuildFor(this, prop);
                     _props[index] = prop;
                 }
 

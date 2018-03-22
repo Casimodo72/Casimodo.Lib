@@ -58,7 +58,7 @@ namespace Casimodo.Lib.Mojen
 
         static MojProp()
         {
-            AutoMapper.Mapper.Initialize(c => 
+            AutoMapper.Mapper.Initialize(c =>
                 c.CreateMap<MojProp, MojProp>()
                     .ForMember(s => s.DeclaringType, o => o.Ignore()));
         }
@@ -417,6 +417,10 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsPickDisplay { get; set; }
 
+        [MapFromModel]
+        [DataMember]
+        public bool UseColor { get; set; }
+
         /// <summary>
         /// For multiline text: number of editor rows.
         /// </summary>
@@ -447,15 +451,6 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         [MapFromModel(MapContent = true)]
         public MojReference Reference { get; set; } = MojReference.None;
-
-        //[DataMember]
-        //public bool IsRequired { get; set; }
-        //{
-        //    get { return Attrs.Any(x => x.Name == "Required"); }
-        //}
-
-        //[DataMember]
-        //public bool IsLocallyRequired { get; set; }
 
         public bool IsRequiredOnEdit
         {
@@ -564,7 +559,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsExcludedFromDb { get; set; }
 
         [DataMember]
-        public bool IsExplicitelyIncludedInOData{ get; set; }
+        public bool IsExplicitelyIncludedInOData { get; set; }
 
         [DataMember]
         [MapFromModel]
@@ -665,18 +660,36 @@ namespace Casimodo.Lib.Mojen
             get { return Attrs.Any(x => x.Name == "DataMember"); }
         }
 
+        public MojFormedNavigationPath GetFormedPath()
+        {
+            if (FormedNavigationTo.Is && FormedNavigationFrom.Is)
+                throw new MojenException("Both navigation directions are is use.");
+
+            return FormedNavigationFrom.Is
+                ? FormedNavigationFrom
+                : FormedNavigationTo;
+        }
+
         public string FormedTargetPath
         {
-            get { return FormedNavigationTo.TargetPath ?? Name; }
+            get
+            {
+                var path = GetFormedPath();
+                if (path.Is)
+                    return path.TargetPath;
+
+                return Name;
+            }
         }
 
         public IEnumerable<string> FormedTargetPathNames
         {
             get
             {
-                if (FormedNavigationTo.Is)
+                var path = GetFormedPath();
+                if (path.Is)
                 {
-                    foreach (var name in FormedNavigationTo.StepPropNames())
+                    foreach (var name in path.StepPropNames())
                         yield return name;
                 }
                 else
@@ -684,6 +697,11 @@ namespace Casimodo.Lib.Mojen
                     yield return Name;
                 }
             }
+        }
+
+        public bool IsReferenced
+        {
+            get { return GetFormedPath().Is; }
         }
 
         [DataMember]

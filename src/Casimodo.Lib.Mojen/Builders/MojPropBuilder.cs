@@ -443,6 +443,13 @@ namespace Casimodo.Lib.Mojen
             // new DisplayAttribute { Name = name };
         }
 
+        public TPropBuilder UseColor()
+        {
+            PropConfig.UseColor = true;
+
+            return This();
+        }
+
         internal TPropBuilder ForeignKeyAttr(string keyPropName)
         {
             if (string.IsNullOrWhiteSpace(keyPropName)) throw new ArgumentNullException(nameof(keyPropName));

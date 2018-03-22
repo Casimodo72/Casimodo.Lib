@@ -198,7 +198,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewPropBuilder Link()
         {
-            // KABU TODO: IMPL
+            Prop.IsLinkToInstance = true;
 
             return this;
         }
@@ -253,18 +253,18 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewPropBuilder Color(MojProp colorProp)
-        {
-            if (!TypeConfig.IsAccessibleFromThis(colorProp))
-                throw new MojenException($"Property '{colorProp.Name}' cannot be accessed from type '{TypeConfig.ClassName}'.");
+        //public MojViewPropBuilder Color(MojProp colorProp)
+        //{
+        //    if (!TypeConfig.IsAccessibleFromThis(colorProp))
+        //        throw new MojenException($"Property '{colorProp.Name}' cannot be accessed from type '{TypeConfig.ClassName}'.");
 
-            if (!colorProp.IsColor)
-                throw new MojenException($"Property '{colorProp.Name}' is not a color property.");
+        //    if (!colorProp.IsColor)
+        //        throw new MojenException($"Property '{colorProp.Name}' is not a color property.");
 
-            Prop.ColorProp = colorProp;
+        //    Prop.ColorProp = colorProp;
 
-            return this;
-        }
+        //    return this;
+        //}
 
         public MojViewPropBuilder Distinct()
         {

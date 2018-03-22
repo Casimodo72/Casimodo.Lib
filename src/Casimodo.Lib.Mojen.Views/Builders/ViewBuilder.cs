@@ -101,6 +101,27 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 
+            // Add and assign color properties if needed.
+            foreach (var vprop in View.Props
+                .Where(x => x.OrigTargetProp?.UseColor == true && x.ColorProp == null)
+                .ToArray())
+            {
+                MojProp colorProp = null;
+                // KABU TODO: MAGIC hack by prop name "Color".
+                if (vprop.OrigTargetProp.FormedNavigationFrom.Is)
+                    colorProp = vprop.OrigTargetProp.FormedNavigationFrom.Last.TargetFormedType.Get("Color");
+                else
+                    colorProp = vprop.OrigTargetProp.DeclaringType.GetProps().First(x => x.Name == "Color");
+
+                var vcolorProp = View.Props.FirstOrDefault(x => x.OrigTargetProp?.FormedTargetPath == colorProp.FormedTargetPath);
+
+                if (vcolorProp != null)
+                    vprop.ColorProp = vcolorProp;
+                else
+                    // Add implicitely.
+                    vprop.ColorProp = Prop(colorProp, hidden: true).Prop;
+            }
+
             OnNamingChanged();
 
             return View;
@@ -897,6 +918,8 @@ namespace Casimodo.Lib.Mojen
 
             var path = prop.FormedNavigationFrom;
 
+            MojProp effectiveProp = prop;
+
             if (View.TypeConfig.IsForeign(prop))
             {
 
@@ -911,7 +934,7 @@ namespace Casimodo.Lib.Mojen
                 //nativeProp.FormedNavigationTo = prop.FormedNavigationFrom;
                 //prop = nativeProp;
 
-                prop = prop.FormedNavigationFrom.Root.SourceProp;
+                effectiveProp = prop.FormedNavigationFrom.Root.SourceProp;
             }
 
             // KABU TODO: REMOVE: We can't do that because there are cases
@@ -923,8 +946,9 @@ namespace Casimodo.Lib.Mojen
                 return MojViewPropBuilder.Create(this, existingProp);
 #endif
 
-            var pbuilder = MojViewPropBuilder.Create(this, prop);
+            var pbuilder = MojViewPropBuilder.Create(this, effectiveProp);
             pbuilder.Prop.FormedNavigationTo = path;
+            pbuilder.Prop.OrigTargetProp = prop;
 
             return pbuilder;
         }

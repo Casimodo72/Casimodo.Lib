@@ -287,21 +287,23 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojProp Model { get; private set; }
 
+        public MojProp OrigTargetProp { get; set; }
+
+        public MojViewProp ColorProp { get; set; }
+
         public int Position { get; set; }
 
         public int? Width { get; set; }
-
-        /// <summary>
-        /// Used for color-coding of a property value.
-        /// The ColorProp will hold the color to be used.
-        /// </summary>
-        public MojProp ColorProp { get; set; }
+        
+        // TODO: REMOVE: public MojProp ColorProp { get; set; }
 
         public bool IsHtml { get; set; }
 
         public bool IsDisplayedAsHtml { get; set; }
 
         public bool IsReferenceLookupDistinct { get; set; }
+
+        public bool IsLinkToInstance { get; set; }
 
         public MexExpressionNode Predicate { get; set; }
 

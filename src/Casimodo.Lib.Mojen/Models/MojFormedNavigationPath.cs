@@ -220,11 +220,12 @@ namespace Casimodo.Lib.Mojen
             return path;
         }
 
-        public MojFormedNavigationPath BuildFor(MojProp targetProp)
+        public MojFormedNavigationPath BuildFor(MojFormedType type, MojProp targetProp)
         {
             var path = new MojFormedNavigationPath();
             path.Steps = Steps.Take(Steps.Count - 1).ToList();
             var last = Steps.Last().Clone();
+            last.SourceFormedType = type;
             last.TargetProp = targetProp;
             path.Steps.Add(last);
 
@@ -296,11 +297,15 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojType TargetType { get; set; }
 
+        public MojFormedType TargetFormedType { get; set; }
+
         [DataMember]
         public MojProp SourceProp { get; set; }
 
         [DataMember]
         public MojType SourceType { get; set; }
+
+        public MojFormedType SourceFormedType { get; set; }
 
         public MojFormedNavigationPathStep Clone()
         {

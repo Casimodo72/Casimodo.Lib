@@ -602,19 +602,17 @@ namespace Casimodo.Lib.Mojen
 
         void GenGridStyle(WebViewGenContext context)
         {
-            var propsWithStyle = context.View.Props
+            if (!context.View.Props
                 .Where(x => x.HideModes != MojViewMode.All)
                 .Where(x => HasColumnStyle(x))
-                .ToArray();
-
-            if (!propsWithStyle.Any())
+                .Any())
                 return;
 
             O();
 
             XB("<style>");
             var pos = 0;
-            foreach (var vprop in propsWithStyle)
+            foreach (var vprop in context.View.Props.Where(x => x.HideModes != MojViewMode.All))
             {
                 pos++;
                 vprop.VisiblePosition = pos;
@@ -689,22 +687,31 @@ namespace Casimodo.Lib.Mojen
             if (vprop.HideModes == MojViewMode.All)
                 return;
 
+            var view = context.View;
             var vinfo = vprop.BuildViewPropInfo(column: true);
-            //var prop = info.Prop;
             var propPath = vinfo.PropPath;
             var propAliasPath = vinfo.PropAliasPath;
+            var dprop = vinfo.TargetDisplayProp;
+            var vpropType = vinfo.TargetDisplayProp.Type;
 
-            if (vprop.FileRef.Is && vprop.FileRef.IsImage)
+            if (dprop.FileRef.Is && dprop.FileRef.IsImage)
                 // KABU TODO: IMPL: Photos are currently disabled
                 return;
 
-            string template = null;
+            // Check references. Check the whole path for multiplicity of one.
+            if (vprop.IsReferenced)
+            {
+                var path = vprop.GetFormedPath();
+                foreach (var step in path.Steps)
+                    if (!step.SourceProp.Reference.IsToOne)
+                        throw new MojenException("The whole path must have a multiplicity of one.");
+            }
 
             OB("");
 
-            bool isEffectField = vprop.IsColor || vprop.FileRef.Is;
+            bool isEffectField = dprop.IsColor || dprop.FileRef.Is;
 
-            O($"field: '{vinfo.PropPath}',");
+            O($"field: '{propPath}',");
 
             // KABU TODO: Envaluate custom column info.
             // E.g. attributes: {
@@ -719,7 +726,7 @@ namespace Casimodo.Lib.Mojen
             }
             else
             {
-                var label = vinfo.CustomDisplayLabel != null ? vinfo.CustomDisplayLabel : vinfo.ViewProp.DisplayLabel;
+                var label = vinfo.CustomDisplayLabel != null ? vinfo.CustomDisplayLabel : vprop.DisplayLabel;
                 if (label == null)
                     throw new MojenException("No label found for grid column.");
 
@@ -731,94 +738,95 @@ namespace Casimodo.Lib.Mojen
                 O($"title: '{label}',");
             }
 
-            // KABU TODO: VERY IMPORTANT: FIX: We incorrectly operate on the vprop rather than the target prop.
+            // Format
+            // KABU TODO: IMPORTANT: format decimals
+
+            // Date time formatting.
+            if (vpropType.IsAnyTime)
+            {
+                // KABU TODO: Should we use moment.js instead and use a template?
+
+                // KABU TODO: LOCALIZE DateTime format.
+                var format = "{0:";
+                if (vpropType.DateTimeInfo.IsDate)
+                    format += "dd.MM.yyyy ";
+                if (vpropType.DateTimeInfo.IsTime)
+                    format += "HH:mm:ss";
+                // KABU TODO: Support milliseconds
+                format += "}";
+
+                O($"format: '{format}',");
+            }
 
             if (vprop.IsHtml)
             {
                 O($"encoded: false,");
             }
 
-            var iscolor = vprop.IsColor || vprop.IsColorWithOpacity;
-            if (iscolor)
+            // Column cell template
+            // KABU TODO: Nest templates so that we also can have colored booleans, times, etc.
+
+            string valueTemplate = null;
+            string template = null;
+
+            // Value template part.
+            if (vpropType.IsBoolean)
+            {
+                valueTemplate = $"casimodo.toDisplayBool(data.get('{propPath}'))";
+            }
+            else if (vpropType.IsTimeSpan)
+            {
+                valueTemplate = $"casimodo.toDisplayTimeSpan(data.get('{propPath}'))";
+            }
+
+            // HTML template
+            if (dprop.IsColor || dprop.IsColorWithOpacity)
             {
                 // Color cell Kendo template.
                 O($"width: 33,");
-                template = $"'#=kendomodo.getColorCellTemplate({propPath})#'";
-            }
 
+                template = $"#=kendomodo.getColorCellTemplate(data.get('{propPath}'))#";
+            }
             // Image file reference
-            if (vprop.FileRef.Is && vprop.FileRef.IsImage)
+            else if (dprop.FileRef.Is && dprop.FileRef.IsImage)
             {
                 O($"width: 70,");
-                template = "'#=kendomodo.getShowPhotoCellTemplate({propAliasPath}Uri)#'";
+
+                template = $"#=kendomodo.getShowPhotoCellTemplate(data.get('{propAliasPath}Uri))#";
             }
-            else if (vprop.FileRef.Is)
+            else if (dprop.FileRef.Is)
+            {
                 // KABU TODO: What about other file references?
                 throw new MojenException("This kind of file reference is not supported yet.");
-
-            // Date time formatting.
-            if (vprop.Type.IsAnyTime)
-            {
-                var format = "{0:";
-                // KABU TODO: LOCALIZE DateTime format.
-                if (vprop.Type.DateTimeInfo.IsDate)
-                    format += "dd.MM.yyyy ";
-                if (vprop.Type.DateTimeInfo.IsTime)
-                    format += "HH:mm:ss";
-                // KABU TODO: Support milliseconds
-                format += "}";
-
-                O($"format: '{format}',");
-
-                // KABU TODO: REMOVE?
-                /*
-                var tmpl = "";
-                if (vprop.Type.DateTimeInfo.IsDate)
-                    tmpl += $"#=kendo.toString({vinfo.PropPath}, 'dd.MM.yyyy')#<br/>";
-                if (vprop.Type.DateTimeInfo.IsTime)
-                    tmpl += $"#=kendo.toString({vinfo.PropPath}, 'HH:mm:ss')#";
-                // KABU TODO: Support milliseconds
-                
-                O($"template: \"<div>{tmpl}</div>\",");
-                */
-
-                // KABU TODO: REMOVE?
-                // format: "{0:c}"
-                //O("format: '@(Html.GetDateTimePattern(placeholder: true{0}{1}{2}))',",
-                //    (vprop.Type.DateTimeInfo.IsDate == false ? ", date: false" : ""),
-                //    (vprop.Type.DateTimeInfo.IsTime == false ? ", time: false" : ""),
-                //    (vprop.Type.DateTimeInfo.DisplayMillisecondDigits > 0 ? ", ms: " + vprop.Type.DateTimeInfo.DisplayMillisecondDigits : ""));
             }
-            // Check-box Kendo template.
-            else if (vprop.Type.IsBoolean)
+            else if (dprop.UseColor)
             {
-                template = $"'#=casimodo.toDisplayBool({vprop.Name})#'";
-                //o($".ClientTemplate(@\"<input type='checkbox' disabled #= {prop.Name} ? checked='checked' : '' # />\")");
-            }
-            else if (vprop.Type.IsTimeSpan)
-            {
-                template = $"'#=casimodo.toDisplayTimeSpan({vprop.Name})#'";
-                //o($".ClientTemplate(@\"<input type='checkbox' disabled #= {prop.Name} ? checked='checked' : '' # />\")");
-            }
-            // Reference
-            else if (vprop.Reference.IsToOne) // REMOVE: vprop.FormedNavigationTo.Is && 
-            {
-                // IMPORTANT NOTE:
-                // Provide template, because Kendo will break if an itermediate property
-                // in the property path is null.
-                // Example:
-                // template: "#if(Company!=null){##:Company.NameShort##}#",                
-                template = $"\"{KendoGen.GetPlainDisplayTemplate(vprop, checkLastProp: true)}\"";
-            }
-            else if (vprop.Reference.Is)
-            {
-                throw new MojenException("This kind of reference is not supported.");
+                valueTemplate = valueTemplate ?? $"data.get('{propPath}')";
+                template = $"<div class='kmodo-cellcol'><div class='kmodo-cellmarker' style='background-color:#:data.get('{vprop.ColorProp.FormedTargetPath}')#'></div>#:data.get('{propPath}')#</div>";
             }
 
-            // KABU TODO: IMPORTANT: Currently we hard-code all navigated-to properties to be sortable,
+            if (template == null && valueTemplate != null)
+                template = $"#:{valueTemplate}#";
+
+            if (template == null && vprop.IsReferenced)
+                template = $"#: data.get('{propPath}') || '' #";
+
+            if (vprop.IsLinkToInstance)
+            {
+                template = $"<span class='page-navi' " +
+                    $"data-navi-part='{dprop.DeclaringType.Name}' " +
+                    $"data-navi-id='#:data.get('{dprop.FormedNavigationFrom.Last.TargetFormedType.Get(dprop.DeclaringType.Key.Name).FormedTargetPath}')#'>" +                   
+                    $"{template ?? "#: data.get('{propPath}') || '' #"}" +
+                    $"</span>";
+            }
+
+            if (template != null)
+                template = Quote(template);
+
+            // KABU TODO: IMPORTANT: Fix: Currently we hard-code all navigated-to properties to be sortable,
             //   because the view-property (which is a clone of the type's native property)
             //   is a reference property and is *not* sortable by default (set in MojClassPropBuilder).
-            if (!vprop.IsSortable && !vprop.FormedNavigationTo.Is)
+            if (!vprop.IsSortable && !vprop.IsReferenced)
                 O("sortable: false,");
 
             if (!vprop.IsGroupable)
@@ -958,28 +966,6 @@ namespace Casimodo.Lib.Mojen
                 if (dataSourceAutoCompleteOperator != null)
                     O($"suggestionOperator: '{dataSourceAutoCompleteOperator}',");
 
-                // KABU TODO: REVISIT: This does not work.
-                //if (Options.IsFilterOverCurrentDataEnabled && dataSourceData == null && !vprop.FormedNavigationTo.Is)
-                //{
-                //    OB("ui: function(element)");
-                //    OB("element.kendoAutoComplete(");
-                //    O($"dataSource: dspace.vm.getDataSourceForProp('{vprop.Name}'),");
-                //    O($"dataTextField: '{vprop.Name}'");
-                //    End(")");
-                //    End();
-                //}
-                //else if (Options.IsUsingLocalData && dataSourceData == null)
-                //{
-                //    // KABU TODO: REVISIT: Doesn't work. Don't use yet.
-                //    OB("ui: function(element)");
-                //    OB("element.kendoAutoComplete(");
-                //    O("dataSource: dataSource,");
-                //    O($"dataTextField: '{propPath}'");
-                //    End(")");
-                //    End();
-                //}
-                //else 
-
                 if (dataSourceUrl != null || dataSourceData != null)
                 {
                     // OData data source
@@ -1017,22 +1003,8 @@ namespace Casimodo.Lib.Mojen
                 O("width: {0},", vprop.Width.Value);
             }
 
-            // KABU TODO: Coloring a foreign key column based on other values does not work
-            // because only the entity is in scope of the ClientTemplate - not the needed foreign display value.                
-            // Such display values reside somewhere on the model.values of
-            // the grid or the data-source itself and are only accessible if we
-            // generate and use a JS function for finding the foreign key's display value,
-            // which is quite a mess.
             // See http://www.telerik.com/forums/client-template-%28hyper-link%29-on-foreign-key-column
-#if (false)
-                if (vprop.ColorProp != null)
-                {
-                    var pathString = vprop.ColorProp.FormedNavigationPath.PathString;
-                    o(".ClientTemplate(@\"<span style='color:#:{0}#'>#:{1}#</span>\")",
-                        vprop.ColorProp.FormedNavigationPath.PathString,
-                        prop.Name);
-                }
-#endif
+
             if (vprop.CustomTemplateName != null)
             {
                 var dataConfig = App.GetDataLayerConfig(context.View.TypeConfig.DataContextName);
@@ -1043,6 +1015,16 @@ namespace Casimodo.Lib.Mojen
                 O($"template: {template},");
 
             End(","); // Column
+        }
+
+        public string KendoDataGetOrEmpty(string path)
+        {
+            return $"data.get('{path}') || ''";
+        }
+
+        public string KendoDataGet(string path)
+        {
+            return $"data.get('{path}')";
         }
 
         void ValidateView(WebViewGenContext context)

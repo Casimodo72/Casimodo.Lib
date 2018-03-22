@@ -197,18 +197,20 @@ namespace Casimodo.Lib.Mojen
             return GetJsScriptUINamespace(view) + "." + BuildJsClassName(view) + "Space";
         }
 
-        public string GetPlainDisplayTemplate(MojViewProp prop, bool checkLastProp = false)
-        {
-            var sb = new StringBuilder();
-
-            sb.o("#if("); GetNotNullExpressionTemplate(sb, prop, checkLastProp); sb.o("){#");
-
-            sb.o("#:"); sb.o(prop.FormedNavigationTo.TargetPath); sb.o("#");
-
-            sb.o("#}#");
-
-            return sb.ToString();
-        }
+        // KABU TODO: REMOVE
+        //public string GetPlainDisplayTemplate(MojViewProp vprop, bool checkLastProp = false)
+        //{
+        //    // IMPORTANT NOTE:
+        //    // Provide template, because Kendo will break if an itermediate property
+        //    // in the property path is null.
+        //    // Example:
+        //    // template: "#if(Company!=null){##:Company.NameShort##}#",     
+        //    var sb = new StringBuilder();
+        //    sb.o("#if("); GetNotNullExpressionTemplate(sb, vprop, checkLastProp); sb.o("){#");
+        //    sb.o("#:"); sb.o(vprop.FormedNavigationTo.TargetPath); sb.o("#");
+        //    sb.o("#}#");
+        //    return sb.ToString();
+        //}
 
         void GetNotNullExpressionTemplate(StringBuilder sb, MojViewProp prop, bool checkLastProp = false)
         {

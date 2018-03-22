@@ -106,5 +106,10 @@ namespace Casimodo.Lib.Mojen
             if (text.Contains("{")) o("$");
             o("\"" + text + "\"");
         }
+
+        public string Quote(string text)
+        {
+            return $"\"{text}\"";
+        }
     }
 }
