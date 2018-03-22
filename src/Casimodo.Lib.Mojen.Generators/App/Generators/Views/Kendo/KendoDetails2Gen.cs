@@ -59,8 +59,10 @@ namespace Casimodo.Lib.Mojen
         {
             ORazorGeneratedFileComment();
 
-            if (context.View.Template.IsEmpty)
-                return;
+            // KABU TODO: REMOVE: E.g. the view does not have any properties
+            //    in used for PW entry.
+            //if (context.View.Template.IsEmpty)
+            //    return;
 
             ORazorUsing("Casimodo.Lib.Web", context.View.TypeConfig.Namespace);
 
@@ -109,8 +111,10 @@ namespace Casimodo.Lib.Mojen
 
         public override void EndView(WebViewGenContext context)
         {
-            if (context.View.Template.IsEmpty)
-                return;
+            // KABU TODO: REMOVE: E.g. the view does not have any properties
+            //    in used for PW entry.
+            //if (context.View.Template.IsEmpty)
+            //    return;
 
             base.EndView(context);
 

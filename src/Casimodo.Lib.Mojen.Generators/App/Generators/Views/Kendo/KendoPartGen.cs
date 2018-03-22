@@ -396,6 +396,7 @@ namespace Casimodo.Lib.Mojen
             O("group: {0},", MojenUtils.ToJsValue(view.Group));
             O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
             O("space: space,");
+            O("spaceOptions: spaceOptions || null,");
             O("$component: spaceOptions? spaceOptions.$component || null : null,");
             O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
             O("isDialog: {0},", MojenUtils.ToJsValue(view.Lookup.Is));

@@ -36,8 +36,9 @@ namespace Casimodo.Lib.Mojen
 
         public override void EndView(WebViewGenContext context)
         {
-            if (context.View.Template.IsEmpty)
-                return;
+            // KABU TODO: REMOVE
+            //if (context.View.Template.IsEmpty)
+            //    return;
 
             XE("</div>");
         }
