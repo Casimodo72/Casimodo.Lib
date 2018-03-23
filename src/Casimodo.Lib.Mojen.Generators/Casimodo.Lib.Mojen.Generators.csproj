@@ -157,6 +157,13 @@
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
+    <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoDataSourceMex.cs" />
+    <Compile Include="App\Generators\Mex\MexGeneratorBase.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoFormEditorViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoFormReadOnlyViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\PageWithKendoGridContentViewGen.cs" />
+    <Compile Include="App\Generators\Views\Infrastructure\WebScriptGen.cs" />
     <Compile Include="App\Generators\Views\WebComponentApplyAmbientAuth.cs" />
     <Compile Include="App\Generators\Views\WebComponentRegistryGen.cs" />
     <Compile Include="App\Generators\Views\WebJsComponentRegistryGen.cs" />
@@ -178,10 +185,7 @@
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoFxConfig.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoPagerOptions.cs" />
     <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoWindowConfig.cs" />
-    <Compile Include="App\Generators\Views\Kendo\KendoDetails2Gen.cs" />
-    <Compile Include="App\Generators\Views\Kendo\KendoEditorGen.InputComponents.cs" />
-    <Compile Include="App\Generators\Views\Kendo\KendoEditorGen.cs" />
-    <Compile Include="App\Generators\Views\Kendo\KendoMex.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoFormEditorViewGen.InputComponents.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoPartGen.Edit.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoPartGen.DataSource.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoPartGen.cs" />
@@ -270,7 +274,6 @@
     <Compile Include="DataInteractionLayer\Generators\DbRepositoryCore.OnEventGen.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App\Generators\Views\Infrastructure\" />
     <Folder Include="App\Generators\Views\Trash\" />
     <Folder Include="App\Models\" />
     <Folder Include="DataInteractionLayer\Builders\" />

@@ -5,62 +5,6 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class WebScriptGen : WebPartGenerator
-    { }
-
-    public partial class CustomPageViewGen : WebViewGenerator
-    {
-        protected override void GenerateCore()
-        {
-            foreach (MojViewConfig view in App.GetItems<MojViewConfig>().Where(x => x.Uses(this)))
-            {
-                if (!view.IsCustom) throw new MojenException("This view must be custom.");
-                if (!view.IsPage) throw new MojenException("This view must have a page role.");
-
-                var context = new WebViewGenContext
-                {
-                    View = view
-                };
-                RegisterComponent(context);
-            }
-        }
-    }
-
-    public partial class KendoPageWithGridContentViewGen : KendoViewGenBase
-    {
-        protected override void GenerateCore()
-        {
-            foreach (var view in App.GetItems<MojControllerViewConfig>().Where(x => x.Uses(this)))
-            {
-                if (view.IsCustom) throw new MojenException("This view must not be custom.");
-                if (!view.IsPage) throw new MojenException("This view must have a page role.");
-
-                // Bind content views.
-                KendoGen.BindPageContentView(view, MojViewRole.List);
-
-                var context = new WebViewGenContext
-                {
-                    View = view
-                };
-
-                PerformWrite(context.View, () =>
-                {
-                    var grid = view.ContentViews.First(x => x.Uses<KendoGridViewGen>());
-
-                    string gridVirtualFilePath = BuildVirtualFilePath(grid);
-
-                    var title = view.Title ?? grid.GetDefaultTitle();
-                    if (!string.IsNullOrEmpty(title))
-                        O($"@{{ ViewBag.Title = \"{title}\"; }}");
-
-                    OMvcPartialView(gridVirtualFilePath);
-                });
-
-                RegisterComponent(context);
-            }
-        }
-    }
-
     public partial class KendoGridViewGen : KendoViewGenBase
     {
         public KendoGridViewGen()
