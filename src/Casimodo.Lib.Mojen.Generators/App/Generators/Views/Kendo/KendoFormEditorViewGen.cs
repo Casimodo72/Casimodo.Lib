@@ -91,7 +91,8 @@ namespace Casimodo.Lib.Mojen
             LabelContainerClass = "col-sm-3 col-xs-12";
             OLabelContainerBegin = (c) =>
             {
-                if (c.IsRunEditable) XB($"<div class='{LabelContainerClass}'>");
+                // KABU TODO: IMPORTANT: Why only for editors?
+                if (c.IsRunEditable) XB($"<div class='{c.Cur.GetGroupLabelStyle() ?? LabelContainerClass}'>");
             };
             OLabelContainerEnd = (c) =>
             {
@@ -100,10 +101,7 @@ namespace Casimodo.Lib.Mojen
 
             OPropContainerBegin = (c) =>
             {
-                if (c.IsRunEditable)
-                    XB($"<div class='{PropContainerClass}'>"); // KABU TODO: Do I need this "data-container-for='{c.PropInfo.PropPath}'" ?
-                else
-                    XB($"<div class='{PropContainerClass}'>");
+                XB($"<div class='{c.Cur.GetGroupPropStyle() ?? PropContainerClass}'>");
             };
             OPropContainerEnd = (c) => XE("</div>");
         }

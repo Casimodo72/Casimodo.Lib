@@ -146,31 +146,38 @@ namespace Casimodo.Lib.Mojen
                 OJsImmediateBegin("factory");
 
                 O();
-                OB("factory.create = function (spaceOptions)");
+                OB("factory.createCore = function ()");
 
                 O();
                 O($"var space = {SpaceConstructorFunc};");
             }
             else
+            {
+                throw new MojenException("Component space without factory is not supported anymore.");
+#pragma warning disable CS0162 // Unreachable code detected
                 OJsImmediateBegin("space");
+#pragma warning restore CS0162 // Unreachable code detected
+            }
         }
 
         public void OEndComponentSpace(WebViewGenContext context)
         {
             if (context.View.HasFactory)
             {
-                O();
-                O("space.create(spaceOptions);");
+                // KABU TODO: REMOVE
+                //O();
+                //O("space.create(spaceOptions);");
 
                 O();
                 O("return space;");
 
                 End(";"); // End factory function.
 
-                OJsImmediateEnd(BuildJSGetOrCreate(context.SpaceFactoryName, "{}"));
+                OJsImmediateEnd(BuildJSGetOrCreate(context.SpaceFactoryName, "casimodo.ui.createComponentSpaceFactory()"));
             }
             else
             {
+                throw new MojenException("Component space without factory is not supported anymore.");
                 // End namespace.
 
                 // KABU TODO: IMPORTANT: We can't make lookup spaces anonymous yet,
@@ -178,7 +185,9 @@ namespace Casimodo.Lib.Mojen
                 // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
                 // if (View.Lookup.Is) ?
 
+#pragma warning disable CS0162 // Unreachable code detected
                 OJsImmediateEnd(BuildJSGetOrCreateSpace(context));
+#pragma warning restore CS0162 // Unreachable code detected
             }
         }
 
@@ -401,8 +410,10 @@ namespace Casimodo.Lib.Mojen
             O("spaceOptions: spaceOptions || null,");
             O("$component: spaceOptions? spaceOptions.$component || null : null,");
             O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
+            O("isLookup: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
             O("isDialog: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
             O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
+            O("isCustomSave: {0},", MojenUtils.ToJsValue(view.IsCustomSave));
 
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
@@ -412,10 +423,10 @@ namespace Casimodo.Lib.Mojen
             if (view.EditorView != null)
             {
                 OB("editor:");
-                O("title: {0},", MojenUtils.ToJsValue(view.EditorView.TypeConfig.DisplayName));
+                // TOOD: REMOVE: O("title: {0},", MojenUtils.ToJsValue(view.EditorView.TypeConfig.DisplayName));
                 O("id: {0},", MojenUtils.ToJsValue(view.EditorView.Id));
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
-                O("space: {0},", GetSpaceName(view.EditorView));
+                // TOOD: REMOVE: O("space: {0},", GetSpaceName(view.EditorView));
                 OViewDimensionOptions(view.EditorView);
                 End();
             }

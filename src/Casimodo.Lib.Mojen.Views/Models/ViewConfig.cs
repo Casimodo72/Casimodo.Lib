@@ -213,6 +213,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool CanDelete { get; set; }
 
+        public bool IsCustomSave { get; set; }
+
         public bool IsViewless { get; set; }
 
         public MojStandaloneViewConfig Standalone { get; set; } = MojStandaloneViewConfig.None;

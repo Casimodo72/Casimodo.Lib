@@ -30,6 +30,15 @@ namespace Casimodo.Lib.Mojen
                         O($"@{{ ViewBag.Title = \"{title}\"; }}");
 
                     OMvcPartialView(gridVirtualFilePath);
+
+                    OScriptBegin();
+                    OJsOnPageReady(() =>
+                    {
+                        O("{0}.ComponentRegistry.getById({1}).vm().refresh();",
+                            WebConfig.ScriptUINamespace,
+                            Quote(grid.Id));
+                    });
+                    OScriptEnd();
                 });
 
                 RegisterComponent(context);

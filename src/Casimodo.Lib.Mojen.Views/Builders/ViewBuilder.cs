@@ -11,9 +11,30 @@ namespace Casimodo.Lib.Mojen
         { }
     }
 
+    public static class WebStyleExtensions
+    {
+        public static string GetGroupLabelStyle(this ViewTemplateItem item)
+        {
+            return item.GetGroupStyle()?.GetLabelContainerClass?.Invoke();
+        }
+
+        public static string GetGroupPropStyle(this ViewTemplateItem item)
+        {
+            return item.GetGroupStyle()?.GetPropContainerClass?.Invoke();
+        }
+
+        public static Style GetGroupStyle(this ViewTemplateItem item)
+        {
+            return item.Parent?.Style as Style;
+        }
+    }
+
     public class Style : MojColumnDefinition
     {
         public string Col { get; set; }
+
+        public Func<string> GetLabelContainerClass { get; set; }
+        public Func<string> GetPropContainerClass { get; set; }
 
         public string BackColor { get; set; }
 
@@ -759,6 +780,12 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder CanEdit(bool value = true)
         {
             View.CanModify = value;
+            return this;
+        }
+
+        public MojViewBuilder CustomSave()
+        {
+            View.IsCustomSave = true;
             return this;
         }
 

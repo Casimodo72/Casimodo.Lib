@@ -226,6 +226,16 @@ namespace Casimodo.Lib.Mojen
             O("\"use strict\";");
         }
 
+        public void OJsOnPageReady(Action content)
+        {
+            // This uses jQuery.
+            OB($"$(function ()");
+
+            content?.Invoke();
+
+            End(");");
+        }
+
         public void OJsImmediateBegin(string parameters = "", string variable = null)
         {
             if (!string.IsNullOrWhiteSpace(variable))
