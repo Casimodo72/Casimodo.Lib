@@ -127,9 +127,6 @@ namespace Casimodo.Lib.Mojen
                 PerformWrite(context.View, () =>
                 {
                     GenGridView(context);
-
-                    O();
-                    GenGridStyle(context);
                 });
             }
 
@@ -162,7 +159,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             // Container element for the Kendo grid widget.
-            O($"<div id='{context.ComponentId}'></div>");
+            O($"<div id='{context.ComponentId}' class='component-root'></div>");
 
             // Details view Kendo template
             if (context.View.InlineDetailsView != null)
@@ -544,40 +541,6 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        void GenGridStyle(WebViewGenContext context)
-        {
-            if (!context.View.Props
-                .Where(x => x.HideModes != MojViewMode.All)
-                .Where(x => HasColumnStyle(x))
-                .Any())
-                return;
-
-            O();
-
-            XB("<style>");
-            var pos = 0;
-            foreach (var vprop in context.View.Props.Where(x => x.HideModes != MojViewMode.All))
-            {
-                pos++;
-                vprop.VisiblePosition = pos;
-                if (vprop.FontWeight == MojFontWeight.Bold)
-                {
-                    OB("{0}", GetGridColCssSelector(context, vprop));
-                    O("font-weight: bold;");
-                    End();
-                }
-            }
-            XE("</Style>");
-            /*
-                Example:
-                <style>
-                    # grid-393a3bc1-2e06-4516-8d29-220dde0668fe tr[role='row'] td[role='gridcell']:nth-child(5) {
-                        font-weight: bold;
-                    }
-                </style>
-            */
-        }
-
         bool HasColumnStyle(MojViewProp vprop)
         {
             return vprop.FontWeight != MojFontWeight.Normal;
@@ -759,8 +722,8 @@ namespace Casimodo.Lib.Mojen
             {
                 template = $"<span class='page-navi' " +
                     $"data-navi-part='{dprop.DeclaringType.Name}' " +
-                    $"data-navi-id='#:data.get('{dprop.FormedNavigationFrom.Last.TargetFormedType.Get(dprop.DeclaringType.Key.Name).FormedTargetPath}')#'>" +                   
-                    $"{template ?? "#: data.get('{propPath}') || '' #"}" +
+                    $"data-navi-id='#:data.get('{dprop.GetFormedNavigationPropPathOfKey()}')#'>" +                   
+                    $"{template ?? $"#: data.get('{propPath}') || '' #"}" +
                     $"</span>";
             }
 
@@ -957,6 +920,13 @@ namespace Casimodo.Lib.Mojen
 
             if (template != null)
                 O($"template: {template},");
+
+            if (vprop.FontWeight == MojFontWeight.Bold)
+            {
+                OB("attributes: ");
+                O("'class': 'strong'");
+                End(",");
+            }
 
             End(","); // Column
         }

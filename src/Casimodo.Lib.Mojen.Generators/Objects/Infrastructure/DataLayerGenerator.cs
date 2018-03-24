@@ -49,7 +49,7 @@ namespace Casimodo.Lib.Mojen
         public string GetJsDefaultValue(MojProp prop)
         {
             if (prop.IsKey)
-                return "kendo.guid()";
+                return "kendomodo.guid()";
 
             if (prop.DefaultValues.Is)
             {

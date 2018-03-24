@@ -720,6 +720,14 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojFormedNavigationPath FormedNavigationFrom { get; set; } = MojFormedNavigationPath.None;
 
+        public string GetFormedNavigationPropPathOfKey()
+        {
+            if (FormedNavigationFrom.Is)
+                return FormedNavigationFrom.Last.TargetFormedType.Get(DeclaringType.Key.Name).FormedTargetPath;
+            else
+                return DeclaringType.Key.Name;
+        }
+
 #if (false)
         [OnSerializing]
         void OnSerializing(StreamingContext context)

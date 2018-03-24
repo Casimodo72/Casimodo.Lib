@@ -50,12 +50,14 @@ namespace Casimodo.Lib.Mojen
                     O();
                     foreach (var item in components)
                     {
-                        O("reg.add({{ part: {0}, group: {1}, role: {2}, url: {3}, id: {4}, editorId: {5} }});",
+                        O("reg.add({{ part: {0}, group: {1}, role: {2}, url: {3}, id: {4}, maxWidth: {5}, maxHeight: {6}, editorId: {7} }});",
                             MojenUtils.ToJsValue(item.View.TypeConfig.Name),
                             MojenUtils.ToJsValue(item.View.Group),
                             MojenUtils.ToJsValue(item.View.MainRoleName),
                             MojenUtils.ToJsValue(item.View.Url),
                             MojenUtils.ToJsValue(item.View.Id),
+                            MojenUtils.ToJsValue(item.View.MaxWidth),
+                            MojenUtils.ToJsValue(item.View.MaxHeight),
                             MojenUtils.ToJsValue(item.View.EditorView?.Id));
                     }
                 });
