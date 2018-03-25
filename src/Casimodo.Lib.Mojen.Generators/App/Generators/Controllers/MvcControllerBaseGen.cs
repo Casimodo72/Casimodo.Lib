@@ -10,6 +10,17 @@ namespace Casimodo.Lib.Mojen
                 PerformWrite(controller, GenerateControllerCore);
         }
 
+        public void OMvcActionAuthAttribute(MojViewConfig view)
+        {
+            if (view.IsAuthEnabled)
+            {
+                O("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
+                    view.TypeConfig.Name,
+                    MojenUtils.ToCsValue(view.Group),
+                    view.MainRoleName);
+            }
+        }
+
         public void OOutputCacheAttribute()
         {
             if (WebConfig.OutputCache.IsEnabled)
@@ -25,16 +36,12 @@ namespace Casimodo.Lib.Mojen
             ONamespace(controller.Namespace);
             OUsing("System", "System.Collections.Generic", "System.Data", "System.Data.Entity",
                 "System.Linq", "System.Web", "System.Web.Mvc",
-                "Casimodo.Lib", "Casimodo.Lib.Web",
+                "Casimodo.Lib", "Casimodo.Lib.Web", "Casimodo.Lib.Web.Auth",
                 "System.Web.UI", // For OutputCacheLocation
                 controller.TypeConfig.Namespace
             );
 
-            // Authentication (Roles)
-            if (controller.TypeConfig.AuthRoles != null)
-            {
-                O("[Authorize(Roles = \"{0}\")]", controller.TypeConfig.AuthRoles);
-            }
+            O("[Authorize]");
 
             foreach (var attr in controller.Attrs)
             {

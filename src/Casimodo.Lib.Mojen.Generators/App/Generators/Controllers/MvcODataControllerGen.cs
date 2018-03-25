@@ -7,10 +7,11 @@ namespace Casimodo.Lib.Mojen
     {
         public override void GenerateController(MojControllerConfig controller)
         {
-            foreach (var view in controller.GetPageViews())            
+            foreach (var view in controller.GetPageViews())
             {
                 // Index
                 O();
+                OMvcActionAuthAttribute(view);
                 OOutputCacheAttribute();
                 O($"public ActionResult {view.ControllerActionName}()"); // Index{view.Group}
                 Begin();
@@ -28,6 +29,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Lookup.Is))
             {
                 O();
+                OMvcActionAuthAttribute(view);
                 OOutputCacheAttribute();
                 O($"public ActionResult {view.ControllerActionName}({view.Lookup.Parameters.ToMethodArguments()})");
                 Begin();
@@ -48,6 +50,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Standalone.Is))
             {
                 O();
+                OMvcActionAuthAttribute(view);
                 OOutputCacheAttribute();
                 O($"public ActionResult {view.ControllerActionName}()");
                 Begin();

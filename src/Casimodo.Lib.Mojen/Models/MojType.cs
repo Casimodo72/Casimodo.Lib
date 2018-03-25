@@ -268,9 +268,6 @@ namespace Casimodo.Lib.Mojen
         public MojAttrs Attrs { get; private set; } = new MojAttrs();
 
         [DataMember]
-        public string AuthRoles { get; set; }
-
-        [DataMember]
         public List<MiaTypeTriggerConfig> Triggers { get; private set; } = new List<MiaTypeTriggerConfig>();
 
         [DataMember]

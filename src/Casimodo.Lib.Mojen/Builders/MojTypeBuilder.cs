@@ -108,13 +108,6 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TTypeBuilder AuthorizedRoles(string roles)
-        {
-            TypeConfig.AuthRoles = roles;
-
-            return This();
-        }
-
         public TTypeBuilder Tenant()
         {
             TypeConfig.IsTenant = true;

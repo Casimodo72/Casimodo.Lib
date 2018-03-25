@@ -480,7 +480,6 @@ namespace Casimodo.Lib.Mojen
                 store.DisplayPluralName = TypeConfig.DisplayPluralName;
                 store.DataContextName = TypeConfig.DataContextName;
                 store.IsMultitenant = TypeConfig.IsMultitenant;
-                store.AuthRoles = TypeConfig.AuthRoles;
                 store.IsODataOpenType = TypeConfig.IsODataOpenType;
                 store.VerMap = MojVersionMapping.CloneFrom(TypeConfig.VerMap);
                 store.LocalPick = TypeConfig.LocalPick;

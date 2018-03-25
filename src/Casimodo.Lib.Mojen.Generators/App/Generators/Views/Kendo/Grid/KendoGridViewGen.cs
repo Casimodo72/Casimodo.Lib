@@ -708,8 +708,8 @@ namespace Casimodo.Lib.Mojen
             }
             else if (dprop.UseColor)
             {
-                valueTemplate = valueTemplate ?? $"data.get('{propPath}')";
-                template = $"<div class='kmodo-cellcol'><div class='kmodo-cellmarker' style='background-color:#:data.get('{vprop.ColorProp.FormedTargetPath}')#'></div>#:data.get('{propPath}')#</div>";
+                valueTemplate = valueTemplate ?? $"data.get('{propPath}' || '')";
+                template = $"<div class='kmodo-cellcol'><div class='kmodo-cellmarker' style='background-color:#:data.get('{vprop.ColorProp.FormedTargetPath}')#'></div>#:data.get('{propPath}') || ''#</div>";
             }
 
             if (template == null && valueTemplate != null)
