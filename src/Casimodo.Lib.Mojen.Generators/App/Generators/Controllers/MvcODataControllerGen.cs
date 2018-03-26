@@ -13,7 +13,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 OMvcActionAuthAttribute(view);
                 OOutputCacheAttribute();
-                O($"public ActionResult {view.ControllerActionName}()"); // Index{view.Group}
+                O($"public ActionResult {view.ControllerActionName}()");
                 Begin();
 
                 string name = BuildFileName(view, extension: false);
@@ -46,7 +46,7 @@ namespace Casimodo.Lib.Mojen
                 End();
             }
 
-            // Standalone lists and editors.
+            // Standalone lists, details and editors.
             foreach (var view in controller.Views.Where(x => x.Standalone.Is))
             {
                 O();

@@ -871,13 +871,13 @@ namespace Casimodo.Lib.Mojen
                 O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', info.PlaceInfo);");
                 O($"casimodo.ui.dialogArgs.add(args);");
 
-                // KABU TODO: VERY IMPORTANT: Check if this is still sane. I think we don't use this anymore.
+                // KABU TODO: VERY IMPORTANT: Check if this is still sane.
                 var cachedWindow = geoConfig.IsViewCached
                     ? $"{context.SpaceName}CachedDialogFor{propPath.Replace(".", "")}"
                     : "null";
 
                 // Fetch the partial view from server into a Kendo modal window.
-                Oo($"var wnd = {cachedWindow} || $('<div/>').appendTo($container).kendoWindow(");
+                Oo($"var wnd = {cachedWindow} || $('<div/>').kendoWindow(");
                 KendoGen.OWindowOptions(new KendoWindowConfig
                 {
                     Title = dialog.Title,
@@ -987,7 +987,7 @@ namespace Casimodo.Lib.Mojen
                         OB("if (!cascadeFromVal)");
                         // Notify
                         // KABU TODO: LOCALIZE
-                        O($"kendomodo.showModalTextDialog($container, 'info', \"" +
+                        O($"kendomodo.showModalTextDialog('info', \"" +
                             $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
                             $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                         // Exit
@@ -1031,7 +1031,7 @@ namespace Casimodo.Lib.Mojen
                     OB("if (!cascadeFromVal)");
                     // Notify
                     // KABU TODO: LOCALIZE
-                    O($"kendomodo.showModalTextDialog($container, 'info', \"" +
+                    O($"kendomodo.showModalTextDialog('info', \"" +
                         $"Zuerst muss '{sourceProp.DisplayLabel}' gesetzt werden, " +
                         $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                     // Exit

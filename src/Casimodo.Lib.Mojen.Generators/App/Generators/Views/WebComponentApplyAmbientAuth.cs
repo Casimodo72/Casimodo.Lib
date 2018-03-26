@@ -33,23 +33,32 @@ namespace Casimodo.Lib.Mojen
                 ApplyAmbientAuth(page, view);
             }
 
-            // Try to assign auth of details views without pages to their editor views.
-            foreach (var detailsWithoutPage in App.GetItems<MojControllerViewConfig>()
-                .Where(x =>
-                    x.IsDetails &&
-                    !x.IsAuthAmbientApplied))
+            // Try to assign auth of list views without pages to their detail/editor views.
+            foreach (var list in App.GetItems<MojControllerViewConfig>()
+                .Where(x => x.IsList && !x.IsAuthAmbientApplied))
             {
-                var editor = views.SingleOrDefault(x =>
-                    x.IsEditor &&
-                    x.Controller == detailsWithoutPage.Controller &&
-                    x.Group == detailsWithoutPage.Group);
-                if (editor != null)
-                    ApplyAmbientAuth(detailsWithoutPage, editor);
+                foreach (var view in views.Where(x => (x.IsDetails || x.IsEditor) && IsSameGroup(list, x)))
+                    ApplyAmbientAuth(list, view);
             }
+
+            // Try to assign auth of details views without pages to their editor views.
+            foreach (var details in App.GetItems<MojControllerViewConfig>()
+                .Where(x => x.IsDetails && !x.IsAuthAmbientApplied))
+            {
+                ApplyAmbientAuth(details, views.SingleOrDefault(x => x.IsEditor && IsSameGroup(details, x)));
+            }
+        }
+
+        bool IsSameGroup(MojControllerViewConfig a, MojControllerViewConfig b)
+        {
+            return a.Controller == b.Controller && a.Group == b.Group;
         }
 
         void ApplyAmbientAuth(MojViewConfig source, MojViewConfig target)
         {
+            if (target == null)
+                return;
+
             if (!source.IsAuthAmbientForGroup)
                 return;
 

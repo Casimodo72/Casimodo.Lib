@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Mojen
             Contexts = new List<MojenBuildContext>();
             Configs = new List<MojenBuildConfig>();
         }
-        public void LoadMeta(MojenMetaContainer container)
+        public void LoadConfigs(MojenMetaContainer container)
         {
             var items = container.GetItems<AppBuildConfig>().ToArray();
             Items.AddRange(items);

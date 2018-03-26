@@ -4,9 +4,8 @@
     {
         public const string Index = "Index";
         public const string Details = "Details";
-        public const string Create = "Create";
-        public const string Edit = "Edit";
-        public const string Delete = "Delete";
+        public const string Editor = "Editor";
         public const string Lookup = "Lookup";
+        public const string List = "List";
     }
 }

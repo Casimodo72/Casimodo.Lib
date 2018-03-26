@@ -122,13 +122,17 @@ namespace Casimodo.Lib.Mojen.Meta
                     typeof(MojenMetaContainer).Name, DataOutputFilePath);
 
                 O("public static readonly List<MojBase> Items = new List<MojBase>();");
+                O("public static readonly List<MojFormedTypeContainer> TypeContainers = new List<MojFormedTypeContainer>();");
                 O();
                 O("public static void Init()");
                 Begin();
 
                 // Types                
                 foreach (var item in items)
+                {
                     O("Items.Add({0}.Class);", item.Name);
+                    O("TypeContainers.Add({0}._Container);", item.Name);
+                }
 
                 // Disabled for now.
 #if (false)
@@ -138,7 +142,7 @@ namespace Casimodo.Lib.Mojen.Meta
                         O("Items.Add({0}.Class);", container.MetaContainerName);
 #endif
 
-                // Build layer configs
+                // Data layer configs
                 foreach (var item in App.GetItems<DataLayerConfig>().Where(x => x.DbContextName != null))
                     O("Items.Add({0}.Class);", (item.MetaName ?? item.DbContextName));
 

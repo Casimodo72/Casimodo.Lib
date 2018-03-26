@@ -8,6 +8,8 @@ using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
+  
+
     [DataContract(Namespace = MojContract.Ns)]
     public class MojenMetaContainer
     {

@@ -390,8 +390,8 @@ namespace Casimodo.Lib.Mojen
                                 // Add refresh button
                                 o("<button class='k-button k-grid-refresh'><span class='k-icon k-i-refresh'></span></button>");
 
-                                if (view.IsGuidFilterable)
-                                    o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Filter entfernen</button>");
+                                if (view.IsNavigatableTo)
+                                    o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
 
                                 // KABU TODO: REMOVE?
                                 //if (view.CustomActions.Any())
@@ -722,7 +722,7 @@ namespace Casimodo.Lib.Mojen
             {
                 template = $"<span class='page-navi' " +
                     $"data-navi-part='{dprop.DeclaringType.Name}' " +
-                    $"data-navi-id='#:data.get('{dprop.GetFormedNavigationPropPathOfKey()}')#'>" +                   
+                    $"data-navi-id='#:data.get('{dprop.GetFormedNavigationPropPathOfKey()}')#'>" +
                     $"{template ?? $"#: data.get('{propPath}') || '' #"}" +
                     $"</span>";
             }
@@ -921,14 +921,32 @@ namespace Casimodo.Lib.Mojen
             if (template != null)
                 O($"template: {template},");
 
-            if (vprop.FontWeight == MojFontWeight.Bold)
+            if (HasPropAttributes(vprop, dprop))
             {
+                string @class = "";
+                if (vprop.FontWeight == MojFontWeight.Bold)
+                    @class += " strong";
+
+                // KABU TODO: MACIG hack
+                if (dprop.Name == "ModifiedOn")
+                    @class += " kmodo-grid-timestamp";
+
                 OB("attributes: ");
-                O("'class': 'strong'");
+
+                if (!string.IsNullOrEmpty(@class))
+                    O($"'class': '{@class}'");
+
                 End(",");
             }
 
             End(","); // Column
+        }
+
+        bool HasPropAttributes(MojViewProp vprop, MojProp dprop)
+        {
+            return vprop.FontWeight == MojFontWeight.Bold ||
+                // KABU TODO: MACIG hack
+                dprop.Name == "ModifiedOn";
         }
 
         public string KendoDataGetOrEmpty(string path)

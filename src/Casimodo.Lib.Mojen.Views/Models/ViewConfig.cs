@@ -191,11 +191,7 @@ namespace Casimodo.Lib.Mojen
                 if (CustomControllerActionName != null)
                     return CustomControllerActionName;
 
-                //if (Kind.RawAction == ActionName.Index)
-                //    return (Group ?? "") + "Index";
-
                 return (Group ?? "") + Kind.RawAction;
-                //return (Group ?? "") + (Lookup.Is ? "Lookup" : "") + TypeConfig.Name;
             }
         }
 
@@ -279,7 +275,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsFilterable { get; set; } = true;
 
-        public bool IsGuidFilterable { get; set; }
+        public bool IsNavigatableTo { get; set; }
 
         // KABU TODO: REMOVE: public List<MojViewActionConfig> CustomActions { get; set; } = new List<MojViewActionConfig>();
 

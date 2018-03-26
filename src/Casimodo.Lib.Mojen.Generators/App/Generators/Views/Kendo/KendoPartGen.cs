@@ -524,7 +524,6 @@ namespace Casimodo.Lib.Mojen
             {
                 new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
             }
-
         }
     }
 }

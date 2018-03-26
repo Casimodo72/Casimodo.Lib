@@ -115,9 +115,6 @@ namespace Casimodo.Lib.Mojen
             if (url == null)
                 return null;
 
-            if (url.StartsWith("/"))
-                url = url.Substring(1);
-
             var idx = url.LastIndexOf("/Index");
             if (idx != -1)
                 url = url.Substring(0, idx);

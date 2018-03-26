@@ -106,8 +106,6 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewConfig View { get; private set; }
 
-
-
         public MojViewConfig Build()
         {
             // Initial sort props
@@ -237,6 +235,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
             View.Kind.RoleName = "List";
+            View.Kind.RawAction = "List";
 
             View.CanCreate = true;
             View.CanModify = true;
@@ -314,7 +313,7 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder Standalone() // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
+        public MojViewBuilder Standalone()
         {
             if (View.Standalone.Is)
                 throw new MojenException("This view is already standalone.");
@@ -362,7 +361,9 @@ namespace Casimodo.Lib.Mojen
 
         void OnNamingChanged()
         {
-            View.Url = $"/{View.TypeConfig.PluralName}/{View.ControllerActionName}";
+            View.Url = "/" + View.TypeConfig.PluralName;
+            if (!string.IsNullOrEmpty(View.ControllerActionName) && View.ControllerActionName != "Index")
+                View.Url += "/" + View.ControllerActionName;
         }
 
         public virtual MojViewBuilder Details()
@@ -387,7 +388,7 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Mode = MojViewMode.Create | MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
             View.Kind.RoleName = "Editor";
-            View.Kind.RawAction = ActionName.Edit;
+            View.Kind.RawAction = ActionName.Editor;
 
             View.CanCreate = false;
             View.CanModify = false;
@@ -412,9 +413,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder SingleFilterable()
+        public MojViewBuilder NavigatableTo()
         {
-            View.IsGuidFilterable = true;
+            View.IsNavigatableTo = true;
             return this;
         }
 
@@ -601,6 +602,14 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder Title(string title)
         {
             View.Title = title;
+
+            return this;
+        }
+
+        public MojViewBuilder NotExportable()
+        {
+            View.IsExportableToPdf = false;
+            View.IsExportableToExcel = false;
 
             return this;
         }
