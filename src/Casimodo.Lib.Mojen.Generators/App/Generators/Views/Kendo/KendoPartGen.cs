@@ -119,6 +119,38 @@ namespace Casimodo.Lib.Mojen
             OEndComponentSpace(context);
         }
 
+        // KABU TODO: MAGIC: Move to config layer.
+        public class GeoPlaceLookupWebViewConfig
+        {
+            public Guid Id { get; set; } = new Guid("c2383283-cb48-4ece-9066-667f5c623a95");
+            public string Url { get; set; } = "/GoogleMap/Lookup";
+            public string Title { get; set; } = "Adresse suchen";
+            public int Width { get; set; } = 1000;
+            public int Height { get; set; } = 700;
+        }
+
+        public void OOpenGeoPlaceLookupView(WebViewGenContext context, Action ok, object options = null)
+        {
+            var view = new GeoPlaceLookupWebViewConfig();
+
+            Oo($"kendomodo.ui.openById('{view.Id}',");
+
+            if (options is Action)
+            {
+                ob("");
+                (options as Action)?.Invoke();
+                Oeo(",");
+            }
+            else
+                o(" {0},", MojenUtils.ToJsValue(options, quote: false));
+
+            ob(" function (result)");
+            OB("if (result.isOk)");
+            ok();
+            End();
+            End(");");
+        }
+
         public void OOpenLookupView(WebViewGenContext context, MojViewConfig lookupView, Action ok, object options = null)
         {
             Oo($"kendomodo.ui.openById('{lookupView.Id}',");

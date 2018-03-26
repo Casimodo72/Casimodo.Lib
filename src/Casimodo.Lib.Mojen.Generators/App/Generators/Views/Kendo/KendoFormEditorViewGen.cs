@@ -814,16 +814,6 @@ namespace Casimodo.Lib.Mojen
             return $"$(this).closest('.component-root')";
         }
 
-        // KABU TODO: MAGIC
-        class GeoPlaceLookupWebViewConfig
-        {
-            public Guid Id { get; set; } = new Guid("c2383283-cb48-4ece-9066-667f5c623a95");
-            public string Url { get; set; } = "/GoogleMap/Lookup";
-            public string Title { get; set; } = "Adresse suchen";
-            public int Width { get; set; } = 1000;
-            public int Height { get; set; } = 700;
-        }
-
         public bool OPropGeoPlaceLookupSelectorDialog(WebViewGenContext context)
         {
             var type = context.View.TypeConfig;
@@ -851,8 +841,6 @@ namespace Casimodo.Lib.Mojen
             OScriptBegin();
             O("// Geo place lookup dialog.");
 
-            var dialog = new GeoPlaceLookupWebViewConfig();
-
             OnSelectorButtonClick(context, () =>
             {
                 O($"var $container = {JQuerySelectEditorContainer()};");
@@ -868,50 +856,62 @@ namespace Casimodo.Lib.Mojen
                     }
                     End(");");
                 }
-                O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', info.PlaceInfo);");
-                O($"casimodo.ui.dialogArgs.add(args);");
 
-                // KABU TODO: VERY IMPORTANT: Check if this is still sane.
-                var cachedWindow = geoConfig.IsViewCached
-                    ? $"{context.SpaceName}CachedDialogFor{propPath.Replace(".", "")}"
-                    : "null";
+                KendoGen.OOpenGeoPlaceLookupView(context,
+                    // Set value and fire the "change" event for the binding to pick up the new value.
+                    ok: () => O("info.applyChanges();"),
+                    options: (Action)(() =>
+                    {
+                        //O("cache: {0},", MojenUtils.ToJsValue(geoConfig.IsViewCached));
+                        O("title: 'Adresse suchen',");
+                        O("maximize: true,");
+                        O("item: info.PlaceInfo");
+                    }));
+
+                //O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', info.PlaceInfo);");
+                //O($"casimodo.ui.dialogArgs.add(args);");
+
+                //// KABU TODO: VERY IMPORTANT: Check if this is still sane.
+                //var cachedWindow = geoConfig.IsViewCached
+                //    ? $"{context.SpaceName}CachedDialogFor{propPath.Replace(".", "")}"
+                //    : "null";
 
                 // Fetch the partial view from server into a Kendo modal window.
-                Oo($"var wnd = {cachedWindow} || $('<div/>').kendoWindow(");
-                KendoGen.OWindowOptions(new KendoWindowConfig
-                {
-                    Title = dialog.Title,
-                    Width = dialog.Width,
-                    Height = dialog.Height,
-                    IsModal = true,
-                    OnDeactivated = geoConfig.IsViewCached ? null : KendoWindowConfig.DestructorFunction
-                });
-                oO(")"); // Kendo window
-                O(".data('kendoWindow');");
+                //Oo($"var wnd = {cachedWindow} || $('<div/>').kendoWindow(");
+                //KendoGen.OWindowOptions(new KendoWindowConfig
+                //{
+                //    Title = dialog.Title,
+                //    Width = dialog.Width,
+                //    Height = dialog.Height,
+                //    IsModal = true,
+                //    OnDeactivated = geoConfig.IsViewCached ? null : KendoWindowConfig.DestructorFunction
+                //});
+                //oO(")"); // Kendo window
+                //O(".data('kendoWindow');");
 
-                O("kendomodo.setModalWindowBehavior(wnd);");
+                //O("kendomodo.setModalWindowBehavior(wnd);");
 
-                // Closing event handler
-                OB("wnd.one('close', function(e)");
-                OB("if (args.dialogResult === true)");
-                // Set the address fields to the selected values.
-                O("info.applyChanges();");
-                End();
-                End(");");
+                //// Closing event handler
+                //OB("wnd.one('close', function(e)");
+                //OB("if (args.dialogResult === true)");
+                //// Set the address fields to the selected values.
+                //O("info.applyChanges();");
+                //End();
+                //End(");");
 
-                if (geoConfig.IsViewCached)
-                {
-                    OB($"if ({cachedWindow} !== wnd)");
-                    O($"{cachedWindow} = wnd;");
-                    O($"wnd.refresh({{ url: '{dialog.Url}', cache: true }});");
-                    End();
-                }
-                else
-                {
-                    O($"wnd.refresh({{ url: '{dialog.Url}', cache: false }});");
-                }
+                //if (geoConfig.IsViewCached)
+                //{
+                //    OB($"if ({cachedWindow} !== wnd)");
+                //    O($"{cachedWindow} = wnd;");
+                //    O($"wnd.refresh({{ url: '{dialog.Url}', cache: true }});");
+                //    End();
+                //}
+                //else
+                //{
+                //    O($"wnd.refresh({{ url: '{dialog.Url}', cache: false }});");
+                //}
 
-                O("wnd.center().open();");
+                //O("wnd.center().open();");
             });
 
             OScriptEnd();
@@ -1047,10 +1047,6 @@ namespace Casimodo.Lib.Mojen
                     // Set value and fire the "change" event for the binding to pick up the new value.
                     ok: () => O($"$inputs.val(result.value).change();"),
                     options: "options");
-                //options: "options");
-
-
-
             });
             OScriptEnd();
 
