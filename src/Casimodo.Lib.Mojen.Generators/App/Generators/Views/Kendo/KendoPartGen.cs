@@ -50,6 +50,7 @@ namespace Casimodo.Lib.Mojen
                             modify: context.View.CanModify,
                             delete: context.View.CanDelete)));
 
+
                     O();
                     OViewModelOnEditing(context.View, context.View.CanCreate);
                 });
@@ -151,9 +152,9 @@ namespace Casimodo.Lib.Mojen
             End(");");
         }
 
-        public void OOpenLookupView(WebViewGenContext context, MojViewConfig lookupView, Action ok, object options = null)
+        public void OOpenDialogView(WebViewGenContext context, MojViewConfig dialogView, Action ok, object options = null)
         {
-            Oo($"kendomodo.ui.openById('{lookupView.Id}',");
+            Oo($"kendomodo.ui.openById('{dialogView.Id}',");
 
             if (options is Action)
             {

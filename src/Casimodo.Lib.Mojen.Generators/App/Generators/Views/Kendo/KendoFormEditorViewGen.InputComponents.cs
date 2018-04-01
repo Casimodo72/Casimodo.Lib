@@ -4,6 +4,64 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoFormEditorViewGen : KendoTypeViewGenBase
     {
+        // DateTime ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        void ODateTimeInput(MojViewPropInfo vinfo)
+        {
+            var vprop = vinfo.ViewProp;
+            var dprop = vinfo.TargetDisplayProp;
+            var propPath = vinfo.PropPath;
+
+            var time = vprop.DisplayDateTime ?? dprop.Type.DateTimeInfo;
+
+            string role;
+            if (time.IsDateAndTime)
+                role = "datetimepicker";
+            else if (time.IsDate)
+                role = "datepicker";
+            else
+                role = "timepicker";
+
+            Oo("<input");
+
+            oAttr("data-role", role);
+            //oAttr("type", "text");
+            oAttr("id", vinfo.PropPath);
+            oAttr("name", vinfo.PropPath);
+            //oAttr("type", "number");
+            //oAttr("data-type", "number");
+            oAttr("data-display-name", vprop.DisplayLabel);
+            // data-bind="value: CheckNumber"
+            oAttr("data-bind", $"value: {vinfo.PropPath}");
+
+            if (dprop.IsRequiredOnEdit)
+                oAttr("required", "");
+
+            OElemAttrs();
+
+            oO("/>");
+
+            /*
+             
+            <input class="form-control k-input" 
+                data-val="true" 
+                data-val-date="The field Datum must be a date." 
+                data-val-required="Das Feld &quot;Datum&quot; ist erforderlich." 
+                id="Date" 
+                name="Date" 
+                type="text" 
+                data-role="datepicker" 
+                role="combobox" 
+                aria-expanded="false" 
+                aria-owns="Date_dateview" 
+                aria-disabled="false" 
+                aria-readonly="false" 
+                data-bind="value:Date" 
+                style="width: 100%;">
+
+            */
+        }
+
         // NumericInput ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         void ONumericInputElemCore(MojViewProp vprop, MojProp prop, string propPath, int? min = null, int? max = null)

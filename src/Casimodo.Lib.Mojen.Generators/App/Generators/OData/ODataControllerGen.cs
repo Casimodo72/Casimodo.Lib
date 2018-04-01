@@ -96,6 +96,7 @@ namespace Casimodo.Lib.Mojen
                 "Casimodo.Lib",
                 "Casimodo.Lib.Data",
                 "Casimodo.Lib.Web",
+                "Casimodo.Lib.Web.Auth",
                 GetAllDataNamespaces()
             );
 
@@ -181,7 +182,7 @@ namespace Casimodo.Lib.Mojen
         // Create ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         void GenerateCreate()
-        {            
+        {
             GenerateCreateMain();
 
             var actions = new List<string>();
@@ -197,12 +198,26 @@ namespace Casimodo.Lib.Mojen
 
                 actions.Add(action);
 
+                // KABU TODO: This is never called anymore in our scenario.
                 GenerateCreateSingle(editorView);
             }
-
-            //GenerateCreateCore();
         }
 
+        public void OApiActionAuthAttribute(MojViewConfig view, string action)
+        {
+            O("[ApiActionAuth(Part = \"{0}\", Group = {1}, Action = \"{2}\")]",
+                view.TypeConfig.Name,
+                MojenUtils.ToCsValue(view.Group),
+                action);
+        }
+
+        public void OApiActionAuthAttribute(MojType type, string action)
+        {
+            O("[ApiActionAuth(Part = \"{0}\", Action = \"{1}\")]",
+                type.Name, action);
+        }
+
+        // KABU TODO: This is never called anymore in our scenario.
         void GenerateCreateSingle(MojViewConfig editorView)
         {
             if (editorView.Group == null)
@@ -213,6 +228,7 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             O();
+            OApiActionAuthAttribute(editorView, "Create");
             O("[HttpPost]");
             O($"public async Task<IHttpActionResult> {action}({Type.ClassName} model)");
             Begin();
@@ -223,6 +239,7 @@ namespace Casimodo.Lib.Mojen
         void GenerateCreateMain()
         {
             O();
+            OApiActionAuthAttribute(Type, "Create");
             O("[HttpPost]");
             O($"[ODataRoute]");
             O($"public async Task<IHttpActionResult> Post({Type.ClassName} model)");
@@ -276,6 +293,7 @@ namespace Casimodo.Lib.Mojen
 #endif
             // Default query function.
             O();
+            OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
             O($"[ODataRoute(\"{OData.Ns}.{OData.Query}()\")]");
             Oo("[EnableQuery(");
@@ -291,6 +309,7 @@ namespace Casimodo.Lib.Mojen
 
             // Distinct by property query function.
             O();
+            OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
             O($"[ODataRoute(\"{OData.Ns}.{OData.QueryDistinct}(on={{on}})\")]");
             O("[EnableQuery]");
@@ -299,9 +318,8 @@ namespace Casimodo.Lib.Mojen
             O($"return Ok(CustomFilter(_db.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
             End();
 
-
-
             O();
+            OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
             O("[ODataRoute]");
             O("public async Task<IEnumerable<{0}>> Get(ODataQueryOptions<{0}> query)", type.ClassName);
@@ -312,6 +330,7 @@ namespace Casimodo.Lib.Mojen
             // KABU TODO: IMPORTANT: Should this return null if not found? Currently a not found exception is thrown.
             // GET: odata/ControllerName(x)
             O();
+            OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
             O("[ODataRoute(\"({{{0}}})\"), EnableQuery]", keyName);
             O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, key.Type.Name, keyName);
@@ -368,6 +387,7 @@ namespace Casimodo.Lib.Mojen
                 // NOTE: For updates, grouped views will use OData *actions* (POST) rather than the default PUT method.
                 // POST: odata/ControllerName(x)/Ns.MethodName
                 // Async
+                OApiActionAuthAttribute(editorView, "Modify");
                 O("[HttpPost]");
                 // NOTE: The ID parameter *must* be named "key" by convention.
                 // Otherwise the action won't be found by the OData Web API machinery.
@@ -380,6 +400,7 @@ namespace Casimodo.Lib.Mojen
             {
                 // PUT: odata/ControllerName(x)
                 // Async
+                OApiActionAuthAttribute(editorView, "Modify");
                 O("[HttpPut]");
                 O($"[ODataRoute(\"({{{key.VName}}})\")]");
                 O($"public async Task<IHttpActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model)");
@@ -453,6 +474,7 @@ namespace Casimodo.Lib.Mojen
             // DELETE: odata/ControllerName(x)
             // Async
             O();
+            OApiActionAuthAttribute(Type, "Delete");
             O("[HttpDelete]");
             O("[ODataRoute(\"({{{0}}})\")]", key.VName);
             O("public async Task<IHttpActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);

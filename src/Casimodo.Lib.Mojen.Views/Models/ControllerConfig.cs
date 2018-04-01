@@ -142,6 +142,10 @@ namespace Casimodo.Lib.Mojen
             MojViewProp vprop, vduplicate;
             foreach (var prop in props.ToArray())
             {
+                if (!props.Contains(prop))
+                    // This one was already removed.
+                    continue;
+
                 duplicate = props.FirstOrDefault(x => x != prop && x.FormedTargetPath == prop.FormedTargetPath);
                 if (duplicate == null)
                     continue;
@@ -149,13 +153,12 @@ namespace Casimodo.Lib.Mojen
                 vprop = prop as MojViewProp;
                 if (vprop != null)
                 {
-                    if (vprop.View.Kind.Roles.HasFlag(MojViewRole.Editor))
+                    if (vprop.View.IsEditor)
                     {
                         vduplicate = (MojViewProp)duplicate;
 
                         // Check: only one edit view per view-group allowed.
-                        if (vprop.View != vduplicate.View &&
-                            vduplicate.View.Kind.Roles.HasFlag(MojViewRole.Editor))
+                        if (vprop.View != vduplicate.View && vduplicate.View.IsEditor)
                         {
                             // KABU TODO: Move this constraint to controller/view validation layer.
                             throw new MojenException($"Multiple edit views in the same view-group are not allowed.");

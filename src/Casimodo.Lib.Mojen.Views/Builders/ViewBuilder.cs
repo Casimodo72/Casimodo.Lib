@@ -88,13 +88,6 @@ namespace Casimodo.Lib.Mojen
         }
 
         public MojControllerBuilder ControllerBuilder { get; private set; }
-
-        public override MojViewBuilder Editor()
-        {
-            base.Editor();
-
-            return this;
-        }
     }
 
     public class MojViewBuilder
@@ -218,8 +211,8 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Page;
-            View.Kind.RoleName = ActionName.Index;
-            View.Kind.RawAction = ActionName.Index;
+            //View.Kind.RoleName = ActionName.Index;
+            View.Kind.RawControllerAction = ActionName.Index;
 
             View.CanCreate = true;
             View.CanModify = true;
@@ -234,8 +227,8 @@ namespace Casimodo.Lib.Mojen
             View.IsPartial = true;
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
-            View.Kind.RoleName = "List";
-            View.Kind.RawAction = "List";
+            //View.Kind.RoleName = "List";
+            View.Kind.RawControllerAction = "List";
 
             View.CanCreate = true;
             View.CanModify = true;
@@ -254,12 +247,12 @@ namespace Casimodo.Lib.Mojen
         //    return this;
         //}
 
-        public MojViewBuilder CustomAction(string name)
+        public MojViewBuilder CustomControllerAction(string name)
         {
             if (View.Group != null)
                 throw new MojenException("The view can't have a custom action name if a group was specified.");
-            View.Kind.RawAction = null;
 
+            View.Kind.RawControllerAction = null;
             View.CustomControllerActionName = name;
 
             OnNamingChanged();
@@ -267,15 +260,15 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder ComponentRole(string name)
-        {
-            View.Kind.RoleName = name;
-            OnNamingChanged();
+        //public MojViewBuilder ComponentRole(string name)
+        //{
+        //    View.Kind.RoleName = name;
+        //    OnNamingChanged();
 
-            return this;
-        }
+        //    return this;
+        //}
 
-        public MojViewBuilder SingleLookupListView(params MojProp[] parameters)
+        public MojViewBuilder SingleLookupView(params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
 
@@ -286,8 +279,8 @@ namespace Casimodo.Lib.Mojen
             View.Kind.Roles = MojViewRole.Lookup;
 
             //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
-            View.Kind.RawAction = ActionName.Lookup;
-            View.Kind.RoleName = MojViewRole.Lookup.ToString();
+            View.Kind.RawControllerAction = ActionName.Lookup;
+            //View.Kind.RoleName = MojViewRole.Lookup.ToString();
             View.Group = null; // "Lookup";
 
             View.CanCreate = false;
@@ -323,12 +316,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder ListDialog()  // KABU TODO: REMOVE? Not used: params MojProp[] parameters)
+        public MojViewBuilder ListDialog()
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
-            View.Kind.RoleName = "List";
-            View.Kind.RawAction = "List";
+            //View.Kind.RoleName = "List";
+            View.Kind.RawControllerAction = "List";
             View.Group = "Standalone";
 
             View.CanCreate = false;
@@ -370,8 +363,8 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
-            View.Kind.RoleName = ActionName.Details;
-            View.Kind.RawAction = ActionName.Details;
+            //View.Kind.RoleName = ActionName.Details;
+            View.Kind.RawControllerAction = ActionName.Details;
 
             View.CanCreate = false;
             View.CanModify = false;
@@ -383,16 +376,36 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public virtual MojViewBuilder Editor()
+        public virtual MojViewBuilder Editor(params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Create | MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
-            View.Kind.RoleName = "Editor";
-            View.Kind.RawAction = ActionName.Editor;
+            //View.Kind.RoleName = "Editor";
+            View.Kind.RawControllerAction = ActionName.Editor;
 
             View.CanCreate = false;
             View.CanModify = false;
             View.CanDelete = false;
+
+            if (parameters != null)
+                View.Parameters.AddRange(parameters);
+
+            Title(View.TypeConfig.DisplayName);
+            OnNamingChanged();
+
+            return this;
+        }
+
+        public virtual MojViewBuilder Custom(string role, params MojProp[] parameters)
+        {
+            View.Kind.Mode = MojViewMode.None;
+            View.Kind.Roles = MojViewRole.None;
+            View.CustomRoleName = role;
+            //View.Kind.RoleName = null;
+            View.Kind.RawControllerAction = role;
+
+            if (parameters != null)
+                View.Parameters.AddRange(parameters);
 
             Title(View.TypeConfig.DisplayName);
             OnNamingChanged();

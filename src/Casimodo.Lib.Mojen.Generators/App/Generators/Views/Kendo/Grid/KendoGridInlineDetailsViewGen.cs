@@ -11,18 +11,20 @@ namespace Casimodo.Lib.Mojen
     /// </summary>
     public class KendoGridInlineDetailsViewGen : KendoReadOnlyViewGenBase
     {
-        public override void OPropLabel(WebViewGenContext context)
-        {
-            var vitem = context.PropInfo;
+        // KABU TODO: IMPORTANT: Evaluate if we still really need this.
 
-            Oo($"<label for='{vitem.PropPath}' class='{LabelClass}'>");
+        //public override void OPropLabel(WebViewGenContext context)
+        //{
+        //    var vitem = context.PropInfo;
 
-            if (vitem.CustomDisplayLabel != null)
-                o(vitem.CustomDisplayLabel);
-            else
-                o($"@(Html.DisplayNameFor(x => x.{vitem.PropPath}).ToKendoTemplate())");
+        //    Oo($"<label for='{vitem.PropPath}' class='{LabelClass}'>");
 
-            oO("</label>");
-        }
+        //    if (vitem.CustomDisplayLabel != null)
+        //        o(vitem.CustomDisplayLabel);
+        //    else
+        //        o($"@(Html.DisplayNameFor(x => x.{vitem.PropPath}).ToKendoTemplate())");
+
+        //    oO("</label>");
+        //}
     }
 }

@@ -53,26 +53,6 @@ namespace Casimodo.Lib.Mojen
             XE("</div>");
         }
 
-        // KABU TODO: REMOVE:
-        //public string GetGenericPropArgs(WebViewGenContext context)
-        //{
-        //    return $"<{context.View.TypeConfig.RequiredStore.ClassName}>"; // KABU TODO: REMOVE: , {context.PropInfo.Prop.Type.Name}>";
-        //}
-
-        public override void OPropLabel(WebViewGenContext context)
-        {
-            var vitem = context.PropInfo;
-
-            Oo($"<label for='{vitem.PropPath}' class='{LabelClass}'>");
-
-            if (vitem.CustomDisplayLabel != null)
-                o(vitem.CustomDisplayLabel);
-            else
-                o($"@(Html.DisplayNameFor(x => x.{vitem.PropPath}))");
-
-            oO("</label>");
-        }
-
         public override void OProp(WebViewGenContext context)
         {
             var vprop = context.PropInfo.ViewProp;

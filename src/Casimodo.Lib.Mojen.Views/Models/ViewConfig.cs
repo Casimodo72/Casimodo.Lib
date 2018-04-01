@@ -133,6 +133,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewKindConfig Kind { get; set; } = new MojViewKindConfig();
 
+        public List<MojProp> Parameters { get; set; } = new List<MojProp>();
+
         public bool IsPage
         {
             get { return Kind.Roles.HasFlag(MojViewRole.Page); }
@@ -158,10 +160,15 @@ namespace Casimodo.Lib.Mojen
             get { return Kind.Roles.HasFlag(MojViewRole.Lookup); }
         }
 
+        public string CustomRoleName { get; set; }
+
         public string MainRoleName
         {
             get
             {
+                if (CustomRoleName != null)
+                    return CustomRoleName;
+
                 var roles = Kind.Roles;
                 if (IsPage)
                     return "Page";
@@ -191,7 +198,7 @@ namespace Casimodo.Lib.Mojen
                 if (CustomControllerActionName != null)
                     return CustomControllerActionName;
 
-                return (Group ?? "") + Kind.RawAction;
+                return (Group ?? "") + Kind.RawControllerAction;
             }
         }
 

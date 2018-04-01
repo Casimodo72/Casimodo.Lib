@@ -21,10 +21,10 @@ namespace Casimodo.Lib.Mojen
     {
         public MojViewRole Roles { get; set; }
 
-        public string RoleName { get; set; }
+        //public string RoleName { get; set; }
 
         public MojViewMode Mode { get; set; }
 
-        public string RawAction { get; set; }        
+        public string RawControllerAction { get; set; }        
     }
 }

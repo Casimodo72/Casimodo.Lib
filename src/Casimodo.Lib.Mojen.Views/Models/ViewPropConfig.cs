@@ -294,7 +294,7 @@ namespace Casimodo.Lib.Mojen
         public int Position { get; set; }
 
         public int? Width { get; set; }
-        
+
         // TODO: REMOVE: public MojProp ColorProp { get; set; }
 
         public bool IsHtml { get; set; }
@@ -340,7 +340,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsExternal { get; set; }
 
-        public MojFontWeight FontWeight { get; set; }       
+        public MojFontWeight FontWeight { get; set; }
 
         public int VisiblePosition { get; set; }
 
@@ -349,13 +349,11 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojViewConfig ContentView { get; set; }
 
-        public string GetHideModesMarker()
+        public string GetRemoveOnMarkerClasses()
         {
-            string path = this.BuildViewPropInfo(selectable: IsSelector).PropPath.Replace(".", "-");
-            string hide = HideModes.ToString().Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).Join("-"); ;
-            string result = $"hide-{path}-on-{hide}";
-
-            return result;
+            return HideModes.ToString().Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => "remove-on-" + x)
+                .Join(" ");
         }
 
         /// <summary>

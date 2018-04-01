@@ -50,9 +50,9 @@ namespace Casimodo.Lib.Mojen
             return View(id).List();
         }
 
-        public MojViewBuilder EditorView(string id)
+        public MojViewBuilder EditorView(string id, params MojProp[] parameters)
         {
-            return View(id).Editor();
+            return View(id).Editor(parameters);
         }
 
         public MojViewBuilder ListDialog(string id)
@@ -63,12 +63,12 @@ namespace Casimodo.Lib.Mojen
                 .CanDelete(false);
         }
 
-        public MojViewBuilder LookupSingleView(string id, params MojProp[] parameters)
+        public MojViewBuilder SingleLookupView(string id, params MojProp[] parameters)
         {
-            return View(id).SingleLookupListView(parameters);
+            return View(id).SingleLookupView(parameters);
         }
 
-        MojViewBuilder View(string id = null)
+        public MojViewBuilder View(string id = null)
         {
             Guard.ArgNotNullOrWhitespace(id, nameof(id));
 

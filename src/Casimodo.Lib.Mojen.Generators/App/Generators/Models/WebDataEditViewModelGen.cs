@@ -34,7 +34,8 @@ namespace Casimodo.Lib.Mojen
 
         public List<string> Namespaces { get; private set; }
 
-        public void GenerateEditViewModel(MojType type, List<MojViewPropInfo> editorViewPropInfos, string viewGroup)
+        public void GenerateEditViewModel(MojType type, List<MojViewPropInfo> editorViewPropInfos, string viewGroup,
+            bool isDateTimeOffsetSupported = true)
         {
             var propInfos = new List<MojViewPropInfo>();
 
@@ -133,7 +134,15 @@ namespace Casimodo.Lib.Mojen
                 // Ensure we use entity props not their models.
                 effectivePropType = prop.IsEntity() ? prop.Type : prop.RequiredStore.Type;
 
-                O($"public {effectivePropType.Name} {prop.Name} {{ get; set; }}");
+                var typeName = effectivePropType.Name;
+
+                // KABU TODO: MAGIC hack for missing Kendo editor for DateTimeOffset (as of Kendo version 2016.1).
+                if (!isDateTimeOffsetSupported && effectivePropType.TypeNormalized == typeof(DateTimeOffset))
+                {
+                    typeName = typeName.Replace("DateTimeOffset", "DateTime");
+                }
+
+                O($"public {typeName} {prop.Name} {{ get; set; }}");
 
                 O();
             }

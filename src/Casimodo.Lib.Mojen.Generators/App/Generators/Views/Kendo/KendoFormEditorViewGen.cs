@@ -57,7 +57,8 @@ namespace Casimodo.Lib.Mojen
 
                 dataViewModelGen.PerformWrite(Path.Combine(GetViewDirPath(view), BuildEditorDataModelFileName(view)), () =>
                 {
-                    dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group);
+                    dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group,
+                        isDateTimeOffsetSupported: false);
                 });
 
                 RegisterComponent(context);
@@ -194,7 +195,7 @@ namespace Casimodo.Lib.Mojen
             var hideProp = context.RunProps.Select(x => x.Prop).FirstOrDefault(x => x.HideModes != MojViewMode.None);
             if (hideProp != null)
             {
-                @class += " " + hideProp.GetHideModesMarker();
+                @class += " " + hideProp.GetRemoveOnMarkerClasses();
             }
 
             return @class;
@@ -211,17 +212,20 @@ namespace Casimodo.Lib.Mojen
                     // Labels of check-boxes are display right hand singe of the check-box.
                     return;
 
-                Oo($"@Html.LabelFor(m => m.{info.PropPath}");
+                base.OPropLabel(context);
 
-                // Show customized text if explicitely defined on the view property.
-                if (info.CustomDisplayLabel != null)
-                    o($", \"{info.CustomDisplayLabel}\"");
+                // KABU TODO: REMOVE
+                //Oo($"@Html.LabelFor(m => m.{info.PropPath}");
 
-                if (!string.IsNullOrEmpty(LabelClass))
-                    ElemClass(LabelClass);
-                OMvcAttrs(false);
+                //// Show customized text if explicitely defined on the view property.
+                //if (info.CustomDisplayLabel != null)
+                //    o($", \"{info.CustomDisplayLabel}\"");
 
-                oO(")");
+                //if (!string.IsNullOrEmpty(LabelClass))
+                //    ElemClass(LabelClass);
+                //OMvcAttrs(false);
+
+                //oO(")");
             }
             else
             {
@@ -320,10 +324,11 @@ namespace Casimodo.Lib.Mojen
         public void OPropEditableCore(WebViewGenContext context)
         {
             var type = context.View.TypeConfig;
-            var info = context.PropInfo;
-            var vprop = info.ViewProp;
-            var prop = info.Prop;
-            var propPath = info.PropPath;
+            var vinfo = context.PropInfo;
+            var vprop = vinfo.ViewProp;
+            var propPath = vinfo.PropPath;
+            var dprop = vinfo.TargetDisplayProp;
+            var vpropType = vinfo.TargetDisplayProp.Type;
 
             bool validationBox = true;
 
@@ -331,7 +336,7 @@ namespace Casimodo.Lib.Mojen
 
             // Add "form-control" class.
             // Except for Kendo's numeric boxes, which just break if using bootstrap's form-control class.
-            if (!prop.Type.IsNumber)
+            if (!vpropType.IsNumber)
             {
                 ElemClass("form-control");
             }
@@ -341,7 +346,7 @@ namespace Casimodo.Lib.Mojen
                 O($"@Html.Partial(\"{vprop.CustomEditorViewName}\")");
             }
             // NOTE: Enums are also numbers here, so ensure the enum handler comes first.
-            else if (prop.Type.IsEnum)
+            else if (vpropType.IsEnum)
             {
                 // .Name(\"{0}\")
                 O($"@(Html.Kendo().DropDownListFor(m => m.{propPath}).DataValueField(\"Value\").DataTextField(\"Text\").ValuePrimitive(true)");
@@ -352,77 +357,28 @@ namespace Casimodo.Lib.Mojen
                 O(".OptionLabel(\" \")");
 
                 O(".BindTo(PickItemsHelper.ToSelectList<{0}>(nullable: {1}, names: true))",
-                    prop.Type.NameNormalized,
-                    MojenUtils.ToCsValue(prop.IsRequiredOnEdit));
+                    vpropType.NameNormalized,
+                    MojenUtils.ToCsValue(dprop.IsRequiredOnEdit));
 
                 OMvcAttrs(context, kendo: true);
-                OToClientTemplate();
 
                 Pop();
                 O(")");
             }
-            else if (prop.Type.IsNumber)
+            else if (vpropType.IsNumber)
             {
-                ONumericInput(vprop, prop, propPath);
+                ONumericInput(vprop, dprop, propPath);
                 validationBox = false;
             }
-            // KABU TODO: REMOVE?: We don't use the MVC wrapper anymore.
-#if (false)
-            else if (prop.Type.IsNumber)
-            {
-                Oo($"@(Html.Kendo().NumericTextBoxFor(m => m.{propPath})");
-
-                // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
-                // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
-                var format = "#.##"; // "{0:#.##}";
-                if (prop.Type.IsInteger)
-                {
-                    // Float number
-                    format = "#";
-                }
-
-                o($".Format(\"{format}\")");
-
-                if (prop.Type.IsInteger)
-                    o($".Decimals(0)");
-
-                if (prop.Rules.Is)
-                {
-                    var constr = prop.Rules;
-                    if (constr.Min != null)
-                        o($".Min({constr.Min})");
-                    if (constr.Max != null)
-                        o($".Max({constr.Max})");
-                }
-
-                var defaultValue = prop.DefaultValues.ForScenario("OnEdit").WithCommon().FirstOrDefault();
-                if (defaultValue != null)
-                {
-                    if (defaultValue.CommonValue != null)
-                    {
-                        if (defaultValue.CommonValue == MojDefaultValueCommon.CurrentYear)
-                        {
-                            o(".Value(DateTime.Now.Year)");
-                        }
-                        else throw new MojenException($"Unexpected common default value '{defaultValue.CommonValue}'.");
-                    }
-                    else throw new MojenException($"Unexpected default value object '{defaultValue.Value}'.");
-                }
-
-                OMvcAttrs(context, kendo: true);
-                OToClientTemplate();
-                oO(")");
-            }
-#endif
             // Uploadable image property
-            else if (prop.FileRef.Is &&
+            else if (dprop.FileRef.Is &&
 #pragma warning disable CS0618 // Type or member is obsolete
-                prop.FileRef.IsUploadable &&
+                dprop.FileRef.IsUploadable &&
 #pragma warning restore CS0618 // Type or member is obsolete
-                prop.FileRef.IsImage)
+                dprop.FileRef.IsImage)
             {
-                string name = context.View.TypeConfig.ClassName + prop.Alias;
-                string alias = prop.Alias;
+                string name = context.View.TypeConfig.ClassName + dprop.Alias;
+                string alias = dprop.Alias;
                 string uploadTemplateId = name + "Template";
 
                 // KABU TODO: IMPL currently disabled
@@ -472,61 +428,62 @@ namespace Casimodo.Lib.Mojen
                 AddAttr("max-width", "100px");
                 OMvcAttrs(true);
 
-                OToClientTemplate();
-
                 oO(")");
                 Pop();
 #endif
             }
-            else if (prop.FileRef.Is)
+            else if (dprop.FileRef.Is)
             {
-                throw new MojenException($"Unsupported filed reference property.");
+                throw new MojenException($"Unsupported file reference property.");
             }
-            else if (prop.Reference.Is)
+            else if (dprop.Reference.Is)
             {
                 throw new MojenException($"Unsupported reference property.");
             }
-            else if (prop.IsColor)
+            else if (dprop.IsColor)
             {
                 Oo("@(Html.Kendo().ColorPickerFor(m => m.{0}).Opacity({1})",
                     propPath,
-                    MojenUtils.ToCsValue(prop.IsColorWithOpacity));
-                OToClientTemplate();
+                    MojenUtils.ToCsValue(dprop.IsColorWithOpacity));
                 oO(")");
             }
-            else if (prop.Type.IsAnyTime)
+            else if (vpropType.IsAnyTime)
             {
-                var time = vprop.DisplayDateTime ?? prop.Type.DateTimeInfo;
+                ODateTimeInput(context.PropInfo);
 
-                string kind;
-                if (time.IsDateAndTime)
-                    kind = "DateTime";
-                else if (time.IsDate)
-                    kind = "Date";
-                else
-                    kind = "Time";
+                // KABU TODO: REMOVE
+                //var time = vprop.DisplayDateTime ?? vpropType.DateTimeInfo;
 
-                // KABU TODO: REVISIT: Kendo does not support DateTimeOffset pickers (yet?), only DateTime.                
-                if (prop.Type.TypeNormalized == typeof(DateTimeOffset))
-                {
-                    // Fallback to generic editor.
-                    Oo($"@(Html.EditorFor(m => m.{propPath}");
-                    OMvcAttrs(context, kendo: false);
-                    oO("))");
-                }
-                else
-                {
-                    O($"@(Html.Kendo().{kind}PickerFor(m => m.{propPath})");
-                    OMvcAttrs(context, kendo: true);
-                    OToClientTemplate();
-                    oO(")");
-                }
+                //string kind;
+                //if (time.IsDateAndTime)
+                //    kind = "DateTime";
+                //else if (time.IsDate)
+                //    kind = "Date";
+                //else
+                //    kind = "Time";
+
+                //// KABU TODO: REMOVE: We changed the descriptive web data view model to have
+                ////   DateTime props instead of DateTimeOffset props.
+                //// KABU TODO: REVISIT: Kendo does not support DateTimeOffset pickers (yet?), only DateTime.                
+                //if (false && vpropType.TypeNormalized == typeof(DateTimeOffset))
+                //{
+                //    // Fallback to generic editor.
+                //    Oo($"@(Html.EditorFor(m => m.{propPath}");
+                //    OMvcAttrs(context, kendo: false);
+                //    oO("))");
+                //}
+                //else
+                //{
+                //    O($"@(Html.Kendo().{kind}PickerFor(m => m.{propPath})");
+                //    OMvcAttrs(context, kendo: true);
+                //    oO(")");
+                //}
             }
-            else if (prop.Type.IsTimeSpan)
+            else if (vpropType.IsTimeSpan)
             {
-                OTimeSpanInput(vprop, prop, propPath);
+                OTimeSpanInput(vprop, dprop, propPath);
             }
-            else if (prop.Type.IsString)
+            else if (vpropType.IsString)
             {
                 OStringEditor(context);
             }
@@ -567,7 +524,6 @@ namespace Casimodo.Lib.Mojen
 
                 O("@(Html.Kendo().TextBoxFor(m => m.{0})", context.PropInfo.PropPath);
                 OMvcAttrs(context, kendo: true);
-                OToClientTemplate();
                 oO(")");
             }
         }
@@ -610,18 +566,13 @@ namespace Casimodo.Lib.Mojen
                 [DataType.Currency] = "number"
             };
 
-        void OToClientTemplate()
-        {
-            // if (IsClientTemplate) o(".ToClientTemplate()");
-        }
-
         // Selectors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         public bool OPropSelector(WebViewGenContext context)
         {
             return
                 OPropTagsSelector(context) ||
-                OPropSnippetSelector(context) ||
+                OPropSnippetsEditor(context) ||
                 OPropSequenceSelector(context) ||
                 OPropLookupSelectorDialog(context) ||
                 OPropGeoPlaceLookupSelectorDialog(context) ||
@@ -642,8 +593,13 @@ namespace Casimodo.Lib.Mojen
         {
             var propPath = context.PropInfo.PropPath;
 
+            // Start new control action.
+            context.CurControlAction.ControlIndex++;
+            context.CurControlAction.CurrentId =
+                $"view-action-{context.View.Id}-{context.CurControlAction.ControlIndex.ToString().PadLeft(2, '0')}-for-{propPath}";
+
             XB("<span class='input-group-btn'>");
-            XB($"<button class='btn btn-default selector-btn' id='editor-btn-for-{propPath}'{GetElemAttrs()}>");
+            XB($"<button class='btn btn-default selector-btn' id='{context.CurControlAction.CurrentId}'{GetElemAttrs()}>");
             //if (!string.IsNullOrEmpty(text)) O($"<span>{text}</span>");
             O("<span class='glyphicon glyphicon-search'></span>");
             XE("</button>");
@@ -700,7 +656,7 @@ namespace Casimodo.Lib.Mojen
                 O($"var $container = {JQuerySelectEditorContainer()};");
                 O($"var item = $container.find('input').first().prop('kendoBindingTarget').source;");
 
-                KendoGen.OOpenLookupView(context, dialog,
+                KendoGen.OOpenDialogView(context, dialog,
                     // Set value and fire the "change" event for the binding to pick up the new value.
                     ok: () => O($"kendomodo.addEntityToObservableArray(item.{propPath}, result.item, '{targetType.Key.Name}');"));
             });
@@ -867,51 +823,6 @@ namespace Casimodo.Lib.Mojen
                         O("maximize: true,");
                         O("item: info.PlaceInfo");
                     }));
-
-                //O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', info.PlaceInfo);");
-                //O($"casimodo.ui.dialogArgs.add(args);");
-
-                //// KABU TODO: VERY IMPORTANT: Check if this is still sane.
-                //var cachedWindow = geoConfig.IsViewCached
-                //    ? $"{context.SpaceName}CachedDialogFor{propPath.Replace(".", "")}"
-                //    : "null";
-
-                // Fetch the partial view from server into a Kendo modal window.
-                //Oo($"var wnd = {cachedWindow} || $('<div/>').kendoWindow(");
-                //KendoGen.OWindowOptions(new KendoWindowConfig
-                //{
-                //    Title = dialog.Title,
-                //    Width = dialog.Width,
-                //    Height = dialog.Height,
-                //    IsModal = true,
-                //    OnDeactivated = geoConfig.IsViewCached ? null : KendoWindowConfig.DestructorFunction
-                //});
-                //oO(")"); // Kendo window
-                //O(".data('kendoWindow');");
-
-                //O("kendomodo.setModalWindowBehavior(wnd);");
-
-                //// Closing event handler
-                //OB("wnd.one('close', function(e)");
-                //OB("if (args.dialogResult === true)");
-                //// Set the address fields to the selected values.
-                //O("info.applyChanges();");
-                //End();
-                //End(");");
-
-                //if (geoConfig.IsViewCached)
-                //{
-                //    OB($"if ({cachedWindow} !== wnd)");
-                //    O($"{cachedWindow} = wnd;");
-                //    O($"wnd.refresh({{ url: '{dialog.Url}', cache: true }});");
-                //    End();
-                //}
-                //else
-                //{
-                //    O($"wnd.refresh({{ url: '{dialog.Url}', cache: false }});");
-                //}
-
-                //O("wnd.center().open();");
             });
 
             OScriptEnd();
@@ -1043,7 +954,7 @@ namespace Casimodo.Lib.Mojen
                     O($"options.filters.push(filter);");
                 }
 
-                KendoGen.OOpenLookupView(context, dialog,
+                KendoGen.OOpenDialogView(context, dialog,
                     // Set value and fire the "change" event for the binding to pick up the new value.
                     ok: () => O($"$inputs.val(result.value).change();"),
                     options: "options");
@@ -1196,8 +1107,6 @@ namespace Casimodo.Lib.Mojen
             ElemClass("form-control");
             OMvcAttrs(context, kendo: true);
 
-            OToClientTemplate();
-
             Pop();
             oO(")"); // DropDownList
 
@@ -1207,19 +1116,19 @@ namespace Casimodo.Lib.Mojen
             return true;
         }
 
-        // Snippet selector ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Text snippets editor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public bool OPropSnippetSelector(WebViewGenContext context)
+        public bool OPropSnippetsEditor(WebViewGenContext context)
         {
             var type = context.View.TypeConfig;
             var info = context.PropInfo;
             var vprop = info.ViewProp;
-            var prop = info.Prop;
+            var dprop = info.TargetDisplayProp;
             var propPath = info.PropPath;
 
             if (!vprop.Snippets.Is) return false;
 
-            var dialog = App.Get<MojSnippetsEditorConfig>().View;
+            var snippetsEditorView = App.Get<MojSnippetsEditorConfig>().View;
 
             // Input group with text editor and button.
             XB("<div class='input-group'>");
@@ -1239,45 +1148,67 @@ namespace Casimodo.Lib.Mojen
             O($"// Snippet editor for {propPath}");
             OnSelectorButtonClick(context, () =>
             {
-                O($"var inputs = $(\"textarea[name='{propPath}'], input[name='{propPath}']\");");
+                O($"var input = $(\"textarea[name='{propPath}'], input[name='{propPath}']\").first();");
 
-                O($"var args = new casimodo.ui.DialogArgs('{dialog.Id}', inputs.first().val());");
-                O($"args.mode = '{vprop.Type.MultilineString.Mode}';");
-                O("casimodo.ui.dialogArgs.add(args);");
+                //O($"var args = new casimodo.ui.DialogArgs('{textLookupView.Id}', inputs.first().val());");
+                //O($"args.mode = '{vprop.Type.MultilineString.Mode}';");
+                //O("casimodo.ui.dialogArgs.add(args);");
 
-                // Compute URL with parameters.
-                var url = dialog.Url + "/?";
-                int i = 0;
-                foreach (var p in dialog.Lookup.Parameters)
-                {
-                    if (i++ > 0) url += "&";
-                    url += $"{p.VName}={vprop.Snippets.Args[p.Name]}";
-                }
+                //// Compute URL with parameters.
+                //var url = textLookupView.Url + "/?";
+                //int i = 0;
+                //foreach (var p in textLookupView.Lookup.Parameters)
+                //{
+                //    if (i++ > 0) url += "&";
+                //    url += $"{p.VName}={vprop.Snippets.Args[p.Name]}";
+                //}
 
-                // Fetch the partial view from server into a Kendo modal window.
-                Oo($"var wnd = $('<div/>').appendTo({JQuerySelectEditorContainer()}).kendoWindow(");
-                KendoGen.OWindowOptions(new KendoWindowConfig(dialog)
-                {
-                    IsParentModal = context.View.IsModal,
-                    IsModal = true,
-                    OnClosing = new Action(() =>
+                KendoGen.OOpenDialogView(context, snippetsEditorView,
+                    // Set value and fire the "change" event for the binding to pick up the new value.
+                    options: new Action(() =>
                     {
-                        // Closing event handler
-                        ob($"function (e)");
-                        OB("if (args.dialogResult === true)");
+                        O("mode: '{0}',", vprop.Type.MultilineString.Mode);
+
+                        O("value: input.val(),");
+
+                        if (snippetsEditorView.Parameters.Any())
+                        {
+                            OB("params:");
+                            foreach (var p in snippetsEditorView.Parameters)
+                                O("{0}: {1},", p.VName, MojenUtils.ToJsValue(vprop.Snippets.Args[p.Name]));
+                            End();
+                        }
+                    }),
+                    ok: () =>
+                    {
                         // Set value and fire the change event for the binding to pick up the new value.
-                        O($"inputs.val(args.value).change();");
-                        End();
-                        End();
-                    })
-                });
-                oO(").data('kendoWindow');"); // Kendo window
+                        O($"input.val(args.value).change();");
+                    });
 
-                O("kendomodo.setModalWindowBehavior(wnd);");
+                //// Fetch the partial view from server into a Kendo modal window.
+                //Oo($"var wnd = $('<div/>').appendTo({JQuerySelectEditorContainer()}).kendoWindow(");
+                //KendoGen.OWindowOptions(new KendoWindowConfig(textLookupView)
+                //{
+                //    IsParentModal = context.View.IsModal,
+                //    IsModal = true,
+                //    OnClosing = new Action(() =>
+                //    {
+                //        // Closing event handler
+                //        ob($"function (e)");
+                //        OB("if (args.dialogResult === true)");
+                //        // Set value and fire the change event for the binding to pick up the new value.
+                //        O($"inputs.val(args.value).change();");
+                //        End();
+                //        End();
+                //    })
+                //});
+                //oO(").data('kendoWindow');"); // Kendo window
 
-                O("wnd.center().open();");
+                //O("kendomodo.setModalWindowBehavior(wnd);");
 
-                O($"wnd.refresh({{ url: '{url}', cache: {MojenUtils.ToJsValue(dialog.IsCachedOnClient)} }});");
+                //O("wnd.center().open();");
+
+                //O($"wnd.refresh({{ url: '{url}', cache: {MojenUtils.ToJsValue(textLookupView.IsCachedOnClient)} }});");
 
             });
             OScriptEnd();
@@ -1287,10 +1218,8 @@ namespace Casimodo.Lib.Mojen
 
         void OnSelectorButtonClick(WebViewGenContext context, Action content)
         {
-            var propPath = context.PropInfo.PropPath;
-
             // On button click...
-            OB($"$('#editor-btn-for-{propPath}').click(function (e)");
+            OB($"$('#{context.CurControlAction.CurrentId}').click(function (e)");
 
             content();
 

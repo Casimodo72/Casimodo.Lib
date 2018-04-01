@@ -494,10 +494,10 @@ namespace Casimodo.Lib.Mojen
                     if (context.View.IsEditor)
                     {
                         if (hideModes.HasFlag(MojViewMode.Create))
-                            @class += " hide-on-Create";
+                            @class += " remove-on-Create";
 
                         if (hideModes.HasFlag(MojViewMode.Update))
-                            @class += " hide-on-Update";
+                            @class += " remove-on-Update";
                     }
 
                     if (!context.View.IsEditor && hideModes.HasFlag(MojViewMode.Read))
@@ -592,7 +592,18 @@ namespace Casimodo.Lib.Mojen
         public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = (context) => { };
 
         public virtual void OPropLabel(WebViewGenContext context)
-        { }
+        {
+            var vitem = context.PropInfo;
+
+            Oo($"<label for='{vitem.PropPath}' class='{LabelClass}'>");
+
+            if (vitem.CustomDisplayLabel != null)
+                o(vitem.CustomDisplayLabel);
+            else
+                o($"@(Html.DisplayNameFor(x => x.{vitem.PropPath}))");
+
+            oO("</label>");
+        }
 
         public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = (context) => { };
 

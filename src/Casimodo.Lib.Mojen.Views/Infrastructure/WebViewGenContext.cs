@@ -4,6 +4,12 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class WebViewGenControlActionContext
+    {
+        public int ControlIndex { get; set; }
+        public string CurrentId { get; set; }
+    }
+
     public class WebViewGenContext
     {
         public string UINamespace { get; set; }
@@ -30,6 +36,8 @@ namespace Casimodo.Lib.Mojen
         public MojViewPropInfo PropInfo { get; set; }
 
         public ViewTemplateItem Cur { get; set; }
+
+        public WebViewGenControlActionContext CurControlAction { get; set; } = new WebViewGenControlActionContext();
 
         public List<ViewTemplateItem> Run { get; set; }
         public List<ViewTemplateItem> RunProps { get; set; }

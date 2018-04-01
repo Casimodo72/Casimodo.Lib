@@ -11,9 +11,8 @@ namespace Casimodo.Lib.Mojen
         public void OViewModelOnEditing(MojViewConfig view, bool canCreate)
         {
             OB("fn.onEditingGenerated = function(context)");
-            O("var self = this;");           
+            O("var self = this;");
 
-            GenOnEditing_Hide(view);
             GenOnEditing_OnPropChanged(view);
             GenOnEditing_ExtendEditModel(view);
             GenOnEditing_QueryReferencedObject(view, canCreate);
@@ -21,6 +20,17 @@ namespace Casimodo.Lib.Mojen
 
             End(";");
         }
+
+        // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
+        //public void OViewModelOnPrepareView(MojViewConfig view)
+        //{
+        //    OB("fn.onPrepareView = function(context)");
+        //    O("var self = this;");
+
+        //    GenOnPrepareView_Hide(view);          
+
+        //    End(";");
+        //}
 
         void GenOnEditing_SetLoggedInPerson(MojViewConfig view)
         {
@@ -35,47 +45,49 @@ namespace Casimodo.Lib.Mojen
             End();
         }
 
-        void GenOnEditing_Hide(MojViewConfig view)
-        {
-            var hideProps = view.Props.Where(x =>
-                x.HideModes != MojViewMode.None &&
-                x.HideModes != MojViewMode.All)
-                .ToArray();
+        // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
+        //void GenOnPrepareView_Hide(MojViewConfig view)
+        //{
+        //    var hideProps = view.Props.Where(x =>
+        //        x.HideModes != MojViewMode.None &&
+        //        x.HideModes != MojViewMode.All)
+        //        .ToArray();
 
-            if (!hideProps.Any())
-                return;
+        //    if (!hideProps.Any())
+        //        return;
 
-            O();
+        //    O();
 
-            // Hide properties on create.
-            var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
-            if (props.Any())
-            {
-                // Execute when the model *is* new.
-                OB("if (context.isNew)");
-                GenOnEditing_HideProps(props);
-                End();
-            }
+        //    // Hide properties on create.
+        //    var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
+        //    if (props.Any())
+        //    {
+        //        // Execute when creating new.
+        //        OB("if (context.mode === 'create')");
+        //        GenOnPrepareView_HideProps(props);
+        //        End();
+        //    }
 
-            // Hide properties on update.
-            props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
-            if (props.Any())
-            {
-                // Execute when the model is *not* new.
-                OB("if (!context.isNew)");
-                GenOnEditing_HideProps(props);
-                End();
-            }
-        }
+        //    // Hide properties on update.
+        //    props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
+        //    if (props.Any())
+        //    {
+        //        // Execute when modifying.
+        //        OB("if (context.mode === 'modify')");
+        //        GenOnPrepareView_HideProps(props);
+        //        End();
+        //    }
+        //}
 
-        void GenOnEditing_HideProps(IEnumerable<MojViewProp> props)
-        {
-            foreach (var prop in props)
-            {
-                string marker = prop.GetHideModesMarker();
-                O($"context.$view.find('div.form-group.{marker}').remove();");
-            }
-        }
+        // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
+        //void GenOnPrepareView_HideProps(IEnumerable<MojViewProp> props)
+        //{
+        //    foreach (var prop in props)
+        //    {
+        //        string marker = prop.GetRemoveOnMarkerClasses();
+        //        O($"context.$view.find('div.form-group.{marker}').remove();");
+        //    }
+        //}
 
         public List<MiaPropSetterConfig> QueriedTriggerPropSetters { get; set; } = new List<MiaPropSetterConfig>();
 

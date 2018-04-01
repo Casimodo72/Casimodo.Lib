@@ -426,10 +426,10 @@ namespace Casimodo.Lib.Mojen
 
             if (name == null)
             {
-                name = view.FileName ?? view.Name ?? view.Kind.RoleName ?? view.CustomControllerActionName;
+                name = view.FileName ?? view.Name ?? view.MainRoleName ?? view.CustomControllerActionName;
 
                 // NOTE: We now use the PluaralName for pages. I.e "People.cshtml" instead of "Index.cshtml".
-                if (!partial && name == view.Kind.RawAction && view.IsPage)
+                if (!partial && view.IsPage && name == view.MainRoleName)
                     name = view.TypeConfig.PluralName;
             }
 
