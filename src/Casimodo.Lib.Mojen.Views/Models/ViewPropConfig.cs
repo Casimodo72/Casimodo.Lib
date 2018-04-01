@@ -299,7 +299,9 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsHtml { get; set; }
 
-        public bool IsDisplayedAsHtml { get; set; }
+        public string UseCodeRenderer { get; set; }
+
+        public bool IsRenderedHtml { get; set; }
 
         public bool IsReferenceLookupDistinct { get; set; }
 
@@ -339,6 +341,8 @@ namespace Casimodo.Lib.Mojen
         public MojViewMode HideModes { get; set; } = MojViewMode.None;
 
         public bool IsExternal { get; set; }
+
+        public bool NoLabel { get; set; }
 
         public MojFontWeight FontWeight { get; set; }
 

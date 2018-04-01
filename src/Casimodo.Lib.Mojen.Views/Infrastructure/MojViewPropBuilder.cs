@@ -246,25 +246,28 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewPropBuilder AsHtml()
         {
-            if (!Prop.Type.IsString)
-                throw new MojenException($"'{nameof(AsHtml)}' is applicable to string properties only.");
+            return AsCode("html");
+        }
 
-            Prop.IsDisplayedAsHtml = true;
+        public MojViewPropBuilder AsScss()
+        {
+            return AsCode("scss");
+        }
+
+        MojViewPropBuilder AsCode(string type)
+        {
+            if (!Prop.Type.IsString)
+                throw new MojenException($"'AsCode' is applicable to string properties only.");
+
+            Prop.UseCodeRenderer = type;
             return this;
         }
 
-        //public MojViewPropBuilder Color(MojProp colorProp)
-        //{
-        //    if (!TypeConfig.IsAccessibleFromThis(colorProp))
-        //        throw new MojenException($"Property '{colorProp.Name}' cannot be accessed from type '{TypeConfig.ClassName}'.");
-
-        //    if (!colorProp.IsColor)
-        //        throw new MojenException($"Property '{colorProp.Name}' is not a color property.");
-
-        //    Prop.ColorProp = colorProp;
-
-        //    return this;
-        //}
+        public MojViewPropBuilder RenderHtml()
+        {
+            Prop.IsRenderedHtml = true;
+            return this;
+        }
 
         public MojViewPropBuilder Distinct()
         {

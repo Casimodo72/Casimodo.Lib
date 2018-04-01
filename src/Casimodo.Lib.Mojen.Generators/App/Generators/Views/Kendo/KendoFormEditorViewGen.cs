@@ -502,27 +502,34 @@ namespace Casimodo.Lib.Mojen
 
         public void OStringEditor(WebViewGenContext context)
         {
-            var prop = context.PropInfo.Prop;
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.Prop;
+            var propPath = context.PropInfo.PropPath;
 
-            if (!prop.IsSpellCheck)
+            if (!dprop.IsSpellCheck)
                 ElemAttr("spellcheck", false);
 
-            if (prop.Type.IsMultilineString)
+            if (dprop.Type.IsMultilineString)
             {
-                Oo($"@(Html.TextAreaFor(m => m.{context.PropInfo.PropPath}");
+                Oo($"@(Html.TextAreaFor(m => m.{propPath}");
                 ElemClass("form-control");
-                if (prop.RowCount != 0)
-                    ElemAttr("rows", prop.RowCount);
+
+                if (dprop.RowCount != 0)
+                    ElemAttr("rows", dprop.RowCount);
+
+                if (vprop.UseCodeRenderer != null)
+                    ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
+
                 OMvcAttrs(context, kendo: false);
                 oO("))");
             }
             else
             {
-                var inputType = GetTextInputType(prop.Type.AnnotationDataType);
+                var inputType = GetTextInputType(dprop.Type.AnnotationDataType);
                 if (inputType != null)
                     ElemAttr("type", inputType);
 
-                O("@(Html.Kendo().TextBoxFor(m => m.{0})", context.PropInfo.PropPath);
+                O("@(Html.Kendo().TextBoxFor(m => m.{0})", propPath);
                 OMvcAttrs(context, kendo: true);
                 oO(")");
             }

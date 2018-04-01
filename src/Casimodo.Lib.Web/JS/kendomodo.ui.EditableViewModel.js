@@ -4,7 +4,6 @@ var kendomodo;
 (function (kendomodo) {
     (function (ui) {
 
-        // kendo.ui.Grid:    https://docs.telerik.com/kendo-ui/api/javascript/ui/grid
         // kendo.DataSource: https://docs.telerik.com/kendo-ui/api/javascript/data/datasource
 
         var EditableViewModel = (function (_super) {
@@ -66,24 +65,13 @@ var kendomodo;
                 // KABU TODO: 
                 // - Deletion confirmation dialog
                 // - self.dataSource.remove(item); ??
-                // - self.dataSource.sync();
-                // 
-                // From Kendo forum for grid.removeRow():
-                //   "the grid will show confirmation based on the Grid setup
-                //    and will automatically call dataSource.sync() if in inline/popup edit mode.
-                //grid.removeRow($row);   
+                // - self.dataSource.sync(); 
             };
 
             fn.onEditing = function (context) {
 
                 if (this._isDebugLogEnabled)
                     console.debug("- EDITOR: '%s'", context.isNew ? "create" : "modify");                
-
-                // See http://docs.telerik.com/kendo-ui/api/javascript/ui/grid#events-edit
-                // e.sender: kendo.ui.Grid
-                // e.container: JQuery : "popup" edit mode - the container is a Kendo UI Window element
-                // e.model: kendo.data.Model: The data item which is going to be edited. Use its isNew method to check if the data item is new (created) or not (edited).			
-                // e.container is: <div tabindex="0" class="k-popup-edit-form k-window-content k-content" data-role="window" data-uid="84a23cc0-7c75-45cb-a8a9-b6b04bc3f1a1"><div class="k-edit-form-container">    
 
                 // Call generated code.
                 if (typeof this.onEditingGenerated === "function")
@@ -92,14 +80,14 @@ var kendomodo;
                 if (context.isNew) {
                     kendomodo.initDataItemOnCreating(context.item, this.dataSource.reader.model.fields);
 
-                    // If authorized and modifying: add delete button to the grid's popup editor dialog.
+                    // If authorized and modifying: add delete button.
                     if (!context.isNew &&
                         this.auth.canDelete &&
                         context.item.IsReadOnly === false &&
                         context.item.IsDeletable === true) {
 
                         // Add delete button at bottom-left position.
-                        $('<a class="k-button k-button-icontext k-grid-delete" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')
+                        $('<a class="k-button k-button-icontext" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')
                             .appendTo(e.container.find(".k-edit-buttons"))
                             .on("click", function (e) {
                                 self._delete(context.item);

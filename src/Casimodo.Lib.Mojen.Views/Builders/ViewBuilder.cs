@@ -909,9 +909,11 @@ namespace Casimodo.Lib.Mojen
         /// <param name="readOnly"></param>
         /// <param name="external">Intended to be edited via a user-provided custom template.</param>
         /// <returns></returns>
-        public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool? readOnly = null, bool external = false)
+        public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool? readOnly = null, bool external = false, bool label = true)
         {
             var pbuilder = SimplePropCore(prop, readOnly: readOnly ?? false, hidden: hidden);
+
+            pbuilder.Prop.NoLabel = !label;
 
             if (hidden || external)
             {
@@ -929,9 +931,11 @@ namespace Casimodo.Lib.Mojen
             }
             else
             {
-                View.Template.Label(pbuilder.Prop);
+                if (label)
+                    View.Template.Label(pbuilder.Prop);
                 View.Template.o(pbuilder.Prop);
-                View.Template.EndRun();
+                if (label)
+                    View.Template.EndRun();
             }
 
             return pbuilder;

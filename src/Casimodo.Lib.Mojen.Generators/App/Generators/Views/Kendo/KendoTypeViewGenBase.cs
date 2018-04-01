@@ -367,7 +367,7 @@ namespace Casimodo.Lib.Mojen
                         Attributes.Clear();
                         context.PropInfo = CreateViewPropInfo(context, cur);
 
-                        if (!isPropRunStarted)
+                        if (!isPropRunStarted && !context.PropInfo.ViewProp.NoLabel)
                         {
                             isPropRunStarted = true;
                             OPropContainerBegin(context);

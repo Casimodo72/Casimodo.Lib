@@ -56,36 +56,42 @@ namespace Casimodo.Lib.Mojen
         public override void OProp(WebViewGenContext context)
         {
             var vprop = context.PropInfo.ViewProp;
-            var prop = context.PropInfo.Prop;
+            var dprop = context.PropInfo.TargetDisplayProp;
 
             CustomElemStyle(context);
 
-            if (prop.Type.IsBoolean)
+            if (dprop.Type.IsBoolean)
             {
                 O($"<span data-bind='yesno:{GetBinding(context)}'{GetElemAttrs()}></span>");
             }
-            else if (prop.Type.IsAnyTime)
+            else if (dprop.Type.IsAnyTime)
             {
                 string binder = "";
-                if (prop.Type.DateTimeInfo.IsDate) binder += "date";
-                if (prop.Type.DateTimeInfo.IsTime) binder += "time";
+                if (dprop.Type.DateTimeInfo.IsDate) binder += "date";
+                if (dprop.Type.DateTimeInfo.IsTime) binder += "time";
                 O($"<span data-bind='{binder}:{GetBinding(context)}'{GetElemAttrs()}></span>");
             }
-            else if (prop.IsColor)
+            else if (dprop.IsColor)
             {
                 // Bind background-color to the value of the property.
                 // http://demos.telerik.com/kendo-ui/mvvm/style
                 O($"<div style='width: 30px' data-bind='style:{{backgroundColor:{GetBinding(context)}}}'{GetElemAttrs()}>&nbsp;</div>");
             }
-            else if (prop.Type.IsMultilineString)
+            else if (dprop.Type.IsString && vprop.IsRenderedHtml)
             {
-                //AddClassAttr("form-control");
+                O($"<span data-bind='textToHtml:{GetBinding(context)}'{GetElemAttrs()} style='white-space:pre'></span>");
+            }
+            else if (dprop.Type.IsMultilineString)
+            {
                 ElemClass("k-textbox");
                 ElemStyleDefaultWidth();
-                // KABU TODO: IMPORTANT: How to avoid using a textarea?
-                O($"<textarea data-bind='value:{GetBinding(context)}' readonly rows='{prop.RowCount}'{GetElemAttrs()}></textarea>");
+
+                if (vprop.UseCodeRenderer != null)
+                    ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
+
+                O($"<textarea data-bind='value:{GetBinding(context)}' readonly rows='{dprop.RowCount}'{GetElemAttrs()}></textarea>");
             }
-            else if (prop.Type.IsString && vprop.IsDisplayedAsHtml)
+            else if (dprop.Type.IsString && vprop.IsRenderedHtml)
             {
                 O($"<span data-bind='textToHtml:{GetBinding(context)}'{GetElemAttrs()} style='white-space:pre'></span>");
             }
