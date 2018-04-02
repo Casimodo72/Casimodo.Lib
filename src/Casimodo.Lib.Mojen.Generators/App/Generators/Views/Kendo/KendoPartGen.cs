@@ -35,14 +35,6 @@ namespace Casimodo.Lib.Mojen
                     O();
                     ODataSourceModelFactory(context, transport);
 
-                    //O();
-                    //ODataSourceOptionsFactory(context, () =>
-                    //    ODataSourceSingleOptions(context, transport,
-                    //        create: context.View.CanCreate,
-                    //        modify: context.View.CanEdit,
-                    //        delete: context.View.CanDelete
-                    //    ));
-
                     O();
                     OOptionsFactory("dataSourceTransportOptions", () =>
                         ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport,
@@ -64,13 +56,6 @@ namespace Casimodo.Lib.Mojen
             O("return space.vm;");
 
             End(";"); // View model factory.
-
-            // KABU TODO: REMOVE
-            //// Create space, pass parameters and start editing.
-            //O();
-            //O("space.create();");
-            //O($"space.vm.setArgs(casimodo.ui.dialogArgs.consume('{view.Id}'));");
-            //O($"space.vm.start();");
 
             O();
             OEndComponentSpace(context);
@@ -197,10 +182,6 @@ namespace Casimodo.Lib.Mojen
         {
             if (context.View.HasFactory)
             {
-                // KABU TODO: REMOVE
-                //O();
-                //O("space.create(spaceOptions);");
-
                 O();
                 O("return space;");
 
@@ -211,16 +192,6 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 throw new MojenException("Component space without factory is not supported anymore.");
-                // End namespace.
-
-                // KABU TODO: IMPORTANT: We can't make lookup spaces anonymous yet,
-                //   because the space is still defined in the js file *and* the cshtml file.
-                // KABU TODO: Remove bracktes which are here just to not modify the existing scripts.
-                // if (View.Lookup.Is) ?
-
-#pragma warning disable CS0162 // Unreachable code detected
-                OJsImmediateEnd(BuildJSGetOrCreateSpace(context));
-#pragma warning restore CS0162 // Unreachable code detected
             }
         }
 
@@ -238,21 +209,6 @@ namespace Casimodo.Lib.Mojen
         {
             return GetJsScriptUINamespace(view) + "." + BuildJsClassName(view) + "Space";
         }
-
-        // KABU TODO: REMOVE
-        //public string GetPlainDisplayTemplate(MojViewProp vprop, bool checkLastProp = false)
-        //{
-        //    // IMPORTANT NOTE:
-        //    // Provide template, because Kendo will break if an itermediate property
-        //    // in the property path is null.
-        //    // Example:
-        //    // template: "#if(Company!=null){##:Company.NameShort##}#",     
-        //    var sb = new StringBuilder();
-        //    sb.o("#if("); GetNotNullExpressionTemplate(sb, vprop, checkLastProp); sb.o("){#");
-        //    sb.o("#:"); sb.o(vprop.FormedNavigationTo.TargetPath); sb.o("#");
-        //    sb.o("#}#");
-        //    return sb.ToString();
-        //}
 
         void GetNotNullExpressionTemplate(StringBuilder sb, MojViewProp prop, bool checkLastProp = false)
         {
@@ -456,10 +412,8 @@ namespace Casimodo.Lib.Mojen
             if (view.EditorView != null)
             {
                 OB("editor:");
-                // TOOD: REMOVE: O("title: {0},", MojenUtils.ToJsValue(view.EditorView.TypeConfig.DisplayName));
                 O("id: {0},", MojenUtils.ToJsValue(view.EditorView.Id));
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
-                // TOOD: REMOVE: O("space: {0},", GetSpaceName(view.EditorView));
                 OViewDimensionOptions(view.EditorView);
                 End();
             }
@@ -490,33 +444,6 @@ namespace Casimodo.Lib.Mojen
                 constructorOptions: "options",
                 constructor: constructor,
                 content: content);
-
-            // KABU TODO: REMOVE
-
-            //// Extend base component view model.
-            //OB($"var {name} = (function (_super)");
-
-            //O($"casimodo.__extends({name}, _super);");
-
-            //O();
-            //OB($"function {name}(options)");
-            //O("_super.call(this, options);");
-            //constructor?.Invoke();
-            //End();
-
-            //O();
-            //O($"var fn = {name}.prototype;");
-
-            //if (content != null)
-            //{
-            //    O();
-            //    content();
-            //}
-
-            //O();
-            //O($"return {name};");
-
-            //End($")({extends});");
         }
 
         public void BindPageContentView(MojControllerViewConfig view, MojViewRole role)

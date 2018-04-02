@@ -731,8 +731,8 @@ namespace Casimodo.Lib.Mojen
         MojViewBuilder AddCommandPredicatePropIfMissing(string name)
         {
             var prop = View.TypeConfig.FindProp(name);
-            if (prop != null && !View.Props.Any(x => x.Name == prop.Name))
-                Prop(prop, hidden: true);
+            if (prop != null && !View.Props.Any(x => x.FormedTargetPath == prop.Name))
+                Prop(prop, hidden: true, readOnly: true);
 
             return this;
         }

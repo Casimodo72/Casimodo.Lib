@@ -1,8 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using Casimodo.Lib.Data;
+using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
+using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -203,10 +202,6 @@ namespace Casimodo.Lib.Mojen
                             if (step.TargetProp != key)
                                 result.TargetItems.Add(new MojPropDataGraphNode { Prop = step.TargetProp });
                         }
-                        //else if (step.SourceProp != null)
-                        //{
-                        //    result.TargetItems.Add(new MojPropDataGraphNode { Prop = step.SourceProp });
-                        //}
                     }
                     else
                     {

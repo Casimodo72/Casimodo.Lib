@@ -137,13 +137,16 @@ namespace Casimodo.Lib.Mojen
             // Validation error box.
             O("<ul class='validation-errors-box' id='validation-errors-box'></ul>");
 
+            // KABU TODO: IMPORTANT: Do we *really+ need the hidden properties to be
+            //   provided as HTML inputs?
+
             // Hidden entity key field.
             OHiddenInputFor(type.Key.Name);
 
             // Other hidden fields.
-            foreach (var prop in context.View.Props.Where(x => x.HideModes == MojViewMode.All))
+            foreach (var vprop in context.View.Props.Where(x => x.HideModes == MojViewMode.All))
             {
-                OHiddenInputFor(prop.Name);
+                OHiddenInputFor(vprop.FormedTargetPath);
             }
 
             // External fields. Those fields need to be included in the UsedViewPropInfos

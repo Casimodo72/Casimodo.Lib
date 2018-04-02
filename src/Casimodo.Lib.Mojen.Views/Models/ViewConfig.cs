@@ -27,13 +27,6 @@ namespace Casimodo.Lib.Mojen
                 views.Add(InlineDetailsView);
 
             return Controller.BuildDataGraphForRead(views.ToArray());
-
-            // KABU TODO: REMOVE: Now each view will only hold the data it displays.
-            //   I.e. grid view will not include properties of its details and editor views anymore.
-            if (Lookup.Is || Standalone.Is)
-                return Controller.BuildDataGraphForRead(new[] { this });
-            else
-                return Controller.BuildDataGraphForRead(Group);
         }
     }
 
@@ -313,6 +306,11 @@ namespace Casimodo.Lib.Mojen
             //   but we need to ensure that it has been called after any modification to the view.
             new MojViewBuilder(this).Build();
 
+            if (IsEditor)
+            {
+                new MojViewBuilder(this).EnsureEditAuthControlPropsIfMissing();
+            }
+
             // Mark all non-selectors with loose references as read-only.
             foreach (var prop in Props)
             {
@@ -323,16 +321,6 @@ namespace Casimodo.Lib.Mojen
             // Find lookup views to be used for selection.
             foreach (var prop in Props.Where(x => x.Lookup.Is))
             {
-                //var targetType = prop.FormedNavigationTo.TargetType;
-
-                //if (targetType == null)
-                //{
-                //    if (prop.Reference.IsToMany)
-                //        targetType = prop.Reference.ToType;
-                //    else
-                //        throw new MojenException($"Can't compute target type of lookup.");
-                //}
-
                 var viewType = prop.Lookup.TargetType;
                 var viewId = prop.Lookup.ViewId;
                 var viewGroup = prop.Lookup.ViewGroup; // ?? "Lookup";
@@ -359,15 +347,5 @@ namespace Casimodo.Lib.Mojen
                 prop.LookupDialog = lookupViews.First();
             }
         }
-
-        // KABU TODO: REMOVE
-        //public void GetLookupView(MojType lookupType)
-        //{
-        //    return GetItems<MojViewConfig>()
-        //            .Where(x =>
-        //                x.Lookup.Is &&
-        //                x.TypeConfig == lookupType)
-        //            .ToArray();
-        //}
     }
 }

@@ -113,31 +113,22 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public MojProp[] GetAllPropsDistinctForRead(string viewGroup)
-        {
-            return GetAllPropsDistinctForRead(Views.Where(x => x.Group == viewGroup).ToArray());
-        }
-
         public MojProp[] GetAllPropsDistinctForRead(MojViewConfig[] views)
         {
-            // Filter out non-exposable properties.
-            var exposableProps = TypeConfig.GetExposableSchemaProps().Select(x => x.Name).ToList();
-            // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
-
             // Get the view-properties actually used in the views.            
             var props = GetAllViewPropsDeep(views)
                 // Don't read properties which are intended for input only.
                 .Where(x => !x.IsInputOnly)
                 .Cast<MojProp>().ToList();
 
-            // Insert mandatory key property.
-            props.Insert(0, TypeConfig.Key);
+            // Insert mandatory key property if missing.
+            if (!props.Any(x => x.FormedTargetPath == TypeConfig.Key.Name))
+                props.Insert(0, TypeConfig.Key);
 
             // Remove duplicates.
             // Prefer edit properties to read properties, because the edit-properties hold
             // information needed to generate the edit data-model elsewhere.
-            // Also prefer editable properties over read-only properties.
-            var vprops = props.OfType<MojViewProp>().ToList();
+            // Also prefer editable properties over read-only properties.           
             MojProp duplicate;
             MojViewProp vprop, vduplicate;
             foreach (var prop in props.ToArray())
@@ -178,7 +169,10 @@ namespace Casimodo.Lib.Mojen
             // KABU TODO: IMPL? predicates at OData query level.
             //var predicates = viewProps.Where(x => x.Predicate != null).Select(x => x.Model).ToList();            
 
-            // KABU TODO: This checks only the top-level properties and not the whole navigation tree.
+            // KABU TODO: IMPORTANT: This checks only the top-level properties and not the whole tree.
+            // Filter out non-exposable properties.
+            var exposableProps = TypeConfig.GetExposableSchemaProps().Select(x => x.Name).ToList();
+            // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
             foreach (var prop in props)
             {
                 if (!exposableProps.Contains(prop.Name))
@@ -186,13 +180,6 @@ namespace Casimodo.Lib.Mojen
             }
 
             return props.ToArray();
-        }
-
-        public MojDataGraphNode[] BuildDataGraphForRead(string viewGroup)
-        {
-            return GetAllPropsDistinctForRead(viewGroup)
-                .BuildDataGraph(includeKey: true, includeForeignKey: true)
-                .ToArray();
         }
 
         public MojDataGraphNode[] BuildDataGraphForRead(MojViewConfig[] views)
@@ -204,7 +191,7 @@ namespace Casimodo.Lib.Mojen
 
         public XElement BuildDataGraphMaskForUpdate(string viewGroup = null)
         {
-            // KABU TODO: Exclude read-only properties like CreatedOn, ModifiedOn, etc.
+            // KABU TODO: IMPORTANT: Exclude read-only properties like CreatedOn, ModifiedOn, etc.
 
             // Operate on the entity type.
             var type = TypeConfig.RequiredStore;
@@ -230,6 +217,7 @@ namespace Casimodo.Lib.Mojen
             return elem;
         }
 
+        // KABU TODO: Move to data mask lib.
         IEnumerable<XElement> BuildDataMaskCore(IEnumerable<MojDataGraphNode> nodes)
         {
             foreach (var node in nodes)
