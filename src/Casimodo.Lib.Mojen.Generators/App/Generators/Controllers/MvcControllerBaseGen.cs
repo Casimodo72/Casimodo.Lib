@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
             if (view.IsAuthEnabled)
             {
                 O("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
-                    view.TypeConfig.Name,
+                    view.GetPartName(),
                     MojenUtils.ToCsValue(view.Group),
                     view.MainRoleName);
             }

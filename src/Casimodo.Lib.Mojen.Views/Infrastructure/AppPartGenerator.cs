@@ -34,7 +34,7 @@ namespace Casimodo.Lib.Mojen
                 else
                     result += "ThenBy(";
 
-                result += "x => x." + prop.Model.Name + ")";
+                result += "x => x." + prop.OrigTargetProp.Name + ")";
             }
 
             return result;

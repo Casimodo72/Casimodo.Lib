@@ -128,6 +128,16 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojProp> Parameters { get; set; } = new List<MojProp>();
 
+        public string CustomPartName { get; set; }
+
+        public string GetPartName()
+        {
+            if (CustomPartName != null)
+                return CustomPartName;
+
+            return TypeConfig.Name;
+        }
+
         public bool IsPage
         {
             get { return Kind.Roles.HasFlag(MojViewRole.Page); }

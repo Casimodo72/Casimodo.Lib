@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
                         "Group = {1}, Role = {2}, Actions = {3}, " +
                         "Title = {4}, Url = {5}, " +
                         "Id = {6} }})",
-                        MojenUtils.ToCsValue(item.View.TypeConfig.Name),
+                        MojenUtils.ToCsValue(item.View.GetPartName()),
                         MojenUtils.ToCsValue(item.View.Group),
                         MojenUtils.ToCsValue(item.View.MainRoleName),
                         MojenUtils.ToCsValue(BuildActions(item.View)),

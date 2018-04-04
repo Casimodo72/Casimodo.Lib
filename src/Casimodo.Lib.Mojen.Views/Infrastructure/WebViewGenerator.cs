@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
 
         protected string GetMobileListItemProp(MojViewProp prop)
         {
-            return string.Format("<{0}>@item.{1}</{0}>", Paragraph(prop), prop.Model.Name);
+            return string.Format("<{0}>@item.{1}</{0}>", Paragraph(prop), prop.OrigTargetProp.Name);
         }
 
         protected void PerformWrite(MojViewConfig view, Action callback)

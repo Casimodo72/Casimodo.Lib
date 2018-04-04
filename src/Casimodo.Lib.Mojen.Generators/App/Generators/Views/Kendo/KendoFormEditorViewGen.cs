@@ -1160,21 +1160,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"var input = $(\"textarea[name='{propPath}'], input[name='{propPath}']\").first();");
 
-                //O($"var args = new casimodo.ui.DialogArgs('{textLookupView.Id}', inputs.first().val());");
-                //O($"args.mode = '{vprop.Type.MultilineString.Mode}';");
-                //O("casimodo.ui.dialogArgs.add(args);");
-
-                //// Compute URL with parameters.
-                //var url = textLookupView.Url + "/?";
-                //int i = 0;
-                //foreach (var p in textLookupView.Lookup.Parameters)
-                //{
-                //    if (i++ > 0) url += "&";
-                //    url += $"{p.VName}={vprop.Snippets.Args[p.Name]}";
-                //}
-
                 KendoGen.OOpenDialogView(context, snippetsEditorView,
-                    // Set value and fire the "change" event for the binding to pick up the new value.
                     options: new Action(() =>
                     {
                         O("mode: '{0}',", vprop.Type.MultilineString.Mode);
@@ -1192,34 +1178,8 @@ namespace Casimodo.Lib.Mojen
                     ok: () =>
                     {
                         // Set value and fire the change event for the binding to pick up the new value.
-                        O($"input.val(args.value).change();");
-                    });
-
-                //// Fetch the partial view from server into a Kendo modal window.
-                //Oo($"var wnd = $('<div/>').appendTo({JQuerySelectEditorContainer()}).kendoWindow(");
-                //KendoGen.OWindowOptions(new KendoWindowConfig(textLookupView)
-                //{
-                //    IsParentModal = context.View.IsModal,
-                //    IsModal = true,
-                //    OnClosing = new Action(() =>
-                //    {
-                //        // Closing event handler
-                //        ob($"function (e)");
-                //        OB("if (args.dialogResult === true)");
-                //        // Set value and fire the change event for the binding to pick up the new value.
-                //        O($"inputs.val(args.value).change();");
-                //        End();
-                //        End();
-                //    })
-                //});
-                //oO(").data('kendoWindow');"); // Kendo window
-
-                //O("kendomodo.setModalWindowBehavior(wnd);");
-
-                //O("wnd.center().open();");
-
-                //O($"wnd.refresh({{ url: '{url}', cache: {MojenUtils.ToJsValue(textLookupView.IsCachedOnClient)} }});");
-
+                        O($"input.val(result.value).change();");
+                    });               
             });
             OScriptEnd();
 

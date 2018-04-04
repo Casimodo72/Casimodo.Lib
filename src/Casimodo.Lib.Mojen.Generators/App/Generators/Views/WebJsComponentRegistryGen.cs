@@ -37,7 +37,7 @@ namespace Casimodo.Lib.Mojen
                             foreach (var item in components.Where(x => x.View?.Id != null))
                             {
                                 O("fn.get{0}{1}{2} = function () {{ return this.getById({3}); }};",
-                                    item.View.TypeConfig.Name,
+                                    item.View.GetPartName(),
                                     item.View.MainRoleName,
                                     (item.View.Group != null ? "_" + item.View.Group : ""),
                                     MojenUtils.ToJsValue(item.View.Id));

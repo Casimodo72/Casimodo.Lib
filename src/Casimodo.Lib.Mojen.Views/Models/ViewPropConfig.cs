@@ -172,7 +172,7 @@ namespace Casimodo.Lib.Mojen
         static string GetCustomDisplayLabel(MojViewProp vprop, string label)
         {
             if (vprop.DisplayLabel != null &&
-                vprop.DisplayLabel != vprop.Model.DisplayLabel)
+                vprop.DisplayLabel != vprop.OrigTargetProp.DisplayLabel)
             {
                 label = vprop.DisplayLabel;
             }
@@ -284,7 +284,6 @@ namespace Casimodo.Lib.Mojen
 
         public MojDateTimeInfo DisplayDateTime { get; set; }
 
-        [DataMember]
         public MojProp Model { get; private set; }
 
         public MojProp OrigTargetProp { get; set; }

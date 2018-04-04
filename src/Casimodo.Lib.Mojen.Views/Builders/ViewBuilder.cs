@@ -396,13 +396,14 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public virtual MojViewBuilder Custom(string role, params MojProp[] parameters)
+        public virtual MojViewBuilder Custom(string part, MojViewRole role, params MojProp[] parameters)
         {
+            View.CustomPartName = part;
             View.Kind.Mode = MojViewMode.None;
-            View.Kind.Roles = MojViewRole.None;
-            View.CustomRoleName = role;
+            View.Kind.Roles = role;
+            //View.CustomRoleName = role;
             //View.Kind.RoleName = null;
-            View.Kind.RawControllerAction = role;
+            View.Kind.RawControllerAction = role.ToString();
 
             if (parameters != null)
                 View.Parameters.AddRange(parameters);
