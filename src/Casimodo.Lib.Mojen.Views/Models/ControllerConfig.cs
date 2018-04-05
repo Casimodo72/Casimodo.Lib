@@ -198,15 +198,17 @@ namespace Casimodo.Lib.Mojen
 
             var elem = new XElement("MojDataGraphMask",
                 new XAttribute("Type", type.QualifiedClassName));
-
+ 
             var editorView = GetEditorView(viewGroup);
             if (editorView == null)
                 return elem;
+          
+            // KABU TODO: IMPORTAN: Ignore read-only properties of nested objects.
+            var properties = editorView.Props
+                // Ignore read-only top-level properties.
+                .Where(x => x.IsEditable)
+                .ToList();
 
-            // KABU TODO: In which case we don't want to add read-only or informational properties?
-            //   I.e. sometimes properties are display in the editor view
-            //   just for informational purposes and are not intended to be part of an update operation.
-            var properties = editorView.Props;
             if (!properties.Any())
                 return elem;
 

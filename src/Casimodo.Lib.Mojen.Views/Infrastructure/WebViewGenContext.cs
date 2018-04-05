@@ -18,14 +18,7 @@ namespace Casimodo.Lib.Mojen
 
         public string ComponentName { get; set; }
 
-        // KABU TODO: REMOVE? Not used.
-        // public string ComponentViewModelName { get; set; }
-
-        public string SpaceName { get; set; }
-
-        public string SpaceFactoryName { get; set; }
-
-        // KABU TODO: REMOVE: public string ComponentViewModelContainerElemClass { get; set; }
+        public string ViewModelFactoryName { get; set; }
 
         public MojViewConfig View { get; set; }
 

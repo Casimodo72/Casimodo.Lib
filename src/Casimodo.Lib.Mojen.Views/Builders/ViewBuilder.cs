@@ -552,6 +552,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder CustomODataUpdateAction()
+        {
+            View.IsCustomODataUpdateAction = true;
+            return this;
+        }
+
         public MojViewBuilder Width(int width)
         {
             View.Width = width;

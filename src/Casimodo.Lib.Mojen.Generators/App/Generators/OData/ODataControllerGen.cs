@@ -345,6 +345,9 @@ namespace Casimodo.Lib.Mojen
             if (editorView == null)
                 return;
 
+            if (editorView.IsCustomODataUpdateAction)
+                return;
+
             O();
             Oo($"static readonly MojDataGraphMask {GetUpdateMaskMemberName(editorView)} = MojDataGraphMask.ParseXml(@\"");
 
@@ -373,6 +376,9 @@ namespace Casimodo.Lib.Mojen
         {
             var editorView = Controller.GetEditorView(group);
             if (editorView == null)
+                return;
+
+            if (editorView.IsCustomODataUpdateAction)
                 return;
 
             var key = Type.Key;

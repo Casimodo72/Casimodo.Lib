@@ -313,13 +313,6 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public const string SpaceConstructorFunc = "casimodo.ui.createComponentSpace()";
-
-        public string BuildJSGetOrCreateSpace(WebViewGenContext context, string constructor = SpaceConstructorFunc)
-        {
-            return BuildJSGetOrCreate(context.SpaceName, constructor);
-        }
-
         public string BuildJSGetOrCreate(string name, string constructor)
         {
             return $"{name} || ({name} = {constructor})";

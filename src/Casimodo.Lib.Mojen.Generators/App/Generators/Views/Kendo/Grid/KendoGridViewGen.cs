@@ -175,37 +175,11 @@ namespace Casimodo.Lib.Mojen
 
         void GenGridScript(WebViewGenContext context)
         {
+            var view = context.View;
+
             OUseStrict();
 
-            KendoGen.OBeginComponentSpace(context);
-
-            O();
-            GenGridViewModelFactory(context);
-
-            O();
-            GenGridOptionsFactory(context);
-
-            KendoGen.OEndComponentSpace(context);
-        }
-
-        void GenGridViewModelFactory(WebViewGenContext context)
-        {
-            // View model factory          
-            OB($"space.createViewModel = function (spaceOptions)");
-            O("if (space.vm) return space.vm;");
-            O();
-
-            GenGridViewModelCore(context);
-
-            O();
-            O("return space.vm;");
-
-            End(";"); // View model factory                        
-        }
-
-        void GenGridViewModelCore(WebViewGenContext context)
-        {
-            var view = context.View;
+            KendoGen.OBeginComponentViewModelFactory(context);
 
             KendoGen.OViewModelClass("ViewModel", extends: "kendomodo.ui.GridViewModel",
             constructor: () =>
@@ -238,30 +212,34 @@ namespace Casimodo.Lib.Mojen
 
                 KendoGen.OBaseFilters(context);
 
-                // KABU TODO: REMOVE
-                //if (context.View.EditorView != null)
-                //    KendoGen.OViewModelOnEditing(context.View.EditorView, CanCreate);
+                O();
+                GenGridOptionsFactory(context);
             });
 
             // Create view model with options.
             O();
-            OB("space.vm = new ViewModel(");
+            OB("var vm = new ViewModel(");
             KendoGen.OViewModelOptions(context, isList: true);
             End(").init();");
+
+            O();
+            O("return vm;");
+
+            KendoGen.OEndComponentViewModelFactory(context);
         }
 
         public void GenGridOptionsFactory(WebViewGenContext context)
         {
             // Grid options factory function.
-            OB("space.createComponentOptions = function()");
+            OB("fn.createComponentOptions = function()");
 
             // NOTE: We are using the internal data source factory function.
             OB("var options ="); GenGridOptions(context);
             End(";"); // Grid options object.
             O();
             // Apply override if applicable.
-            O("if (space.createComponentOptionsOverride)");
-            O("    options = space.createComponentOptionsOverride(options);");
+            O("if (this.createComponentOptionsOverride)");
+            O("    options = this.createComponentOptionsOverride(options);");
             O();
             O("return options;");
             End(";"); // Grid options factory function.            
@@ -270,6 +248,8 @@ namespace Casimodo.Lib.Mojen
         void GenGridOptions(WebViewGenContext context)
         {
             MojViewConfig view = context.View;
+
+            O("editable: false,");
 
             // Sorting ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             OXP("sortable",
@@ -295,16 +275,6 @@ namespace Casimodo.Lib.Mojen
 
             O($"scrollable: {MojenUtils.ToJsValue(Options.IsScrollable)},");
 
-            // KABU TODO: REMOVE: All events will now be atteched in the view model.
-            // Grid events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            //O("// Events");
-            //foreach (var handler in JsFuncs.EventHandlers)
-            //{
-            //    // E.g "save: kendomodo.onGridSaving,"
-            //    var eve = FirstCharToLower(handler.ComponentEventName);
-            //    O($"{eve}: $.proxy(space.vm.{handler.FunctionName}, space.vm),");
-            //}
-
             // Row selection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if (view.ItemSelection.IsEnabled && !view.ItemSelection.UseCheckBox)
             {
@@ -322,48 +292,6 @@ namespace Casimodo.Lib.Mojen
             if (context.View.InlineDetailsView != null)
             {
                 O($"detailTemplate: kendo.template($('#{InlineDetailsTemplateName}').html()),");
-            }
-
-            // Editor template ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            if (CanModify)
-            {
-                // KABU TODO: LOCALIZE
-                var title = $"{view.TypeConfig.DisplayName}";
-
-                var editorView = context.View.EditorView;
-
-                OXP("editable",
-
-                    // Use pop up editor.
-                    "mode: 'popup'", //  "incell", "inline" and "popup".
-
-                    // NOTE: Without that Kendo will not display a deletion-confirmation dialog prior to deletion.
-                    "confirmation: true",
-
-                    // KABU TODO: REMOVE: We are not using the built in popup editor anymore.
-                    //// Editor template
-                    //$"template: kendo.template($('#{EditorTemplateName}').html())",
-
-                    // Editor window
-                    XP("window",
-                        $"title: '{title}'",
-                        "animation: kendomodo.getDefaultDialogWindowAnimation()",
-                        "open: kendomodo.onModalWindowOpening",
-                        "activate: kendomodo.onModalWindowActivated",
-                        // NOTE: We must not set the grid-popup-window's options close handler,
-                        //   because the grid sets and uses it. We would brake the grid's own
-                        //   way of closing the popup window.
-                        // DONT: "close: kendomodo.onModalWindowClosed",
-
-                        // KABU TODO: Can we put the following into its own helper function?
-                        $"width: {MojenUtils.ToJsValue(editorView.Width)}",
-                        $"minWidth: {MojenUtils.ToJsValue(editorView.MinWidth)}",
-                        $"maxWidth: {MojenUtils.ToJsValue(editorView.MaxWidth)}",
-                        $"height: {MojenUtils.ToJsValue(editorView.Height)}",
-                        $"minHeihgt: {MojenUtils.ToJsValue(editorView.MinHeight)}",
-                        $"maxHeihgt: {MojenUtils.ToJsValue(editorView.MaxHeight)}"
-                    )
-                );
             }
 
             // Tool bar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -441,7 +369,6 @@ namespace Casimodo.Lib.Mojen
                 );
             }
 
-            // Column menu
             O("columnMenu: false,");
 
             // Show filters in column headers
@@ -459,13 +386,16 @@ namespace Casimodo.Lib.Mojen
                 O("filterable: false,");
             }
 
+            O("autoBind: false,");
+            O("dataSource: this.createDataSource(),");
+
             // Columns ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~            
             O("columns: [");
             Push();
 
             GenGridColumns(context);
 
-            // Edit button column ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Edit button column.
             if (CanModify)
             {
                 OB("");
@@ -473,22 +403,14 @@ namespace Casimodo.Lib.Mojen
 
                 KendoJsTemplate(() =>
                 {
-                    // KABU TODO: REMOVE wrapper, because we now have one button only.
-                    // Avoid wrapping multiple buttons.
-                    //o("<div style='white-space:nowrap'>");
-
                     if (CanModify)
+                    {
                         // Add an edit button.
                         // NOTE: This is a custom button which is not handled automatically
                         //   by the kendo.ui.Grid. The grid view model will attach
                         //   to this button and strat the edit operation manually.
                         o(@"<a class='k-button k-grid-custom-edit' href='#' style='display:none'><span class='k-icon k-edit'></span></a>");
-
-                    // KABU TODO: REMOVE: The delete button now resides on the editor view.
-                    //if (CanDelete)                    
-                    //    o(@"<a class='k-button k-grid-delete' href='#'><span class='k-icon k-delete'></span></a>");
-
-                    //o("</div>");
+                    }
                 });
 
                 oO("\")"); // End of template
@@ -496,18 +418,9 @@ namespace Casimodo.Lib.Mojen
             }
 
             Pop(); // Columns
-            O("],");
+            O("]");
 
-            O("autoBind: false,");
-            // KABU TODO: REMOVE: We don't auto bind anymore.
-            //if (View.Lookup.Is)
-            //    O("autoBind: false,");
-            //else
-            //    O("autoBind: space.options.isManualDataLoad ? false : true,");
 
-            // NOTE: The data source options are created by the view model.
-            O("dataSource: space.vm.createDataSource(),");
-            // TOOD: REMOVE: O("dataSource: space.vm.createDataSourceOptions(),");
         }
 
         void GenGridColumns(WebViewGenContext context)

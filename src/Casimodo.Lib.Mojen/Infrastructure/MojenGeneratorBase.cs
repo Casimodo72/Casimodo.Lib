@@ -740,13 +740,10 @@ namespace Casimodo.Lib.Mojen
             if (!Directory.Exists(outputDirPath))
                 Directory.CreateDirectory(outputDirPath);
 
-            //if (exists) File.Delete(outputFilePath);
-
             using (var fs = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var writer = new BinaryWriter(fs, MyUT8Encoding))
             {
                 writer.Write(outputData, 0, outputLength);
-                //writer.Write(text);
             }
         }
 

@@ -262,6 +262,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsEscapingNeeded { get; set; } = true;
 
+        public bool IsCustomODataUpdateAction { get; set; }
+
         public ViewTemplate Template { get; private set; } = new ViewTemplate();
 
         public bool HasFactory { get; set; }

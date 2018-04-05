@@ -12,12 +12,7 @@ namespace Casimodo.Lib.Mojen
             // View model for standalone editor views.
             var view = context.View;
 
-            OBeginComponentSpace(context);
-
-            // View model factory
-            O();
-            OB($"space.createViewModel = function (spaceOptions)");
-            O("if (space.vm) return space.vm;");
+            OBeginComponentViewModelFactory(context);
 
             O();
             OViewModelClass("ViewModel", extends: "kendomodo.ui.FormEditorViewModel",
@@ -48,17 +43,14 @@ namespace Casimodo.Lib.Mojen
                 });
 
             O();
-            OB("space.vm = new ViewModel(");
+            OB("var vm = new ViewModel(");
             OViewModelOptions(context, isList: false);
             End(").init();");
 
             O();
-            O("return space.vm;");
+            O("return vm;");
 
-            End(";"); // View model factory.
-
-            O();
-            OEndComponentSpace(context);
+            OEndComponentViewModelFactory(context);
         }
 
         public void OReadOnlyViewModel(WebViewGenContext context)
@@ -67,12 +59,7 @@ namespace Casimodo.Lib.Mojen
 
             var view = context.View;
 
-            OBeginComponentSpace(context);
-
-            // View model factory
-            O();
-            OB($"space.createViewModel = function (spaceOptions)");
-            O("if (space.vm) return space.vm;");
+            OBeginComponentViewModelFactory(context);
 
             O();
             OViewModelClass("ViewModel", extends: "kendomodo.ui.FormReadOnlyViewModel",
@@ -93,16 +80,14 @@ namespace Casimodo.Lib.Mojen
                 });
 
             O();
-            OB("space.vm = new ViewModel(");
+            OB("var vm = new ViewModel(");
             OViewModelOptions(context, isList: false);
             End(").init();");
 
             O();
-            O("return space.vm;");
+            O("return vm;");
 
-            End(";"); // View model factory
-
-            OEndComponentSpace(context);
+            OEndComponentViewModelFactory(context);
         }
 
         // KABU TODO: MAGIC: Move to config layer.
@@ -157,50 +142,27 @@ namespace Casimodo.Lib.Mojen
             End(");");
         }
 
-        public void OBeginComponentSpace(WebViewGenContext context)
+        public void OBeginComponentViewModelFactory(WebViewGenContext context)
         {
-            if (context.View.HasFactory)
-            {
-                OJsImmediateBegin("factory");
+            OJsImmediateBegin("factory");
 
-                O();
-                OB("factory.createCore = function ()");
-
-                O();
-                O($"var space = {SpaceConstructorFunc};");
-            }
-            else
-            {
-                throw new MojenException("Component space without factory is not supported anymore.");
-#pragma warning disable CS0162 // Unreachable code detected
-                OJsImmediateBegin("space");
-#pragma warning restore CS0162 // Unreachable code detected
-            }
+            O();
+            OB("factory.createCore = function (spaceOptions)");
         }
 
-        public void OEndComponentSpace(WebViewGenContext context)
+        public void OEndComponentViewModelFactory(WebViewGenContext context)
         {
-            if (context.View.HasFactory)
-            {
-                O();
-                O("return space;");
 
-                End(";"); // End factory function.
+            End(";"); // View model factory.
 
-                OJsImmediateEnd(BuildJSGetOrCreate(context.SpaceFactoryName, "casimodo.ui.createComponentSpaceFactory()"));
-            }
-            else
-            {
-                throw new MojenException("Component space without factory is not supported anymore.");
-            }
+            OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "casimodo.ui.createComponentViewModelFactory()"));
         }
 
         public WebViewGenContext InitComponentNames(WebViewGenContext context)
         {
             context.UINamespace = GetJsScriptUINamespace(context.View);
             context.ComponentName = BuildJsClassName(context.View);
-            context.SpaceName = GetSpaceName(context.View);
-            context.SpaceFactoryName = context.SpaceName + "Factory";
+            context.ViewModelFactoryName = GetJsScriptUINamespace(context.View) + "." + BuildJsClassName(context.View) + "Factory";
 
             return context;
         }
@@ -369,8 +331,8 @@ namespace Casimodo.Lib.Mojen
                 UseODataActions = context.View.Group != null,
 
                 // The data-source's model is created by the view model.
-                DataModelFactory = "space.vm.createDataModel()",
-                ReadQueryFactory = "space.vm.createReadQuery()",
+                DataModelFactory = "this.createDataModel()",
+                ReadQueryFactory = "this.createReadQuery()",
 
                 CanCreate = create,
                 CanModify = modify,
@@ -395,7 +357,7 @@ namespace Casimodo.Lib.Mojen
             O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
             O("group: {0},", MojenUtils.ToJsValue(view.Group));
             O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
-            O("space: space,");
+            //O("space: space,");
             O("spaceOptions: spaceOptions || null,");
             O("$component: spaceOptions? spaceOptions.$component || null : null,");
             O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
@@ -407,14 +369,14 @@ namespace Casimodo.Lib.Mojen
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
 
-            OViewDimensionOptions(view);
+            // OViewDimensionOptions(view);
 
             if (view.EditorView != null)
             {
                 OB("editor:");
                 O("id: {0},", MojenUtils.ToJsValue(view.EditorView.Id));
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
-                OViewDimensionOptions(view.EditorView);
+                // OViewDimensionOptions(view.EditorView);
                 End();
             }
         }
