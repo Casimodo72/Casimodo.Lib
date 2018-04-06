@@ -39,9 +39,6 @@ namespace Casimodo.Lib.Mojen
 
         public virtual void Define(WebViewGenContext context)
         {
-            //OBlockBegin = (c) => XB("<div style='display:inline-block;width:100%'>");
-            //OBlockBegin = (c) => XB("<div class='row'>");
-            //OBlockEnd = (c) => OE("</div>");
             OPropContainerBegin = (c) => XB($"<div class='{PropContainerClass}'>");
             OPropContainerEnd = (c) => XE("</div>");
         }

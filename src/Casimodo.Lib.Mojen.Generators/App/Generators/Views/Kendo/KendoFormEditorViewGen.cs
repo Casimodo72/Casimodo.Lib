@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
                 if (view.IsCustom)
                     throw new Exception("'Custom' is not supported for editor views. Use 'Viewless' instead.");
 
-                if (!view.IsViewless && !view.IsCustom)
+                if (!view.IsViewless)
                 {
                     PerformWrite(view, () => GenerateView(context));
                 }
@@ -92,7 +92,6 @@ namespace Casimodo.Lib.Mojen
             LabelContainerClass = "col-sm-3 col-xs-12";
             OLabelContainerBegin = (c) =>
             {
-                // KABU TODO: IMPORTANT: Why only for editors?
                 if (c.IsRunEditable) XB($"<div class='{c.Cur.GetGroupLabelStyle() ?? LabelContainerClass}'>");
             };
             OLabelContainerEnd = (c) =>
@@ -136,18 +135,6 @@ namespace Casimodo.Lib.Mojen
 
             // Validation error box.
             O("<ul class='validation-errors-box' id='validation-errors-box'></ul>");
-
-            // KABU TODO: IMPORTANT: Do we *really+ need the hidden properties to be
-            //   provided as HTML inputs?
-
-            // Hidden entity key field.
-            OHiddenInputFor(type.Key.Name);
-
-            // Other hidden fields.
-            foreach (var vprop in context.View.Props.Where(x => x.HideModes == MojViewMode.All))
-            {
-                OHiddenInputFor(vprop.FormedTargetPath);
-            }
 
             // External fields. Those fields need to be included in the UsedViewPropInfos
             //  because they are intended to be edited via a user-provided custom template.
@@ -1179,7 +1166,7 @@ namespace Casimodo.Lib.Mojen
                     {
                         // Set value and fire the change event for the binding to pick up the new value.
                         O($"input.val(result.value).change();");
-                    });               
+                    });
             });
             OScriptEnd();
 
