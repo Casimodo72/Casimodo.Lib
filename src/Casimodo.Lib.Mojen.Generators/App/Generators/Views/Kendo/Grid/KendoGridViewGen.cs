@@ -428,7 +428,7 @@ namespace Casimodo.Lib.Mojen
             var view = context.View;
             var index = 0;
 
-            if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
+            if (view.ItemSelection.UseCheckBox)
             {
                 var selector = new MojViewCustomControl
                 {

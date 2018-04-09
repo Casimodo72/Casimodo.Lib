@@ -147,7 +147,7 @@ namespace Casimodo.Lib.Mojen
             OJsImmediateBegin("factory");
 
             O();
-            OB("factory.createCore = function (spaceOptions)");
+            OB("factory.createCore = function (options)");
         }
 
         public void OEndComponentViewModelFactory(WebViewGenContext context)
@@ -357,9 +357,6 @@ namespace Casimodo.Lib.Mojen
             O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
             O("group: {0},", MojenUtils.ToJsValue(view.Group));
             O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
-            //O("space: space,");
-            O("spaceOptions: spaceOptions || null,");
-            O("$component: spaceOptions? spaceOptions.$component || null : null,");
             O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
             O("isLookup: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
             O("isDialog: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
@@ -368,8 +365,9 @@ namespace Casimodo.Lib.Mojen
 
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
-
             // OViewDimensionOptions(view);
+
+            O("extra: options || null,");
 
             if (view.EditorView != null)
             {
