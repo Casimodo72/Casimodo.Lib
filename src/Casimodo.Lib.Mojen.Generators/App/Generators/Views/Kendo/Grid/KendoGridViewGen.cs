@@ -669,6 +669,7 @@ namespace Casimodo.Lib.Mojen
                 // delay: 1500
 
                 string cellTemplate = null;
+                Action cellTemplateBuild = null;
 
                 // Specifies whether to show or hide the DropDownList with the operators.
                 bool showOperators = false;
@@ -708,33 +709,32 @@ namespace Casimodo.Lib.Mojen
                 {
                     // Reference
 
-                    // The property to be used for display of the referenced value.
-                    var targetDisplayProp = vinfo.TargetDisplayProp;
-
-                    // KABU TODO: REMOVE: Now we always want to use OData even for small sized lists.
-                    if (false && vinfo.TargetType.DataSetSize == MojDataSetSizeKind.ExtraSmall)
+                    if (vinfo.TargetType.DataSetSize == MojDataSetSizeKind.ExtraSmall)
                     {
-                        // KABU TODO: ELIMINATE: Razor helpers are not allowed in component JS anymore.
-                        throw new MojenException("Razor helpers are not allowed in component JS anymore.");
-
-                        // Enums and extra small data-sets will be looked up based on static values.
-                        // We'll use a DropDownList provided via the filterable cell template.
-
-                        //@operator = "eq";
-
-                        var repository = vinfo.TargetType.PluralName;
-                        dataSourceData = $"@(PickItemsContainer.Get{repository}AsJsArray(\"{targetDisplayProp}\", id: false))";
-
-                        // DropDownList template
+                        // Kendo DropDownList
+                        dataSourceTextField = dprop.Name;
                         var nullable = vprop.Reference.IsToZero;
-                        cellTemplate = $"kendomodo.gridReferenceFilterColTemplate{(nullable ? "Nullable" : "")}";
+                        cellTemplateBuild = new Action(() =>
+                        {
+                            ob("function (args)");
+                            O("kendomodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
+                                dataSourceTextField,
+                                dataSourceTextField,
+                                MojenUtils.ToJsValue(nullable));
+                            End(",");
+                        });
+
+                        dataSourceUrl = string.Format("{0}/{1}()?$select={2}&$orderby={2}",
+                                this.GetODataPath(vinfo.TargetType),
+                                this.GetODataQueryFunc(false),
+                                dprop.Name);
                     }
                     else
                     {
-                        if (!targetDisplayProp.Type.IsString)
+                        if (!dprop.Type.IsString)
                             throw new MojenException("AutoComplete column filters are intended for strings only.");
 
-                        dataSourceTextField = targetDisplayProp.Name;
+                        dataSourceTextField = dprop.Name;
                         @operator = "contains";
                         dataSourceAutoCompleteOperator = "contains";
 
@@ -746,14 +746,14 @@ namespace Casimodo.Lib.Mojen
                             dataSourceUrl = string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
                                 this.GetODataQueryFunc(true),
-                                targetDisplayProp.Name);
+                                dprop.Name);
                         }
                         else
                         {
                             dataSourceUrl = string.Format("{0}/{1}()?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
                                 this.GetODataQueryFunc(false),
-                                targetDisplayProp.Name);
+                                dprop.Name);
                         }
                     }
                 }
@@ -773,6 +773,11 @@ namespace Casimodo.Lib.Mojen
 
                 if (cellTemplate != null)
                     O($"template: {cellTemplate},");
+                else if (cellTemplateBuild != null)
+                {
+                    Oo($"template: ");
+                    cellTemplateBuild();
+                }
 
                 if (!showOperators)
                     O($"showOperators: false,");
@@ -844,7 +849,7 @@ namespace Casimodo.Lib.Mojen
                 if (dprop.Name == "ModifiedOn")
                     @class += " kmodo-grid-timestamp";
 
-                OB("attributes: ");
+                OB("attributes:");
 
                 if (!string.IsNullOrEmpty(@class))
                     O($"'class': '{@class}'");
