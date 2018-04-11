@@ -20,11 +20,19 @@ var kendomodo;
                     itemId: null,
                     isCancelled: false,
                     isPersisted: false,
+                    canDelete: false,
+                    isDeleted: false,
                     isError: false
                 };
 
                 this.on("argsChanged", function (e) {
                     self._iedit.mode = self.args.mode;
+
+                    if (self._iedit.mode === "modify")
+                        self._iedit.canDelete = true;
+
+                    if (self._iedit.mode === "modify" && typeof self.args.canDelete !== "undefined")
+                        self._iedit.canDelete = !!self.args.canDelete;
                 });
             };
 
@@ -61,45 +69,73 @@ var kendomodo;
                 options.error = this._eve(this.onDataSourceError);
             };
 
-            fn._delete = function (item) {
-                // KABU TODO: 
-                // - Deletion confirmation dialog
-                // - self.dataSource.remove(item); ??
-                // - self.dataSource.sync(); 
+            fn._delete = function () {
+                var self = this;
+
+                if (this._iedit.mode !== "modify" || !this.auth.canDelete || !this._iedit.canDelete)
+                    return;
+
+                var item = this.getCurrentItem();
+                if (!item)
+                    return;
+
+                kendomodo.ui.openDeletionConfirmationDialog(
+                    "Wollen Sie diesen Eintrag wirklich endgültig löschen?")
+                    .then(function (result) {
+
+                        if (result !== true)
+                            return;
+
+                        self.dataSource.remove(item);
+                        self.dataSource.sync()
+                            .then(function () {
+                                if (self._iedit.isError)
+                                    return;
+
+                                self._iedit.isDeleted = true;
+
+                                kendomodo.ui.openInfoDialog("Der Eintrag wurde gelöscht.", {
+                                    kind: "info"
+                                })
+                                .then(function () {
+                                    // KABU TODO: Should we do something else other than cancel?
+                                    self._cancel();
+                                });
+                            });
+                    });
             };
 
             fn.onEditing = function (context) {
+                var self = this;
 
                 if (this._isDebugLogEnabled)
-                    console.debug("- EDITOR: '%s'", context.isNew ? "create" : "modify");                
+                    console.debug("- EDITOR: '%s'", context.isNew ? "create" : "modify");
 
                 // Call generated code.
                 if (typeof this.onEditingGenerated === "function")
                     this.onEditingGenerated(context);
 
-                if (context.isNew) {
+                if (context.mode === "create") {
                     kendomodo.initDataItemOnCreating(context.item, this.dataSource.reader.model.fields);
-
-                    // If authorized and modifying: add delete button.
-                    if (!context.isNew &&
-                        this.auth.canDelete &&
-                        context.item.IsReadOnly === false &&
-                        context.item.IsDeletable === true) {
-
-                        // Add delete button at bottom-left position.
-                        $('<a class="k-button k-button-icontext" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')
-                            .appendTo(e.container.find(".k-edit-buttons"))
-                            .on("click", function (e) {
-                                self._delete(context.item);
-                            });
-                    }
 
                     // Prepare domain object for editing.
                     // E.g. this will create nested complex properties if missing.
                     casimodo.data.initDomainDataItem(context.item, this._options.dataTypeName, "create");
+                }
 
-                    // Just a remimder that "kendoEditable" exists. Dunno yet what to do with it.
-                    // var editable = e.container.data("kendoEditable");
+                // If authorized and modifying: add delete button.
+                if (context.mode === "modify" &&
+                    this.auth.canDelete &&
+                    this._iedit.canDelete &&
+                    context.item.IsReadOnly === false &&
+                    context.item.IsDeletable === true) {
+
+                    // Add delete button at bottom-left position.
+                    $('<a class="k-button k-button-icontext" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')
+                        .appendTo(this.$view.find(".k-edit-buttons"))
+                        .on("click", function (e) {
+                            self._delete();
+                        });
                 }
 
                 this.trigger("editing", { sender: this, model: context.item, item: context.item, isNew: context.isNew });

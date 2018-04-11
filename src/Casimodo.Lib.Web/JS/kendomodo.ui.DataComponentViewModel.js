@@ -57,7 +57,7 @@ var kendomodo;
             fn.processNavigation = function () {
                 // NOP
                 return this;
-            }
+            };
 
             fn.refresh = function () {
                 var self = this;
@@ -181,14 +181,10 @@ var kendomodo;
                 if (this.filters.length)
                     options.filter = { filters: this.filters };
 
-                // Extend with custom fields.
-                if (this._options.spaceOptions && this._options.spaceOptions.fields) {
-                    var customFields = this._options.spaceOptions.fields;
-                    var props = Object.getOwnPropertyNames(customFields);
-                    for (var i = 0; i < props.length; i++) {
-                        var prop = props[i];
-                        options.schema.model.fields[prop] = customFields[prop];
-                    }
+                // Extend with custom data model fields.
+                if (this._options.fields) {
+                    for (var prop in this._options.fields)
+                        options.schema.model.fields[prop] = this._options.fields[prop];
                 }
 
                 this.extendDataSourceOptions(options);

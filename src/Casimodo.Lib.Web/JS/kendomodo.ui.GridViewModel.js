@@ -19,7 +19,7 @@ var kendomodo;
                 var componentArgs = casimodo.ui.componentArgs.consume(this._options.id);
                 if (componentArgs) {
                     if (componentArgs.createComponentOptionsOverride)
-                        this.space.createComponentOptionsOverride = componentArgs.createComponentOptionsOverride;
+                        this.createComponentOptionsOverride = componentArgs.createComponentOptionsOverride;
                 }
 
                 this.expandedKeys = [];
@@ -450,6 +450,8 @@ var kendomodo;
                     {
                         mode: mode,
                         itemId: item ? item[this.keyName] : null,
+                        // Allow deletion if authorized.
+                        canDelete: true,
                         editing: function (e) {
                             self.trigger("editing", e);
                         },
@@ -457,12 +459,14 @@ var kendomodo;
                             self._state.isEditing = false;
 
                             if (result.isOk) {
-
                                 self.refresh()
                                     .then(function () {
                                         if (mode === "create" && result.value)
                                             self._trySetCurrentItemById(result.value);
                                     });
+                            }
+                            else if (result.isDeleted) {
+                                self.refresh();
                             }
                         }
                     });
@@ -485,9 +489,7 @@ var kendomodo;
                     $component = $('#grid-' + this._options.id);
 
                 // Create the grid component.
-                // KABU TODO: createComponentOptions() is located in the CSHTML file because
-                //   we still need Razor for some of kendo.ui.Grid's column definitions.
-                var kendoGridOptions = this.space.createComponentOptions();
+                var kendoGridOptions = this.createComponentOptions();
                 // Attach event handlers.
                 kendoGridOptions.dataBinding = this._eve(this.onComponentDataBinding);
                 kendoGridOptions.dataBound = this._eve(this.onComponentDataBound);
@@ -500,7 +502,7 @@ var kendomodo;
                 }
 
                 var kendoGrid = $component.kendoGrid(kendoGridOptions).data('kendoGrid');
-                this.space.component = kendoGrid;
+
                 this.setComponent(kendoGrid);
 
                 //var validator = $component.kendoValidator({

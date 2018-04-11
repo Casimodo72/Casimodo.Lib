@@ -6,12 +6,13 @@ var kendomodo;
 
         var FormReadOnlyViewModel = (function (_super) {
             casimodo.__extends(FormReadOnlyViewModel, _super);
-
+            
             function FormReadOnlyViewModel(options) {
                 _super.call(this, options);
 
                 this.$view = null;
                 this.$toolbar = null;
+                this._renderers = [];
                 this.createDataSource();
             }
 
@@ -47,7 +48,20 @@ var kendomodo;
             };
 
             fn.onDataSourceChanged = function (e) {
-                this.setCurrentItem(this.dataSource.data()[0] || null);
+
+                var item = this.dataSource.data()[0] || null;
+
+                this.setCurrentItem(item);
+
+                this._renderers.forEach(function (ed) {
+
+                    // Perform setValue() on code-mirror editor in order to
+                    //   populate it with the current textarea's value.
+                    //   This is needed because code-mirror does not do that automatically.
+                    if (ed.type === "CodeMirror") {
+                        ed.component.setValue(ed.$el.val());
+                    }
+                });
             };
 
             // overwrite
@@ -92,7 +106,9 @@ var kendomodo;
                     {
                         mode: "modify",
                         itemId: item[this.keyName],
-                        // editor: this._options.editor,
+                        // NOTE: We don't allow deletion via the read-only detail views,
+                        //   but only via the grid view model.
+                        canDelete: false,
                         finished: function (result) {
                             self.refresh();
                         }
@@ -110,12 +126,13 @@ var kendomodo;
                 var self = this;
 
                 // Create dummy component object.
-                this.space.component = {};
-                this.setComponent(this.space.component);
+                this.setComponent({});
 
                 this.$view = $("#details-view-" + this._options.id);
 
                 this._prepareView();
+
+                this._initTextRenderers();
 
                 // Toolbar commands.
                 this.$toolbar = this.$view.find(".details-view-toolbar");
@@ -129,6 +146,39 @@ var kendomodo;
                 });
 
                 this.setTitle(this._options.title);
+            };
+
+            fn._initTextRenderers = function () {
+                var self = this;
+
+                this.$view.find("textarea[data-use-renderer]").each(function () {
+                    var el = this;
+                    var $el = $(el);
+                    var type = $el.data("use-renderer");
+
+                    if (type === "scss" || type === "html") {
+
+                        // https://codemirror.net/doc/manual.html
+                        var renderer = CodeMirror.fromTextArea(el, {
+                            mode: self._getCodeMirrorMode(type),
+                            lineNumbers: true,
+                            indentUnit: 4,
+                            indentWithTabs: true
+                        });
+
+                        // Register editor.
+                        self._renderers.push({ type: "CodeMirror", component: renderer, $el: $el });
+                    }
+                });
+            };
+
+            fn._getCodeMirrorMode = function (type) {
+                if (type === "scss")
+                    return "text/x-scss";
+                if (type === "html")
+                    return "htmlmixed";
+
+                throw new Error("Unexpected text content type '" + type + "'.");
             };
 
             return FormReadOnlyViewModel;

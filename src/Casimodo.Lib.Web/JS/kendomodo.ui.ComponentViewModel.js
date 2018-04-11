@@ -11,6 +11,12 @@ var kendomodo;
 
                 this._super = _super;
 
+                // Extend with extra options.
+                if (this._options.extra) {
+                    for (var prop in this._options.extra)
+                        this._options[prop] = this._options.extra[prop];
+                }
+
                 this.$view = null;
 
                 this.scope = kendo.observable({ item: null });

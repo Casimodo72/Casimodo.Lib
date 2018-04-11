@@ -9,20 +9,14 @@ var kendomodo;
         kendomodo.gridReferenceFilterColTemplate(args, true);
     };
 
-    kendomodo.gridReferenceFilterColTemplate = function (args, nullable) {
-
-        var options = {
+    kendomodo.gridReferenceFilterColTemplate = function (args, valueField, textField, isNullable) {
+        args.element.kendoDropDownList({
             dataSource: args.dataSource,
-            dataValueField: "text",
-            dataTextField: "text",
+            dataValueField: valueField,
+            dataTextField: textField,
+            optionLabel: isNullable ? " " : null,
             valuePrimitive: true
-        };
-
-        if (nullable) {
-            options.optionLabel = " ";
-        }
-
-        args.element.kendoDropDownList(options);
+        });
     };
 
     kendomodo.gridEnumFilterColTemplateNullable = function (args) {

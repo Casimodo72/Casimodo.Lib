@@ -50,6 +50,7 @@ var kendomodo;
             else if (reg.role === "Editor") {
                 args = new casimodo.ui.DialogArgs(reg.id);
                 args.mode = options.mode;
+                args.canDelete = !!options.canDelete;
                 args.itemId = options.itemId;
                 args.value = options.value;
                 args.params = options.params;

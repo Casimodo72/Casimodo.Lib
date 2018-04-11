@@ -4,37 +4,21 @@ var casimodo;
 
     (function (ui) {
 
-        // KABU TODO: Get rid of space and space factory.
-        ui.createComponentSpaceFactory = function () {
+        ui.createComponentViewModelFactory = function () {
             return {
-                createCore: function () {
+                createCore: function (options) {
                     throw new Error("Not implemented.");
                 },
-                create: function (spaceOptions) {
-                    var space = this.createCore();
-                    space.create(spaceOptions);
-                    return space;
-                },
-                createViewModel: function (spaceOptions) {
-                    return this.createCore().createViewModel(spaceOptions);
-                }
-            };
-        };
-
-        // KABU TODO: Get rid of space and space factory.
-        ui.createComponentSpace = function (spaceOptions) {
-            return {
-                options: spaceOptions || {},
-                args: {},
-                create: function (spaceOptions) {
-                    var vm = this.createViewModel(spaceOptions);
-                    if (!this.createComponent())
+                create: function (options) {
+                    var vm = this.createCore(options);
+                    if (typeof vm.createComponent === "function")
                         vm.createComponent();
 
-                    return this;
+                    return vm;
                 },
-                createViewModel: function (spaceOptions) { return null; },
-                createComponent: function () { return null; }
+                createViewModel: function (options) {
+                    return this.createCore(options);
+                }
             };
         };
 
@@ -181,23 +165,17 @@ var casimodo;
 
             fn.createViewModel = function (item, options) {
                 var typeName = this._buidTypeName(item);
-                return casimodo.getValueAtPropPath(window, typeName + "SpaceFactory").create(options).vm;
+                return casimodo.getValueAtPropPath(window, typeName + "Factory").create(options);
             };
 
             fn.createViewModelOnly = function (item, options) {
                 if (item.vmType) {
-                    return new item.vmType({ id: item.id, isDialog: item.isDialog });
+                    return new item.vmType({ id: item.id, isDialog: item.isDialog, isLookup: item.isLookup });
                 }
                 else {
                     var typeName = this._buidTypeName(item);
-                    return casimodo.getValueAtPropPath(window, typeName + "SpaceFactory").createViewModel(options);
+                    return casimodo.getValueAtPropPath(window, typeName + "Factory").createViewModel(options);
                 }
-            };
-
-            // KABU TODO: Get rid of space and space factory.
-            fn.createSpace = function (item, options) {
-                var typeName = this._buidTypeName(item);
-                return casimodo.getValueAtPropPath(window, typeName + "SpaceFactory").create(options);
             };
 
             return ComponentRegistry;
@@ -220,15 +198,11 @@ var casimodo;
             };
 
             fn.createViewModelOnly = function (options) {
-                return this.registry.createViewModelOnly(this, options)
+                return this.registry.createViewModelOnly(this, options);
             };
 
             fn.vm = function (options) {
                 return this.registry.createViewModel(this, options);
-            };
-
-            fn.space = function (options) {
-                return this.registry.createSpace(this, options);
             };
 
             return ComponentRegItem;
@@ -241,7 +215,6 @@ var casimodo;
                 _super.call(this, options);
 
                 this._options = options || {};
-                this.space = options.space || null;
 
                 this.keyName = "Id";
 
@@ -275,7 +248,7 @@ var casimodo;
             };
 
             fn.createComponent = function () {
-                return this.space.createComponent();
+                // NOP
             };
 
             fn.setComponent = function (value) {

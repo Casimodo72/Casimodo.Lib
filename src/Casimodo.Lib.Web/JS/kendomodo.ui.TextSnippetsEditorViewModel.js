@@ -112,7 +112,7 @@ var kendomodo;
             fn.buildResult = function () {
                 var self = this;
                 var value = "";
-                var values = this.values.map(function (x) { return x.value });
+                var values = this.scope.values.map(function (x) { return x.value });
 
                 values.forEach(function (val) {
                     value += val;
@@ -209,7 +209,7 @@ var kendomodo;
             fn.createValue = function (value, selected) {
                 var item = new SnippetItem({
                     id: kendo.guid(),
-                    index: this.values.length,
+                    index: this.scope.values.length,
                     selected: selected,
                     value: value
                 });
@@ -227,6 +227,10 @@ var kendomodo;
                 });
 
                 return list;
+            };
+
+            fn.start = function () {
+                return this.refresh();
             };
 
             fn.refresh = function () {
@@ -283,7 +287,7 @@ var kendomodo;
                     if (self.scope.containers.length) {
                         var first = self.scope.containers.at(0);
                         first.set("selected", true);
-                        self.set("container", first);
+                        self.scope.set("container", first);
                     }
 
                     self.initValue(self.args.value);

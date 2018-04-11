@@ -11,7 +11,13 @@ var kendomodo;
                 this.owner = null;
                 this.icomponent = options.icomponent || null;
                 this.name = options.name;
-                this.vm = options.vm || null;
+
+                this._getVmOnDemand = null;
+                if (typeof options.vm === "function")
+                    this._getVmOnDemand = options.vm;
+                else
+                    this.vm = options.vm || null;
+
                 //this.enabled = typeof options.enabled !== "undefined" ? options.enabled : true;
                 //this.visible = typeof options.visible !== "undefined" ? options.visible : true;
                 this._canShow = typeof options.canShow !== "undefined" ? !!options.canShow : true;
@@ -48,10 +54,26 @@ var kendomodo;
                 return this;
             };
 
+            fn.bindMaster = function () {
+                if (this.owner.mvm && this.owner.mvm.scope)
+                    kendo.bind(this.getContentElem(), this.owner.mvm.scope);
+            };
+
+            fn.bindModel = function () {
+                if (this.vm && this.vm.scope)
+                    kendo.bind(this.getContentElem(), this.vm.scope);
+            };
+
+            fn.bind = function ($elem) {
+                if ($elem === null || !this.vm || !this.vm.scope)
+                    return;
+
+                kendo.bind($elem, this.vm.scope);
+            };
+
             return TabControlPageViewModel;
 
         })();
-
         ui.TabControlPageViewModel = TabControlPageViewModel;
 
         var TabControlViewModel = (function () {
@@ -78,7 +100,7 @@ var kendomodo;
                 this._initComponent(options);
 
                 if (options.hideAll)
-                    this.hideAllTabs();                         
+                    this.hideAllTabs();
 
                 casimodo.authContext.one("read", (e) => self._onAuthContextRead(e));
             }
@@ -101,7 +123,7 @@ var kendomodo;
                 }
 
                 this._start();
-            };
+            };            
 
             fn._start = function () {
                 // NOP
@@ -326,84 +348,17 @@ var kendomodo;
 
             return TabControlViewModel;
         })();
-
         ui.TabControlViewModel = TabControlViewModel;
 
-        // TabControlPageSpaceViewModel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        var MasterDetailTabControlViewModel = (function (_super) {
+            casimodo.__extends(MasterDetailTabControlViewModel, _super);
 
-        var TabControlPageSpaceViewModel = (function (_super) {
-
-            casimodo.__extends(TabControlPageSpaceViewModel, _super);
-
-            function TabControlPageSpaceViewModel(options) {
-
-                _super.call(this, options);
-
-                this.space = null;
-                this._getSpaceOnDemand = null;
-                if (typeof options.space === "function")
-                    this._getSpaceOnDemand = options.space;
-                else
-                    this.space = options.space || null;
-
-                this.master = !!options.master || false;
-            }
-
-            var fn = TabControlPageSpaceViewModel.prototype;
-
-            fn.bindMaster = function () {
-                kendo.bind(this.getContentElem(), this.owner.mvm.scope);
-            };
-
-            fn.bindModel = function () {
-                kendo.bind(this.getContentElem(), this.vm.scope);
-            };
-
-            fn.bind = function ($elem) {
-                if ($elem === null || this.vm === null || !this.vm.scope)
-                    return;
-
-                kendo.bind($elem, this.vm.scope);
-            };
-
-            return TabControlPageSpaceViewModel;
-
-        })(TabControlPageViewModel);
-
-        ui.TabControlPageSpaceViewModel = TabControlPageSpaceViewModel;
-
-        // TabControlSpaceViewModel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        var TabControlSpaceViewModel = (function (_super) {
-
-            casimodo.__extends(TabControlSpaceViewModel, _super);
-
-            function TabControlSpaceViewModel(options) {
-
-                _super.call(this, options);
-            }
-
-            var fn = TabControlSpaceViewModel.prototype;
-
-            return TabControlSpaceViewModel;
-        })(TabControlViewModel);
-
-        ui.TabControlSpaceViewModel = TabControlSpaceViewModel;
-
-        // MasterDetailTabControlSpaceViewModel ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        var MasterDetailTabControlSpaceViewModel = (function (_super) {
-            casimodo.__extends(MasterDetailTabControlSpaceViewModel, _super);
-
-            function MasterDetailTabControlSpaceViewModel(options) {
+            function MasterDetailTabControlViewModel(options) {
 
                 if (typeof options.hideAll === "undefined")
                     options.hideAll = true;
 
                 _super.call(this, options);
-
-                if (this._options.masterSpace)
-                    throw new Error("Master space is obsolete.");
 
                 this.mvm = null;
                 this.mtab = this.tabs.find(x => x.master === true);
@@ -413,7 +368,7 @@ var kendomodo;
                 this._initTab(this.mtab);
             }
 
-            var fn = MasterDetailTabControlSpaceViewModel.prototype;
+            var fn = MasterDetailTabControlViewModel.prototype;
 
             fn._start = function () {
                 //if (this.mtab && this.mtab._canShow) {
@@ -468,15 +423,10 @@ var kendomodo;
                 tab._isInitPerformed = true;
 
                 if (tab.icomponent) {
-                    tab.space = tab.icomponent.space();
-                    tab.vm = tab.space.vm;
+                    tab.vm = tab.icomponent.vm();
                 }
-                else {
-                    if (tab._getSpaceOnDemand)
-                        tab.space = tab._getSpaceOnDemand() || null;
-
-                    if (tab.space && tab.space.vm)
-                        tab.vm = tab.space.vm;
+                else if (tab._getVmOnDemand) {
+                    tab.vm = tab._getVmOnDemand() || null;
                 }
 
                 if (tab.master && tab.vm)
@@ -491,7 +441,7 @@ var kendomodo;
             };
 
             fn._createTabEvent = function (tab) {
-                return { sender: this, tab: tab, space: tab.space, vm: tab.vm, master: this.mvm.scope.item };
+                return { sender: this, tab: tab, vm: tab.vm, master: this.mvm.scope.item };
             };
 
             fn._canClearTab = function (tab) {
@@ -504,11 +454,10 @@ var kendomodo;
                 return tab.isEnabled && this.mvm.scope.item !== null;
             };
 
-            return MasterDetailTabControlSpaceViewModel;
+            return MasterDetailTabControlViewModel;
 
-        })(TabControlSpaceViewModel);
-
-        ui.MasterDetailTabControlSpaceViewModel = MasterDetailTabControlSpaceViewModel;
+        })(TabControlViewModel);
+        ui.MasterDetailTabControlViewModel = MasterDetailTabControlViewModel;
 
     })(kendomodo.ui || (kendomodo.ui = {}));
 })(kendomodo || (kendomodo = {}));

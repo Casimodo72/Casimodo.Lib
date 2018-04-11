@@ -12,6 +12,7 @@ var kendomodo;
 
                 this._editorWindow = null;
                 this.scope.set("item", {});
+                this._editors = [];
                 this.$view = null;
                 this.$toolbar = null;
                 this.createDataSource();
@@ -77,6 +78,16 @@ var kendomodo;
                     $view: this.$view
                 };
 
+                this._editors.forEach(function (ed) {
+
+                    // Perform setValue() on code-mirror editor in order to
+                    //   populate it with the current textarea's value.
+                    //   This is needed because code-mirror does not do that automatically.
+                    if (ed.type === "CodeMirror") {
+                        ed.component.setValue(ed.$el.val());
+                    }
+                });
+
                 this.onEditing(context);
             };
 
@@ -95,6 +106,7 @@ var kendomodo;
 
                 this.args.value = this._iedit.itemId;
                 this.args.item = item;
+                this.args.isDeleted = this._iedit.isDeleted;
                 this.args.isOk = true;
                 this.args.isCancelled = false;
                 this._editorWindow.close();
@@ -104,6 +116,7 @@ var kendomodo;
                 if (this._isDebugLogEnabled)
                     console.debug("- EDITOR: cancelling");
 
+                this.args.isDeleted = this._iedit.isDeleted;
                 this.args.isOk = false;
                 this.args.isCancelled = true;
                 this._editorWindow.close();
@@ -200,13 +213,14 @@ var kendomodo;
 
                 this._prepareView();
 
+                this._initTextRenderers();
+
                 // KABU TODO: Move to "initAsDialog" section.
                 this._editorWindow = kendomodo.findKendoWindow(self.$view);
                 this._editorWindow.element.css("overflow", "visible");
 
                 // Create dummy component.
-                this.space.component = {};
-                this.setComponent(this.space.component);
+                this.setComponent({});
 
                 this.$toolbar = this.$view.find(".k-edit-buttons");
 
@@ -224,6 +238,18 @@ var kendomodo;
 
                         if (self._iedit.isSaving)
                             return false;
+
+                        self._editors.forEach(function (ed) {
+
+                            // Perform save() on code-mirror editor in order to
+                            //   populate the textarea with the current value.
+                            //   This is needed because code-mirror does not update
+                            //   the underlying textarea automatically.
+                            if (ed.type === "CodeMirror") {
+                                ed.component.save();
+                                ed.$el.change();
+                            }
+                        });
 
                         if (editable.validatable.validate() && saveable) {
                             self._save();
@@ -257,6 +283,42 @@ var kendomodo;
                             $saveCmd.addClass("k-state-disabled");
                     });
                 });
+            };
+
+            fn._initTextRenderers = function () {
+                var self = this;
+
+                this.$view.find("textarea[data-use-renderer]").each(function () {
+                    var el = this;
+                    var $el = $(el);
+                    var type = $el.data("use-renderer");
+
+                    if (type === "scss" || type === "html") {
+
+                        // https://codemirror.net/doc/manual.html
+                        var editor = CodeMirror.fromTextArea(el, {
+                            mode: self._getCodeMirrorMode(type),
+                            lineNumbers: true,
+                            indentUnit: 4,
+                            indentWithTabs: true,
+                            onChange: function (cm) {
+
+                            }
+                        });
+
+                        // Register editor.
+                        self._editors.push({ type: "CodeMirror", component: editor, $el: $el });
+                    }
+                });
+            };
+
+            fn._getCodeMirrorMode = function (type) {
+                if (type === "scss")
+                    return "text/x-scss";
+                if (type === "html")
+                    return "htmlmixed";
+
+                throw new Error("Unexpected text content type '" + type + "'.");
             };
 
             return FormEditorViewModel;

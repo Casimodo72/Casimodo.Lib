@@ -4,6 +4,41 @@ var kendomodo;
 (function (kendomodo) {
     (function (ui) {
 
+        var GoogleMapInitializer = (function (_super) {
+            casimodo.__extends(GoogleMapInitializer, _super);
+
+            function GoogleMapInitializer(options) {
+                _super.call(this, options);
+
+                this.isInitialized = false;
+            }
+
+            var fn = GoogleMapInitializer.prototype;
+
+            fn.init = function () {
+                var self = this;
+
+                if (!this.isInitialized) {
+                    //$.getScript("https://maps.googleapis.com/maps/api/js?v=3.22&language=de&region=DE&libraries=places&callback=kendomodo.ui.GoogleMapInitializer.onScriptReady&key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4");
+
+                    $.getScript("https://maps.googleapis.com/maps/api/js?v=3.22&language=de&region=DE&libraries=places&key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4",
+                        function (e) {
+                            self.onScriptReady();
+                        });
+                }
+                else
+                    this.onScriptReady();
+            };
+
+            fn.onScriptReady = function () {
+                this.isInitialized = true;
+                this.trigger("scriptReady", { sender: this });
+            };
+
+            return GoogleMapInitializer;
+        })(casimodo.ObservableObject);
+        ui.GoogleMapInitializer = new GoogleMapInitializer();
+
         ui.GeoPlaceEditorInfo = (function () {
 
             var GeoPlaceEditorInfo = function (vm) {
