@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
 
             PerformWrite(filePath, () =>
             {
-                OUsing("System", "Casimodo.Lib.Web.Auth");
+                OUsing("System", "Casimodo.Lib.Auth", "Casimodo.Lib.Web.Auth");
                 ONamespace("Ga.Web");
                 O("public partial class {0}WebComponentRegistry : WebComponentRegistry",
                     App.Get<AppBuildConfig>().AppNamePrefix);
@@ -44,7 +44,7 @@ namespace Casimodo.Lib.Mojen
 
                 foreach (var item in components)
                 {
-                    Oo("Add(new WebComponentRegItem {{ Part = {0}, " +
+                    Oo("Add(new UIComponentInfo {{ Part = {0}, " +
                         "Group = {1}, Role = {2}, Actions = {3}, " +
                         "Title = {4}, Url = {5}, " +
                         "Id = {6} }})",

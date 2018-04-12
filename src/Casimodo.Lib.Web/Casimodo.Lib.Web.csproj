@@ -262,6 +262,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auth\AuthQuery.cs" />
     <Compile Include="Auth\ApiActionAuthAttribute.cs" />
     <Compile Include="Auth\MvcActionAuthAttribute.cs" />
     <Compile Include="CustomOutputCacheAttribute.cs" />

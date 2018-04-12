@@ -12,7 +12,7 @@ namespace Casimodo.Lib.Auth
         public string Deny { get; set; }
     }
 
-    public class WebComponentRegItem
+    public class UIComponentInfo
     {
         public string Id { get; set; }
 
@@ -25,14 +25,14 @@ namespace Casimodo.Lib.Auth
 
         public List<AuthRoleSetting> AuthRoles { get; set; }
 
-        public WebComponentRegItem SetRole(string role, string permit, string deny)
+        public UIComponentInfo SetRole(string role, string permit, string deny)
         {
             Set(new AuthRoleSetting { Name = role, Permit = permit, Deny = deny });
 
             return this;
         }
 
-        public WebComponentRegItem Set(params AuthRoleSetting[] roles)
+        public UIComponentInfo Set(params AuthRoleSetting[] roles)
         {
             if (AuthRoles == null)
                 AuthRoles = new List<AuthRoleSetting>();
@@ -78,10 +78,6 @@ namespace Casimodo.Lib.Auth
         }
 
         public List<AuthPart> Parts { get; private set; } = new List<AuthPart>();
-
-
-
-
 
         public bool IsPermitted(IPrincipal user, string action, string part, string group, string vrole)
         {
@@ -159,7 +155,7 @@ namespace Casimodo.Lib.Auth
 
                 _manager.CheckNotDuplicate(part);
 
-                part.Components.Add(new WebComponentRegItem
+                part.Components.Add(new UIComponentInfo
                 {
                     Part = item,
                     Title = title,
@@ -172,20 +168,21 @@ namespace Casimodo.Lib.Auth
                 return this;
             }
 
-            public AuthBuilder AddPage(string part, string title, string url)
+            public AuthBuilder AddPage(string part, string title, string url, string group = null)
             {
                 if (!url.StartsWith("/"))
                     url = "/" + url;
 
                 var curpart = CurrentPart = new AuthPart();
                 curpart.PartName = part;
+                curpart.PartGroup = group;
                 curpart.Actions.Add(new AuthViewAction
                 {
                     Name = CommonAuthVerb.View,
                     ViewRole = "Page",
                     ViewUrl = url
                 });
-                curpart.Components.Add(new WebComponentRegItem
+                curpart.Components.Add(new UIComponentInfo
                 {
                     Part = part,
                     Role = "Page",
@@ -269,8 +266,11 @@ namespace Casimodo.Lib.Auth
             {
                 foreach (var action in part.Actions.Where(x => x.Matches(actionName, viewRole)))
                 {
-                    // Remove permissions of that action.
-                    foreach (var perm in part.Permissions.Where(x => x.Action == action).ToArray())
+                    // Remove permissions of that action from that user role.
+                    foreach (var perm in part.Permissions.Where(x =>
+                        x.Action == action &&
+                        x.UserRole == userRole)
+                        .ToArray())
                         part.Permissions.Remove(perm);
                 }
             }
