@@ -45,7 +45,7 @@ namespace Casimodo.Lib
         private static string ToZonedString(object value, object p)
         {
             throw new NotImplementedException();
-        }        
+        }
 
         public static string ToZonedString(this DateTimeOffset? value, string format = null)
         {
@@ -184,6 +184,14 @@ namespace Casimodo.Lib
         private static int GetQuarter()
         {
             return (DateTime.Today.Month - 1) / 3 + 1;
+        }
+
+        public static DateTimeOffset MoveBackwardsToMonday(this DateTimeOffset source)
+        {
+            var delta = DayOfWeek.Monday - source.DayOfWeek;
+            if (delta > 0)
+                delta -= 7;
+            return delta != 0 ? source.AddDays(delta) : source;
         }
 
         private static DayOfWeek GetDayOfWeek()
