@@ -98,7 +98,7 @@ namespace Casimodo.Lib.Mojen.Meta
 
             GenerateContainerFile(items);
 
-            // Serialize data            
+            // Serialize data
             MojenMetaSerializer.Serialize(container.GetType(), container, DataOutputFilePath);
         }
 
@@ -154,7 +154,7 @@ namespace Casimodo.Lib.Mojen.Meta
 
         bool IsNavigateable(MojProp prop)
         {
-            return prop.Reference.IsNavigation && !prop.Reference.IsToMany;
+            return prop.IsNavigation && !prop.Reference.IsToMany;
         }
 
         MetaItem GenerateMeta(MojType type, List<MojType> types)
@@ -281,11 +281,11 @@ namespace Casimodo.Lib.Mojen.Meta
 
                 MojProp formedNavigationProp = null;
 
-                if (prop.Reference.IsNavigation)
+                if (prop.IsNavigation)
                 {
                     formedNavigationProp = prop;
                 }
-                else if (!prop.AutoRelatedProps.Any(x => x.Reference.IsNavigation))
+                else if (!prop.AutoRelatedProps.Any(x => x.IsNavigation))
                 {
                     // Add formed navigation path property if there is only a foreign key without a navigation property.
                     formedNavigationProp = prop;
@@ -299,7 +299,7 @@ namespace Casimodo.Lib.Mojen.Meta
                         O($"public static Formed{toType} {prop.Alias} {{ get {{ return new Formed{toType}().Via(Class, Get({index})); }} }}");
                 }
 
-                if (prop.Reference.IsNavigation)
+                if (prop.IsNavigation)
                     return;
             }
 
@@ -438,10 +438,7 @@ namespace Casimodo.Lib.Mojen.Meta
             if (prop.Reference.NavigationProp?.IsModel() == true)
                 ThrowModelInEntityGraph();
 
-            // KABU TODO: REMOVE
-            // if (prop.Reference.ParentToChildReferenceProp?.ContainingType?.Kind == MojTypeKind.Model) ThrowModelInEntityGraph();
-
-            if (prop.Reference.ChildToParentProp?.DeclaringType?.IsModel() == true)
+            if (prop.Reference.ItemToCollectionProp?.DeclaringType?.IsModel() == true)
                 ThrowModelInEntityGraph();
 
             foreach (var aprop in prop.AutoRelatedProps)

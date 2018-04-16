@@ -10,12 +10,12 @@ namespace Casimodo.Lib.Mojen
 {
     public abstract class WebPartGenerator : AppPartGenerator
     {
-        public WebBuildConfig WebConfig { get; set; }
+        public WebAppBuildConfig WebConfig { get; set; }
 
         public override void Prepare()
         {
             base.Prepare();
-            WebConfig = App.Get<WebBuildConfig>();
+            WebConfig = App.Get<WebAppBuildConfig>();
         }
 
         public DataLayerConfig GetDataConfig(MojViewConfig view)
@@ -90,7 +90,7 @@ namespace Casimodo.Lib.Mojen
         {
             string outputFilePath =
                 Path.Combine(
-                    App.Get<WebBuildConfig>().WebControllersOutputDirPath,
+                    App.Get<WebAppBuildConfig>().WebControllersOutputDirPath,
                     controller.ClassName + ".generated.cs");
 
             PerformWrite(outputFilePath, () => callback(controller));
@@ -320,17 +320,17 @@ namespace Casimodo.Lib.Mojen
 
         public string GetViewDirPath(MojViewConfig view)
         {
-            return Path.Combine(App.Get<WebBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
+            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
         }
 
         public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string suffix = null)
         {
-            return Path.Combine(App.Get<WebBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix));
+            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix));
         }
 
         public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string suffix = null)
         {
-            return App.Get<WebBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
+            return App.Get<WebAppBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
         }
 
 

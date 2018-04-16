@@ -110,7 +110,7 @@ namespace Casimodo.Lib.Mojen
             var dataNs = App.Get<DataLayerConfig>().DataNamespaces.ToArray();
             var props = type.GetProps().ToArray();
             var foreignNs = type.GetProps()
-                .Where(x => x.Reference.Is && !x.Reference.IsForeignKey && x.Reference.ToType.Namespace != ns)
+                .Where(x => x.Reference.Is && !x.IsForeignKey && x.Reference.ToType.Namespace != ns)
                 .Select(x => x.Reference.ToType.Namespace)
                 .Distinct()
                 .ToArray();
@@ -121,7 +121,7 @@ namespace Casimodo.Lib.Mojen
         {
             var ns = type.Namespace;
             var foreignNs = type.GetProps()
-                .Where(x => x.Reference.Is && !x.Reference.IsForeignKey && x.Reference.ToType.Namespace != ns)
+                .Where(x => x.Reference.Is && !x.IsForeignKey && x.Reference.ToType.Namespace != ns)
                 .Select(x => x.Reference.ToType.Namespace)
                 .Distinct()
                 .ToArray();
@@ -241,7 +241,7 @@ namespace Casimodo.Lib.Mojen
                 // Setter
                 OPropObservableSet($"SetProp(ref {prop.FieldName}, value)", () =>
                 {
-                    if (prop.Reference.IsNavigation)
+                    if (prop.IsNavigation)
                     {
                         if (prop.Reference.IsToOne)
                         {
@@ -289,7 +289,7 @@ namespace Casimodo.Lib.Mojen
                 // Setter
                 OPropObservableSet($"SetProp(_store.{name}, value, () => _store.{name} = value)", () =>
                 {
-                    if (prop.Reference.IsNavigation)
+                    if (prop.IsNavigation)
                     {
                         O("if (value != null) {0} = value.{1}; else {0} = null;",
                             prop.Reference.ForeignKey.Name,
@@ -389,7 +389,7 @@ namespace Casimodo.Lib.Mojen
                     // Exclude lists.
                     .Where(x => comparison.UseListProps || !x.Type.IsCollection)
                     // Exclude navigation properties.
-                    .Where(x => comparison.UseNavitationProps || !x.Reference.IsNavigation)
+                    .Where(x => comparison.UseNavitationProps || !x.IsNavigation)
                     // Exclude non-stored properties.
                     .Where(x => comparison.UseNonStoredProps || x.StoreOrSelf.IsEntity() && !x.StoreOrSelf.IsExcludedFromDb)
                     .Select(x => x.Name)

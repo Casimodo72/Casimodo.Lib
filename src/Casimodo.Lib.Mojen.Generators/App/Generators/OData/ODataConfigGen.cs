@@ -162,7 +162,7 @@ namespace Casimodo.Lib.Mojen
             var item = type.VName;
             foreach (var prop in type.GetProps())
             {
-                if (prop.Reference.IsNavigation)
+                if (prop.IsNavigation)
                     // Skip reference navigation properties.
                     continue;
 

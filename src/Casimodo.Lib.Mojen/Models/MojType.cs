@@ -256,7 +256,7 @@ namespace Casimodo.Lib.Mojen
         public string DataContextName { get; set; }
 
         [DataMember]
-        public bool? WillHaveManyParents { get; set; }
+        public bool? HasManyParents { get; set; }
 
         [DataMember]
         public bool ExistsAlready { get; set; }
@@ -314,7 +314,7 @@ namespace Casimodo.Lib.Mojen
             return GetLocalProps().Where(x =>
                 x.IsTracked &&
                 // Ignore navigation properties.
-                !x.Reference.IsNavigation);
+                !x.IsNavigation);
         }
 
         public IEnumerable<MojDbPropAnnotation> GetIndexesWhereIsMember(MojProp prop)
@@ -345,7 +345,7 @@ namespace Casimodo.Lib.Mojen
         public IEnumerable<MojProp> GetCreateOnInitProps()
         {
             return GetProps().Where(x =>
-                (x.Type.IsCollection && !x.Reference.IsNavigation) ||
+                (x.Type.IsCollection && !x.IsNavigation) ||
                 (x.Type.Type != null &&
                  !x.Type.IsString &&
                  !x.Type.Type.IsPrimitive &&
@@ -434,7 +434,7 @@ namespace Casimodo.Lib.Mojen
                     (multiplicity == null || x.Reference.Multiplicity.HasFlag(multiplicity.Value)))
                 .ToList()
                 // Remove foreign key props if the navigation prop was also included.
-                .Exclude((list, x) => x.Reference.IsForeignKey && list.Any(y => y.Reference.ForeignKey == x && y.Reference.IsNavigation))
+                .Exclude((list, x) => x.IsForeignKey && list.Any(y => y.Reference.ForeignKey == x && y.IsNavigation))
                 // Prefer navigation property over foreign key property.
                 .Select(x => x.NavigationOrSelf);
         }
@@ -460,9 +460,9 @@ namespace Casimodo.Lib.Mojen
             return TestAncestorOrSelf(cur => cur == type);
         }
 
-        public IEnumerable<MojProp> GetBackReferenceProps()
+        public IEnumerable<MojProp> GetOwnedByRefProps()
         {
-            return GetReferenceProps().Where(x => x.Reference.IsChildToParent);
+            return GetReferenceProps().Where(x => x.Reference.OwnedByProp != null);
         }
 
         public IEnumerable<MojProp> GetBackReferencePropsTo(MojType type)
@@ -645,7 +645,7 @@ namespace Casimodo.Lib.Mojen
         {
             var naviProp = GetProps()
                 .FirstOrDefault(x =>
-                    x.Reference.IsNavigation &&
+                    x.IsNavigation &&
                     x.Reference.ToType == foreignProp.DeclaringType);
 
             if (naviProp == null)
@@ -770,7 +770,7 @@ namespace Casimodo.Lib.Mojen
                 if (prop.IsCustom && !custom)
                     continue;
 
-                if (prop.IsHiddenOneToManyEntityNavigationProp && !hidden)
+                if (prop.IsHiddenCollectionNavigationProp && !hidden)
                     continue;
 
                 yield return Tuple.Create(this, prop);

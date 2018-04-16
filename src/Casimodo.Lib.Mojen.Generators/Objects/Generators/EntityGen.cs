@@ -64,7 +64,7 @@ namespace Casimodo.Lib.Mojen
             // Properties
             O();
             MojProp prop;
-            var props = type.GetLocalProps(custom: false).Where(x => !x.IsHiddenOneToManyEntityNavigationProp).ToList();
+            var props = type.GetLocalProps(custom: false).Where(x => !x.IsHiddenCollectionNavigationProp).ToList();
             for (int i = 0; i < props.Count; i++)
             {
                 prop = props[i];
@@ -112,7 +112,7 @@ namespace Casimodo.Lib.Mojen
                 ODefaultValueAttribute(prop, null);
 
                 // Make navigation properties virtual.
-                string accessor = prop.Reference.IsNavigation ? " virtual" : "";
+                string accessor = prop.IsNavigation ? " virtual" : "";
 
                 O($"public{accessor} {prop.Type.Name} {prop.Name} {{ get; set; }}");
             }

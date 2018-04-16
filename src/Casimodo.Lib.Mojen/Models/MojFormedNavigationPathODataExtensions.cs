@@ -82,7 +82,7 @@ namespace Casimodo.Lib.Mojen
             // Top level leaf properties
             foreach (var prop in properties
                 // Exclude navigation props, but include plain foreign-keys.
-                .Where(x => !x.Reference.Is || (!x.Reference.IsNavigation && !x.FormedNavigationTo.Is))
+                .Where(x => !x.Reference.Is || (!x.IsNavigation && !x.FormedNavigationTo.Is))
                 .DistinctBy(x => x.Name))
             {
                 yield return new MojPropDataGraphNode { Prop = prop };

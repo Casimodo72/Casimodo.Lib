@@ -54,9 +54,9 @@ namespace Casimodo.Lib.Mojen
                 // Ignore nagivation properties.
                 foreach (var naviProp in type.GetProps()
                     // Exclude hidden collection props.
-                    .Where(x => !x.IsHiddenOneToManyEntityNavigationProp)
+                    .Where(x => !x.IsHiddenCollectionNavigationProp)
                     .Where(x =>
-                        x.Reference.IsNavigation &&
+                        x.IsNavigation &&
                         !x.Reference.Binding.HasFlag(MojReferenceBinding.Nested)))
                 {
                     Br();

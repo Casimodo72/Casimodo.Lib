@@ -14,8 +14,8 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
-            var ctx = App.Get<DataLayerConfig>();
-            var outputDirPath = ctx.TypeScriptDataDirPath;
+            var webConfig = App.Get<WebDataLayerConfig>();
+            var outputDirPath = webConfig.TypeScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
 
             PerformWrite(Path.Combine(outputDirPath, "data.generated.ts"), () =>
             {
-                OB("module {0}", ctx.ScriptNamespace);
+                OB("module {0}", webConfig.ScriptNamespace);
                 O("\"use strict\";");
                 O();
 
@@ -57,7 +57,7 @@ namespace Casimodo.Lib.Mojen
             MojProp prop;
             var props = item.GetProps(custom: false)
                 // Exclude hidden EF navigation collection props.
-                .Where(x => !x.IsHiddenOneToManyEntityNavigationProp)
+                .Where(x => !x.IsHiddenCollectionNavigationProp)
                 .ToList();
             for (int i = 0; i < props.Count; i++)
             {

@@ -24,7 +24,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OJsClass(string name, bool isstatic, Action content)
         {
-            OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, content);            
+            OJsClass(App.Get<WebDataLayerConfig>().ScriptNamespace, name, isstatic, content);            
         }
 
         public void OJsClass(string ns, string name, bool isstatic, Action content)

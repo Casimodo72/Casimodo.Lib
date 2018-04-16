@@ -239,10 +239,13 @@ namespace Casimodo.Lib.Mojen
             if (CurrentScopeObject != null && CurrentScopeObject.GetType() == typeof(T))
                 return (T)CurrentScopeObject;
 
-
-            var item = GetItems<T>().FirstOrDefault();
+            var item = Configs.OfType<T>().FirstOrDefault();
             if (item != null)
                 return item;
+
+            item = GetItems<T>().FirstOrDefault();
+            if (item != null)
+                return item;            
 
             if (required)
                 throw new MojenException($"The type '{nameof(T)}' was not found in the Mojen App.");

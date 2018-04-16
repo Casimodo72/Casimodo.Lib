@@ -40,19 +40,9 @@ namespace Casimodo.Lib.Mojen
         public string OutputDirPath { get; set; }
     }
 
-    // KABU TODO: Split into specialized configs.
     [DataContract(Namespace = MojContract.Ns)]
-    public class DataLayerConfig : MojBase
+    public class WebDataLayerConfig : MojBase
     {
-        [DataMember]
-        public bool IsMetadataEnabled { get; set; } = true;
-
-        [DataMember]
-        public string IODataDynamicPropertiesAccessor { get; set; } = "IODataDynamicPropertiesAccessor";
-
-        [DataMember]
-        public string EntityDirPath { get; set; }
-
         [DataMember]
         public string JavaScriptDataDirPath { get; set; }
 
@@ -67,6 +57,22 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public string ScriptNamespace { get; set; }
+    }
+
+    // KABU TODO: Split into specialized configs.
+    [DataContract(Namespace = MojContract.Ns)]
+    public class DataLayerConfig : MojBase
+    {
+        [DataMember]
+        public bool IsMetadataEnabled { get; set; } = true;
+
+        [DataMember]
+        public string IODataDynamicPropertiesAccessor { get; set; } = "IODataDynamicPropertiesAccessor";
+
+        [DataMember]
+        public string EntityDirPath { get; set; }
+
+
 
         [DataMember]
         public string ComplexTypeDirPath { get; set; }

@@ -12,7 +12,8 @@ namespace Casimodo.Lib.Data
         // Associated or Owned or Independent
         Associated = 1 << 2,
         Owned = 1 << 3,
-        Independent = 1 << 4,
+        ExclusivelyOwned = 1 << 4,
+        Independent = 1 << 5,
         OwnedLoose = Owned | Loose
     }
 }

@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
 
         public void ORazorModel(string className)
         {
-            O($"@model {App.Get<WebBuildConfig>().WebDataViewModelsNamespace}.{className}");
+            O($"@model {App.Get<WebAppBuildConfig>().WebDataViewModelsNamespace}.{className}");
         }
 
         public void ORazorModel(MojType type)

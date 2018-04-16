@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             PerformWrite(
-                Path.Combine(App.Get<WebBuildConfig>().WebPickItemsDirPath, "PickItemsContainer.generated.cs"),
+                Path.Combine(App.Get<WebAppBuildConfig>().WebPickItemsDirPath, "PickItemsContainer.generated.cs"),
                 GeneratePickItems);
         }
 
@@ -27,7 +27,7 @@ namespace Casimodo.Lib.Mojen
                 "Casimodo.Lib.Web",
                 GetAllDataNamespaces());
 
-            ONamespace(App.Get<WebBuildConfig>().WebNamespace);
+            ONamespace(App.Get<WebAppBuildConfig>().WebNamespace);
 
             // Select MojType pick items.
             var types = App.GetRepositoryableEntities()

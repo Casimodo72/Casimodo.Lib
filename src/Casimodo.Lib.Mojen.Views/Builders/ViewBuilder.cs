@@ -1015,7 +1015,7 @@ namespace Casimodo.Lib.Mojen
 
         void CheckNotForeignKeyProp(MojProp prop, bool hidden)
         {
-            if (prop.Reference.IsForeignKey && !hidden)
+            if (prop.IsForeignKey && !hidden)
             {
                 if (!prop.FileRef.Is && !View.IsCustom)
                     throw new MojenException("Non-hidden foreign key properties must not be used when building views.");

@@ -143,7 +143,7 @@ namespace Casimodo.Lib.Mojen
             if (targetProp == null)
                 throw new MojenException($"Seed error (prop '{name}'): Property not found on target type '{TargetType.ClassName}'.");
 
-            if (targetProp.Reference.IsNavigation)
+            if (targetProp.IsNavigation)
                 throw new MojenException($"Seed error (prop '{name}'): Seeding of navigation properties is not supported.");
 
             if (targetProp != null)

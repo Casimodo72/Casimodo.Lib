@@ -124,9 +124,9 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TClassBuilder ManyParents()
+        public TClassBuilder HasManyParents()
         {
-            TypeConfig.WillHaveManyParents = true;
+            TypeConfig.HasManyParents = true;
 
             return This();
         }
@@ -263,28 +263,29 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TClassBuilder AsSoftChildCollectionOf(MojType parentType, bool owned,
+        public TClassBuilder AsSoftChildCollectionOf(MojType parentType,
             string display,
             Action<MexConditionBuilder> condition)
         {
-            return AsSoftChildCore(parentType, owned, display, true, condition);
+            return AsSoftChildSingleOrCollectionCore(parentType, display: display, collection: true, condition: condition);
         }
 
-        public TClassBuilder AsSoftChildOf(MojType parentType, bool owned,
+        public TClassBuilder AsSoftChildOf(MojType parentType,
             string display,
             Action<MexConditionBuilder> condition)
         {
-            return AsSoftChildCore(parentType, owned, display, false, condition);
+            return AsSoftChildSingleOrCollectionCore(parentType, display: display, collection: false, condition: condition);
         }
 
-        TClassBuilder AsSoftChildCore(MojType parentType,
-            bool owned,
+        TClassBuilder AsSoftChildSingleOrCollectionCore(MojType parentType,
             string display,
             bool collection,
             Action<MexConditionBuilder> condition)
         {
             Guard.ArgNotNull(parentType, nameof(parentType));
             Guard.ArgNotNull(condition, nameof(condition));
+
+            bool owned = true;
 
             if (TypeConfig.IsEntity() && parentType.IsModel())
                 parentType = parentType.RequiredStore;
@@ -297,15 +298,11 @@ namespace Casimodo.Lib.Mojen
             {
                 Is = true,
                 Binding = MojReferenceBinding.Loose | (owned ? MojReferenceBinding.Owned : MojReferenceBinding.Associated),
-                //IsForeignKey = false,
-                //ForeignKey = null,
                 Multiplicity = MojMultiplicity.OneOrZero,
                 Axis = MojReferenceAxis.ToParent,
                 IsCollection = collection,
                 ToType = parentType,
                 ToTypeKey = parentType.Key,
-                // KABU TODO: REMOVE? Name is not used anywhere.
-                Name = null,
                 DisplayName = display,
                 Condition = c
             };
@@ -495,7 +492,7 @@ namespace Casimodo.Lib.Mojen
 
                 store.IsKeyAccessible = TypeConfig.IsKeyAccessible;
                 store.IsGuidGenerateable = TypeConfig.IsGuidGenerateable;
-                store.WillHaveManyParents = TypeConfig.WillHaveManyParents;
+                store.HasManyParents = TypeConfig.HasManyParents;
 
                 // Add interfaces
                 foreach (var iface in TypeConfig.Interfaces)

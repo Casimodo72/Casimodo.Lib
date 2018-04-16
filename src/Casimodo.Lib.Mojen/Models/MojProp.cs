@@ -293,7 +293,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         [MapFromModel]
         [DataMember]
-        public bool IsHiddenOneToManyEntityNavigationProp { get; set; }
+        public bool IsHiddenCollectionNavigationProp { get; set; }
 
         /// <summary>
         /// E.g. when building a reference, a single builder instruction will
@@ -452,6 +452,14 @@ namespace Casimodo.Lib.Mojen
         [MapFromModel(MapContent = true)]
         public MojReference Reference { get; set; } = MojReference.None;
 
+        [DataMember]
+        [MapFromModel]
+        public bool IsNavigation { get; set; }
+
+        [DataMember]
+        [MapFromModel]
+        public bool IsForeignKey { get; set; }
+
         public bool IsRequiredOnEdit
         {
             get
@@ -471,14 +479,14 @@ namespace Casimodo.Lib.Mojen
         {
             get
             {
-                if (!Reference.Is || !Reference.IsNavigation)
+                if (!Reference.Is || IsNavigation)
                     return this;
 
                 if (Reference.NavigationProp != null)
                     return Reference.NavigationProp;
 
                 foreach (var p in AutoRelatedProps)
-                    if (p.Reference.IsNavigation)
+                    if (p.IsNavigation)
                         return p;
 
                 return this;
@@ -492,14 +500,14 @@ namespace Casimodo.Lib.Mojen
         {
             get
             {
-                if (!Reference.Is || !Reference.IsForeignKey)
+                if (!Reference.Is || IsForeignKey)
                     return this;
 
                 if (Reference.ForeignKey != null)
                     return Reference.ForeignKey;
 
                 foreach (var p in AutoRelatedProps)
-                    if (p.Reference.IsForeignKey)
+                    if (p.IsForeignKey)
                         return p;
 
                 return this;

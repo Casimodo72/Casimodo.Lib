@@ -11,7 +11,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             var filePath = Path.Combine(
-                App.Get<WebBuildConfig>().WebConfigurationDirPath,
+                App.Get<WebAppBuildConfig>().WebConfigurationDirPath,
                 "WebComponentRegistry.generated.cs");
 
             PerformWrite(filePath, () =>

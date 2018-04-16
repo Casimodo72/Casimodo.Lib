@@ -662,10 +662,17 @@ namespace Casimodo.Lib.Mojen
         static MemoryStream SharedOutputStream = new MemoryStream(129024);
         static readonly byte[] SharedComparisonBuffer = new byte[4096];
 
+        static readonly List<string> AllOutputFilePaths = new List<string>();
+
         protected void PerformWrite(string outputFilePath, Action<Stream, TextWriter> callback)
         {
             if (outputFilePath.Contains("~"))
                 throw new MojenException($"Invalid output file path '{outputFilePath}'.");
+
+            if (!AllOutputFilePaths.Contains(outputFilePath))
+                AllOutputFilePaths.Add(outputFilePath);
+            else
+                System.Diagnostics.Debug.WriteLine($"# CodeGen: Duplicate file output: '{outputFilePath}'");
 
             var stream = SharedOutputStream;
             byte[] outputData = null;

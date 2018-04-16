@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
 
         public static string GetFormedNavigationPath(this MojProp prop)
         {
-            if (!prop.Reference.IsNavigation || !prop.FormedNavigationFrom.Is)
+            if (!prop.IsNavigation || !prop.FormedNavigationFrom.Is)
                 return null;
 
             return prop.FormedNavigationFrom.TargetPath;

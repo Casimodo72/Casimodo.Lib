@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Mojen
         public List<WebResultComponentInfo> Components { get; set; } = new List<WebResultComponentInfo>();
     }
 
-    public class WebBuildConfig : MojenBuildConfig
+    public class WebAppBuildConfig : MojenBuildConfig
     {
         public string WebNamespace { get; set; }
 

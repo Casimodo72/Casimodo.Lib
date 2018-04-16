@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
             SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(x =>
-                    x.Reference.IsNavigation &&
+                    x.IsNavigation &&
                     x.Reference.Binding.HasFlag(MojReferenceBinding.Nested) &&
                     x.Reference.ToType.IsEntityOrModel())
                     .ToArray()
@@ -54,7 +54,7 @@ namespace Casimodo.Lib.Mojen
                 O($"SetIsNested({item}.{prop.Name});");
                 O($"{targetRepo}.Add(ctx.CreateSubAddOperation({item}.{prop.Name}));");
             }
-            else if (prop.Reference.IsToMany && !prop.IsHiddenOneToManyEntityNavigationProp)
+            else if (prop.Reference.IsToMany && !prop.IsHiddenCollectionNavigationProp)
             {
                 // Add the collection of nested referenced objects.
                 O($"foreach (var obj in {item}.{prop.Name})");

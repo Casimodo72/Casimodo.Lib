@@ -130,7 +130,7 @@ namespace Casimodo.Lib.Mojen
                                     ? targetType.DisplayName
                                     : prop.Name;
 
-                            O($"foreach (var child in ctx.Repos.{targetRepo}.Query(includeDeleted: true).Where(x => x.{prop.Reference.ChildToParentProp.ForeignKey.Name} == parent.{type.Key.Name}))");
+                            O($"foreach (var child in ctx.Repos.{targetRepo}.Query(includeDeleted: true).Where(x => x.{prop.Reference.ItemToCollectionProp.ForeignKey.Name} == parent.{type.Key.Name}))");
                             O($"    ctx.AddChild({BuildNode(targetTypeItem, "child", propDisplay, valueDisplayPropName)});");
                         }
                         else

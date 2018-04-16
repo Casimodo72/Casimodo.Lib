@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
                 GetAllDataNamespaces()
             );
 
-            ONamespace(App.Get<WebBuildConfig>().WebNamespace);
+            ONamespace(App.Get<WebAppBuildConfig>().WebNamespace);
 
             var types = App.GetRepositoryableTypes().ToArray();
             GenerateRepoTypes(types);

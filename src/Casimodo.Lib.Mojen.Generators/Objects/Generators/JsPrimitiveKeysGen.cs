@@ -16,9 +16,9 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
-            var ctx = App.Get<DataLayerConfig>();
-            var moduleName = ctx.ScriptNamespace;
-            var outputDirPath = ctx.JavaScriptDataDirPath;
+            var webConfig = App.Get<WebDataLayerConfig>();
+            var moduleName = webConfig.ScriptNamespace;
+            var outputDirPath = webConfig.JavaScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 

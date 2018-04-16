@@ -10,21 +10,19 @@ namespace Casimodo.Lib.Mojen
     {
         public JsTypeKeysGen()
         {
-            Scope = "Context";
+            Scope = "App";
         }
-
-        public DataLayerConfig DataConfig { get; set; }
 
         protected override void GenerateCore()
         {
-            DataConfig = App.Get<DataLayerConfig>();
+            var webConfig = App.Get<WebDataLayerConfig>();
 
-            if (string.IsNullOrEmpty(DataConfig.JavaScriptDataDirPath)) return;
+            if (string.IsNullOrEmpty(webConfig.JavaScriptDataDirPath)) return;
 
-            PerformWrite(Path.Combine(DataConfig.JavaScriptDataDirPath, "primitives.TypeKeys.generated.js"),
+            PerformWrite(Path.Combine(webConfig.JavaScriptDataDirPath, "primitives.TypeKeys.generated.js"),
                 () =>
                 {
-                    OJsNamespace(DataConfig.ScriptNamespace, () =>
+                    OJsNamespace(webConfig.ScriptNamespace, () =>
                     {
                         GenerateTypeKeys();
                     });

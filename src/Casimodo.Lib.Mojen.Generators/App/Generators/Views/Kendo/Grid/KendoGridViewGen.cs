@@ -832,8 +832,7 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.CustomTemplateName != null)
             {
-                var dataConfig = App.GetDataLayerConfig(context.View.TypeConfig.DataContextName);
-                template = $"{dataConfig.ScriptNamespace}.templates.getTemplate('{vprop.CustomTemplateName}')";
+                template = $"{App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.getTemplate('{vprop.CustomTemplateName}')";
             }
 
             if (template != null)

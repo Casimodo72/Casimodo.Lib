@@ -80,6 +80,7 @@ namespace Casimodo.Lib.Mojen
             // NOTE: Zipping adds ~ 100ms
             using (var writer = XmlDictionaryWriter.CreateBinaryWriter(zip))
             {
+                zip.ParallelDeflateThreshold = -1;
                 zip.PutNextEntry("data");
                 serializer.WriteObject(writer, item);
             }

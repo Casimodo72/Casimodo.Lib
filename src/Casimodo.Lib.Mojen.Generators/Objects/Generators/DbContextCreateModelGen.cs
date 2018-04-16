@@ -68,14 +68,14 @@ namespace Casimodo.Lib.Mojen
 
                 var properties = type.GetProps()
                     // Exclude hidden collection props.
-                    .Where(x => !x.IsHiddenOneToManyEntityNavigationProp)
+                    .Where(x => !x.IsHiddenCollectionNavigationProp)
                     .ToArray();
 
                 // Index ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                 foreach (var prop in properties)
                 {
-                    if (prop.Rules.IsRequired && !prop.Reference.IsNavigation)
+                    if (prop.Rules.IsRequired && !prop.IsNavigation)
                     {
                         O($"{item}.Property(x => x.{prop.Name}).IsRequired();");
                     }
@@ -112,13 +112,14 @@ namespace Casimodo.Lib.Mojen
                 // OneToMany navigation properties.
                 var props = properties
                     .Where(x =>
-                        x.Reference.IsNavigation &&
+                        x.IsNavigation &&
                         x.Reference.ToType.IsEntity() &&
                         x.Reference.IsToMany);
 
                 foreach (var prop in props)
                 {
                     O();
+                    var propName = prop.Name;
                     O($"{item}.HasMany(x => x.{prop.Name})");
                     Push();
 
@@ -135,11 +136,22 @@ namespace Casimodo.Lib.Mojen
                     }
                     else
                     {
-                        var backrefCount = prop.Reference.ToType.GetBackReferenceProps().Count();
-                        if (prop.Reference.ToType.WillHaveManyParents == true ||
-                            // Case 1:
-                            backrefCount > 1 ||
-                            (backrefCount == 1 && prop.Reference.ToType.GetBackReferenceProps().First().Rules.IsNotRequired))
+                        var itemToContainerBackProp = prop.Reference.ItemToCollectionProp;
+                        var backrefCount = prop.Reference.ToType.GetOwnedByRefProps().Count();
+
+                        if (prop.Reference.ToType.HasManyParents == true && itemToContainerBackProp?.Rules.IsRequired == true)
+                            throw new MojenException("Required child to parent reference mismatch.");
+
+                        if (backrefCount > 1 && itemToContainerBackProp?.Rules.IsRequired == true)
+                            throw new MojenException("Required child to parent reference mismatch.");
+
+                        if (itemToContainerBackProp?.Rules.IsRequired != true &&
+
+                            (itemToContainerBackProp?.Rules.IsNotRequired == true ||
+                             prop.Reference.ToType.HasManyParents == true ||
+                             // Case 1:
+                             backrefCount > 1 ||
+                             (backrefCount == 1 && prop.Reference.ToType.GetOwnedByRefProps().First().Rules.IsNotRequired)))
                         {
                             // Case 1: If the target type has multiple back reference foreign keys then
                             //   those foreign keys must be optional, because mostly only
@@ -156,7 +168,7 @@ namespace Casimodo.Lib.Mojen
                             O($".WithRequired()");
 
                         // Specify the back reference property.
-                        O($".HasForeignKey(y => y.{prop.Reference.ChildToParentProp.ForeignKey.Name})");
+                        O($".HasForeignKey(y => y.{prop.Reference.ItemToCollectionProp.ForeignKey.Name})");
 
                         // KABU TODO: REMOVE? This was intended for polymorphic associations, which do not work the way we want them anyway.
                         //else O($".HasForeignKey(y => y.{prop.Reference.ChildToParentReferenceProp.Name})");

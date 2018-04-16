@@ -7,9 +7,11 @@ namespace Casimodo.Lib.Mojen
     public enum MojReferenceAxis
     {
         None,
-        Link,
+        //Link,
         Value,
         ToParent,
+        ToCollection,
+        ToCollectionItem,
         ToChild,
         ToAncestor,
         ToDescendant
@@ -65,6 +67,9 @@ namespace Casimodo.Lib.Mojen
             get { return Is && Binding.HasFlag(MojReferenceBinding.Owned); }
         }
 
+        [DataMember]
+        public MojProp OwnedByProp { get; set; }
+
         // Associated or Owned or Independent
         public bool IsAssotiated
         {
@@ -85,7 +90,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsToOne
         {
             get { return Is && Multiplicity.HasFlag(MojMultiplicity.One); }
-        }        
+        }
 
         public bool IsToMany
         {
@@ -97,23 +102,22 @@ namespace Casimodo.Lib.Mojen
             get { return Is && Multiplicity.HasFlag(MojMultiplicity.Zero); }
         }
 
-        [DataMember]
-        public bool IsNavigation { get; set; }
+        // TODO: REMOVE
+        //[DataMember]
+        //public bool IsNavigation { get; set; }
 
         [DataMember]
         public MojProp ForeignKey { get; set; }
 
-        [DataMember]
-        public bool IsForeignKey { get; set; }
+        // TODO: REMOVE
+        //[DataMember]
+        //public bool IsForeignKey { get; set; }
 
         [DataMember]
         public MojProp NavigationProp { get; set; }
 
         [DataMember]
         public bool IsCollection { get; set; }
-
-        [DataMember]
-        public string Name { get; set; }
 
         [DataMember]
         public MojType ToType { get; set; }
@@ -133,29 +137,21 @@ namespace Casimodo.Lib.Mojen
         }
 
         /// <summary>
-        /// The deletion of the referenced object will be optimized.
-        /// E.g. in the context of EF, the referenced entitiy will not be loaded before it is deleted.
+        /// The deletion of the referenced objects will be optimized.
+        /// E.g. in the context of EF, the referenced entitiy will not be loaded when it is deleted.
         /// This is needed for e.g. Blobs where we don't want to load the entire entity's data
         /// into memory when deleting that entity.
         /// </summary>
         [DataMember]
         public bool IsDeletionOptimized { get; set; }
 
-        // KABU TODO: REMOVE
-        ///// <summary>
-        ///// If 1 then this is a child reference to a parent type.
-        ///// Set on child references.
-        ///// </summary>
-        //[DataMember]
-        //public int ChildToParentReferenceCount { get; set; }
-
         /// <summary>
-        /// Set on parent references. This is the back-reference property of the
-        /// child type to this parent type.
-        /// Only set if the parent reference is a collection.
+        /// Used for container references. This is the back-reference property of the
+        /// contained item to this container.
+        /// Only used if this reference is a collection.
         /// </summary>
         [DataMember]
-        public MojProp ChildToParentProp { get; set; }
+        public MojProp ItemToCollectionProp { get; set; }
 
         public MojReference Clone()
         {
@@ -169,7 +165,7 @@ namespace Casimodo.Lib.Mojen
                 ToTypeKey.IsModel() ||
                 ForeignKey.IsModel() ||
                 NavigationProp.IsModel() ||
-                ChildToParentProp.IsModel();
+                ItemToCollectionProp.IsModel();
         }
 
         public MojReference CloneToEntity(MojProp source, MojProp entity)
@@ -205,8 +201,8 @@ namespace Casimodo.Lib.Mojen
                     clone.NavigationProp = NavigationProp.RequiredStore;
             }
 
-            if (ChildToParentProp.IsModel())
-                clone.ChildToParentProp = ChildToParentProp.RequiredStore;
+            if (ItemToCollectionProp.IsModel())
+                clone.ItemToCollectionProp = ItemToCollectionProp.RequiredStore;
 
             return clone;
         }

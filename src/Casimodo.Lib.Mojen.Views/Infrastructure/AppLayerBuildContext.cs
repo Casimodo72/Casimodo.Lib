@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
             var builder = new MojControllerBuilder(config);
             builder.Init(App);
             builder.Model(type);
-            builder.Controller.Namespace = App.Config<WebBuildConfig>().WebControllersNamespace;
+            builder.Controller.Namespace = App.Config<WebAppBuildConfig>().WebControllersNamespace;
 
             return builder;
         }

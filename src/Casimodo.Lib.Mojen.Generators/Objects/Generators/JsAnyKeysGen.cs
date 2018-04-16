@@ -13,19 +13,17 @@ namespace Casimodo.Lib.Mojen
             Scope = "Context";
         }
 
-        public DataLayerConfig DataConfig { get; set; }
-
         protected override void GenerateCore()
         {
-            DataConfig = App.Get<DataLayerConfig>();
+            var webConfig = App.Get<WebDataLayerConfig>();
 
             var configs = App.GetItems<MojAnyKeysConfig>().ToArray();
             if (!configs.Any())
                 return;
 
-            PerformWrite(Path.Combine(DataConfig.JavaScriptDataDirPath, $"primitives.AnyKeys.generated.js"), () =>
+            PerformWrite(Path.Combine(webConfig.JavaScriptDataDirPath, $"primitives.AnyKeys.generated.js"), () =>
             {
-                OJsNamespace(DataConfig.ScriptNamespace, () =>
+                OJsNamespace(webConfig.ScriptNamespace, () =>
                 {
                     foreach (var config in configs)
                         GenerateAnyKeys(config);

@@ -153,8 +153,7 @@ namespace Casimodo.Lib.Mojen
 
                 // If applicable then also set the foreign key to null.
                 // Otherwise the referenced entity will not be fully cleared out.
-                if (cascadeTargetProp.Reference.Is &&
-                    cascadeTargetProp.Reference.IsNavigation)
+                if (cascadeTargetProp.IsNavigation)
                 {
                     O($"context.item.set('{cascadeTargetProp.Reference.ForeignKey.Name}', null);");
                 }

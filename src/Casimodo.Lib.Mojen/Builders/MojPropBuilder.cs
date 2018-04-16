@@ -205,7 +205,7 @@ namespace Casimodo.Lib.Mojen
 
             // KABU TODO: VERY IMPORTANT: IMPL error message.
 
-            if (PropConfig.Reference.IsForeignKey &&
+            if (PropConfig.IsForeignKey &&
                 PropConfig.Reference.NavigationProp != null)
             {
                 PropConfig.Reference.NavigationProp.UseRules().IsRequired = true;
@@ -224,7 +224,7 @@ namespace Casimodo.Lib.Mojen
 
             PropConfig.UseRules().IsNotRequired = true;
 
-            if (PropConfig.Reference.IsForeignKey &&
+            if (PropConfig.IsForeignKey &&
                 PropConfig.Reference.NavigationProp != null)
             {
                 PropConfig.Reference.NavigationProp.UseRules().IsNotRequired = true;

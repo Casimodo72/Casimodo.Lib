@@ -11,16 +11,16 @@ namespace Casimodo.Lib.Mojen
     {
         public JsObjectInitializerGen()
         {
-            Scope = "Context";
+            Scope = "App";
         }
 
         public string ModuleName { get; set; }
 
         protected override void GenerateCore()
         {
-            var context = App.Get<DataLayerConfig>();
-            ModuleName = context.ScriptNamespace;
-            var outputDirPath = context.JavaScriptDataDirPath;
+            var webConfig = App.Get<WebDataLayerConfig>();
+            ModuleName = webConfig.ScriptNamespace;
+            var outputDirPath = webConfig.JavaScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
@@ -30,7 +30,7 @@ namespace Casimodo.Lib.Mojen
 
             PerformWrite(Path.Combine(outputDirPath, "data.initializers.generated.js"), () =>
             {
-                OJsNamespace(context.ScriptNamespace, () =>
+                OJsNamespace(webConfig.ScriptNamespace, () =>
                 {
                     O();
                     O("// Init...OnEditing: Creates nested objects if missing.");
@@ -66,7 +66,7 @@ namespace Casimodo.Lib.Mojen
             // Process nested object references.
             var nestedProps = type.GetProps()
                 .Where(x =>
-                    x.Reference.IsNavigation &&
+                    x.IsNavigation &&
                     x.Reference.IsNested &&
                     x.Reference.IsToOne
                 );
@@ -80,7 +80,7 @@ namespace Casimodo.Lib.Mojen
             // Process independent associations (collections).
             var independentCollectionProps = type.GetProps()
                 .Where(x =>
-                    x.Reference.IsNavigation &&
+                    x.IsNavigation &&
                     x.Reference.IsIdependent &&
                     x.Reference.IsToMany
                 );
@@ -99,7 +99,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OB("{0}.Init{1}OnSaving = function (item)", ModuleName, type.Name);
 
-            var referenceProps = type.GetProps().Where(x => x.Reference.IsNavigation);
+            var referenceProps = type.GetProps().Where(x => x.IsNavigation);
 
             foreach (var prop in referenceProps)
             {

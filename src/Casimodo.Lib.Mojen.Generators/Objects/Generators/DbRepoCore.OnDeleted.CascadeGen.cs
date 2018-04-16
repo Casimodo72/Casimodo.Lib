@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Mojen
             {
                 Props = SelectProps(t).Where(x =>
                       x.Reference.Binding.HasFlag(MojReferenceBinding.Owned) &&
-                    (!x.Reference.IsNavigation || x.Reference.IsToMany))
+                    (!x.IsNavigation || x.Reference.IsToMany))
                     .ToArray()
             })
             .Where(t => t.Props.Any());
@@ -61,7 +61,7 @@ namespace Casimodo.Lib.Mojen
             else if (prop.Reference.IsToMany)
             {
                 O($"foreach (var {target} in context.{targetType.PluralName}.Query()" +
-                    $".Where(x => x.{prop.Reference.ChildToParentProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
+                    $".Where(x => x.{prop.Reference.ItemToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    context.{targetType.PluralName}.Delete({target});");
                 O();
             }
