@@ -19,12 +19,12 @@ var kendomodo;
                 var self = this;
 
                 if (!this.isInitialized) {
-                    //$.getScript("https://maps.googleapis.com/maps/api/js?v=3.22&language=de&region=DE&libraries=places&callback=kendomodo.ui.GoogleMapInitializer.onScriptReady&key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4");
+                    $.getScript("https://maps.googleapis.com/maps/api/js?v=3.22&language=de&region=DE&libraries=places&callback=kendomodo.ui.GoogleMapInitializer.onScriptReady&key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4");
 
-                    $.getScript("https://maps.googleapis.com/maps/api/js?v=3.22&language=de&region=DE&libraries=places&key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4",
-                        function (e) {
-                            self.onScriptReady();
-                        });
+                    //$.getScript("https://maps.googleapis.com/maps/api/js?v=3.22&language=de&region=DE&libraries=places&key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4",
+                    //    function (e) {
+                    //        self.onScriptReady();
+                    //    });
                 }
                 else
                     this.onScriptReady();

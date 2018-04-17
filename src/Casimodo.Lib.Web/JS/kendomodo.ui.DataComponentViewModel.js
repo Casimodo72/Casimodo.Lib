@@ -181,11 +181,15 @@ var kendomodo;
                 if (this.filters.length)
                     options.filter = { filters: this.filters };
 
-                // Extend with custom data model fields.
-                if (this._options.fields) {
-                    for (var prop in this._options.fields)
-                        options.schema.model.fields[prop] = this._options.fields[prop];
+                // Extend the data model with custom computed fields.
+                if (this._options.computedFields) {
+                    for (var prop in this._options.computedFields)
+                        options.schema.model[prop] = this._options.computedFields[prop];
                 }
+
+                //if (typeof this._options.extendDataSourceOptions === "function") {
+                //    this._options.extendDataSourceOptions(options);
+                //}
 
                 this.extendDataSourceOptions(options);
 

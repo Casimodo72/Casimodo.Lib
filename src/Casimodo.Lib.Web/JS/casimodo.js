@@ -149,6 +149,15 @@ var casimodo;
         return value ? "" + value.Hours + ":" + value.Minutes : "";
     };
 
+    casimodo.toODataZonedDateTimeEncode = function (value, timezone) {
+        if (!value)
+            return null;
+
+        var dateTime = moment.tz(value, timezone);
+
+        return encodeURIComponent(dateTime.toISOString());      
+    };
+
     casimodo.toODataFilterValueEncode = function (value) {
         if (!value)
             return null;

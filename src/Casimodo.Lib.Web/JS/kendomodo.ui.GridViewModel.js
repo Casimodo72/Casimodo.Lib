@@ -584,6 +584,29 @@ var kendomodo;
                     return false;
                 });
 
+                if (!this._options.isDialog &&
+                    this.component.options.scrollable === true) {
+                    // NOTE: The grid's scroll area is not being updated (the k-grid-content has a fixed height)
+                    //   when the window is being resized. As a workaround the user has to refresh the grid.
+                    //   For a possible calculation on window resize see: https://www.telerik.com/forums/window-resize-c4fcceedd72c
+
+                    $(window).resize(function (e) {
+                        var $grid = self.component.wrapper;
+
+                        var gridHeight = $grid.outerHeight(true);
+
+                        var extraContentSize = 0;
+                        $grid.find(">div:not(.k-grid-content)").each(function () {
+                            extraContentSize += $(this).outerHeight(true);
+                        });
+
+                        var contentHeight = gridHeight - extraContentSize;
+
+                        $grid.find(".k-grid-content").first().height(contentHeight);
+                    });
+
+                }
+
                 if (this._options.isLookup)
                     this._initComponentAsLookup();
             };

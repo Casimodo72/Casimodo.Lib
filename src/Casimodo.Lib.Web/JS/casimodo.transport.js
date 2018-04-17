@@ -3,18 +3,8 @@
 var casimodo;
 (function (casimodo) {
 
-    // Web API ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Apply authorization
-    casimodo.getActivityAuth = function (area) {
-
-        //return casimodo.webApiGet("/api/GetActivityAuth/" + area, null, { isDataFixupDisabled: true })
-        //    .then(function (result) {
-        //        if (result.result && result.result.Items)
-        //            return new ActivityAuthInfo(result.result);
-        //        else
-        //            throw new Error("Authorization service did not return valid authorization info.");
-        //    });
-    };
+    // Authorization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // KABU TODO: Move into separate file.
 
     casimodo.getActionAuth = function (queryItems) {
         return casimodo.webApiPost("/api/GetActionAuth", queryItems, { isDataFixupDisabled: true })
@@ -100,7 +90,7 @@ var casimodo;
                     self.manager = manager;
                     self.userId = manager.userId;
                     self.userName = manager.userName;
-                    
+
                     self.trigger("read", { sender: this, auth: manager });
 
                     return manager;
@@ -126,6 +116,8 @@ var casimodo;
     casimodo.AuthContext = AuthContext;
 
     casimodo.authContext = new casimodo.AuthContext();
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     casimodo.webApiGet = function (url, data, options) {
         return _webApiAction("GET", url, data, options);

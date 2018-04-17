@@ -144,6 +144,15 @@ namespace Casimodo.Lib.Mojen
                 .Display("Anmerkungen");
         }
 
+        public MojEntityPropBuilder PropNotes(MojEntityBuilder builder)
+        {
+            // KABU TODO: Put length into settings.
+            return builder.Prop("Notes", 2048)
+                .Id("db10103b-c987-434d-87ca-5ba4bc8912db")
+                .Multiline()
+                .Display("Notizen");
+        }
+
         public MojEntityPropBuilder PropTenantReference(MojEntityBuilder builder)
         {
             return Parent.PropToTenant(builder);
