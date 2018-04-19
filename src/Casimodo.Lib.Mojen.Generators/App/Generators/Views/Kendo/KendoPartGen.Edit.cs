@@ -246,7 +246,7 @@ namespace Casimodo.Lib.Mojen
                 string expression = this.BuildODataSelectAndExpand(queryNodes);
 
                 // Build OData query.
-                var odataQuery = $"{App.Get<WebODataBuildConfig>().Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}()?{expression}";
+                var odataQuery = $"{App.Get<WebODataBuildConfig>().Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}?{expression}";
 
                 // On create triggers.
                 var sourceAssignments = new List<string>();
@@ -379,7 +379,7 @@ namespace Casimodo.Lib.Mojen
             var targetProp = path.TargetProp;
             var url =
                 this.GetODataPath(targetType) +
-                $"/{this.GetODataQueryFunc()}()?$select={targetType.Key.Name},{targetProp.Name}";
+                $"/{this.GetODataQueryFunc()}?$select={targetType.Key.Name},{targetProp.Name}";
 
             return url;
         }

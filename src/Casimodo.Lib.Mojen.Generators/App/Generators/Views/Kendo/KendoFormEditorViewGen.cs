@@ -895,7 +895,7 @@ namespace Casimodo.Lib.Mojen
                         OB("if (!cascadeFromVal)");
                         // Notify
                         // KABU TODO: LOCALIZE
-                        O($"kendomodo.showModalTextDialog('info', \"" +
+                        O($"kendomodo.ui.showModalTextDialog('info', \"" +
                             $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
                             $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                         // Exit
@@ -939,7 +939,7 @@ namespace Casimodo.Lib.Mojen
                     OB("if (!cascadeFromVal)");
                     // Notify
                     // KABU TODO: LOCALIZE
-                    O($"kendomodo.showModalTextDialog('info', \"" +
+                    O($"kendomodo.ui.showModalTextDialog('info', \"" +
                         $"Zuerst muss '{sourceProp.DisplayLabel}' gesetzt werden, " +
                         $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                     // Exit

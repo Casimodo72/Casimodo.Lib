@@ -138,7 +138,7 @@ namespace Casimodo.Lib.Mojen
             return prop.IsRequiredOnEdit || prop.Rules.Is;
         }
 
-        public void ODataSourceModelOptions(MojProp[] props)
+        public void ODataSourceModelOptions(WebViewGenContext context, MojProp[] props)
         {
             var key = props.FirstOrDefault(x => x.IsKey);
             if (key != null)
@@ -146,12 +146,12 @@ namespace Casimodo.Lib.Mojen
 
             OB("fields:");
 
-            ODataSourceModelFieldsOptions(props);
+            ODataSourceModelFieldsOptions(context, props);
 
             End(","); // Fields
         }
 
-        void ODataSourceModelFieldsOptions(MojProp[] props) // WebViewGenContext context
+        void ODataSourceModelFieldsOptions(WebViewGenContext context, MojProp[] props) // WebViewGenContext context
         {
             // Available model options are: defaultValue, editable, nullable, parse,
             // type, from, validation.
@@ -171,60 +171,63 @@ namespace Casimodo.Lib.Mojen
                 if (type != "string")
                     O($"type: '{type}',");
 
-                // Validation rules
-                // Example: validation: { required: true, min: 1 }
-                if (HasValidationConstraints(prop))
+                if (context.IsEditableView)
                 {
-                    var val = prop.Rules;
-                    OXP("validation",
-                        XP(prop.IsRequiredOnEdit, "required", true),
-                        XP(prop.Type.IsNumber && val.Is && val.Min != null, "min", val.Min),
-                        XP(prop.Type.IsNumber && val.Is && val.Max != null, "max", val.Max)
-                    );
-                }
-
-                if (!prop.IsEditable)
-                    O("editable: false,");
-
-                // Default value
-                if (prop.DefaultValues.Is)
-                {
-                    var @default = prop.DefaultValues.ForScenario("OnEdit", null).FirstOrDefault();
-                    if (@default.Attr != null)
+                    // Validation rules
+                    // Example: validation: { required: true, min: 1 }
+                    if (HasValidationConstraints(prop))
                     {
-                        O("defaultValue: {0},", @default.Attr.Args.First().ToJsCodeString());
+                        var val = prop.Rules;
+                        OXP("validation",
+                            XP(prop.IsRequiredOnEdit, "required", true),
+                            XP(prop.Type.IsNumber && val.Is && val.Min != null, "min", val.Min),
+                            XP(prop.Type.IsNumber && val.Is && val.Max != null, "max", val.Max)
+                        );
                     }
-                    else if (@default.CommonValue != null)
+
+                    if (!prop.IsEditable)
+                        O("editable: false,");
+
+                    // Default value
+                    if (prop.DefaultValues.Is)
                     {
-                        if (@default.CommonValue == MojDefaultValueCommon.CurrentYear)
+                        var @default = prop.DefaultValues.ForScenario("OnEdit", null).FirstOrDefault();
+                        if (@default.Attr != null)
                         {
-                            O("defaultValue: function(e) { return new Date().getFullYear() },");
+                            O("defaultValue: {0},", @default.Attr.Args.First().ToJsCodeString());
                         }
-                        else throw new MojenException($"Unhandled common default value kind '{@default.CommonValue}'.");
+                        else if (@default.CommonValue != null)
+                        {
+                            if (@default.CommonValue == MojDefaultValueCommon.CurrentYear)
+                            {
+                                O("defaultValue: function(e) { return new Date().getFullYear() },");
+                            }
+                            else throw new MojenException($"Unhandled common default value kind '{@default.CommonValue}'.");
+                        }
+                        else if (@default.Value is string[])
+                        {
+                            // Multiline text.
+                            string multilineText = (@default.Value as string[]).Join("\\n");
+                            O($"defaultValue: \"{multilineText}\",");
+                        }
+                        else
+                        {
+                            O($"defaultValue: {MojenUtils.ToJsValue(@default.Value)},");
+                        }
                     }
-                    else if (@default.Value is string[])
+                    else if (prop.IsGuidKey && !prop.Type.CanBeNull)
                     {
-                        // Multiline text.
-                        string multilineText = (@default.Value as string[]).Join("\\n");
-                        O($"defaultValue: \"{multilineText}\",");
+                        O("defaultValue: '{0}',", Guid.Empty);
                     }
-                    else
+                    else if (prop.Type.IsNumber && prop.Type.IsNullableValueType)
                     {
-                        O($"defaultValue: {MojenUtils.ToJsValue(@default.Value)},");
+                        // NOTE: This is a Kendo workaround, because otherwise Kendo sets nullable numbers to zero instead of NULL.
+                        O("defaultValue: null,");
                     }
-                }
-                else if (prop.IsGuidKey && !prop.Type.CanBeNull)
-                {
-                    O("defaultValue: '{0}',", Guid.Empty);
-                }
-                else if (prop.Type.IsNumber && prop.Type.IsNullableValueType)
-                {
-                    // NOTE: This is a Kendo workaround, because otherwise Kendo sets nullable numbers to zero instead of NULL.
-                    O("defaultValue: null,");
-                }
-                else if (!prop.Type.CanBeNull)
-                {
-                    throw new MojenException($"Property '{prop.Name}' cannot be null and has no default value defined.");
+                    else if (!prop.Type.CanBeNull && prop.IsEditable)
+                    {
+                        throw new MojenException($"Property '{prop.Name}' cannot be null and has no default value defined.");
+                    }
                 }
 
                 // End property

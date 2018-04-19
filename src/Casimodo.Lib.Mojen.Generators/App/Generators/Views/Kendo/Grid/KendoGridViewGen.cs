@@ -724,7 +724,7 @@ namespace Casimodo.Lib.Mojen
                             End(",");
                         });
 
-                        dataSourceUrl = string.Format("{0}/{1}()?$select={2}&$orderby={2}",
+                        dataSourceUrl = string.Format("{0}/{1}?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
                                 this.GetODataQueryFunc(false),
                                 dprop.Name);
@@ -745,12 +745,12 @@ namespace Casimodo.Lib.Mojen
                             //   to provide distinct values server-side.
                             dataSourceUrl = string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
-                                this.GetODataQueryFunc(true),
+                                this.GetODataQueryFunc(true, appendCall: false),
                                 dprop.Name);
                         }
                         else
                         {
-                            dataSourceUrl = string.Format("{0}/{1}()?$select={2}&$orderby={2}",
+                            dataSourceUrl = string.Format("{0}/{1}?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
                                 this.GetODataQueryFunc(false),
                                 dprop.Name);

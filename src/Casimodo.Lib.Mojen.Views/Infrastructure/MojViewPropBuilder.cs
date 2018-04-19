@@ -120,7 +120,7 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TBuilder UseCustomTemplate(string name)
+        public TBuilder UseTemplate(string name)
         {
             Prop.CustomTemplateName = name;
 

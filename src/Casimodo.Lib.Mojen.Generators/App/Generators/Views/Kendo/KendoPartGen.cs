@@ -391,7 +391,7 @@ namespace Casimodo.Lib.Mojen
 
         public void ODataSourceModelFactory(WebViewGenContext context, MojHttpRequestConfig transport)
         {
-            OOptionsFactory("dataModel", () => ODataSourceModelOptions(transport.ModelProps));
+            OOptionsFactory("dataModel", () => ODataSourceModelOptions(context, transport.ModelProps));
         }
 
         public void OViewModelClass(string name, string extends, Action constructor, Action content)

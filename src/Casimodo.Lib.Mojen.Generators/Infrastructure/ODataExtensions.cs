@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
 
         public static string GetODataQueryFunc(this AppPartGenerator gen, MojType type)
         {
-            return gen.GetODataPath(type) + "/" + gen.GetODataQueryFunc();
+            return gen.GetODataPath(type) + "/" + gen.GetODataQueryFunc(appendCall: false);
         }
 
         public static string GetODataOrderBy(this MojType type)
@@ -37,7 +37,8 @@ namespace Casimodo.Lib.Mojen
                 .Join(",");
         }
 
-        public static string GetODataQueryFunc(this AppPartGenerator gen, bool distinct = false, string customMethod = null)
+        public static string GetODataQueryFunc(this AppPartGenerator gen, bool distinct = false,
+            string customMethod = null, bool appendCall = true)
         {
             var config = gen.App.Get<WebODataBuildConfig>();
 
@@ -46,6 +47,14 @@ namespace Casimodo.Lib.Mojen
                 func = distinct ? customMethod + "Distinct" : customMethod;
             else
                 func = distinct ? config.QueryDistinct : config.Query;
+
+            if (appendCall && !func.EndsWith(")"))
+            {
+                // If the resulting function ends with a closing parenthesis
+                // then we have to assume that it already includes a function call part.
+                // Otherwise add an empty function call.
+                func += "()";
+            }
 
             return gen.GetODataFunc(func);
         }
@@ -133,7 +142,7 @@ namespace Casimodo.Lib.Mojen
 
             // OData URLs
             c.ODataBaseUrl = gen.GetODataPath(view.TypeConfig);
-            c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc(customMethod: customQueryMethod)}()?";
+            c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc(customMethod: customQueryMethod)}?";
             // Build OData $expand expressions based on the used foreign properties in the view.
             c.ODataSelectUrl = c.ODataReadBaseUrl + gen.BuildODataSelectAndExpand(c.ReadGraph);
             if (!string.IsNullOrEmpty(view.CustomSelectFilter))

@@ -7,6 +7,14 @@ namespace Casimodo.Lib
 {
     public static class StringExtensions
     {
+        public static Guid? ToGuid(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            return new Guid(value);
+        }
+
         public static string RemoveRight(this string value, string text)
         {
             if (string.IsNullOrEmpty(value)) return value;
