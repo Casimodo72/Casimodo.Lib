@@ -293,6 +293,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewConfig InlineDetailsView { get; set; }
 
+        public bool IsReloadable { get; set; } = true;
+
         public bool IsExportableToPdf { get; set; }
 
         public bool IsExportableToExcel { get; set; }

@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Data
         TEntity GetById(object key);
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity, MojDataGraphMask mask = null);
-        void Delete(TEntity entity, DbRepoOperationContext ctx = null);
+        void Delete(TEntity entity, DbRepoOperationContext ctx = null, bool? isPhysicalDeletionAuthorized = null);
         IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true);
         int SaveChanges();
@@ -530,7 +530,14 @@ namespace Casimodo.Lib.Data
             if (save) Context.SaveChanges();
         }
 
-        public void Delete(TEntity entity, DbRepoOperationContext ctx = null)
+        public IDbRepository<TEntity> DeletePhysicallyById(TKey id)
+        {
+            Delete(EntitySet.Find(id), isPhysicalDeletionAuthorized: true);
+
+            return this;
+        }
+
+        public void Delete(TEntity entity, DbRepoOperationContext ctx = null, bool? isPhysicalDeletionAuthorized = null)
         {
             Guard.ArgNotNull(entity, nameof(entity));
 
@@ -538,6 +545,9 @@ namespace Casimodo.Lib.Data
                 ctx = Core().CreateOperationContext(entity, DbRepoOp.Delete, Context);
             else if (ctx.Item == null)
                 ctx.Item = entity;
+
+            if (isPhysicalDeletionAuthorized != null)
+                ctx.IsPhysicalDeletionAuthorized = isPhysicalDeletionAuthorized.Value;
 
             // NOTE: We will process the entity *before* EF's Remove() method,
             //   because this object will have some foreign keys nullified by that method.

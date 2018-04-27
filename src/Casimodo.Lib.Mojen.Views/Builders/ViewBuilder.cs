@@ -626,6 +626,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Reloadable(bool value = true)
+        {
+            View.IsReloadable = value;
+
+            return this;
+        }
+
         public MojViewBuilder NotExportable()
         {
             View.IsExportableToPdf = false;

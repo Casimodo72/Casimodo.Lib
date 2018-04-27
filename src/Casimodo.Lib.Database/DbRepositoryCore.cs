@@ -61,6 +61,7 @@ namespace Casimodo.Lib.Data
 
         public DbRepoOp OriginOperation { get; set; } = DbRepoOp.None;
         public DbRepoOp Operation { get; set; } = DbRepoOp.None;
+        public bool IsPhysicalDeletionAuthorized { get; set; }
 
         public MojDataGraphMask UpdateMask { get; set; }
 

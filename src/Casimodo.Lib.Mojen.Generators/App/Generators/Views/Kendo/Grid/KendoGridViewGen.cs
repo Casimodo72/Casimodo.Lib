@@ -316,7 +316,8 @@ namespace Casimodo.Lib.Mojen
                                     o("<button class='k-button k-grid-excel'><span class='k-icon k-i-excel'></span></button>");
 
                                 // Add refresh button
-                                o("<button class='k-button k-grid-refresh'><span class='k-icon k-i-refresh'></span></button>");
+                                if (view.IsReloadable)
+                                    o("<button class='k-button k-grid-refresh'><span class='k-icon k-i-refresh'></span></button>");
 
                                 if (view.IsNavigatableTo)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
@@ -486,11 +487,11 @@ namespace Casimodo.Lib.Mojen
                     if (control.Attrs.FindOrDefault("AllItemsSelector") == "true")
                     {
                         O("headerAttributes: { 'class': 'all-list-items-selector' },");
-                        O($"headerTemplate: \"<input id='cb-all-view-{view.Id}' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-all-view-{view.Id}' />\",");
+                        O($"headerTemplate: {App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('AllRowsCheckBoxSelectorGridCell'),");
                     }
 
                     O("attributes: { 'class': 'list-item-selector' },");
-                    O($"template: \"<input id='cb-#:Id#' class='k-checkbox list-item-selector' type='checkbox' /><label class='k-checkbox-label list-item-selector' for='cb-#:Id#' style='display:none'/>\",");
+                    O($"template: {App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('RowCheckBoxSelectorGridCell'),");
 
                     O("filterable: false,");
                     O("sortable: false");
@@ -832,7 +833,7 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.CustomTemplateName != null)
             {
-                template = $"{App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.getTemplate('{vprop.CustomTemplateName}')";
+                template = $"{App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('{vprop.CustomTemplateName}')";
             }
 
             if (template != null)
