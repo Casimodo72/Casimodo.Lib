@@ -487,11 +487,11 @@ namespace Casimodo.Lib.Mojen
                     if (control.Attrs.FindOrDefault("AllItemsSelector") == "true")
                     {
                         O("headerAttributes: { 'class': 'all-list-items-selector' },");
-                        O($"headerTemplate: {App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('AllRowsCheckBoxSelectorGridCell'),");
+                        O($"headerTemplate: kendomodo.ui.templates.get('AllRowsCheckBoxSelectorGridCell'),");
                     }
 
                     O("attributes: { 'class': 'list-item-selector' },");
-                    O($"template: {App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('RowCheckBoxSelectorGridCell'),");
+                    O($"template: kendomodo.ui.templates.get('RowCheckBoxSelectorGridCell'),");
 
                     O("filterable: false,");
                     O("sortable: false");
