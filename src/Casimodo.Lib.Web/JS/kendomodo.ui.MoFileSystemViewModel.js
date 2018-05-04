@@ -18,6 +18,7 @@ var kendomodo;
                 this._options.isFileSystemTemplateEnabled = typeof options.isFileSystemTemplateEnabled !== "undefined" ? options.isFileSystemTemplateEnabled : true;
                 this._options.areFileSelectorsVisible = typeof options.areFileSelectorsVisible !== "undefined" ? options.areFileSelectorsVisible : false;
 
+                // Owner fields: Id, TypeId, Name and Kind.
                 if (typeof options.owners === "function")
                     this._options.owners = options.owners();
                 if (!this._options.owners)
@@ -83,6 +84,11 @@ var kendomodo;
                 return this._getCurrentOwner();
             };
 
+            fn.getIsCurrentOwnerValid = function () {
+                var owner = this._getCurrentOwner();
+                return owner && owner.Id;
+            };
+
             fn.clearAllOwnerValues = function () {
                 this._getDisplayedOwners().forEach(x => {
                     x.set("Id", null);
@@ -90,7 +96,7 @@ var kendomodo;
                 });
             };
 
-            fn.SetOwnerValues = function (ownerKind, values) {
+            fn.setOwnerValues = function (ownerKind, values) {
                 var owner = this._getDisplayedOwners().find(x => x.Kind === ownerKind);
                 if (!owner)
                     return;
@@ -119,8 +125,55 @@ var kendomodo;
                 }
             };
 
+            fn.getCurrentFolder = function () {
+                return this._components.treeViewModel.select();
+            };
+
             fn._getSelectionManager = function () {
                 return this._components.filesGridViewModel.selectionManager;
+            };
+
+            fn.getFoldersViewModel = function () {
+                return this._components.treeViewModel;
+            };
+
+            fn.getFilesViewModel = function () {
+                return this._components.filesViewModel;
+            };
+
+            fn.saveExistingFilesToFolder = function (folderId, fileInfos) {
+                var self = this;
+
+                // Confirm and save.
+                var ownerName = this.getCurrentOwner().Name;
+                var path = this.getFoldersViewModel().getFolderPath(folderId);
+
+                kendomodo.ui.openConfirmationDialog(
+                    "Ziel: " + ownerName + " \"" + path + "\"\n\n" +
+                    "Wollen Sie die Dateien wirklich in diesem Verzeichnis speichern?",
+                    //"Verzeichnis: \"" + path + "\"\n" +
+                    //"Besitzer: \"" + ownerName + "\"",
+                    {
+                        title: "Dateien speichern",
+                        kind: "warning"
+                    })
+                    .then(function (result) {
+
+                        if (result !== true)
+                            return;
+
+                        _executeServerMoOperation(self, {
+                            operation: "SaveExistingFilesToFolder",
+                            owner: self.owner,
+                            folderId: folderId,
+                            files: fileInfos,
+                            errorMessage: "Fehler beim Speichern. Der Vorgang wurde abgebrochen. Es wurde nichts gespeichert.",
+                            success: function (result) {
+                                self._components.treeViewModel.refresh();
+                                kendomodo.ui.openInfoDialog("Die Dateien wurden im Verzeichnis \"" + path + "\" gespeichert.");
+                            }
+                        });
+                    });
             };
 
             fn._initComponent = function (options) {
@@ -182,7 +235,16 @@ var kendomodo;
                     filesOptions.selectionMode = "multiple";
 
                 // This is the generated grid view model for the kendo grid.
-                var vm = casimodo.ui.componentRegistry.getById("4f846a0e-fe28-451a-a5bf-7a2bcb9f3712").vm(filesOptions);
+                var vm = casimodo.ui.componentRegistry.getById("4f846a0e-fe28-451a-a5bf-7a2bcb9f3712").vmOnly(filesOptions);
+                vm.initComponentOptions();
+
+                if (!this._options.areFileSelectorsVisible) {
+                    vm.componentOptions.selectable = {
+                        mode: "row"
+                    };
+                }
+
+                vm.createComponent();
 
                 if (this._options.areFileSelectorsVisible)
                     vm.selectionManager.showSelectors();
@@ -326,11 +388,13 @@ var kendomodo;
                                 return;
                             }
 
+                            self.filesGridViewModel.gridSelectByItem(file);
+
                             var $menu = e.sender.wrapper;
                             var renameAction = $menu.find("li[data-name='RenameFile']");
                             var deleteAction = $menu.find("li[data-name='DeleteFile']");
                             var downloadAction = $menu.find("li[data-name='DownloadFile']");
-                            var tagAction = $menu.find("li[data-name='SetFileTag']");
+                            var tagAction = $menu.find("li[data-name='EditFileTags']");
 
                             _enableContextMenuItem(renameAction, self.isRenameEnabled && !file.IsReadOnly);
                             // KABU TODO: Can't use IsDeletable, due to a bug. I.e. IsDeletable is always false.
@@ -391,32 +455,22 @@ var kendomodo;
 
                                     });
                             }
-                            else if (name === "SetFileTag") {
+                            else if (name === "EditFileTags") {
 
-                                // Open Tag selector. Show only tags assignable to file-Mos.
-                                kendomodo.ui.openById("150d25d2-fd24-4f9f-a8f8-b8d61e716eb3",
+                                // Open Mo file tags editor.
+                                kendomodo.ui.openById("844ed81d-dbbb-4278-abf4-2947f11fa4d3",
                                     {
-                                        // MoFileTypeId = "6773cd3a-2179-4c88-b51f-d22a139b5c60"
+                                        // KABU TODO: MAGIC: MoFileTypeId = "6773cd3a-2179-4c88-b51f-d22a139b5c60"
                                         filters: [{ field: "AssignableToTypeId", operator: "eq", value: "6773cd3a-2179-4c88-b51f-d22a139b5c60" }],
-
-                                        title: "Datei-Tag wählen",
-                                        minWidth: 600,
+                                        itemId: file.Id,
+                                        title: "Datei-Markierungen bearbeiten",
+                                        message: file.File.FileName,
+                                        minWidth: 400,
                                         minHeight: 500,
 
                                         finished: function (result) {
                                             if (result.isOk) {
-                                                _executeServerMoOperation(self, {
-                                                    operation: "SetTag",
-                                                    owner: self.owner,
-                                                    item: file,
-                                                    tagId: result.value,
-                                                    // KABU TODO: LOCALIZE
-                                                    title: "Datei-Tag setzen",
-                                                    errorMessage: "Das Datei-Tag konnte nicht gesetzt werden.",
-                                                    success: function (result) {
-                                                        self.moFolderTreeViewModel.refresh();
-                                                    }
-                                                });
+                                                self.moFolderTreeViewModel.refresh();
                                             }
                                         }
                                     });
@@ -509,7 +563,7 @@ var kendomodo;
 
                 var folder = this.trySelectFolder(e);
                 if (!folder) {
-                    alert("Wählen Sie zuerst einen Ordner bevor Sie Dateien hochladen.");
+                    casimodo.ui.showError("Wählen Sie zuerst einen Ordner bevor Sie Dateien hochladen.");
 
                     // Cancel.
                     e.preventDefault();
@@ -527,7 +581,8 @@ var kendomodo;
 
                     if (this._uploadMode === MODE_EMAIL) {
                         if (!file.extension || file.extension.toLowerCase() !== ".msg") {
-                            alert("Die Datei wurde nicht hinzugefügt. " +
+
+                            casimodo.ui.showError("Die Datei wurde nicht hinzugefügt. " +
                                 "In diesem Modus können nur 'MSG' (Outlook E-Mail) Dateien hinzugefügt werden.");
 
                             // Cancel.
@@ -552,7 +607,7 @@ var kendomodo;
                 if (!folder || !folder.Id) {
                     e.preventDefault();
 
-                    alert("Bitte wählen Sie zuerst einen Order aus bevor Sie eine Datei hochladen.");
+                    casimodo.ui.showError("Bitte wählen Sie zuerst einen Order aus bevor Sie eine Datei hochladen.");
 
                     return null;
                 }
@@ -659,7 +714,7 @@ var kendomodo;
                         casimodo.jQuery.removeContentTextNodes($status);
                         $status.append("Fehler");
                         $status.css("color", "red");
-                        alert("Fehler. Mindestens eine Datei konnte nicht gespeichert werden.")
+                        casimodo.ui.showError("Fehler. Mindestens eine Datei konnte nicht gespeichert werden.")
                     },
                     complete: $.proxy(this.onCompleted, this)
                 }).data("kendoUpload");
@@ -727,6 +782,30 @@ var kendomodo;
 
             var fn = MoFolderTreeViewModel.prototype;
 
+            fn.getItemById = function (id) {
+                var items = this._items;
+                for (var i = 0; i < items.length; i++)
+                    if (items[i].Id === id)
+                        return items[i];
+
+                return null;
+            };
+
+            fn.getFolderPath = function (folderId) {
+                var item = this._containerDict[folderId];
+                if (!item)
+                    return null;
+
+                var path = null;
+
+                do {
+                    path = item.Name + (path ? "/" + path : "");
+                    item = this._containerDict[item.ParentId];
+                } while (item);
+
+                return path;
+            };
+
             fn.setFileCollectionViewModel = function (files) {
                 this.moFileCollectionViewModel = files;
             };
@@ -785,6 +864,9 @@ var kendomodo;
                         }
                     }
 
+                    self._root = null;
+                    self._items = null;
+
                     var query = "/odata/Mos/";
                     if (self._options.isRecycleBinEnabled)
                         query += "QueryWithRecycleBin()";
@@ -799,19 +881,21 @@ var kendomodo;
                     casimodo.oDataQuery(query)
                         .then(function (items) {
 
+                            self._items = items;
+
                             // Add internal sort property in order to have
                             // the management and recycle bin displayed at last positions.
                             // KABU TODO: Add a dedicated sort property to the Mo class.
                             items.forEach(function (x) {
                                 if (x.Role === "RecycleBin")
-                                    x._metaSort = 2;
+                                    x._sortValue = 2;
                                 else if (x.Role === "ManagementDocRoot")
-                                    x._metaSort = 1;
+                                    x._sortValue = 1;
                                 else
-                                    x._metaSort = 0;
+                                    x._sortValue = 0;
                             });
 
-                            items = _buildMoTreeViewHierarchy(items);
+                            items = _buildMoTreeViewHierarchy(self, items);
                             items = _restoreTreeViewState(self, items, self.isInitialLoad);
 
                             self._components.kendoTreeView.setDataSource(self.createDataSource(items));
@@ -819,7 +903,7 @@ var kendomodo;
                             // Select node on right mouse click.
                             self._components.kendoTreeView.wrapper.on('mousedown', '.k-item', function (event) {
                                 if (event.which === 3) {
-                                    event.stopPropagation(); // Avoid propagation of this event to the root of the treeview.
+                                    event.stopPropagation();
                                     self._components.kendoTreeView.select(this);
                                 }
                             });
@@ -903,7 +987,7 @@ var kendomodo;
                 var $tree = this.$area.find("div.mo-folder-tree");
 
                 this._components.kendoTreeView = $tree.kendoTreeView({
-                    template: casimodo.ui.templates.get("MoTreeView"),
+                    template: kendomodo.ui.templates.get("MoTreeView"),
                     select: $.proxy(self.onSelectionChanged, self),
                     dataTextField: "Name",
                     dataSource: self.createDataSource([]),
@@ -1072,27 +1156,33 @@ var kendomodo;
                 });
             }
 
-            function _buildMoTreeViewHierarchy(mos) {
-                var containerDict = {};
+            function _buildMoTreeViewHierarchy(self, mos) {
+
                 var containers = [];
                 var roots = [];
                 var mo, parent;
                 var i;
+                self._root = null;
+                self._containerDict = {};
 
                 for (i = 0; i < mos.length; i++) {
                     mo = mos[i];
 
                     if (!mo.ParentId) {
+                        mo._parent = null;
                         // KABU TODO: IMPORTANT: Rename all root Mos from "Dokumente" to "Dateien" in DB.
                         // KABU TODO: TEMP-HACK: Rename locally.
                         if (mo.Name === "Dokumente")
                             mo.Name = "Dateien";
+
+                        self._root = mo;
+
                         roots.push(mo);
                     }
 
                     if (!mo.IsContainer) continue;
 
-                    containerDict[mo.Id] = mo;
+                    self._containerDict[mo.Id] = mo;
                     containers.push(mo);
                     mo.folders = [];
                     //mo.hasChildren = false;
@@ -1104,7 +1194,7 @@ var kendomodo;
 
                     if (!mo.ParentId) continue;
 
-                    parent = containerDict[mo.ParentId];
+                    parent = self._containerDict[mo.ParentId];
 
                     if (typeof parent === "undefined") {
                         alert("Parent folder not found (ParentId: " + mo.ParentId + ")");
@@ -1122,8 +1212,8 @@ var kendomodo;
                 // Sort folders.
                 containers.forEach(function (parent) {
                     parent.folders.sort(function (x, y) {
-                        if (x._metaSort > y._metaSort) return 1;
-                        if (x._metaSort < y._metaSort) return -1;
+                        if (x._sortValue > y._sortValue) return 1;
+                        if (x._sortValue < y._sortValue) return -1;
 
                         // Default sort: by name.
                         return x.Name.localeCompare(y.Name);
@@ -1238,7 +1328,7 @@ var kendomodo;
                     { name: "id", value: context.item.Id }
                 ];
             }
-            else if (context.operation === "SetTag") {
+            else if (context.operation === "AddTag") {
                 params = [
                     { name: "id", value: context.item.Id },
                     { name: "tagId", value: context.tagId }
@@ -1251,19 +1341,28 @@ var kendomodo;
                     { name: "templateId", value: context.templateId }
                 ];
             }
+            else if (context.operation === "SaveExistingFilesToFolder") {
+                params = [
+                    { name: "folderId", value: context.folderId },
+                    { name: "files", value: context.files }
+                ];
+            }
             else throw new MoFileSystemException("Unexpected MoFileSystem operation '" + context.operation + "'.");
+
+            var errorMessage = context.errorMessage || "Fehler. Der Vorgang wurde abgebrochen.";
 
             kendomodo.ui.progress(true);
 
-            casimodo.oDataAction("/odata/Mos", oDataMethod, params)
+            return casimodo.oDataAction("/odata/Mos", oDataMethod, params)
                 .then(function (result) {
-                    if (!result || !result.Id)
-                        alert(context.errorMessage);
-                    else
-                        context.success(result);
+                    // KABU TODO: REMOVE
+                    //if (!result || !result.Id)
+                    //    kendomodo.ui.showErrorDialog(errorMessage);
+                    //else
+                    context.success(result);
                 })
                 .catch(function (ex) {
-                    alert(context.errorMessage);
+                    kendomodo.ui.openErrorDialog(errorMessage);
                 })
                 .finally(function () {
                     kendomodo.ui.progress(false);

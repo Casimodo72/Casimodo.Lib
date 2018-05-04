@@ -135,15 +135,15 @@ var kendomodo;
             };
 
             fn._failedToUpdate = function () {
-                alert(this.options.messages.failedToUpdate || "Änderung fehlgeschlagen");
+                casimodo.ui.showError(this.options.messages.failedToUpdate || "Änderung fehlgeschlagen");
             };
 
             fn._failedToAdd = function () {
-                alert(this.options.messages.failedToAdd || "Hinzufügen fehlgeschlagen");
+                casimodo.ui.showError(this.options.messages.failedToAdd || "Hinzufügen fehlgeschlagen");
             };
 
             fn._failedToDelete = function () {
-                alert(this.options.messages.failedToDelete || "Löschen fehlgeschlagen");
+                casimodo.ui.showError(this.options.messages.failedToDelete || "Löschen fehlgeschlagen");
             };
 
             fn._transition = function (state) {

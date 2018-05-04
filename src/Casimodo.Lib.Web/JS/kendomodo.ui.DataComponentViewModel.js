@@ -92,6 +92,7 @@ var kendomodo;
                 // NOTE: Implicitely required if auth is undefined.
                 if (this._options.isAuthRequired === false) {
 
+                    this.auth.canView = true;
                     this.auth.canCreate = true;
                     this.auth.canModify = true;
                     this.auth.canDelete = true;
@@ -215,7 +216,7 @@ var kendomodo;
                     //   on unauthorized OData requests. Dunny why and dunny how to fix the ASP side.
                     //   Thus we look for e.error as a hopefully temporary workaround.
                     if (e.response.error) {
-                        alert("The server returned an error while trying to read data.");
+                        casimodo.ui.showError("The server returned an error while trying to read data.");
 
                         this.dataSource.data([]);
                         return;

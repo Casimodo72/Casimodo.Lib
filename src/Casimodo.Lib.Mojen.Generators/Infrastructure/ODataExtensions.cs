@@ -180,7 +180,7 @@ namespace Casimodo.Lib.Mojen
             {
                 i++;
                 if (i > 0) s.o(",");
-                s.o(node.Prop.Name);
+                OODataQueryProp(s, node);
             }
 
             // Build OData $expand query options.
@@ -190,14 +190,40 @@ namespace Casimodo.Lib.Mojen
             return s.ToString();
         }
 
+        // OData built-in functions: 11.2.5.1.2 Built-in Query Functions:
+        //   http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html
+        static void OODataQueryProp(StringBuilder s, MojPropDataGraphNode propNode)
+        {
+            bool handled = false;
+
+            var vprop = propNode.Prop as MojViewProp;
+            if (vprop != null)
+            {
+                if (vprop.StringSubstring.Is)
+                {
+                    s.o("substring(");
+                    s.o(vprop.Name);
+                    s.o(", " + vprop.StringSubstring.StartIndex);
+                    if (vprop.StringSubstring.Length != null)
+                        s.o(", " + vprop.StringSubstring.Length);
+                    s.o(")");
+                    handled = true;
+                }
+            }
+
+            if (handled)
+                return;
+
+            s.o(propNode.Prop.Name);
+        }
+
         /// <summary>
         /// Generates an OData $expand expression based on the used properties in the views.
         /// I.e. only those properties will be requested which are actually needed for the views.
         /// </summary>
         /// <remarks>
         /// Example:
-        /// $select=*
-        /// 
+        /// $select=Id,Number
         /// &$expand=
         ///     Customer($select=Id,Number,Name),
         ///     Company($select=Id,NameShort,Name),
@@ -255,7 +281,7 @@ namespace Casimodo.Lib.Mojen
                         foreach (var propNode in propNodes)
                         {
                             propPos++;
-                            s.o(propNode.Prop.Name);
+                            OODataQueryProp(s, propNode);
                             if (propPos < propNodes.Length) s.o(",");
                         }
                     }

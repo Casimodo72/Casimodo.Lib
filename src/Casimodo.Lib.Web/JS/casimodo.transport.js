@@ -200,7 +200,9 @@ var casimodo;
                     msg = casimodo.getResponseErrorMessage("odata", err.response);
                 else
                     msg = casimodo.getResponseErrorMessage("odata", err);
-                alert(msg);
+
+                casimodo.ui.showError(msg);
+
                 reject(msg);
             });
 
@@ -222,7 +224,9 @@ var casimodo;
                 resolve(getODataResponseValue(data, options));
             }, function (err) {
                 var msg = casimodo.getResponseErrorMessage("odata", err.response);
-                alert(msg);
+
+                casimodo.ui.showError(msg);
+
                 reject(msg);
             });
 
@@ -303,7 +307,9 @@ var casimodo;
                     resolve(getODataResponseValue(data, null));
                 }, function (err) {
                     var msg = casimodo.getResponseErrorMessage("odata", err.response);
-                    alert(msg);
+
+                    casimodo.ui.showError(msg);
+
                     reject(err);
                 });
         });
@@ -326,7 +332,8 @@ var casimodo;
             msg = casimodo.getResponseErrorMessage(kind, err.response);
         else
             msg = casimodo.getResponseErrorMessage(kind, err);
-        alert(msg);
+
+        casimodo.ui.showError(msg);
     };
 
     casimodo.getResponseErrorMessage = function (kind, response) {

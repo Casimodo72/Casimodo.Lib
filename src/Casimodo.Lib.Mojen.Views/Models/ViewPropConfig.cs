@@ -39,6 +39,14 @@ namespace Casimodo.Lib.Mojen
         public GeoPlaceSourcePropMap SourcePropMap { get; set; }
     }
 
+    public class MojStringSubstringConfig
+    {
+        public static readonly MojStringSubstringConfig None = new MojStringSubstringConfig();
+        public bool Is { get; set; }
+        public int StartIndex { get; set; }
+        public int? Length { get; set; }
+    }
+
     public static class MojViewPropExtensions
     {
         public static MojViewPropInfo BuildViewPropInfo(this MojViewProp vprop,
@@ -322,6 +330,8 @@ namespace Casimodo.Lib.Mojen
         public bool IsTagsSelector { get; set; }
 
         public GeoPlaceLookupConfig GeoPlaceLookup { get; set; } = GeoPlaceLookupConfig.None;
+
+        public MojStringSubstringConfig StringSubstring { get; set; } = MojStringSubstringConfig.None;
 
         public string CustomTemplateName { get; set; }
         public string CustomEditorViewName { get; set; }

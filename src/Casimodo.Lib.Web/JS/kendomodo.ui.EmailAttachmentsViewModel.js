@@ -122,7 +122,7 @@ var kendomodo;
                     }).data("kendoListView");
 
                 // Init "remove attachment" buttons on attachment tiles.
-                this._components.attachmentsKendoListView.wrapper.on('click', "div.mo-email-attachment-remove-btn", function (e) {
+                this._components.attachmentsKendoListView.wrapper.on('click', ".list-item-remove-command", function (e) {
                     var uid = $(e.currentTarget).closest("div[data-uid]").first().data("uid");
                     self._removeAttachment(self.getAttachmentByUid(uid));
                 });

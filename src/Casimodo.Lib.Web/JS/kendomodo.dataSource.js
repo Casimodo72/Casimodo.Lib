@@ -77,46 +77,6 @@ var kendomodo;
         field.validation.required = true;
     }
 
-    // KABU TODO: REMOVE: Not used.
-    //kendomodo.oDataFunctionSingleSynchronous = function (url) {
-    //    var ds = new kendo.data.DataSource({
-    //        type: 'odata-v4',
-    //        transport: {
-    //            read: {
-    //                url: url,
-    //                async: false
-    //            },
-    //            parameterMap: function (data, type) {
-    //                var result = kendomodo.fixODataV4FilterParameterMap(data, type);
-    //                if (false && type === "read") {
-    //                    delete result.$count;
-    //                }
-    //                return result;
-    //            }
-    //        }
-    //    });
-
-    //    ds.read();
-    //    return ds.data();
-    //};
-
-    // KABU TODO: REMOVE: Not used.
-    //kendomodo.oDataQuerySynchronous = function (url) {
-    //    var ds = new kendo.data.DataSource({
-    //        type: 'odata-v4',
-    //        transport: {
-    //            read: {
-    //                url: url,
-    //                async: false
-    //            },
-
-    //        }
-    //    });
-
-    //    ds.read();
-    //    return ds.data();
-    //};
-
     kendomodo.oDataLookupValueAndDisplay = function (url, valueProp, displayProp, async) {
         var ds = new kendo.data.DataSource({
             type: 'odata-v4',
@@ -183,7 +143,8 @@ var kendomodo;
 
                 }, function (err) {
                     var msg = casimodo.getResponseErrorMessage("odata", err);
-                    alert(msg);
+
+                    casimodo.ui.showError(msg);
 
                     reject();
                 });
@@ -207,7 +168,9 @@ var kendomodo;
                         resolve(null);
                 }, function (err) {
                     var msg = casimodo.getResponseErrorMessage("odata", err);
-                    alert(msg);
+
+                    casimodo.ui.showError(msg);
+
                     reject(err);
                 });
         });
@@ -227,7 +190,8 @@ var kendomodo;
                 if (callback) callback(items);
             }, function (err) {
                 var msg = casimodo.getResponseErrorMessage("odata", err);
-                alert(msg);
+
+                casimodo.ui.showError(msg);
             });
     };
 
@@ -339,7 +303,7 @@ var kendomodo;
                             continue;
                         }
 
-                        kendomodo.extendFileByUrls(item.File);
+                        kendomodo.extendFileByConvention(item.File);
                         // KABU TODO: REMOVE
                         //kendomodo.extendFileByConvention(item.File);
                         //item.fileNameNoExtension = item.File.fileNameNoExtension;
@@ -404,7 +368,8 @@ var kendomodo;
     kendomodo.onServerErrorOData = function (args) {
 
         var message = casimodo.getResponseErrorMessage("odata", args.xhr);
-        alert(message);
+
+        casimodo.ui.showError(message);
 
         var $errorBox = $("#validation-errors-box");
         if ($errorBox) {

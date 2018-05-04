@@ -32,7 +32,7 @@ var kendomodo;
                 if (!this._iedit.mode)
                     throw new Error("Edit mode not assigned.");
 
-                if (this._iedit.mode === "modify" && !this._iedit.itemId)
+                if (this._iedit.mode === "modify" && (!this._iedit.itemId && !this._options.isLocalData))
                     throw new Error("No item ID assigned in edit mode.");
 
                 this._initTitle();
@@ -47,9 +47,19 @@ var kendomodo;
 
             fn._edit = function () {
                 var self = this;
-                this.setFilter([{ field: this.keyName, operator: 'eq', value: this._iedit.itemId }]);
-                this.refresh()
-                    .then(() => self._startEditing());
+
+                if (!this._options.isLocalData) {
+                    // Load data from server.
+                    this.setFilter([{ field: this.keyName, operator: 'eq', value: this._iedit.itemId }]);
+                    this.refresh()
+                        .then(() => self._startEditing());
+                }
+                else {
+                    // Edit local data.
+                    var item = this._options.localData[0];
+                    this.dataSource.insert(0, item);
+                    this._startEditing();
+                }
             };
 
             fn._add = function () {
@@ -62,9 +72,9 @@ var kendomodo;
 
                 if (!item) {
                     if (this._iedit.mode === "modify")
-                        alert("Der Datensatz wurde nicht gefunden. Möglicherweise wurde er bereits gelöscht.");
+                        casimodo.ui.showError("Der Datensatz wurde nicht gefunden. Möglicherweise wurde er bereits gelöscht.");
                     else
-                        alert("Fehler: Der Datensatz konnte nicht erstellt werden.");
+                        casimodo.ui.showError("Fehler: Der Datensatz konnte nicht erstellt werden.");
 
                     this._cancel();
 
@@ -219,6 +229,7 @@ var kendomodo;
                 this._editorWindow = kendomodo.findKendoWindow(self.$view);
                 this._editorWindow.element.css("overflow", "visible");
 
+                // KABU TODO: ELIMINATE need for a dummy component.
                 // Create dummy component.
                 this.setComponent({});
 

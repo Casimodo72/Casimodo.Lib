@@ -75,9 +75,10 @@ var kendomodo;
                         self.findPlaceByAddress(place.name);
                 });
 
-                searchBox.addListener('remove_at', function () {
-                    alert("removed");
-                });
+                // KABU TODO: REMOVE? Was this just an experiment?
+                //searchBox.addListener('remove_at', function () {
+                //    alert("removed");
+                //});
             };
 
             fn.findPlaceByAddress = function (address) {

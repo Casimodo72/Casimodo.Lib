@@ -53,8 +53,10 @@ var kendomodo;
                 args.canDelete = !!options.canDelete;
                 args.itemId = options.itemId;
                 args.value = options.value;
+                args.filters = options.filters || null;
                 args.params = options.params;
                 args.title = options.title || null;
+                args.message = options.message || null;
 
                 vm = self._createViewModel(reg, options);
                 options.vm = vm;
@@ -67,10 +69,10 @@ var kendomodo;
             }
             else if (reg.role === "Lookup" || reg.role === "List") {
                 args = new casimodo.ui.DialogArgs(reg.id);
-                
+
                 args.filters = options.filters;
-                args.filterCommands = options.filterCommands;               
-                args.item = options.item;                
+                args.filterCommands = options.filterCommands;
+                args.item = options.item;
                 args.title = options.title || null;
 
                 vm = self._createViewModel(reg, options);
@@ -96,7 +98,7 @@ var kendomodo;
             }
 
             if (!vm)
-                vm = casimodo.ui.componentRegistry.createViewModelOnly(reg);
+                vm = casimodo.ui.componentRegistry.createViewModelOnly(reg, options.options);
 
             if (reg.isCached && !cachedEntry) {
                 kendomodo.ui._componentCache.push({ id: reg.id, vm: vm });
@@ -179,6 +181,14 @@ var kendomodo;
                         "Close"
                     ],
                     close: function (e) {
+                        if (e.userTriggered === true) {
+                            // KABU TODO: IMPORTANT: Should we hand control over this to
+                            //   the view model?
+                            // This occurs when the user closes the dialog
+                            //  via the dialog window title bar's close button.
+                            args.isOk = false;
+                            args.isCancelled = true;
+                        }
                         if (reg.isCached) {
                             // NOP
                         }
@@ -215,6 +225,13 @@ var kendomodo;
 
                 if (options.finished) {
                     wnd.one("close", function (e) {
+                        // KABU TODO: IMPORTANT: Should we hand control over this to
+                        //   the view model?
+                        // This occurs when the user closes the dialog
+                        //  via the dialog window title bar's close button.
+                        args.isOk = false;
+                        args.isCancelled = true;
+
                         options.finished(args);
                     });
                 }

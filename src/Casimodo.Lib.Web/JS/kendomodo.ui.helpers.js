@@ -10,6 +10,19 @@ var kendomodo;
             kendo.ui.progress($el, isbusy);
         };
 
+        ui.onPageNaviEvent = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $el = $(this);
+            var part = $el.data("navi-part");
+            var id = $el.data("navi-id");
+
+            kendomodo.ui.navigate(part, id);
+
+            return false;
+        };
+
         ui.showFileDownloadDialog = function (info, $context) {
             var args = new casimodo.ui.DialogArgs('7a516302-3fbc-48ed-91fc-422351c10b9f');
             args.item = info;
@@ -122,6 +135,16 @@ var kendomodo;
             return kendomodo.ui._openMessageDialogCore(message, options);
         };
 
+        ui.openErrorDialog = function (message, options) {
+            options = options || {};
+            options.title = options.title || "Fehler";
+            options.kind = "error";
+            options.ok = true;
+            options.cancel = false;
+
+            return kendomodo.ui._openMessageDialogCore(message, options);
+        };
+
         ui.openDeletionConfirmationDialog = function (message, options) {
             options = options || {};
             options.title = options.title || "Löschen bestätigen";
@@ -160,7 +183,7 @@ var kendomodo;
                 else if (kind === 'warning')
                     style += "background-color:lightgoldenrodyellow;";
                 else if (kind === 'error')
-                    style += "background-color:orange;";
+                    style += "background-color:orange;font-weight:bold;";
 
                 var wnd = $('<div/>')
                     .kendoWindow({
@@ -168,7 +191,8 @@ var kendomodo;
                         modal: true,
                         visible: false,
                         resizable: false,
-                        width: 500,
+                        minWidth: 500,
+                        maxWidth: 1000,
                         close: function (e) {
                             // Resolve promise.
                             resolve(dialogResult);
@@ -177,6 +201,8 @@ var kendomodo;
                             this.destroy();
                         }
                     }).data('kendoWindow');
+
+                message = message.replace(/\n/g, "<br/>");
 
                 var content = "<div class='confirmation-dialog-content'>" +
                     "<div class='confirmation-dialog-message'" +

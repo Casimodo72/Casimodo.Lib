@@ -41,6 +41,9 @@ var kendomodo;
                 if (this.selectionMode === "multiple") {
                     this.on("dataBound", $.proxy(self.selectionManager._onDataSourceDataBound, self.selectionManager));
                 }
+
+                this.componentOptions = null;
+                this._onListItemRemoveCommandClicked = null;
             }
 
             var fn = GridViewModel.prototype;
@@ -176,6 +179,10 @@ var kendomodo;
                 return false;
             };
 
+            fn.gridSelectByItem = function (item) {
+                this._gridSelectByItem(item);
+            };
+
             fn._gridSelectByItem = function (item) {
                 this.component.select(this._gridGetRowByItem(item));
             };
@@ -299,10 +306,15 @@ var kendomodo;
                 var self = this;
 
                 this.foreachGridRow(function ($row, item) {
-
+                    self._initRowExpander(item, $row);
                     self._initRowEditing(item, $row);
                     self._initRowImageCells(item, $row);
                 });
+
+                if (this._options.isRowAlwaysExpanded) {
+                    this.component.wrapper.find(".k-hierarchy-cell").empty().hide();
+                    this.component.wrapper.find(".k-detail-row > td:first-child").hide();
+                }
 
                 // KABU TODO: REMOVE? Not used. KEEP, may be usefull someday.
                 // hideGridManipulationColumnsDefault(grid);
@@ -352,6 +364,18 @@ var kendomodo;
                     });
                 });
             }
+
+            fn._initRowExpander = function (item, $row) {
+                if (!this._options.isRowAlwaysExpanded)
+                    return;
+
+                if (!$row.hasClass("k-master-row"))
+                    return;
+
+                this.component.expandRow($row);
+
+                //$row.find(".k-hierarchy-cell").empty();
+            };
 
             // overwrite
             fn._applyAuth = function () {
@@ -474,7 +498,64 @@ var kendomodo;
                 return true;
             };
 
-            // Component initialization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~           
+            // Component initialization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+
+            fn.initComponentOptions = function () {
+                if (this.componentOptions)
+                    return this.componentOptions;
+
+                this.componentOptions = this.createComponentOptions();
+
+                if (this._options.isDetailsEnabled === false)
+                    delete this.componentOptions.detailTemplate;
+
+                // Attach event handlers.
+                this.componentOptions.dataBinding = this._eve(this.onComponentDataBinding);
+                this.componentOptions.dataBound = this._eve(this.onComponentDataBound);
+                this.componentOptions.change = this._eve(this.onComponentChanged);
+
+                if (this.componentOptions.detailTemplate) {
+                    this.componentOptions.detailInit = this._eve(this.onComponentDetailInit);
+                    this.componentOptions.detailExpand = this._eve(this.onComponentDetailExpanding);
+                    this.componentOptions.detailCollapse = this._eve(this.onComponentDetailCollapsing);
+                }
+
+                return this.componentOptions;
+            };
+
+            fn.optionsUseItemRemoveCommand = function () {
+                this.componentOptions.columns.push({
+                    field: 'ListItemRemoveCommand',
+                    title: ' ',
+                    //hidden: true,
+                    width: 30,
+                    //attributes: { 'class': 'list-item-remove-command' },
+                    template: kendomodo.ui.templates.get("RowRemoveCommandGridCell"),
+                    groupable: false,
+                    filterable: false,
+                    sortable: false
+                });
+
+                this._isItemRemoveCommandEnabled = true;
+            };
+
+            fn.optionsUseLocalDataSource = function (data) {
+                this.componentOptions.dataSource = new kendo.data.DataSource({
+                    schema: {
+                        model: this.createDataModel()
+                    },
+                    data: data || [],
+                    pageSize: 0
+                });
+            };
+
+            fn.optionsSetLocalData = function(data) {
+                this.componentOptions.dataSource.data(data);
+            };
+
+            fn._gridGetRowByContent = function ($el) {
+                return $el.closest("tr[role=row]");
+            };
 
             fn.createComponent = function () {
                 if (this.component)
@@ -488,19 +569,9 @@ var kendomodo;
                 if (!$component)
                     $component = $('#grid-' + this._options.id);
 
-                // Create the grid component.
-                var kendoGridOptions = this.createComponentOptions();
-                // Attach event handlers.
-                kendoGridOptions.dataBinding = this._eve(this.onComponentDataBinding);
-                kendoGridOptions.dataBound = this._eve(this.onComponentDataBound);
-                kendoGridOptions.change = this._eve(this.onComponentChanged);
+                var kendoGridOptions = this.initComponentOptions();
 
-                if (kendoGridOptions.detailTemplate) {
-                    kendoGridOptions.detailInit = this._eve(this.onComponentDetailInit);
-                    kendoGridOptions.detailExpand = this._eve(this.onComponentDetailExpanding);
-                    kendoGridOptions.detailCollapse = this._eve(this.onComponentDetailCollapsing);
-                }
-
+                // Create the Kendo Grid.
                 var kendoGrid = $component.kendoGrid(kendoGridOptions).data('kendoGrid');
 
                 this.setComponent(kendoGrid);
@@ -516,9 +587,22 @@ var kendomodo;
                             // Select grid row also on right mouse click.
                             e.stopPropagation();
                             self.component.select($(this));
+                            return false;
                         }
                     });
+                }
 
+                if (this._isItemRemoveCommandEnabled) {
+                    this.component.tbody.on("click", ".list-item-remove-command", function (e) {
+                        e.stopPropagation();
+
+                        var $row = self._gridGetRowByContent($(this));
+                        var item = self.getItemByRow($row);
+
+                        self.trigger("item-remove-command-fired", { sender: this, item: item, $row: $row });
+
+                        return false;
+                    });
                 }
 
                 // Toolbar commands
@@ -563,7 +647,7 @@ var kendomodo;
                         if (self._state.isEditing)
                             return;
 
-                        self._gridSelectByRow($(this).closest("tr[role=row]"));
+                        self._gridSelectByRow(self._gridGetRowByContent($(this)));
 
                         self.edit();
 
@@ -571,18 +655,7 @@ var kendomodo;
                     });
                 }
 
-                this.component.tbody.on("click", "span.page-navi", function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    var $el = $(this);
-                    var part = $el.data("navi-part");
-                    var id = $el.data("navi-id");
-
-                    kendomodo.ui.navigate(part, id);
-
-                    return false;
-                });
+                this.component.tbody.on("click", "span.page-navi", kendomodo.ui.onPageNaviEvent);
 
                 if (!this._options.isDialog &&
                     this.component.options.scrollable === true) {

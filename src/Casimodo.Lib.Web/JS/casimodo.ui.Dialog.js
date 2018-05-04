@@ -4,6 +4,11 @@ var casimodo;
 (function (casimodo) {
     (function (ui) {
 
+        // NOTE: Overwrite this function in applications.
+        ui.showError = function (message) {
+            alert(message);
+        }
+
         ui.findDialogContainer = function ($context) {
 
             if ($context && $context.length) {

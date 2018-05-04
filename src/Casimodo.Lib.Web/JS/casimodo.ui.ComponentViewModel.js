@@ -201,6 +201,10 @@ var casimodo;
                 return this.registry.createViewModelOnly(this, options);
             };
 
+            fn.vmOnly = function (options) {
+                return this.registry.createViewModelOnly(this, options);
+            };
+
             fn.vm = function (options) {
                 return this.registry.createViewModel(this, options);
             };
@@ -217,6 +221,8 @@ var casimodo;
                 this._options = options || {};
 
                 this.keyName = "Id";
+                if (typeof this._options.dataKeyName !== "undefined")
+                    this.keyName = this._options.dataKeyName;
 
                 this.auth = {
                     canView: true,
@@ -274,7 +280,8 @@ var casimodo;
 
                 this.onArgValues(args.values);
 
-                if (args.filters) {
+                // KABU TODO: Move filterable data component view model.
+                if (args.filters && typeof this.setFilter === "function") {
                     this.setFilter(args.filters);
                 }
 

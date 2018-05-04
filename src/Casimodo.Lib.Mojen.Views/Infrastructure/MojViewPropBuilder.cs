@@ -127,6 +127,15 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TBuilder Substring(int startIndex, int? length = null)
+        {
+            Prop.StringSubstring = new MojStringSubstringConfig { Is = true };
+            Prop.StringSubstring.StartIndex = startIndex;
+            Prop.StringSubstring.Length = length;
+
+            return This();
+        }
+
         public TBuilder CustomEditorView(string name)
         {
             Prop.CustomEditorViewName = name;
