@@ -13,9 +13,10 @@ namespace Casimodo.Lib.Mojen
             return type.PluralName + "Controller";
         }
 
-        public static string GetODataPath(this AppPartGenerator gen, MojType type)
+        public static string GetODataPath(this AppPartGenerator gen, MojType type, string customQueryBase = null)
         {
-            return gen.App.Get<WebODataBuildConfig>().Path + "/" + type.PluralName;
+            return gen.App.Get<WebODataBuildConfig>().Path + "/" +
+                (customQueryBase != null ? customQueryBase : type.PluralName);
         }
 
         public static string GetODataFunc(this AppPartGenerator gen, string function)
@@ -125,8 +126,9 @@ namespace Casimodo.Lib.Mojen
             return s.ToString();
         }
 
-        public static MojHttpRequestConfig CreateODataTransport(this AppPartGenerator gen, MojViewConfig view, MojViewConfig editorView,
-            string customQueryMethod = null)
+        public static MojHttpRequestConfig CreateODataTransport(this AppPartGenerator gen,
+            MojViewConfig view, MojViewConfig editorView,
+            string customQueryBase = null, string customQueryMethod = null)
         {
             var c = new MojHttpRequestConfig();
 
@@ -141,7 +143,7 @@ namespace Casimodo.Lib.Mojen
                 .ToArray();
 
             // OData URLs
-            c.ODataBaseUrl = gen.GetODataPath(view.TypeConfig);
+            c.ODataBaseUrl = gen.GetODataPath(view.TypeConfig, customQueryBase: customQueryBase);
             c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc(customMethod: customQueryMethod)}?";
             // Build OData $expand expressions based on the used foreign properties in the view.
             c.ODataSelectUrl = c.ODataReadBaseUrl + gen.BuildODataSelectAndExpand(c.ReadGraph);
@@ -190,30 +192,8 @@ namespace Casimodo.Lib.Mojen
             return s.ToString();
         }
 
-        // OData built-in functions: 11.2.5.1.2 Built-in Query Functions:
-        //   http://docs.oasis-open.org/odata/odata/v4.0/odata-v4.0-part1-protocol.html
         static void OODataQueryProp(StringBuilder s, MojPropDataGraphNode propNode)
         {
-            bool handled = false;
-
-            var vprop = propNode.Prop as MojViewProp;
-            if (vprop != null)
-            {
-                if (vprop.StringSubstring.Is)
-                {
-                    s.o("substring(");
-                    s.o(vprop.Name);
-                    s.o(", " + vprop.StringSubstring.StartIndex);
-                    if (vprop.StringSubstring.Length != null)
-                        s.o(", " + vprop.StringSubstring.Length);
-                    s.o(")");
-                    handled = true;
-                }
-            }
-
-            if (handled)
-                return;
-
             s.o(propNode.Prop.Name);
         }
 

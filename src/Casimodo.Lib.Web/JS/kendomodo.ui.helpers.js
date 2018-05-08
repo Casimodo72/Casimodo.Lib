@@ -142,6 +142,10 @@ var kendomodo;
             options.ok = true;
             options.cancel = false;
 
+            var result = _tryCleanupHtml(message);
+            if (result.ok)
+                message = result.html;
+
             return kendomodo.ui._openMessageDialogCore(message, options);
         };
 
@@ -193,6 +197,7 @@ var kendomodo;
                         resizable: false,
                         minWidth: 500,
                         maxWidth: 1000,
+                        maxHeight: 500,
                         close: function (e) {
                             // Resolve promise.
                             resolve(dialogResult);
@@ -206,7 +211,7 @@ var kendomodo;
 
                 var content = "<div class='confirmation-dialog-content'>" +
                     "<div class='confirmation-dialog-message'" +
-                     (style !== "" ? " style='" + style + "'" : "") +
+                    (style !== "" ? " style='" + style + "'" : "") +
                     ">" +
                     message +
                     "</div><hr/><div class='confirmation-dialog-actions'>";
@@ -300,6 +305,58 @@ var kendomodo;
 
             return constructor;
         })();
+
+        function _tryCleanupHtml(text) {
+            try {
+                var root = (new DOMParser()).parseFromString(text, "text/html").documentElement;
+                var body = Array.from(root.children).find(x => x.localName === "body");
+                if (body) {
+                    _tryCleanupHtmlCore(body);
+
+                    var html = body.innerHTML.replace(/\n/g, "").trim();
+
+                    return { ok: true, html: html };
+                }
+
+                return { ok: false };
+            }
+            catch {
+                return { ok: false };
+            }
+        }
+
+        function _tryCleanupHtmlCore(parent) {
+            if (!parent.childNodes || !parent.childNodes.length)
+                return;
+
+            var node, name;
+            var remove = [];
+            var i;
+
+            for (i = 0; i < parent.childNodes.length; i++) {
+                node = parent.childNodes[i];
+                name = node.localName;
+                if (node.nodeType === Node.TEXT_NODE)
+                    continue;
+
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    remove.push(node);
+                }
+                else if (name === "br" || name === "hr") {
+                    remove.push(node);
+                }
+                else {
+                    if (name === "font")
+                        node.face = "";
+
+                    _tryCleanupHtmlCore(node);
+                }
+            }
+
+            for (i = 0; i < remove.length; i++) {
+                parent.removeChild(remove[i]);
+            }
+        }
 
     })(kendomodo.ui || (kendomodo.ui = {}));
 })(kendomodo || (kendomodo = {}));

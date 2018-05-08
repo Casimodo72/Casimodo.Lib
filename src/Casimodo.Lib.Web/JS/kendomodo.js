@@ -98,23 +98,24 @@ var kendomodo;
         return $window.data('kendoWindow');
     };
 
-    kendomodo.initDialogActions = function ($container, args) {
+    // KABU TODO: REMOVE: Not used anymore.
+    //kendomodo.initDialogActions = function ($container, args) {
 
-        var wnd = kendomodo.findKendoWindow($container);
+    //    var wnd = kendomodo.findKendoWindow($container);
 
-        $container.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", function () {
-            args.buildResult();
-            args.isCancelled = false;
-            args.isOk = true;
-            wnd.close();
-        });
+    //    $container.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", function () {
+    //        args.buildResult();
+    //        args.isCancelled = false;
+    //        args.isOk = true;
+    //        wnd.close();
+    //    });
 
-        $container.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-            args.isCancelled = true;
-            args.isOk = false;
-            wnd.close();
-        });
-    };
+    //    $container.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
+    //        args.isCancelled = true;
+    //        args.isOk = false;
+    //        wnd.close();
+    //    });
+    //};
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -160,67 +161,32 @@ var kendomodo;
         // return "<div data-file-uri='" + uri + "' class='kendomodo-button-show-image'>&nbsp;</div>";
     };
 
+    // KABU TODO: REMOVE: Not used 
     // Only used by the "_KendoAutoComplete.cshtml" partial view.
-    // KABU TODO: _KendoAutoComplete.cshtml is not used currently.
-    kendomodo.onExperimentalAutoCompleteChanged = function (e) {
-        // "this" is Kendo.AutoComplete.
+    //kendomodo.onExperimentalAutoCompleteChanged = function (e) {
+    //    // "this" is Kendo.AutoComplete.
 
-        throw new Error("Method onExperimentalAutoCompleteChanged is not implemented yet.");
+    //    throw new Error("Method onExperimentalAutoCompleteChanged is not implemented yet.");
 
-        var filterValue = this.value();
+    //    var filterValue = this.value();
 
-        // KABU TODO: How to find the grid in context from here?
-        var grid = $("#peopleGrid").data("kendoGrid");
+    //    // KABU TODO: How to find the grid in context from here?
+    //    var grid = $("#peopleGrid").data("kendoGrid");
 
-        // Apply filter.
-        if (filterValue) {
-            grid.dataSource.filter({
-                field: this.options.dataTextField, operator: "eq", value: filterValue
-            });
-        } else {
-            grid.dataSource.filter({
-            });
-        }
-    };
+    //    // Apply filter.
+    //    if (filterValue) {
+    //        grid.dataSource.filter({
+    //            field: this.options.dataTextField, operator: "eq", value: filterValue
+    //        });
+    //    } else {
+    //        grid.dataSource.filter({
+    //        });
+    //    }
+    //};
 
-    // Misc utils ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+    // Misc utils ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
 
-    // KABU TODO: Only used by the scheduler. Move to scheduler.
-    kendomodo.setContentReadOnly = function ($container) {
-
-        $container.find("input,textarea").each(function () {
-            var $elem = $(this);
-
-            if ($elem.prop("tagName").toLowerCase() === "input") {
-
-                if ($elem.closest('.k-widget').length > 0) {
-                    var widget = kendo.widgetInstance($elem, kendo.ui);
-
-                    if (typeof widget !== 'undefined')
-                        widget.enable(false);
-                }
-            }
-
-            $elem.attr("readonly", "readonly");
-        });
-    };
-
-    // KABU TODO: APP-SPECIFIC
-    kendomodo.formatStartEndMonthRange = function (startOn, endOn) {
-        var s = startOn ? removeLastChar(moment(startOn).format("MMM")) : null,
-            e = endOn ? removeLastChar(moment(endOn).format("MMM")) : null;
-
-        if (!s && !e) return "";
-        if (s === e) return s;
-        if (s && e) return s + "-" + e;
-        if (s && !e) return s + "-?";
-        return "?-" + e;
-    };
-
-    // Only used by formatStartEndMonthRange()
-    function removeLastChar(text) {
-        return text.substring(0, text.length - 1);
-    }
+   
 
     kendomodo.toDisplayDateTime = function (value) {
         return value ? kendo.toString(new Date(value), "dd.MM.yyyy  HH:mm") : null;

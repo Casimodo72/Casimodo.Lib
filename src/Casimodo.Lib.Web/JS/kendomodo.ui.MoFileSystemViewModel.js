@@ -1,4 +1,6 @@
 ﻿"use strict";
+
+// KABU TODO: Eliminate references geoassistant.MoTypeKeys.
 var kendomodo;
 (function (kendomodo) {
     (function (ui) {
@@ -460,8 +462,7 @@ var kendomodo;
                                 // Open Mo file tags editor.
                                 kendomodo.ui.openById("844ed81d-dbbb-4278-abf4-2947f11fa4d3",
                                     {
-                                        // KABU TODO: MAGIC: MoFileTypeId = "6773cd3a-2179-4c88-b51f-d22a139b5c60"
-                                        filters: [{ field: "AssignableToTypeId", operator: "eq", value: "6773cd3a-2179-4c88-b51f-d22a139b5c60" }],
+                                        filters: [{ field: "AssignableToTypeId", operator: "eq", value: geoassistant.MoTypeKeys.File }],
                                         itemId: file.Id,
                                         title: "Datei-Markierungen bearbeiten",
                                         message: file.File.FileName,

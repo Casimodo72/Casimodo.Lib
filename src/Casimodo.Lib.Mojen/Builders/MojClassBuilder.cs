@@ -457,6 +457,15 @@ namespace Casimodo.Lib.Mojen
 
             AssignDeletedMarkerPropsByConvention();
 
+            // KABU TODO: REMOVE
+            //if (TypeConfig.IsEntity())
+            //{
+            //    foreach (MojProp prop in TypeConfig.LocalProps.Where(x => x.Reference.Is))
+            //    {
+
+            //    }
+            //}
+
             // Check props
             foreach (MojProp prop in TypeConfig.LocalProps)
             {

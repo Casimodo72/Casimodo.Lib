@@ -128,6 +128,14 @@ namespace Casimodo.Lib.Auth
                 return this;
             }
 
+            public AuthBuilder AddActions(params string[] verbs)
+            {
+                foreach (var verb in verbs)
+                    AddAction(verb);
+
+                return this;
+            }
+
             public AuthBuilder AddAction(string verb)
             {
                 var permissionContext = _manager.ExpandVerbs(null, verb, null);

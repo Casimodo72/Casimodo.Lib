@@ -65,7 +65,9 @@ namespace Casimodo.Lib.Mojen
                 KendoGen.BindEditorView<KendoFormEditorViewGen>(view);
 
                 Options = view.GetGeneratorConfig<KendoGridOptions>() ?? new KendoGridOptions();
-                TransportConfig = this.CreateODataTransport(view, null, Options.CustomQueryMethod);
+                TransportConfig = this.CreateODataTransport(view, editorView: null,
+                    customQueryBase: Options.CustomQueryBase,
+                    customQueryMethod: Options.CustomQueryMethod);
 
                 var context = new WebViewGenContext
                 {
@@ -200,9 +202,9 @@ namespace Casimodo.Lib.Mojen
                 KendoGen.ODataSourceOptionsFactory(context, () =>
                     KendoGen.ODataSourceListOptions(context,
                         TransportConfig,
-                        create: CanCreate,
-                        modify: CanModify,
-                        delete: CanDelete,
+                        create: false,
+                        modify: false,
+                        delete: false,
                         pageSize: Options.PageSize,
                         isServerPaging: Options.IsServerPaging,
                         initialSortProps: context.View.Props
