@@ -43,6 +43,8 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public List<MojUsingGeneratorConfig> UsingGenerators { get; private set; } = new List<MojUsingGeneratorConfig>();
 
+        public List<MojAuthPermission> AuthPermissions { get; set; } = new List<MojAuthPermission>();
+
         public bool Uses(MojenGenerator generator)
         {
             if (generator == null) throw new ArgumentNullException("generator");

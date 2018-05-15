@@ -1,4 +1,9 @@
-﻿namespace Casimodo.Lib.Web.Auth
+﻿using Casimodo.Lib.Auth;
+using Microsoft.AspNet.Identity.Owin;
+using System.Net.Http;
+using System.Web;
+
+namespace Casimodo.Lib.Web.Auth
 {
     public class ApiActionAuthAttribute : System.Web.Http.AuthorizeAttribute
     {
@@ -13,12 +18,9 @@
             if (!isAuthorized)
                 return false;
 
-            return true;
-
-            // KABU TOOD: IMPORTANT: Currently disabled.
-            //return actionContext.Request.GetOwinContext()
-            //    .Get<ActionAuthManager>()
-            //    .IsPermitted(actionContext.RequestContext.Principal, action: ActionAuthManager.AView, part: Part, group: Group, vrole: "*");
+            return actionContext.Request.GetOwinContext()
+                .Get<ActionAuthManager>()
+                .IsPermitted(actionContext.RequestContext.Principal, action: Action, part: Part, group: Group, vrole: "*");
         }
     }
 }

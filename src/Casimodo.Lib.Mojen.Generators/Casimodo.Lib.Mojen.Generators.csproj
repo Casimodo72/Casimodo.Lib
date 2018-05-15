@@ -157,6 +157,7 @@
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerAuthConfigGen.cs" />
     <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoDataSourceMex.cs" />
     <Compile Include="App\Generators\Mex\MexGeneratorBase.cs" />

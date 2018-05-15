@@ -282,15 +282,7 @@ namespace Casimodo.Lib.Mojen
             // var settings = new ODataQuerySettings();
             // settings.HandleNullPropagation = HandleNullPropagationOption.Default;
             // settings.EnableConstantParameterization = true;
-#if (false)
-                O();
-                O("[ODataRoute, EnableQuery]");
-                O("public IQueryable<{0}> Get()", model.ClassName);
-                B();
-                O("return _db.Query();");
-                E();
-                O();
-#endif
+
             // Default query function.
             O();
             OApiActionAuthAttribute(Type, "View");

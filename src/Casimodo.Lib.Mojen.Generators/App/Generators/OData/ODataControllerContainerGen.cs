@@ -27,7 +27,7 @@ namespace Casimodo.Lib.Mojen
             string allControllersFilePath = Path.Combine(ODataConfig.WebODataControllersDirPath, "_ODataControllerTypes.generated.cs");
             PerformWrite(allControllersFilePath, () =>
             {
-                OUsing("System");                
+                OUsing("System");
                 ONamespace(ODataConfig.WebODataServicesNamespace);
                 O("public static class ODataControllerTypes");
                 Begin();

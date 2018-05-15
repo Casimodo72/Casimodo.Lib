@@ -89,6 +89,18 @@ namespace Casimodo.Lib.Mojen
             return vbuilder;
         }
 
+        public MojControllerBuilder AuthRole(string role, string permit = "*") // , string deny = null)
+        {
+            Controller.AuthPermissions.Add(new MojAuthPermission
+            {
+                Role = role,
+                Permit = permit,
+                Deny = null // deny
+            });
+
+            return this;
+        }
+
         public MojControllerBuilder Use<T>(object args = null)
             where T : MojenGenerator
         {

@@ -26,6 +26,7 @@ namespace Casimodo.Lib.Mojen
     public class WebAppBuildConfig : MojenBuildConfig
     {
         public string WebNamespace { get; set; }
+        
 
         public string WebAppConfigNamespace { get; set; }
 
@@ -37,6 +38,9 @@ namespace Casimodo.Lib.Mojen
         public string WebPickItemsDirPath { get; set; }
 
         public string WebConfigurationDirPath { get; set; }
+
+        public string WebAuthDirPath { get; set; }
+        public string WebAuthNamespace { get; set; }
 
         public WebOutputCacheConfig OutputCache { get; private set; } = new WebOutputCacheConfig();
 

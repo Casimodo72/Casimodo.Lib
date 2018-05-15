@@ -99,132 +99,14 @@ namespace Casimodo.Lib.Auth
                             yield return perm;
         }
 
-        protected AuthBuilder GetBuilder()
+        protected ActionAuthBuilder GetBuilder()
         {
-            return new AuthBuilder(this);
+            return new ActionAuthBuilder(this);
         }
 
-        public class AuthBuilder
-        {
-            ActionAuthManager _manager;
 
-            public AuthBuilder(ActionAuthManager manager)
-            {
-                _manager = manager;
-            }
 
-            public AuthPart CurrentPart { get; set; }
-
-            public AuthBuilder AuthRole(string role, string permit, string deny = null, string vrole = null, bool minRole = true)
-            {
-                _manager.AuthRole(role: role,
-                    item: CurrentPart.PartName,
-                    vgroup: CurrentPart.PartGroup,
-                    vrole: vrole,
-                    permit: permit,
-                    deny: deny,
-                    minRole: minRole);
-
-                return this;
-            }
-
-            public AuthBuilder AddActions(params string[] verbs)
-            {
-                foreach (var verb in verbs)
-                    AddAction(verb);
-
-                return this;
-            }
-
-            public AuthBuilder AddAction(string verb)
-            {
-                var permissionContext = _manager.ExpandVerbs(null, verb, null);
-                foreach (var actionName in permissionContext.Permit)
-                {
-                    foreach (var entry in CurrentPart.Components)
-                    {
-                        CurrentPart.Actions.Add(new AuthViewAction
-                        {
-                            Name = actionName,
-                            ViewRole = entry.Role,
-                            ViewUrl = entry.Url
-                        });
-                    }
-                }
-
-                return this;
-            }
-
-            public AuthBuilder AddPart(string item, string title = null, string group = null, string viewRole = null, string url = null)
-            {
-                var part = CurrentPart = new AuthPart();
-                part.PartName = item;
-                part.PartGroup = group;
-
-                _manager.CheckNotDuplicate(part);
-
-                part.Components.Add(new UIComponentInfo
-                {
-                    Part = item,
-                    Title = title,
-                    Url = url,
-                    Role = viewRole
-                });
-
-                _manager.Parts.Add(part);
-
-                return this;
-            }
-
-            public AuthBuilder AddPage(string part, string title, string url, string group = null)
-            {
-                if (!url.StartsWith("/"))
-                    url = "/" + url;
-
-                var curpart = CurrentPart = new AuthPart();
-                curpart.PartName = part;
-                curpart.PartGroup = group;
-                curpart.Actions.Add(new AuthViewAction
-                {
-                    Name = CommonAuthVerb.View,
-                    ViewRole = "Page",
-                    ViewUrl = url
-                });
-                curpart.Components.Add(new UIComponentInfo
-                {
-                    Part = part,
-                    Role = "Page",
-                    Title = title,
-                    Url = url,
-                });
-
-                _manager.Parts.Add(curpart);
-
-                return this;
-            }
-
-            public AuthBuilder List(string url)
-            {
-                return AddAction(CommonAuthVerb.View, "List", url);
-            }
-
-            public AuthBuilder AddAction(string name, string vrole, string url)
-            {
-                if (!url.StartsWith("/"))
-                    url = "/" + url;
-
-                CurrentPart.Actions.Add(new AuthViewAction
-                {
-                    Name = name,
-                    ViewRole = vrole,
-                    ViewUrl = url
-                });
-
-                return this;
-            }
-        }
-
-        void AuthRole(string role, string item, string vgroup = null, string vrole = "Page",
+        internal void AuthRole(string role, string item, string vgroup = null, string vrole = "Page",
             string permit = CommonAuthVerb.View,
             string deny = null,
             bool minRole = true)
@@ -291,7 +173,7 @@ namespace Casimodo.Lib.Auth
 
         // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        void CheckNotDuplicate(AuthPart part)
+        internal void CheckNotDuplicate(AuthPart part)
         {
             if (Parts.Any(x => x.PartName == part.PartName && x.PartGroup == part.PartGroup))
                 throw new Exception($"Duplicate part (name: {part.PartName}, group: {part.PartGroup}).");
@@ -303,7 +185,7 @@ namespace Casimodo.Lib.Auth
             public string[] Deny { get; set; }
         }
 
-        protected EpandedVerbs ExpandVerbs(AuthPart part, string permit, string deny)
+        internal protected EpandedVerbs ExpandVerbs(AuthPart part, string permit, string deny)
         {
             var result = new EpandedVerbs();
             result.Deny = ExpandVerbsCore(part, deny, null);
@@ -354,6 +236,161 @@ namespace Casimodo.Lib.Auth
                     target = new List<string>();
                 target.Add(verb);
             }
+        }
+    }
+
+    public class ActionAuthBuilder
+    {
+        ActionAuthManager _manager;
+
+        public ActionAuthBuilder(ActionAuthManager manager)
+        {
+            _manager = manager;
+        }
+
+        public AuthPart CurrentPart { get; set; }
+
+        public ActionAuthBuilder AuthRole(string role, string permit, string deny = null, string vrole = null, bool minRole = true)
+        {
+            _manager.AuthRole(role: role,
+                item: CurrentPart.PartName,
+                vgroup: CurrentPart.PartGroup,
+                vrole: vrole,
+                permit: permit,
+                deny: deny,
+                minRole: minRole);
+
+            return this;
+        }
+
+        public ActionAuthBuilder AddActions(params string[] verbs)
+        {
+            foreach (var verb in verbs)
+                AddAction(verb);
+
+            return this;
+        }
+
+        public ActionAuthBuilder AddAction(string verb)
+        {
+            var permissionContext = _manager.ExpandVerbs(null, verb, null);
+            foreach (var actionName in permissionContext.Permit)
+            {
+                if (CurrentPart.Components.Count != 0)
+                {
+                    foreach (var entry in CurrentPart.Components)
+                    {
+                        if (!CurrentPart.Actions.Any(x => x.Matches(actionName, entry.Role)))
+                        {
+                            CurrentPart.Actions.Add(new AuthViewAction
+                            {
+                                Name = actionName,
+                                ViewRole = entry.Role,
+                                ViewUrl = entry.Url
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    if (!CurrentPart.Actions.Any(x => x.Matches(actionName)))
+                    {
+                        CurrentPart.Actions.Add(new AuthAction
+                        {
+                            Name = actionName
+                        });
+                    }
+                }
+            }
+
+            return this;
+        }
+
+        public ActionAuthBuilder AddPart(string item, string title = null, string group = null, string viewRole = null, string url = null)
+        {
+            var part = new AuthPart();
+            part.PartName = item;
+            part.PartGroup = group;
+
+            _manager.CheckNotDuplicate(part);
+
+            CurrentPart = part;
+
+            part.Components.Add(new UIComponentInfo
+            {
+                Part = item,
+                Title = title,
+                Url = url,
+                Role = viewRole
+            });
+
+            _manager.Parts.Add(part);
+
+            return this;
+        }
+
+        public ActionAuthBuilder GetOrAddPart(string item, string group = null)
+        {
+            var part = _manager.Parts.FirstOrDefault(x => x.PartName == item && x.PartGroup == group);
+
+            if (part == null)
+            {
+                part = new AuthPart();
+                part.PartName = item;
+                part.PartGroup = group;
+                _manager.Parts.Add(part);
+            }
+
+            CurrentPart = part;
+
+            return this;
+        }
+
+        public ActionAuthBuilder AddPage(string part, string title, string url, string group = null)
+        {
+            if (!url.StartsWith("/"))
+                url = "/" + url;
+
+            var curpart = CurrentPart = new AuthPart();
+            curpart.PartName = part;
+            curpart.PartGroup = group;
+            curpart.Actions.Add(new AuthViewAction
+            {
+                Name = CommonAuthVerb.View,
+                ViewRole = "Page",
+                ViewUrl = url
+            });
+            curpart.Components.Add(new UIComponentInfo
+            {
+                Part = part,
+                Role = "Page",
+                Title = title,
+                Url = url,
+            });
+
+            _manager.Parts.Add(curpart);
+
+            return this;
+        }
+
+        public ActionAuthBuilder List(string url)
+        {
+            return AddAction(CommonAuthVerb.View, "List", url);
+        }
+
+        public ActionAuthBuilder AddAction(string name, string vrole, string url)
+        {
+            if (!url.StartsWith("/"))
+                url = "/" + url;
+
+            CurrentPart.Actions.Add(new AuthViewAction
+            {
+                Name = name,
+                ViewRole = vrole,
+                ViewUrl = url
+            });
+
+            return this;
         }
     }
 }

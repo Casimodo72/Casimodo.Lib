@@ -25,15 +25,15 @@ namespace Casimodo.Lib.Mojen
                 O("public override void Configure()");
                 Begin();
 
-                Func<WebResultComponentInfo, int> roleToInt = (x) =>
-                {
-                    if (x.View.MainRoleName == "Page") return 1;
-                    if (x.View.MainRoleName == "List") return 2;
-                    if (x.View.MainRoleName == "Editor") return 3;
-                    if (x.View.MainRoleName == "Details") return 4;
-                    if (x.View.MainRoleName == "Lookup") return 5;
-                    return 0;
-                };
+                //Func<WebResultComponentInfo, int> roleToInt = (x) =>
+                //{
+                //    if (x.View.MainRoleName == "Page") return 1;
+                //    if (x.View.MainRoleName == "List") return 2;
+                //    if (x.View.MainRoleName == "Editor") return 3;
+                //    if (x.View.MainRoleName == "Details") return 4;
+                //    if (x.View.MainRoleName == "Lookup") return 5;
+                //    return 0;
+                //};
 
                 var components = App.Get<WebResultBuildInfo>().Components
                     .Where(x => !x.View.IsInline)
