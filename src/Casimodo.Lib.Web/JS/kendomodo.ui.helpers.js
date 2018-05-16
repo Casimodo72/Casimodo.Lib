@@ -135,6 +135,16 @@ var kendomodo;
             return kendomodo.ui._openMessageDialogCore(message, options);
         };
 
+        ui.openInstructionDialog = function (message, options) {
+            options = options || {};
+            options.title = options.title || "Info";
+            options.kind = options.kind || "warning";
+            options.ok = true;
+            options.cancel = false;
+
+            return kendomodo.ui._openMessageDialogCore(message, options);
+        };
+
         ui.openErrorDialog = function (message, options) {
             options = options || {};
             options.title = options.title || "Fehler";
@@ -185,7 +195,7 @@ var kendomodo;
                 if (kind === 'info')
                     style += "background-color:skyblue;";
                 else if (kind === 'warning')
-                    style += "background-color:lightgoldenrodyellow;";
+                    style += "background-color:lightgoldenrodyellow;font-weight:bold;";
                 else if (kind === 'error')
                     style += "background-color:orange;font-weight:bold;";
 
@@ -243,36 +253,6 @@ var kendomodo;
             });
         };
 
-        // KABU TODO: REMOVE? Not used anymore.
-        ui.showModalTextDialog = function (kind, text) {
-            var content = "";
-
-            if (!kind) {
-                content = "<span style='font-size:1.2em'>" + text + "</span>";
-            }
-            else if (kind === 'info') {
-                content = "<span style='font-size:1.2em;color:blue'>" + text + "</span>";
-            }
-            else if (kind === 'warning') {
-                content = "<span style='font-size:1.2em;color:orange'>" + text + "</span>";
-            }
-            else if (kind === 'error') {
-                content = "<span style='font-size:1.2em;color:maroon'>" + text + "</span>";
-            }
-
-            $('<div/>').kendoWindow({
-                modal: true,
-                width: 500,
-                deactivate: function () {
-                    this.destroy();
-                }
-            })
-                .data('kendoWindow')
-                .content(content)
-                .center()
-                .open();
-        };
-
         ui.LoadProgressManager = (function () {
             var constructor = function ($view) {
                 this.$view = $view;
@@ -320,7 +300,7 @@ var kendomodo;
 
                 return { ok: false };
             }
-            catch {
+            catch (err) {
                 return { ok: false };
             }
         }

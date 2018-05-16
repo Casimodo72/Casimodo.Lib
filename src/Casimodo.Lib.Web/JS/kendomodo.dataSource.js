@@ -13,6 +13,10 @@ var kendomodo;
             });
         }
 
+        if (type === "read") {
+
+        }
+
         if (type !== "read") {
             // Convert numbers to strings in order to satisfy IEEE754Compatible.
             // This is needed because Kendo does not convert number fields
