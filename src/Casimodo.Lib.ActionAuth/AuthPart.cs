@@ -16,6 +16,11 @@ namespace Casimodo.Lib.Auth
             return Actions.OfType<AuthViewAction>();
         }
 
+        public IEnumerable<AuthAction> GetDataActions()
+        {
+            return Actions.Where(x => x.GetType() == typeof(AuthAction));
+        }
+
         public bool GetIsDuplicate(AuthActionPerm perm)
         {
             return Permissions.Any(x =>
