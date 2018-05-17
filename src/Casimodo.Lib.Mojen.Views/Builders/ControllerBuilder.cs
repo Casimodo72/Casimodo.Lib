@@ -89,7 +89,7 @@ namespace Casimodo.Lib.Mojen
             return vbuilder;
         }
 
-        public MojControllerBuilder AuthRole(string role, string permit = "*") // , string deny = null)
+        public MojControllerBuilder ApiAuthRole(string role, string permit = "*") // , string deny = null)
         {
             Controller.AuthPermissions.Add(new MojAuthPermission
             {

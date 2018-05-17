@@ -65,8 +65,12 @@ namespace Casimodo.Lib.Mojen
             if (!view.IsEditor)
                 throw new MojenException("An editor view was expected.");
 
-            // NOTE: For now all view groups can share the default OData create action.
-            return baseUrl;
+            var url = baseUrl;
+
+            if (view.Group != null)
+                url += $"/{view.GetODataCreateActionName()}";
+
+            return url;
         }
 
         public static string GetODataUpdateUrlTemplate(this MojViewConfig view, string baseUrl)
@@ -87,13 +91,10 @@ namespace Casimodo.Lib.Mojen
             if (!view.IsEditor)
                 throw new MojenException("An editor view was expected.");
 
-            // NOTE: For now all view groups can share the default OData create action.
-            return "Post";
-
-            //if (view.Group != null)
-            //    return $"{view.Group}Create";
-            //else
-            //    return "Post";
+            if (view.Group != null)
+                return $"{view.Group}Create";
+            else
+                return "Post";
         }
 
         public static string GetODataUpdateActionName(this MojViewConfig view)

@@ -18,6 +18,10 @@ namespace Casimodo.Lib.Web.Auth
             if (!isAuthorized)
                 return false;
 
+            // KABU TODO: IMPORTANT: NOTE that we use vrole: "*". This is hopefully just a temporary
+            //   workaround for not yet defining api-actions and permissions for
+            //   every defined view-action and its permissions. I.e. currently we are using the
+            //   view-actions permissions also for api-action authorization.
             return actionContext.Request.GetOwinContext()
                 .Get<ActionAuthManager>()
                 .IsPermitted(actionContext.RequestContext.Principal, action: Action, part: Part, group: Group, vrole: "*");

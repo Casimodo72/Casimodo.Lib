@@ -1125,7 +1125,7 @@ namespace Casimodo.Lib.Mojen
 
             if (!vprop.Snippets.Is) return false;
 
-            var snippetsEditorView = App.Get<MojSnippetsEditorConfig>().View;
+            var snippetsEditorView = App.Get<MojSnippetEditorConfig>().View;
 
             // Input group with text editor and button.
             XB("<div class='input-group'>");

@@ -560,6 +560,24 @@ namespace Casimodo.Lib.Mojen
             O("   This is a GENERATED file. Manual changes will be overwritten. *@");
         }
 
+        protected void ORazorStyleSection(Action content)
+        {
+            ORazorSection("Styles", content);
+        }
+
+        protected void ORazorScriptSection(Action content)
+        {
+            ORazorSection("BottomScripts", content);
+        }
+
+        protected void ORazorSection(string name, Action content)
+        {
+            OB("@section " + name);
+            if (content != null)
+                content();
+            End();
+        }
+
         protected void ORazorUsing(params string[] namespaces)
         {
             ORazorUsing(namespaces.AsEnumerable());

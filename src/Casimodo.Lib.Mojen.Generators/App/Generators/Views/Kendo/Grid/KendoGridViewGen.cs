@@ -741,14 +741,14 @@ namespace Casimodo.Lib.Mojen
                         @operator = "contains";
                         dataSourceAutoCompleteOperator = "contains";
 
-                        if (vprop.IsReferenceLookupDistinct)
+                        if (vprop.IsLookupDistinct)
                         {
                             // Kendo's filterCell will use the view property for removing duplicates,
                             //   which does not work with our foreign data, so we need
                             //   to provide distinct values server-side.
                             dataSourceUrl = string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
-                                this.GetODataQueryFunc(true, appendCall: false),
+                                this.GetODataQueryFunc(distinct: true, appendCall: false),
                                 dprop.Name);
                         }
                         else
@@ -770,8 +770,21 @@ namespace Casimodo.Lib.Mojen
                         @operator = "contains";
                     }
 
-                    // Example "odata/Contracts/Ga.Query()?$select=Number"
-                    dataSourceUrl = TransportConfig.ODataFilterUrl + vprop.Name;
+                    if (vprop.IsLookupDistinct)
+                    {
+                        // Kendo's filterCell will use the view property for removing duplicates,
+                        //   which does not work with our foreign data, so we need
+                        //   to provide distinct values server-side.
+                        dataSourceUrl = string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
+                        this.GetODataPath(view.TypeConfig),
+                        this.GetODataQueryFunc(distinct: true, appendCall: false),
+                        dprop.Name);
+                    }
+                    else
+                    {
+                        // Example "odata/Contracts/Ga.Query()?$select=Number"
+                        dataSourceUrl = TransportConfig.ODataFilterUrl + vprop.Name;
+                    }
                 }
 
                 if (cellTemplate != null)

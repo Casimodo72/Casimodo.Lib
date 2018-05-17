@@ -306,6 +306,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder NoApi()
+        {
+            View.HasNoApi = true;
+
+            return this;
+        }
+
         public MojViewBuilder Standalone()
         {
             if (View.Standalone.Is)

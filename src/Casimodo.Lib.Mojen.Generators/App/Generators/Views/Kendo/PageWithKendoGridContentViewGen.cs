@@ -25,6 +25,8 @@ namespace Casimodo.Lib.Mojen
 
                     string gridVirtualFilePath = BuildVirtualFilePath(grid);
 
+                    ORazorGeneratedFileComment();
+
                     var title = view.Title ?? grid.GetDefaultTitle();
                     if (!string.IsNullOrEmpty(title))
                         O($"@{{ ViewBag.Title = \"{title}\"; }}");
@@ -39,6 +41,13 @@ namespace Casimodo.Lib.Mojen
                             Quote(grid.Id));
                     });
                     OScriptEnd();
+
+                    ORazorStyleSection(() =>
+                    {
+                        O("<style>");
+                        O("    #site-page-container { overflow-y: auto; }");
+                        O("</style>");
+                    });
                 });
 
                 RegisterComponent(context);

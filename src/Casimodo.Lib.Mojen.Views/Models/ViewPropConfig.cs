@@ -261,7 +261,7 @@ namespace Casimodo.Lib.Mojen
         All = Create | Read | Update
     }
 
-    public class MojSnippetsEditorConfig : MojBase
+    public class MojSnippetEditorConfig : MojBase
     {
         public MojViewConfig View { get; set; }
     }
@@ -310,7 +310,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsRenderedHtml { get; set; }
 
-        public bool IsReferenceLookupDistinct { get; set; }
+        public bool IsLookupDistinct { get; set; }
 
         public bool IsLinkToInstance { get; set; }
 

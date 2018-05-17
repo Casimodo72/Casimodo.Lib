@@ -16,7 +16,6 @@ namespace Casimodo.Lib.Mojen
         public string ODataUpdateUrlTemplate { get; set; }
         public string ODataDeleteUrl { get; set; }
         public string ODataFilterUrl { get; set; }
-
         public string AjaxUrl { get; set; }
     }
 }

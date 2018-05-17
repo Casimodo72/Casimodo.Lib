@@ -266,38 +266,42 @@ namespace Casimodo.Lib.Auth
         public ActionAuthBuilder AddActions(params string[] verbs)
         {
             foreach (var verb in verbs)
-                AddAction(verb);
+                AddViewAction(verb);
 
             return this;
         }
 
-        public ActionAuthBuilder AddAction(string verb)
+        public ActionAuthBuilder AddApiAction(string verb)
         {
             var permissionContext = _manager.ExpandVerbs(null, verb, null);
             foreach (var actionName in permissionContext.Permit)
             {
-                if (CurrentPart.Components.Count != 0)
+                if (!CurrentPart.Actions.Any(x => x.Matches(actionName)))
                 {
-                    foreach (var entry in CurrentPart.Components)
+                    CurrentPart.Actions.Add(new AuthApiAction
                     {
-                        if (!CurrentPart.Actions.Any(x => x.Matches(actionName, entry.Role)))
-                        {
-                            CurrentPart.Actions.Add(new AuthViewAction
-                            {
-                                Name = actionName,
-                                ViewRole = entry.Role,
-                                ViewUrl = entry.Url
-                            });
-                        }
-                    }
+                        Name = actionName
+                    });
                 }
-                else
+            }
+
+            return this;
+        }
+
+        public ActionAuthBuilder AddViewAction(string verb)
+        {
+            var permissionContext = _manager.ExpandVerbs(null, verb, null);
+            foreach (var actionName in permissionContext.Permit)
+            {
+                foreach (var entry in CurrentPart.Components)
                 {
-                    if (!CurrentPart.Actions.Any(x => x.Matches(actionName)))
+                    if (!CurrentPart.Actions.Any(x => x.Matches(actionName, entry.Role)))
                     {
-                        CurrentPart.Actions.Add(new AuthAction
+                        CurrentPart.Actions.Add(new AuthViewAction
                         {
-                            Name = actionName
+                            Name = actionName,
+                            ViewRole = entry.Role,
+                            ViewUrl = entry.Url
                         });
                     }
                 }

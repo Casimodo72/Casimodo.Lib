@@ -125,12 +125,22 @@ namespace Casimodo.Lib.Mojen
                             x.Kind.Roles.HasFlag(MojViewRole.Editor) &&
                             x.TypeConfig.StoreOrSelf == type.StoreOrSelf))
                     {
-                        // NOTE: For now all view groups will share the default OData creation action.
+                        if (editorOfViewGroup.CanCreate)
+                        {
+                            // Add OData create action
+                            O();
+                            O($"action = builder.EntityType<{typeName}>().Collection.Action(\"{editorOfViewGroup.GetODataCreateActionName()}\");");
+                            O($"action.Parameter<{typeName}>(\"model\");");
+                            O($"action.ReturnsFromEntitySet<{typeName}>(\"{type.PluralName}\");");
+                        }
 
-                        // Add OData Update action
-                        O();
-                        O($"builder.EntityType<{typeName}>().Action(\"{editorOfViewGroup.GetODataUpdateActionName()}\")");
-                        O($"    .Parameter<{typeName}>(\"model\");");
+                        if (editorOfViewGroup.CanModify)
+                        {
+                            // Add OData update action
+                            O();
+                            O($"builder.EntityType<{typeName}>().Action(\"{editorOfViewGroup.GetODataUpdateActionName()}\")");
+                            O($"    .Parameter<{typeName}>(\"model\");");
+                        }
                     }
 
                     Pop();

@@ -283,7 +283,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsAuthAmbientApplied { get; set; }
         public bool IsAuthAmbientOverwritten { get; set; }
 
-        public List<MojAuthPermission> AuthPermissions { get; set; } = new List<MojAuthPermission>();
+        public bool HasNoApi { get; set; }
 
         public bool IsFilterable { get; set; } = true;
 

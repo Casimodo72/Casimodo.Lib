@@ -280,10 +280,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewPropBuilder Distinct()
         {
-            if (!Prop.FormedNavigationTo.Is)
-                throw new MojenException("The directive 'Distinct' is only applicable to references.");
-
-            Prop.IsReferenceLookupDistinct = true;
+            Prop.IsLookupDistinct = true;
 
             return this;
         }

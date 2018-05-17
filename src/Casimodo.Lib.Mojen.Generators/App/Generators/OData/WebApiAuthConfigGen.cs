@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class ODataControllerAuthConfigGen : WebPartGenerator
+    public class WebApiAuthConfigGen : WebPartGenerator
     {
-        public ODataControllerAuthConfigGen()
+        public WebApiAuthConfigGen()
         {
             Scope = "App";
         }
@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
         {
             var filePath = Path.Combine(
                 App.Get<WebAppBuildConfig>().WebAuthDirPath,
-                "ODataControllerReadAuthConfig.generated.cs");
+                "WebApiAuthConfig.generated.cs");
 
             var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>()).ToArray();
 
@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
             {
                 OUsing("Casimodo.Lib.Auth");
                 ONamespace(App.Get<WebAppBuildConfig>().WebAuthNamespace);
-                O("public static class ODataControllerReadAuthConfig");
+                O("public static class WebApiAuthConfig");
                 Begin();
                 OB("public static void Configure(ActionAuthBuilder builder)");
 
@@ -38,7 +38,7 @@ namespace Casimodo.Lib.Mojen
                     Oo("builder.GetOrAddPart(\"{0}\")", controller.TypeConfig.Name);
                     foreach (var perm in controller.AuthPermissions)
                     {
-                        o(".AddAction(\"{0}\")", perm.Permit);
+                        o(".AddApiAction(\"{0}\")", perm.Permit);
                         o(".AuthRole(\"{0}\", \"{1}\")",
                             perm.Role,
                             perm.Permit);

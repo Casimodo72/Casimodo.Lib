@@ -115,7 +115,7 @@ namespace Casimodo.Lib.Mojen
             var repoName = GetWebRepositoryName(Type);
 #if (false)
             
-            // KABU TODO: Use this one instead:
+            // KABU TODO: Should we use this one instead?
             O("{0} Db", repoName);
             Begin();
             O("get {{ return LazyInitializer.EnsureInitialized(ref _db, () => new {0}()); }}", repoName);
@@ -189,7 +189,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var viewGroup in Controller.GetViewGroups().OrderBy(x => x))
             {
                 var editorView = Controller.GetEditorView(viewGroup);
-                if (editorView == null)
+                if (editorView == null || editorView.HasNoApi || !editorView.CanCreate)
                     continue;
 
                 var action = editorView.GetODataCreateActionName();
@@ -203,21 +203,6 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public void OApiActionAuthAttribute(MojViewConfig view, string action)
-        {
-            O("[ApiActionAuth(Part = \"{0}\", Group = {1}, Action = \"{2}\")]",
-                view.TypeConfig.Name,
-                MojenUtils.ToCsValue(view.Group),
-                action);
-        }
-
-        public void OApiActionAuthAttribute(MojType type, string action)
-        {
-            O("[ApiActionAuth(Part = \"{0}\", Action = \"{1}\")]",
-                type.Name, action);
-        }
-
-        // KABU TODO: This is never called anymore in our scenario.
         void GenerateCreateSingle(MojViewConfig editorView)
         {
             if (editorView.Group == null)
@@ -229,10 +214,10 @@ namespace Casimodo.Lib.Mojen
 
             O();
             OApiActionAuthAttribute(editorView, "Create");
-            O("[HttpPost]");
-            O($"public async Task<IHttpActionResult> {action}({Type.ClassName} model)");
+            O("[HttpPost]");            
+            O($"public async Task<IHttpActionResult> {action}(ODataActionParameters parameters)");
             Begin();
-            O($"return await Post(model);");
+            O($"return await CreateCore(parameters?.Values?.FirstOrDefault() as {editorView.TypeConfig.Name});");
             End();
         }
 
@@ -241,8 +226,14 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "Create");
             O("[HttpPost]");
-            O($"[ODataRoute]");
+            O("[ODataRoute]");
             O($"public async Task<IHttpActionResult> Post({Type.ClassName} model)");
+            Begin();
+            O("return await CreateCore(model);");
+            End();
+
+            O();
+            O($"public async Task<IHttpActionResult> CreateCore({Type.ClassName} model)");
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
@@ -358,7 +349,7 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateUpdate()
         {
-            GenerateUpdateSingleCore();
+            GenerateUpdateSingleMain();
 
             foreach (var viewGroup in Controller.GetViewGroups())
                 GenerateUpdateSingle(viewGroup);
@@ -367,7 +358,7 @@ namespace Casimodo.Lib.Mojen
         void GenerateUpdateSingle(string group)
         {
             var editorView = Controller.GetEditorView(group);
-            if (editorView == null)
+            if (editorView == null || editorView.HasNoApi || !editorView.CanModify)
                 return;
 
             if (editorView.IsCustomODataUpdateAction)
@@ -408,7 +399,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        void GenerateUpdateSingleCore()
+        void GenerateUpdateSingleMain()
         {
             var key = Type.Key;
 
@@ -516,6 +507,20 @@ namespace Casimodo.Lib.Mojen
             O("// Delete physically");
             var repository = Type.Kind == MojTypeKind.Model ? "_db.Entities" : "_db";
             O($"{repository}.Delete(item);");
+        }
+
+        public void OApiActionAuthAttribute(MojViewConfig view, string action)
+        {
+            O("[ApiActionAuth(Part = \"{0}\", Group = {1}, Action = \"{2}\")]",
+                view.TypeConfig.Name,
+                MojenUtils.ToCsValue(view.Group),
+                action);
+        }
+
+        public void OApiActionAuthAttribute(MojType type, string action)
+        {
+            O("[ApiActionAuth(Part = \"{0}\", Action = \"{1}\")]",
+                type.Name, action);
         }
     }
 }
