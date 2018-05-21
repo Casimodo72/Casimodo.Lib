@@ -138,6 +138,20 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojType TypeConfig { get; set; }
 
+        public object GetPrimitiveDefaultValue()
+        {
+            if (Type == null)
+                throw new InvalidOperationException("Cannot compute primitive default value because 'Type' is not assigned.");
+
+            if (TypeConfig != null)
+                throw new InvalidOperationException("Cannot compute primitive default value because this property is of type MojType.");
+
+            if (Type.IsValueType && Nullable.GetUnderlyingType(Type) == null)
+                return Activator.CreateInstance(Type);
+
+            return null;
+        }
+
         /// <summary>
         /// Indicates that the property is a reference to an other object.
         /// </summary>

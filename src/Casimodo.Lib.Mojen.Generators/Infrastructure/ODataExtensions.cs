@@ -211,7 +211,7 @@ namespace Casimodo.Lib.Mojen
         ///     ResponsiblePerson($select=Id,FullName),
         ///     BusinessContact($select=Id,FirstName,LastName,Mobile,EmailWork,FaxWork;
         ///         $expand=Salutation($select=Id,DisplayName)),
-        /// DifferentInvoiceRecipient($select=Id,ZipCode,City,Street,Mobile,PhoneWork,EmailWork,FaxWork)
+        /// InvoiceRecipient($select=Id,ZipCode,City,Street,Mobile,PhoneWork,EmailWork,FaxWork)
         /// </remarks>
         static void BuildODataExpandCore(IEnumerable<MojReferenceDataGraphNode> references, int depth, bool tail, StringBuilder s)
         {

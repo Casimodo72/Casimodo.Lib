@@ -172,6 +172,8 @@ namespace Casimodo.Lib.Mojen
             return GetJsScriptUINamespace(view) + "." + BuildJsClassName(view) + "Space";
         }
 
+        // KABU TODO: REMOVE? Not used anymore because we're accessing nested objects via the
+        //  kendo observable's accessor function now.
         void GetNotNullExpressionTemplate(StringBuilder sb, MojViewProp prop, bool checkLastProp = false)
         {
             // Example:

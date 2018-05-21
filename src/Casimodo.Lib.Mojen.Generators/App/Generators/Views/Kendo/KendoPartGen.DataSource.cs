@@ -226,7 +226,8 @@ namespace Casimodo.Lib.Mojen
                     }
                     else if (!prop.Type.CanBeNull && prop.IsEditable)
                     {
-                        throw new MojenException($"Property '{prop.Name}' cannot be null and has no default value defined.");
+                        O("defaultValue: {0},", MojenUtils.ToJsValue(prop.Type.GetPrimitiveDefaultValue()));
+                        // TODO: REMOVE: throw new MojenException($"Property '{prop.Name}' cannot be null and has no default value defined.");
                     }
                 }
 

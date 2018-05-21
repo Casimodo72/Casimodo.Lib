@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -252,6 +253,15 @@ namespace Casimodo.Lib.Mojen
                 _pbuilder.PropConfig.VerMap = new MojVersionMapping { HasSource = true };
 
             return _pbuilder;
+        }
+
+        public TPropBuilder GetProp(string name)
+        {
+            var prop = TypeConfig.LocalProps.FirstOrDefault(x => x.Name == name);
+            if (prop == null)
+                throw new MojenException($"Property '{name}' not found.");
+
+            return MojPropBuilder.Create<TPropBuilder>(this, prop);
         }
 
         public TTypeBuilder Description(string description)

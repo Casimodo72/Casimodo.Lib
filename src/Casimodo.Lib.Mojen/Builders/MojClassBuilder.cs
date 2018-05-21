@@ -579,7 +579,8 @@ namespace Casimodo.Lib.Mojen
             MojProp sprop = mprop.Store;
             if (sprop != null)
             {
-                if (sprop.DeclaringType.FindProp(sprop.Name) != sprop)
+                var xprop = sprop.DeclaringType.FindProp(sprop.Name);
+                if (xprop != sprop)
                     throw new MojenException("Store property mismatch.");
 
                 MojProp.AssignModelToEntity(mprop, sprop);
