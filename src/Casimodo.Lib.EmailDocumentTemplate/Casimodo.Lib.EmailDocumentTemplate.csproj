@@ -6,11 +6,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BC11979C-E8C9-45B8-9356-9611DDC7464D}</ProjectGuid>
+    <ProjectGuid>{2581A061-B7B5-4D4B-B051-24751A532CF2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Casimodo.Lib.MimeTypes</RootNamespace>
-    <AssemblyName>Casimodo.Lib.MimeTypes</AssemblyName>
+    <RootNamespace>Casimodo.Lib.EmailDocumentTemplate</RootNamespace>
+    <AssemblyName>Casimodo.Lib.EmailDocumentTemplate</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -34,11 +34,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.8.2.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\..\..\TimurSerbay\Ga\src\packages\HtmlAgilityPack.1.8.2\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\..\TimurSerbay\Ga\src\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.8\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,8 +51,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MimeTypeMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Templates\HtmlTemplateProcessor.cs" />
+    <Compile Include="Templates\ITemplateProcessor.cs" />
+    <Compile Include="Templates\TemplateProcessor.cs" />
+    <Compile Include="Templates\TemplateProcessorException.cs" />
+    <Compile Include="Templates\TemplatePropPath.cs" />
+    <Compile Include="Templates\TemplatePropPathParser.cs" />
+    <Compile Include="Templates\TemplatePropPathProcessor.cs" />
+    <Compile Include="Templates\TemplateTransformation.cs" />
+    <Compile Include="Templates\TextTemplateProcessor.cs" />
+    <Compile Include="Templates\XmlTemplateProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Parsing\Casimodo.Lib.Parsing.csproj">
+      <Project>{f6a3cb5d-2355-4310-af47-5fd64e000263}</Project>
+      <Name>Casimodo.Lib.Parsing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
+      <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
+      <Name>Casimodo.Lib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

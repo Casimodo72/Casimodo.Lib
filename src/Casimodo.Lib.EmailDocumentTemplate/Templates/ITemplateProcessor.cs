@@ -1,0 +1,19 @@
+﻿using System;
+
+namespace Casimodo.Lib.Templates
+{
+    public interface ITemplateProcessor
+    {
+        bool Matches(string name);
+        void SetText(object value);
+        void SetText(string value);
+        void SetTextOrRemove(object value);
+        void SetTextNonEmpty(string text);
+        void SetZipCodeCity(string zipcode, string city);
+        void SetDate(DateTimeOffset? value);
+        void SetZonedTime(DateTimeOffset? value);
+        void SetZonedDateTime(DateTimeOffset? value, string format = null);
+        bool EnableArea(object value);
+        void EnableArea(bool enabled);
+    }
+}
