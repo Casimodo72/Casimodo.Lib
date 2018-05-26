@@ -343,6 +343,14 @@ namespace Casimodo.Lib.SimpleParser
         }
     }
 
+
+    public class SimpleParserException : ParserException
+    {
+        public SimpleParserException() { }
+        public SimpleParserException(string message) : base(message) { }
+        public SimpleParserException(string message, Exception inner) : base(message, inner) { }
+    }
+
     public class SimpleParserBase
     {
         public Func<string[], string> LookupVariableValue;
