@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Casimodo.Lib.CSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,9 +10,16 @@ namespace Casimodo.Lib.Templates
     {
         public bool IsMatch { get; set; }
         public List<object> Values { get; set; } = new List<object>();
-        public AstItem Ast { get; set; }
+        public AstNode Ast { get; set; }
 
         List<object> ContextItems { get; set; } = new List<object>(1);
+
+        public TemplateTransformation Transformation { get; set; }
+
+        public TemplateProcessor Processor
+        {
+            get { return Transformation.Processor; }
+        }
 
         public void Use(object context)
         {
@@ -24,7 +32,7 @@ namespace Casimodo.Lib.Templates
         public T Get<T>() where T : class
         {
             var type = typeof(T);
-            var item = ContextItems.FirstOrDefault(x => x.GetType() == type);
+            var item = ContextItems.FirstOrDefault(x => x.GetType().IsAssignableFrom(type));
             if (item == null)
                 throw new TemplateProcessorException($"An instance of type '{type.FullName}' was not found.");
 
@@ -32,10 +40,10 @@ namespace Casimodo.Lib.Templates
         }
     }
 
-    public class AstItem
+    public class AstNode
     {
-        public AstItem Left { get; set; }
-        public AstItem Right { get; set; }
+        public AstNode Left { get; set; }
+        public AstNode Right { get; set; }
 
         public bool IsOp { get; set; }
 
@@ -46,6 +54,10 @@ namespace Casimodo.Lib.Templates
         public AstTypeInfo ReturnType { get; set; }
     }
 
+    public class CSharpScriptAstItem : AstNode
+    {
+        public CSharpScriptWrapper Script { get; set; }
+    }
 
     public class AstTypeInfo
     {
@@ -54,53 +66,13 @@ namespace Casimodo.Lib.Templates
         public Type Type { get; set; }
     }
 
-    public class FuncAstNode : AstItem
-    {
-        public string Name { get; set; }
-        public string ArgsExpression { get; set; }
-        public AstTypeInfo Type { get; set; }
-        public bool IsListResult { get; set; }
-        public FuncAstNodeDef Definition { get; set; }
-
-        public void Execute(TemplateElemTransformationContext context)
-        {
-            Definition.Execute(context);
-        }
-    }
-
-    public class PropAstNode : AstItem
+    public class PropAstNode : AstNode
     {
         public Type DeclaringType { get; set; }
         public string PropName { get; set; }
         public PropertyInfo PropInfo { get; set; }
 
         public TemplateStepCustomPropBase CustomDefinition { get; set; }
-    }
-
-    public class FuncAstNodeDef
-    {
-        public string Name { get; set; }
-        public bool IsListFunc { get; set; }
-
-        public void Execute(TemplateElemTransformationContext context)
-        {
-            if (Name == "Select")
-            {
-                // Expected: Property path
-                var value = context.Values.Select(x => x.ToString()).Join("; ");
-
-                context.Values.Clear();
-                context.Values.Add(value);
-            }
-
-            if (Name == "Join")
-            {
-                var value = context.Values.Select(x => x.ToString()).Join("; ");
-
-                context.Values.Clear();
-                context.Values.Add(value);
-            }
-        }
     }
 
     public sealed class TemplateStepCustomProp<TSource> : TemplateStepCustomPropBase

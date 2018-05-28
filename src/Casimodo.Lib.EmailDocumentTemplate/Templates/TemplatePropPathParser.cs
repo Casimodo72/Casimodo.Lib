@@ -1,4 +1,6 @@
-﻿using Casimodo.Lib.SimpleParser;
+﻿using Casimodo.Lib.ComponentModel;
+using Casimodo.Lib.CSharp;
+using Casimodo.Lib.SimpleParser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,27 @@ namespace Casimodo.Lib.Templates
         public void CheckIs(string text, bool caseSensitive = true)
         {
             if (!Is(text, caseSensitive: caseSensitive))
-                throw new SimpleParserException($"Invalid token '{Current()}'. Expected was '{text}'.");
+                ThrowUnexpectedToken(text);
+        }
+
+        void ThrowUnexpectedToken(string text)
+        {
+            throw new SimpleParserException($"Invalid token '{Current()}'. Expected was '{text}'.");
+        }
+
+        public bool Skip(string text, bool caseSensitive = true, bool required = false)
+        {
+            var ok = Is(text, caseSensitive: caseSensitive);
+
+            if (required && !ok)
+                ThrowUnexpectedToken(text);
+
+            if (!ok)
+                return false;
+
+            Next();
+
+            return true;
         }
 
         public bool Is(string text, bool caseSensitive = true, bool required = false)
@@ -91,13 +113,6 @@ namespace Casimodo.Lib.Templates
 
     public class TemplatePropPathParser : SimpleStringTokenParser
     {
-        static readonly List<FuncAstNodeDef> _functionsDefs = new List<FuncAstNodeDef>
-        {
-            new FuncAstNodeDef { Name = "Where", IsListFunc = true },
-            new FuncAstNodeDef { Name = "Select", IsListFunc = true },
-            new FuncAstNodeDef { Name = "Join", IsListFunc = true }
-        };
-
         AstTypeInfo CurType { get; set; }
 
         public List<TemplateStepCustomPropBase> CustomPropDefinitions { get; set; }
@@ -105,7 +120,7 @@ namespace Casimodo.Lib.Templates
         void Tokenize(string expression)
         {
             // NOTE: The following chars must be escaped: \ * + ? | { [ ( ) ^ $ . # " and space.
-            Regex regex = new Regex(@"([\.\(\)""=!])");
+            Regex regex = new Regex(@"([\.)");
 
             var tokens = regex.Split(expression);
 
@@ -116,6 +131,7 @@ namespace Casimodo.Lib.Templates
             {
                 token = tokens[i];
 
+                // KABU TODO: REMOVE: No literals expected anymore.
                 if (token == "\"")
                     literal = !literal;
                 else
@@ -131,15 +147,34 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        public AstItem ParsePropPath(Type contextItemType, string expression)
+        public List<Type> CompilationReferenceTypes { get; set; } = new List<Type>();
+
+        public CSharpScriptOptionsWrapper ScriptOptions { get; set; }
+
+        public AstNode ParsePropPath(Type contextItemType, TemplateElement element)
         {
             Guard.ArgNotNull(contextItemType, nameof(contextItemType));
-            Guard.ArgNotEmpty(expression, nameof(expression));
+            Guard.ArgNotNull(element, nameof(element));
+
+            if (element.IsCSharpExpression)
+            {
+                var scriptService = new CSharpLanguageServiceWrapper();
+
+                var script = new CSharpLanguageServiceWrapper().CompileScript(
+                    element.Expression,
+                    ScriptOptions,
+                    contextItemType);
+
+                var scriptNode = new CSharpScriptAstItem();
+                scriptNode.Script = script;
+
+                return scriptNode;
+            }
 
             Clear();
             try
             {
-                Tokenize(expression);
+                Tokenize(element.CurrentPath);
                 var itype = new AstTypeInfo
                 {
                     Type = contextItemType,
@@ -170,11 +205,11 @@ namespace Casimodo.Lib.Templates
             return _anySpecialTokens.Contains(token);
         }
 
-        AstItem ParseAny(AstTypeInfo contextType = null)
+        AstNode ParseAny(AstTypeInfo contextType = null)
         {
 
             // Either property or function is expected.
-            AstItem node = null;
+            AstNode node = null;
             AstTypeInfo prevItemType = CurType;
             try
             {
@@ -187,10 +222,6 @@ namespace Casimodo.Lib.Templates
                     throw new SimpleParserException("A property or function was expected.");
 
                 Next();
-
-                // Parse function
-                if (Is("("))
-                    node = ParseFunction(token);
 
                 if (node == null)
                 {
@@ -279,7 +310,7 @@ namespace Casimodo.Lib.Templates
             return Is("\"");
         }
 
-        AstItem TryParseLiteral()
+        AstNode TryParseLiteral()
         {
             if (!IsQuote())
                 return null;
@@ -294,7 +325,7 @@ namespace Casimodo.Lib.Templates
                 Next();
             }
 
-            var node = new AstItem();
+            var node = new AstNode();
             node.IsLiteral = true;
             node.TextValue = items.Join("");
 
@@ -302,71 +333,6 @@ namespace Casimodo.Lib.Templates
             Next();
 
             return node;
-        }
-
-        AstItem ParseFunction(string funcName)
-        {
-            Is("(", required: true);
-            Next(required: true);
-
-            var funcDef = _functionsDefs.FirstOrDefault(x => x.Name == funcName);
-            if (funcDef == null)
-                throw new TemplateProcessorException($"Function '{funcName}' not found.");
-
-            var func = new FuncAstNode
-            {
-                Name = funcDef.Name
-            };
-
-            func.Definition = funcDef;
-
-            var type = func.ReturnType = new AstTypeInfo
-            { };
-
-            if (func.Name == "Join")
-            {
-                type.IsSimple = true;
-                type.IsList = false;
-                type.Type = typeof(string);
-            }
-
-            if (func.Name == "Select")
-            {
-                type.IsSimple = true;
-                type.IsList = true;
-                type.Type = typeof(object);
-            }
-
-            if (func.Name == "Where")
-            {
-                type.IsSimple = true;
-                type.IsList = true;
-                type.Type = CurType.Type;
-            }
-
-            // TODO: Compute func return type.
-
-            if (!Is(")"))
-            {
-                // Parse function call argument.
-                // NOTE: Currently only *one* argument is supported.
-                var arg = TryParseLiteral();
-                if (arg == null)
-                    arg = ParseAny();
-
-                func.Left = arg;
-            }
-
-            Is(")", required: true);
-            Next();
-
-            //if (funcDef.IsListFunc && !contextPropNode.IsList)
-            //    throw new TemplateProcessorException($"Function '{funcName}': source is not a list.");
-
-            //if (!funcDef.IsListFunc && contextPropNode.IsList)
-            //    throw new TemplateProcessorException($"Function '{funcName}': source is a list.");
-
-            return func;
         }
 
         internal static bool IsSimple(Type type)

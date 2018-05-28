@@ -50,9 +50,9 @@ namespace Casimodo.Lib.Mojen
             if (type.Interfaces.Any())
             {
                 if (type.HasBaseClass)
-                    Oo(", ");
+                    Oo("    , ");
                 else
-                    Oo(": ");
+                    Oo("    : ");
 
                 o(type.Interfaces.Select(x => x.Name).Join(", "));
                 Br();

@@ -229,7 +229,7 @@ namespace Casimodo.Lib.Templates
                  {
                      Elem = CleanupAttributes(node),
                      Attr = attr,
-                     Id = attr.Value,
+                     Expression = attr.Value,
                      Kind = attr.Name == "data-area" ? TemplateElemKind.Area : TemplateElemKind.Property
                  })
                .ToList();

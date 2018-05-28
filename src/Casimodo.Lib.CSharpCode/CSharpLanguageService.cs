@@ -1,23 +1,72 @@
 ﻿
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.CSharp
 {
-    public class CSharpLanguageService
+    public class CSharpCompiledToAssemblyWrapper
+    {
+        public Assembly Assembly { get; set; }
+        public bool IsSuccess { get; set; }
+        public List<string> ErrorMessages { get; set; }
+    }
+
+    public class CSharpScriptOptionsWrapper
+    {
+        internal ScriptOptions Options { get; set; }
+    }
+
+    public class CSharpScriptWrapper
+    {
+        public bool IsSuccess { get; set; }
+        public List<string> ErrorMessages { get; set; }
+        public Func<object, Task<object>> RunAsync { get; set; }
+    }
+
+    public class CSharpLanguageServiceWrapper
     {
         private static readonly LanguageVersion MaxLanguageVersion = Enum
             .GetValues(typeof(LanguageVersion))
             .Cast<LanguageVersion>()
             .Max();
 
-        public CShardCompilationResult Compile(string code, params Type[] types)
+        public CSharpScriptWrapper CompileScript(string code, CSharpScriptOptionsWrapper options, Type globalsType)
+        {
+            var script = CSharpScript.Create(code, options: options.Options, globalsType: globalsType);
+
+            var diagnostics = script.Compile();
+
+            var result = new CSharpScriptWrapper();
+
+            var errors = diagnostics.Where(diagnostic =>
+                diagnostic.IsWarningAsError ||
+                diagnostic.Severity == DiagnosticSeverity.Error)
+                .ToList();
+            
+            result.IsSuccess = errors.Count == 0;
+            result.ErrorMessages = errors.Select(x => x.GetMessage()).ToList();
+            result.RunAsync = async (globals) =>
+            {
+                var state = await script.RunAsync(globals);
+                return state.ReturnValue;
+            };
+
+            return result;
+        }
+
+        public CSharpCompiledToAssemblyWrapper Compile(string code, params Type[] types)
         {
             var syntaxTree = Parse(code);
             var compilation = CompileCore(types, syntaxTree);
@@ -34,7 +83,52 @@ namespace Casimodo.Lib.CSharp
             return CSharpSyntaxTree.ParseText(code, options);
         }
 
-        CSharpCompilation CompileCore(Type[] types, params SyntaxTree[] syntaxTrees)
+        public CSharpScriptOptionsWrapper CreateScriptOptions(Type[] types, params string[] namespaces)
+        {
+            return new CSharpScriptOptionsWrapper
+            {
+                Options = CreateScriptOptionsCore(types, namespaces)
+            };
+        }
+
+        public ScriptOptions CreateScriptOptionsCore(Type[] types, params string[] namespaces)
+        {
+            var options = ScriptOptions.Default;
+            var referenceTypes = new List<Type>();
+
+            referenceTypes.Add(typeof(Enumerable));
+
+            if (types != null)
+                foreach (var type in types)
+                    if (!referenceTypes.Contains(type))
+                        referenceTypes.Add(type);
+
+            options = options.AddReferences(referenceTypes.Select(x => GetAssembly(x)));
+
+            //var interactiveLoader = new InteractiveAssemblyLoader();
+            //foreach (var ass in referenceTypes.Select(x => GetAssembly(x)))
+            //    interactiveLoader.RegisterDependency(ass);
+
+            //var references = referenceTypes.Select(x => MetadataReference.CreateFromFile(x.Assembly.Location)).ToList();
+            //if (references.Count != 0)
+            //    options = options.AddReferences(references);
+
+            options = options.AddImports("System", "System.Linq", "System.Collections.Generic");
+            //options.AddImports("System.Linq");
+            //options.AddImports("System.Collections.Generic");
+
+            if (namespaces != null)
+                options = options.AddImports(namespaces);
+
+            return options;
+        }
+
+        Assembly GetAssembly(Type type)
+        {
+            return type.GetTypeInfo().Assembly;
+        }
+
+        public CSharpCompilation CompileCore(Type[] types, params SyntaxTree[] syntaxTrees)
         {
             string assemblyName = System.IO.Path.GetRandomFileName();
             var referenceTypes = new List<Type>();
@@ -57,16 +151,9 @@ namespace Casimodo.Lib.CSharp
             return compilation;
         }
 
-        public class CShardCompilationResult
+        public CSharpCompiledToAssemblyWrapper EmitToAssembly(CSharpCompilation compilation)
         {
-            public Assembly Assembly { get; set; }
-            public bool IsSuccess { get; set; }
-            public List<string> ErrorMessages { get; set; }
-        }
-
-        public CShardCompilationResult EmitToAssembly(CSharpCompilation compilation)
-        {
-            var result = new CShardCompilationResult();
+            var result = new CSharpCompiledToAssemblyWrapper();
 
             using (var ms = new MemoryStream())
             {

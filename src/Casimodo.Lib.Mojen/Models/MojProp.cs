@@ -56,13 +56,6 @@ namespace Casimodo.Lib.Mojen
     {
         public const int DefaultMillisecondDigits = 3;
 
-        static MojProp()
-        {
-            AutoMapper.Mapper.Initialize(c =>
-                c.CreateMap<MojProp, MojProp>()
-                    .ForMember(s => s.DeclaringType, o => o.Ignore()));
-        }
-
         public MojProp()
         {
             Id = Guid.NewGuid();

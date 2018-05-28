@@ -9,10 +9,11 @@ namespace Casimodo.Lib.Templates
 {
     public class TemplateElement
     {
-        public string Id { get; set; }
+        public string Expression { get; set; }
         public string RootContextName { get; set; }
         public object RootContextItem { get; set; }
         public string CurrentPath { get; set; }
+        public bool IsCSharpExpression { get; set; }
 
         public TemplateElemKind Kind { get; set; } = TemplateElemKind.Property;
     };
@@ -59,7 +60,7 @@ namespace Casimodo.Lib.Templates
 
         public abstract void RemoveValue();
 
-        public CultureInfo Culture { get; protected set; } = CultureInfo.CurrentCulture;
+        public CultureInfo Culture { get; protected set; } = CultureInfo.CurrentUICulture;
 
         public TemplateElement CurTemplateElement { get; protected set; }
 
@@ -201,11 +202,6 @@ namespace Casimodo.Lib.Templates
             SetText(value != null ? value.ToString() : null);
         }
 
-        public void SetZipCodeCity(string zipcode, string city)
-        {
-            SetText(new[] { zipcode, city }.Join(" "));
-        }
-
         public void SetTextNonEmpty(string text)
         {
             if (!IsEmpty(text))
@@ -237,26 +233,29 @@ namespace Casimodo.Lib.Templates
 
         protected void BuildTemplateElement(TemplateElement item)
         {
+            if (item.IsCSharpExpression)
+                return;
+
             // NOTE: If in doubt then one can use ":" as the separator between context-name and path.
-            var idx = item.Id.IndexOf(":", 0);
+            var idx = item.Expression.IndexOf(":", 0);
             if (idx == -1)
-                idx = item.Id.IndexOf(".", 0);
+                idx = item.Expression.IndexOf(".", 0);
 
             if (idx != -1)
             {
-                item.RootContextName = item.Id.Substring(0, idx);
+                item.RootContextName = item.Expression.Substring(0, idx);
 
                 // Ensure "env" is always lower cased.
                 if (item.RootContextName.ToLower() == "env")
                     item.RootContextName = "env";
 
                 idx += 1;
-                if (idx < item.Id.Length)
-                    item.CurrentPath = item.Id.Substring(idx);
+                if (idx < item.Expression.Length)
+                    item.CurrentPath = item.Expression.Substring(idx);
             }
             else
             {
-                item.CurrentPath = item.Id;
+                item.CurrentPath = item.Expression;
             }
         }
 
@@ -268,7 +267,7 @@ namespace Casimodo.Lib.Templates
         public void ThrowUnhandledTemplateIfNoMatch()
         {
             if (!IsMatch)
-                ThrowUnhandledTemplateId(CurTemplateElement.Id);
+                ThrowUnhandledTemplateId(CurTemplateElement.Expression);
         }
     }
 }

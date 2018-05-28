@@ -40,6 +40,18 @@ namespace Casimodo.Lib.Mojen
                 type.ClassName,
                 (type.EffectiveBaseClassName != null ? " : " + type.EffectiveBaseClassName : ""));
 
+            // Interfaces
+            if (type.Interfaces.Any())
+            {
+                if (type.HasBaseClass)
+                    Oo("    , ");
+                else
+                    Oo("    : ");
+
+                o(type.Interfaces.Select(x => x.Name).Join(", "));
+                Br();
+            }
+
             Begin();
 
             // Properties

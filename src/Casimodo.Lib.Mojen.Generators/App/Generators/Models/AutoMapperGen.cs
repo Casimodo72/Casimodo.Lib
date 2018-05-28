@@ -36,7 +36,7 @@ namespace Casimodo.Lib.Mojen
             Begin();
 
             // NOTE: We're using AutoMapper 4.2.1.
-            O("public static void ConfigureCore(AutoMapper.IMapperConfiguration c)");
+            O("public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c)");
             Begin();
 
             O("var core = ServiceLocator.Current.GetInstance<{0}>();", context.DataConfig.DbModelRepositoryCoreName);

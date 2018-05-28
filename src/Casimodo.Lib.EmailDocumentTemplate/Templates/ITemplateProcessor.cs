@@ -9,7 +9,6 @@ namespace Casimodo.Lib.Templates
         void SetText(string value);
         void SetTextOrRemove(object value);
         void SetTextNonEmpty(string text);
-        void SetZipCodeCity(string zipcode, string city);
         void SetDate(DateTimeOffset? value);
         void SetZonedTime(DateTimeOffset? value);
         void SetZonedDateTime(DateTimeOffset? value, string format = null);

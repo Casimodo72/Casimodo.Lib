@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Xml.Linq;
 
@@ -53,15 +54,28 @@ namespace Casimodo.Lib.Templates
 
         protected List<XmlTemplateElement> GetTemplateElements(XElement template)
         {
-            var items =
-                (from elem in template.Descendants("prop")
-                 select new XmlTemplateElement
-                 {
-                     Elem = elem,
-                     Id = (string)elem.Attr("name"),
-                     Kind = TemplateElemKind.Property
-                 })
-               .ToList();
+            var items = new List<XmlTemplateElement>();
+
+            foreach (var elem in template.Descendants("prop"))
+            {
+                var telem = new XmlTemplateElement
+                {
+                    Elem = elem,
+                    Kind = TemplateElemKind.Property
+                };
+
+                if (elem.HasAttr("expr"))
+                {
+                    telem.Expression = ((string)elem.Attr("expr") ?? "").Replace("'", "\"");
+                    telem.IsCSharpExpression = true;
+                }
+                else
+                {
+                    telem.Expression = (string)elem.Attr("name");
+                }
+
+                items.Add(telem);
+            }
 
             foreach (var item in items)
                 BuildTemplateElement(item);

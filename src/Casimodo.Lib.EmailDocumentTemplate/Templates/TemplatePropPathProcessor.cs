@@ -1,6 +1,11 @@
-﻿using System;
+﻿using Casimodo.Lib.CSharp;
+using Nito.AsyncEx;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
@@ -13,6 +18,8 @@ namespace Casimodo.Lib.Templates
             CustomPropDefinitions.AddRange(definitions);
         }
 
+        public CSharpScriptOptionsWrapper ScriptOptions { get; set; }
+
         TemplatePropPathParser _pathParser;
 
         public TemplatePropPathParser GetParser()
@@ -20,6 +27,7 @@ namespace Casimodo.Lib.Templates
             if (_pathParser == null)
             {
                 _pathParser = new TemplatePropPathParser();
+                _pathParser.ScriptOptions = ScriptOptions;
                 _pathParser.CustomPropDefinitions = CustomPropDefinitions;
             }
 
@@ -31,16 +39,32 @@ namespace Casimodo.Lib.Templates
             if (context.Ast == null)
                 return;
 
-            //Processor.IsMatch = true;
-            ExecuteNewCore(context, item, context.Ast);
-
-            if (context.Values != null && context.Values.Count != 0)
+            if (context.Ast is CSharpScriptAstItem scriptNode)
             {
-                var value = context.Values.Select(x => x.ToString().Trim()).Join(" ");
+                var resultObj = AsyncContext.Run(() => scriptNode.Script.RunAsync(item));
+
+                context.Transformation.SetText(resultObj);
+
+                //if (resultObj is string text)
+                //{
+                //    Debug.WriteLine("Text: " + (string)resultObj);
+                //}
+                //else if (resultObj is IEnumerable enu)
+                //{
+                //    Debug.WriteLine("List: " + enu?.Cast<object>().Select(x => x.ToString()).Join(", "));
+                //}
+                //else
+                //{
+                //    Debug.WriteLine("Single: " + resultObj?.ToString());
+                //}
+            }
+            else
+            {
+                ExecuteNewCore(context, item, context.Ast);
             }
         }
 
-        void ExecuteNewCore(TemplateElemTransformationContext context, object contextItem, AstItem node)
+        void ExecuteNewCore(TemplateElemTransformationContext context, object contextItem, AstNode node)
         {
             if (node == null)
                 return;
@@ -96,18 +120,18 @@ namespace Casimodo.Lib.Templates
                     ExecuteNewCore(context, item, prop.Right);
                 }
             }
-            else if (node is FuncAstNode func)
+            else
             {
-                func.Execute(context);
+                throw new TemplateProcessorException($"Unexpected type of AST node '{node.GetType()}'.");
             }
         }
 
-        public IEnumerable<object> GetItems(TemplateElemTransformationContext context, object item, AstItem node)
+        public IEnumerable<object> GetItems(TemplateElemTransformationContext context, object item, AstNode node)
         {
             return GetItemsCore(context, item, node);
         }
 
-        public IEnumerable<object> GetItemsCore(TemplateElemTransformationContext context, object contextItem, AstItem node)
+        public IEnumerable<object> GetItemsCore(TemplateElemTransformationContext context, object contextItem, AstNode node)
         {
             if (contextItem == null || node == null)
                 yield break;

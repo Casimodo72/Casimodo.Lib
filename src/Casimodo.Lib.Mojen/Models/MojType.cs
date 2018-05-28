@@ -116,12 +116,6 @@ namespace Casimodo.Lib.Mojen
             return iface;
         }
 
-        static MojType()
-        {
-            AutoMapper.Mapper.Initialize(c =>
-                c.CreateMap(typeof(MojType), typeof(MojType)));
-        }
-
         MojType()
         { }
 
