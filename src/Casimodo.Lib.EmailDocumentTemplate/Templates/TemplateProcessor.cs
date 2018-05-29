@@ -52,7 +52,6 @@ namespace Casimodo.Lib.Templates
 
     public abstract class TemplateProcessor : ITemplateProcessor
     {
-        public bool IsInList { get; set; }
         public List<string> ListValues { get; set; } = new List<string>();
 
         public abstract void SetText(string value);

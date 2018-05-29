@@ -11,11 +11,6 @@ namespace Casimodo.Lib.Web
             return CultureInfo.CurrentUICulture.DateTimeFormat;
         }
 
-        public static object LookupInfo<TModel>(this HtmlHelper helper, string prop, string route)
-        {
-            return (object)HArg.O().O(Display: HProp.Display(typeof(TModel), prop), Route: route);
-        }
-
         public static string GetDateTimePattern(this HtmlHelper helper, bool date = true, bool dlong = false, bool time = true, bool tlong = true, int ms = 0, bool placeholder = false)
         {
             var format = CultureInfo.CurrentUICulture.DateTimeFormat;

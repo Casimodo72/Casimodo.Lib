@@ -26,10 +26,7 @@ namespace Casimodo.Lib.Templates
             if (string.IsNullOrWhiteSpace(value))
                 return;
 
-            if (IsInList)
-                ListValues.Add(value.Trim());
-            else
-                CurElem.AddAfterSelf(new XText(value.Trim()));
+            CurElem.AddAfterSelf(new XText(value.Trim()));
         }
 
         public void SetImageSource(string value)
@@ -56,7 +53,7 @@ namespace Casimodo.Lib.Templates
         {
             var items = new List<XmlTemplateElement>();
 
-            foreach (var elem in template.Descendants("prop"))
+            foreach (var elem in template.Descendants("value"))
             {
                 var telem = new XmlTemplateElement
                 {
@@ -71,7 +68,7 @@ namespace Casimodo.Lib.Templates
                 }
                 else
                 {
-                    telem.Expression = (string)elem.Attr("name");
+                    telem.Expression = (string)elem.Attr("use");
                 }
 
                 items.Add(telem);

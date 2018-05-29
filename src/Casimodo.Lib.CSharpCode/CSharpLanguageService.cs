@@ -54,7 +54,7 @@ namespace Casimodo.Lib.CSharp
                 diagnostic.IsWarningAsError ||
                 diagnostic.Severity == DiagnosticSeverity.Error)
                 .ToList();
-            
+
             result.IsSuccess = errors.Count == 0;
             result.ErrorMessages = errors.Select(x => x.GetMessage()).ToList();
             result.RunAsync = async (globals) =>
