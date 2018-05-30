@@ -6,10 +6,25 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Templates
 {
+    public class TemplateEnvData
+    {
+        public TemplateElemTransformationContext Context { get; set; }
+    }
+
     public class TemplateElemTransformationContext
     {
         public bool IsMatch { get; set; }
-        public List<object> Values { get; set; } = new List<object>();
+
+        public bool HasValue { get; private set; }
+
+        public void SetValue(object value)
+        {
+            Value = value;
+            HasValue = true;
+        }
+
+        public object Value { get; private set; }
+
         public AstNode Ast { get; set; }
 
         List<object> ContextItems { get; set; } = new List<object>(1);
@@ -20,6 +35,8 @@ namespace Casimodo.Lib.Templates
         {
             get { return Transformation.Processor; }
         }
+
+        public TemplateDataContainer DataContainer { get; set; }
 
         public void Use(object context)
         {

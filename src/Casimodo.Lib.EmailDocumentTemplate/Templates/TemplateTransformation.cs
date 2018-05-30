@@ -5,6 +5,123 @@ using System.Linq;
 
 namespace Casimodo.Lib.Templates
 {
+    public class TemplateDataContainer
+    {
+        public TemplateDataContainer Self { get { return this; } }
+        readonly List<TemplateDataPropAccessor> _properties = new List<TemplateDataPropAccessor>();
+
+        public void AddProp<T>(string name, T instance = null)
+            where T : class, new()
+        {
+            _properties.Add(new TemplateDataPropAccessor<T>
+            {
+                Type = typeof(T),
+                Name = name,
+                InstanceObject = instance
+            });
+        }
+
+        public void SetProp<T>(object instance)
+            where T : class
+        {
+            var prop = GetPropAccessor(null, type: typeof(T));
+
+            prop.InstanceObject = instance;
+        }
+
+        public void SetProp(string name, object instance)
+        {
+            var prop = GetPropAccessor(name);
+
+            if (instance != null && prop.Type != null && instance.GetType() != prop.Type)
+                throw new TemplateProcessorException($"Incorrent property type '{instance.GetType().Name}'. Expected was property of type '{prop.Type}'.");
+
+            prop.InstanceObject = instance;
+        }
+
+        public T Prop<T>(string name)
+            where T : class
+        {
+            var prop = GetPropAccessor(name);
+
+            return (T)prop.InstanceObject;
+        }
+        public T Prop<T>()
+            where T : class
+        {
+            var type = typeof(T);
+            var prop = GetPropAccessor(null, type: type);
+
+            return (T)prop.InstanceObject;
+        }
+
+        public object Prop(string name, bool defaultIfNull = false)
+        {
+            var prop = GetPropAccessor(name);
+
+            var value = defaultIfNull
+                ? prop.InstanceObjectOrDefault
+                : prop.InstanceObject;
+
+            return value;
+        }
+
+        public IEnumerable<TemplateDataPropAccessor> GetPropAccessors()
+        {
+            return _properties;
+        }
+
+        public TemplateDataPropAccessor GetPropAccessor(string name, Type type = null)
+        {
+            if (name == null && type == null)
+                throw new ArgumentException("At least one of @name or @type must be specified.");
+
+            var prop = _properties.FirstOrDefault(x =>
+                (name == null || x.Name == name) &&
+                (type == null || x.Type == type));
+            if (prop == null)
+                throw new TemplateProcessorException($"Data property '{name}' not found.");
+
+            return prop;
+        }
+
+
+
+    }
+    public sealed class TemplateDataPropAccessor<T> : TemplateDataPropAccessor
+        where T : class, new()
+    {
+        public T Instance
+        {
+            get { return (T)InstanceObject; }
+        }
+
+        public T CreateDefault()
+        {
+            return new T();
+        }
+
+        public override object CreateDefaultObject()
+        {
+            return new T();
+        }
+    }
+
+    public abstract class TemplateDataPropAccessor
+    {
+        public string Name { get; set; }
+        public Type Type { get; set; }
+
+        public object InstanceObjectOrDefault
+        {
+            get { return InstanceObject ?? CreateDefaultObject(); }
+        }
+
+        public object InstanceObject { get; set; }
+
+        public abstract object CreateDefaultObject();
+    }
+
     public class TemplateTransformationCustomProps
     {
         public List<TemplateStepCustomPropBase> Items { get; set; } = new List<TemplateStepCustomPropBase>();
@@ -15,7 +132,7 @@ namespace Casimodo.Lib.Templates
         {
             var item = new TemplateStepCustomProp<TSourceType>
             {
-                PropName = name,             
+                PropName = name,
                 TargetType = typeof(TTargetType)
             };
             if (value != null)

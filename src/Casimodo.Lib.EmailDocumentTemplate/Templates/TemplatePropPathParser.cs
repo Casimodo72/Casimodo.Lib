@@ -120,7 +120,7 @@ namespace Casimodo.Lib.Templates
         void Tokenize(string expression)
         {
             // NOTE: The following chars must be escaped: \ * + ? | { [ ( ) ^ $ . # " and space.
-            Regex regex = new Regex(@"([\.)");
+            Regex regex = new Regex(@"([\.])");
 
             var tokens = regex.Split(expression);
 
@@ -151,25 +151,27 @@ namespace Casimodo.Lib.Templates
 
         public CSharpScriptOptionsWrapper ScriptOptions { get; set; }
 
+        public AstNode ParseCSharpExpression(TemplateDataContainer data, string expression)
+        {
+            var scriptService = new CSharpLanguageServiceWrapper();
+
+            var code = BuildCSharpScript(data, expression);
+
+            var script = new CSharpLanguageServiceWrapper().CompileScript(
+                code,
+                ScriptOptions,
+                typeof(TemplateDataContainer));
+
+            var scriptNode = new CSharpScriptAstItem();
+            scriptNode.Script = script;
+
+            return scriptNode;
+        }
+
         public AstNode ParsePropPath(Type contextItemType, TemplateElement element)
         {
             Guard.ArgNotNull(contextItemType, nameof(contextItemType));
-            Guard.ArgNotNull(element, nameof(element));
-
-            if (element.IsCSharpExpression)
-            {
-                var scriptService = new CSharpLanguageServiceWrapper();
-
-                var script = new CSharpLanguageServiceWrapper().CompileScript(
-                    element.Expression,
-                    ScriptOptions,
-                    contextItemType);
-
-                var scriptNode = new CSharpScriptAstItem();
-                scriptNode.Script = script;
-
-                return scriptNode;
-            }
+            Guard.ArgNotNull(element, nameof(element)); 
 
             Clear();
             try
@@ -193,6 +195,37 @@ namespace Casimodo.Lib.Templates
             {
                 Clear();
             }
+        }
+
+        string BuildCSharpScript(TemplateDataContainer data, string expression)
+        {
+            var sb = new StringBuilder();
+            var className = "T" + Guid.NewGuid().ToString().Replace("-", "");
+            sb.Append(@"public class " + className + @" { ");
+            sb.Append(Environment.NewLine);
+            sb.Append("TemplateDataContainer _data;");
+            sb.Append(Environment.NewLine);
+            sb.Append("public ");
+            sb.Append(className);
+            sb.Append(@"(TemplateDataContainer data) { _data = data; }");
+            sb.Append(Environment.NewLine);
+
+            foreach (var prop in data.GetPropAccessors())
+            {
+                sb.Append(string.Format(
+                    "public {0} {1} {{ get {{ return _data.Prop<{0}>(\"{1}\"); }} }}",
+                    prop.Type.FullName, prop.Name));
+
+                sb.Append(Environment.NewLine);
+            }
+
+            sb.Append(@"public object Execute() { return ");
+            sb.Append(expression);
+            sb.Append("; } }");
+            sb.Append(Environment.NewLine);
+            sb.Append("return new " + className + "(Self).Execute();");
+
+            return sb.ToString();
         }
 
         static List<string> _anySpecialTokens = new List<string>

@@ -34,37 +34,39 @@ namespace Casimodo.Lib.Templates
             return _pathParser;
         }
 
-        public void ExecuteNew(TemplateElemTransformationContext context, object item)
+        public void ExecuteCSharpExpression(TemplateElemTransformationContext context)
+        {
+            var scriptNode = context.Ast as CSharpScriptAstItem;
+            if (scriptNode == null)
+                return;
+
+            var resultObj = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));
+
+            //if (resultObj is string text)
+            //{
+            //    Debug.WriteLine("Text: " + (string)resultObj);
+            //}
+            //else if (resultObj is IEnumerable enu)
+            //{
+            //    Debug.WriteLine("List: " + enu?.Cast<object>().Select(x => x.ToString()).Join(", "));
+            //}
+            //else
+            //{
+            //    Debug.WriteLine("Single: " + resultObj?.ToString());
+            //}
+
+            context.Transformation.SetText(resultObj);
+        }
+
+        public void Execute(TemplateElemTransformationContext context, object item)
         {
             if (context.Ast == null)
                 return;
 
-            if (context.Ast is CSharpScriptAstItem scriptNode)
-            {
-                var resultObj = AsyncContext.Run(() => scriptNode.Script.RunAsync(item));
-
-                context.Transformation.SetText(resultObj);
-
-                //if (resultObj is string text)
-                //{
-                //    Debug.WriteLine("Text: " + (string)resultObj);
-                //}
-                //else if (resultObj is IEnumerable enu)
-                //{
-                //    Debug.WriteLine("List: " + enu?.Cast<object>().Select(x => x.ToString()).Join(", "));
-                //}
-                //else
-                //{
-                //    Debug.WriteLine("Single: " + resultObj?.ToString());
-                //}
-            }
-            else
-            {
-                ExecuteNewCore(context, item, context.Ast);
-            }
+            ExecuteCore(context, item, context.Ast);
         }
 
-        void ExecuteNewCore(TemplateElemTransformationContext context, object contextItem, AstNode node)
+        void ExecuteCore(TemplateElemTransformationContext context, object contextItem, AstNode node)
         {
             if (node == null)
                 return;
@@ -94,14 +96,14 @@ namespace Casimodo.Lib.Templates
                                 .FirstOrDefault();
 
                             if (value != null)
-                                context.Values.Add(value);
+                                context.SetValue(value);
                         }
                     }
                     else
                     {
                         var value = prop.PropInfo.GetValue(contextItem);
                         if (value != null)
-                            context.Values.Add(value);
+                            context.SetValue(value);
                     }
 
                     return;
@@ -111,13 +113,13 @@ namespace Casimodo.Lib.Templates
                 {
                     var items = prop.CustomDefinition.GetTargetValuesCore(context, contextItem);
                     foreach (var item in items)
-                        ExecuteNewCore(context, item, prop.Right);
+                        ExecuteCore(context, item, prop.Right);
                 }
                 else
                 {
                     // Contract.ResponsiblePeople.Where(x.Role.Name == "Hero").Select(x.AnyEmail).Join("; ")
                     var item = prop.PropInfo.GetValue(contextItem);
-                    ExecuteNewCore(context, item, prop.Right);
+                    ExecuteCore(context, item, prop.Right);
                 }
             }
             else

@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Templates
     public class TemplateElement
     {
         public string Expression { get; set; }
-        public string RootContextName { get; set; }
+        public string RootPropertyName { get; set; }
         public object RootContextItem { get; set; }
         public string CurrentPath { get; set; }
         public bool IsCSharpExpression { get; set; }
@@ -73,10 +73,10 @@ namespace Casimodo.Lib.Templates
         public bool ContextMatches(string name)
         {
             if (string.IsNullOrEmpty(name) &&
-                string.IsNullOrEmpty(CurTemplateElement.RootContextName))
+                string.IsNullOrEmpty(CurTemplateElement.RootPropertyName))
                 return true;
 
-            return CurTemplateElement.RootContextName == name;
+            return CurTemplateElement.RootPropertyName == name;
         }
 
         public bool ContextMatches(string name, Type type)
@@ -85,10 +85,10 @@ namespace Casimodo.Lib.Templates
                 return ContextItem.Type == type;
 
             if (string.IsNullOrEmpty(name) &&
-                string.IsNullOrEmpty(CurTemplateElement.RootContextName))
+                string.IsNullOrEmpty(CurTemplateElement.RootPropertyName))
                 return true;
 
-            return CurTemplateElement.RootContextName == name;
+            return CurTemplateElement.RootPropertyName == name;
         }
 
         public bool ContextMatches(Type type)
@@ -169,6 +169,11 @@ namespace Casimodo.Lib.Templates
             SetText(value.ToDateString(Culture.DateTimeFormat.ShortDatePattern));
         }
 
+        public string ToDateString(DateTimeOffset? value)
+        {
+            return value?.ToDateString(Culture.DateTimeFormat.ShortDatePattern);
+        }
+
         public void SetZonedTime(DateTimeOffset? value)
         {
             SetZonedDateTime(value, Culture.DateTimeFormat.ShortTimePattern);
@@ -242,11 +247,7 @@ namespace Casimodo.Lib.Templates
 
             if (idx != -1)
             {
-                item.RootContextName = item.Expression.Substring(0, idx);
-
-                // Ensure "env" is always lower cased.
-                if (item.RootContextName.ToLower() == "env")
-                    item.RootContextName = "env";
+                item.RootPropertyName = item.Expression.Substring(0, idx);
 
                 idx += 1;
                 if (idx < item.Expression.Length)
