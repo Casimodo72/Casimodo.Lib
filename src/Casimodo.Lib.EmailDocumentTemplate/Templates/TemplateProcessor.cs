@@ -7,29 +7,6 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Templates
 {
-    public class TemplateElement
-    {
-        public string Expression { get; set; }
-        public string RootPropertyName { get; set; }
-        public object RootContextItem { get; set; }
-        public string CurrentPath { get; set; }
-        public bool IsCSharpExpression { get; set; }
-
-        public TemplateElemKind Kind { get; set; } = TemplateElemKind.Property;
-    };
-
-    public enum TemplateElemKind
-    {
-        Property,
-        Area
-    }
-
-    public class TemplateProp
-    {
-        public string Name { get; set; }
-        public string Value { get; set; }
-    }
-
     public static class TemplateUtils
     {
         static readonly string[] UriSchemes = new[]
@@ -64,11 +41,6 @@ namespace Casimodo.Lib.Templates
         public TemplateElement CurTemplateElement { get; protected set; }
 
         public bool IsMatch { get; set; }
-
-        /// <summary>
-        /// Additional properties (and values) provided by external means. E.g. by the FlexEmailDocumentTemplate.
-        /// </summary>
-        public List<TemplateProp> ExternalProperties { get; private set; } = new List<TemplateProp>();
 
         public bool ContextMatches(string name)
         {
@@ -235,27 +207,34 @@ namespace Casimodo.Lib.Templates
             return $"data:{mediaType};base64,{Convert.ToBase64String(data)}";
         }
 
-        protected void BuildTemplateElement(TemplateElement item)
+        const string CSharpExpressionPrefix = "cs:";
+
+        protected void InitializeTemplateElement(TemplateElement item)
         {
-            if (item.IsCSharpExpression)
+            if (item.Kind == TemplateNodeKind.CSharpExpression)
                 return;
 
-            // NOTE: If in doubt then one can use ":" as the separator between context-name and path.
-            var idx = item.Expression.IndexOf(":", 0);
-            if (idx == -1)
-                idx = item.Expression.IndexOf(".", 0);
+            if (item.Expression.StartsWith(CSharpExpressionPrefix))
+            {
+                item.Expression = item.Expression.Substring(CSharpExpressionPrefix.Length);
+                item.Kind = TemplateNodeKind.CSharpExpression;
+                return;
+            }
 
-            if (idx != -1)
+            var idx = item.Expression.IndexOf(".");
+
+            if (idx == -1)
+            {
+                item.RootPropertyName = item.Expression;
+                item.CurrentPath = null;
+            }
+            else
             {
                 item.RootPropertyName = item.Expression.Substring(0, idx);
 
                 idx += 1;
                 if (idx < item.Expression.Length)
                     item.CurrentPath = item.Expression.Substring(idx);
-            }
-            else
-            {
-                item.CurrentPath = item.Expression;
             }
         }
 

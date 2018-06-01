@@ -1,5 +1,4 @@
-﻿using Casimodo.Lib.ComponentModel;
-using Casimodo.Lib.CSharp;
+﻿using Casimodo.Lib.CSharp;
 using Casimodo.Lib.SimpleParser;
 using System;
 using System.Collections.Generic;
@@ -9,6 +8,12 @@ using System.Text.RegularExpressions;
 
 namespace Casimodo.Lib.Templates
 {
+    public class TemplateException : Exception
+    {
+        public TemplateException() { }
+        public TemplateException(string message) : base(message) { }
+    }
+
     public class SimpleStringTokenParser
     {
         protected readonly List<string> _tokens = new List<string>();
@@ -104,18 +109,14 @@ namespace Casimodo.Lib.Templates
         }
     }
 
-
-    public class TemplateExpressionException : Exception
+    // KABU TODO: Do we want to implement functions like "EnableArea(Contract.InvoiceRecipient)" ?.
+    public class TemplateExpressionParser : SimpleStringTokenParser
     {
-        public TemplateExpressionException() { }
-        public TemplateExpressionException(string message) : base(message) { }
-    }
+        public CSharpScriptOptionsWrapper CSharpScriptOptions { get; set; }
 
-    public class TemplatePropPathParser : SimpleStringTokenParser
-    {
+        public List<ICustomInstructionDefinitionResolver> InstructionDefinitionResolvers { get; set; } = new List<ICustomInstructionDefinitionResolver>();
+
         AstTypeInfo CurType { get; set; }
-
-        public List<TemplateStepCustomPropBase> CustomPropDefinitions { get; set; }
 
         void Tokenize(string expression)
         {
@@ -147,9 +148,13 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        public List<Type> CompilationReferenceTypes { get; set; } = new List<Type>();
-
-        public CSharpScriptOptionsWrapper ScriptOptions { get; set; }
+        public AstNode ParseTemplateExpression(TemplateDataContainer data, string expression, TemplateNodeKind kind)
+        {
+            if (kind == TemplateNodeKind.CSharpExpression)
+                return ParseCSharpExpression(data, expression);
+            else
+                return ParseExpression(data.GetType(), expression);
+        }
 
         public AstNode ParseCSharpExpression(TemplateDataContainer data, string expression)
         {
@@ -159,29 +164,28 @@ namespace Casimodo.Lib.Templates
 
             var script = new CSharpLanguageServiceWrapper().CompileScript(
                 code,
-                ScriptOptions,
+                CSharpScriptOptions,
                 typeof(TemplateDataContainer));
 
-            var scriptNode = new CSharpScriptAstItem();
+            var scriptNode = new CSharpScriptAstNode();
             scriptNode.Script = script;
 
             return scriptNode;
         }
 
-        public AstNode ParsePropPath(Type contextItemType, TemplateElement element)
+        public AstNode ParseExpression(Type contextItemType, string expression)
         {
             Guard.ArgNotNull(contextItemType, nameof(contextItemType));
-            Guard.ArgNotNull(element, nameof(element)); 
 
             Clear();
             try
             {
-                Tokenize(element.CurrentPath);
+                Tokenize(expression);
                 var itype = new AstTypeInfo
                 {
                     Type = contextItemType,
-                    IsList = false,
-                    IsSimple = false
+                    IsListType = false,
+                    IsSimpleType = false
                 };
 
                 var result = ParseAny(itype);
@@ -240,7 +244,6 @@ namespace Casimodo.Lib.Templates
 
         AstNode ParseAny(AstTypeInfo contextType = null)
         {
-
             // Either property or function is expected.
             AstNode node = null;
             AstTypeInfo prevItemType = CurType;
@@ -286,53 +289,58 @@ namespace Casimodo.Lib.Templates
             _curPos = 0;
         }
 
-        PropAstNode CreatePropNode()
+        InstructionAstNode CreatePropNode()
         {
-            return new PropAstNode();
+            return new InstructionAstNode();
         }
 
-        PropAstNode ParseCustomProp(string expression)
+        InstructionAstNode ParseCustomProp(string propName)
         {
-            if (CustomPropDefinitions == null)
+            if (InstructionDefinitionResolvers == null)
                 return null;
 
-            var custom = CustomPropDefinitions.FirstOrDefault(x =>
-                x.PropName == expression &&
-                x.DeclaringType.IsAssignableFrom(CurType.Type));
+            TemplateInstructionDefinition definition = null;
 
-            if (custom == null)
+            foreach (var resolver in InstructionDefinitionResolvers)
+            {
+                definition = resolver.ResolveProperty(CurType.Type, propName);
+                if (definition != null)
+                    break;
+            }
+
+            if (definition == null)
                 return null;
 
             var node = CreatePropNode();
-            node.DeclaringType = CurType.Type;
-            node.PropName = custom.PropName;
-            node.CustomDefinition = custom;
+            node.SourceType = CurType.Type;
+            node.Name = definition.Name;
+            node.Definition = definition;
 
             node.ReturnType = new AstTypeInfo
             {
-                Type = custom.TargetType,
-                IsList = custom.IsList,
-                IsSimple = custom.IsSimpleType
+                Type = definition.ReturnType,
+                IsListType = definition.IsListType,
+                IsSimpleType = definition.IsSimpleType
             };
 
             return node;
         }
 
-        PropAstNode ParseProp(string name)
+        InstructionAstNode ParseProp(string name)
         {
             var iprop = CurType.Type.GetProperty(name);
             if (iprop == null)
                 return null;
 
             var prop = CreatePropNode();
-            prop.DeclaringType = CurType.Type;
-            prop.PropName = iprop.Name;
+            prop.SourceType = CurType.Type;
+            prop.Name = iprop.Name;
             prop.PropInfo = iprop;
             prop.ReturnType = new AstTypeInfo
             {
                 Type = iprop.PropertyType,
-                IsList = false,
-                IsSimple = IsSimple(iprop.PropertyType)
+                IsListType = false,
+                IsSimpleType = IsSimple(iprop.PropertyType)
             };
 
             return prop;

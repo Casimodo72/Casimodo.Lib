@@ -6,10 +6,65 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Templates
 {
-    public class TemplateEnvData
+    public enum TemplateNodeKind
+    {
+        None,
+        Text,
+        ValueTemplate,
+        Expression,
+        CSharpExpression
+    }
+
+    public class TemplateNode 
+    {
+        public TemplateNodeKind Kind { get; set; } = TemplateNodeKind.None;
+        public string Expression { get; set; }
+    }
+
+    public class TemplateExpression : TemplateNode
+    {
+
+    }
+
+    public class TemplateElement : TemplateNode
+    {
+        public string RootPropertyName { get; set; }
+        public object RootContextItem { get; set; }
+        public string CurrentPath { get; set; }
+    };
+
+    public class TemplateValueTemplate : TemplateNode
+    {
+        public List<TemplateExpression> Items { get; set; } = new List<TemplateExpression>();
+    }
+
+    public class TemplateEnvContainer
     {
         public TemplateElemTransformationContext Context { get; set; }
     }
+
+    public class TemplateExternalPropertiesContainer
+    {
+        public List<TemplateExternalProperty> Items { get; set; } = new List<TemplateExternalProperty>();
+    }
+
+    /// <summary>
+    /// Additional global properties (and values) provided by external means.
+    /// E.g. custom properties defined by the FlexEmailDocumentTemplate itself.
+    /// </summary>
+    public class TemplateExternalProperty
+    {
+        public TemplateExternalProperty()
+        {
+            Guid = Guid.NewGuid();
+        }
+
+        public Guid Guid { get; set; }
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
+
 
     public class TemplateElemTransformationContext
     {
@@ -26,6 +81,8 @@ namespace Casimodo.Lib.Templates
         public object Value { get; private set; }
 
         public AstNode Ast { get; set; }
+
+        public InstructionAstNode CurrentInstruction { get; set; }
 
         List<object> ContextItems { get; set; } = new List<object>(1);
 
@@ -71,58 +128,55 @@ namespace Casimodo.Lib.Templates
         public AstTypeInfo ReturnType { get; set; }
     }
 
-    public class CSharpScriptAstItem : AstNode
+    public class CSharpScriptAstNode : AstNode
     {
         public CSharpScriptWrapper Script { get; set; }
     }
 
     public class AstTypeInfo
     {
-        public bool IsList { get; set; }
-        public bool IsSimple { get; set; }
+        public bool IsListType { get; set; }
+        public bool IsSimpleType { get; set; }
         public Type Type { get; set; }
     }
 
-    public class PropAstNode : AstNode
+    public class InstructionAstNode : AstNode
     {
-        public Type DeclaringType { get; set; }
-        public string PropName { get; set; }
+        public Type SourceType { get; set; }
+        public string Name { get; set; }
         public PropertyInfo PropInfo { get; set; }
-
-        public TemplateStepCustomPropBase CustomDefinition { get; set; }
+        public TemplateInstructionDefinition Definition { get; set; }
     }
 
-    public sealed class TemplateStepCustomProp<TSource> : TemplateStepCustomPropBase
+    public sealed class TemplateInstructionDefinition<TSource> : TemplateInstructionDefinition
     {
-        public TemplateStepCustomProp()
+        public TemplateInstructionDefinition()
         {
-            DeclaringType = typeof(TSource);
+            SourceType = typeof(TSource);
         }
 
-        public Func<TemplateElemTransformationContext, TSource, object> GetTargetValue { get; set; }
-        public Func<TemplateElemTransformationContext, TSource, IEnumerable<object>> GetTargetValues { get; set; }
+        public Func<TemplateElemTransformationContext, TSource, object> GetValue { get; set; }
+        public Func<TemplateElemTransformationContext, TSource, IEnumerable<object>> GetValues { get; set; }
 
-        public Action<TemplateElemTransformationContext, TSource> Execute { get; set; }
-
-        public override IEnumerable<object> GetTargetValuesCore(TemplateElemTransformationContext context, object item)
+        public override IEnumerable<object> GetValuesCore(TemplateElemTransformationContext context, object item)
         {
-            if (GetTargetValue != null)
-                return Enumerable.Repeat(GetTargetValue(context, (TSource)item), 1);
+            if (GetValue != null)
+                return Enumerable.Repeat(GetValue(context, (TSource)item), 1);
 
-            return GetTargetValues(context, (TSource)item);
+            return GetValues(context, (TSource)item);
         }
     }
 
-    public abstract class TemplateStepCustomPropBase
+    public abstract class TemplateInstructionDefinition
     {
-        public Type DeclaringType { get; set; }
-        public string PropName { get; set; }
-        public bool IsList { get; set; }
-        public Type TargetType { get; set; }
+        public Type SourceType { get; set; }
+        public string Name { get; set; }
+        public Type ReturnType { get; set; }
+        public bool IsListType { get; set; }
         public bool IsSimpleType { get; set; }
 
         public Action<TemplateElemTransformationContext, object> ExecuteCore { get; set; }
 
-        public abstract IEnumerable<object> GetTargetValuesCore(TemplateElemTransformationContext context, object item);
+        public abstract IEnumerable<object> GetValuesCore(TemplateElemTransformationContext context, object item);
     }
 }

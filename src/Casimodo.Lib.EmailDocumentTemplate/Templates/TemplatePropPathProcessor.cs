@@ -1,107 +1,95 @@
-﻿using Casimodo.Lib.CSharp;
-using Nito.AsyncEx;
-using System;
-using System.Collections;
+﻿using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
-    public class TemplatePropPathProcessor
+    public class TemplateExpressionProcessor
     {
-        public List<TemplateStepCustomPropBase> CustomPropDefinitions { get; set; } = new List<TemplateStepCustomPropBase>();
-
-        public void AddCustomProperties(IEnumerable<TemplateStepCustomPropBase> definitions)
+        public void Execute(TemplateElemTransformationContext context)
         {
-            CustomPropDefinitions.AddRange(definitions);
-        }
+            Guard.ArgNotNull(context, nameof(context));
 
-        public CSharpScriptOptionsWrapper ScriptOptions { get; set; }
+            if (context.Ast == null)
+                return;
 
-        TemplatePropPathParser _pathParser;
-
-        public TemplatePropPathParser GetParser()
-        {
-            if (_pathParser == null)
+            if (context.Ast is CSharpScriptAstNode scriptNode)
             {
-                _pathParser = new TemplatePropPathParser();
-                _pathParser.ScriptOptions = ScriptOptions;
-                _pathParser.CustomPropDefinitions = CustomPropDefinitions;
+                context.SetValue(AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer)));
+
+                //if (context.Value) is string text)
+                //    System.Diagnostics.Debug.WriteLine("Text: " + text);
+                //else if (context.Value) is IEnumerable enumerable)
+                //    System.Diagnostics.Debug.WriteLine("List: " + enumerable?.Cast<object>().Select(x => x.ToString()).Join(", "));
+                //else
+                //    System.Diagnostics.Debug.WriteLine("Single: " + context.Value?.ToString());
+            }
+            else
+            {
+                ExecuteCore(context, context.DataContainer, context.Ast);
             }
 
-            return _pathParser;
+            // NOTE: Set value only if it was provided, because instructions might
+            //   not return any value but manipulate the output directly instead.
+            if (context.HasValue)
+                context.Transformation.SetText(context.Value);
         }
 
-        public void ExecuteCSharpExpression(TemplateElemTransformationContext context)
+        void ExecuteCSharpExpression(TemplateElemTransformationContext context)
         {
-            var scriptNode = context.Ast as CSharpScriptAstItem;
+            var scriptNode = context.Ast as CSharpScriptAstNode;
             if (scriptNode == null)
                 return;
 
             var resultObj = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));
 
             //if (resultObj is string text)
-            //{
-            //    Debug.WriteLine("Text: " + (string)resultObj);
-            //}
+            //    System.Diagnostics.Debug.WriteLine("Text: " + (string)resultObj);
             //else if (resultObj is IEnumerable enu)
-            //{
-            //    Debug.WriteLine("List: " + enu?.Cast<object>().Select(x => x.ToString()).Join(", "));
-            //}
+            //    System.Diagnostics.Debug.WriteLine("List: " + enu?.Cast<object>().Select(x => x.ToString()).Join(", "));
             //else
-            //{
-            //    Debug.WriteLine("Single: " + resultObj?.ToString());
-            //}
+            //    System.Diagnostics.Debug.WriteLine("Single: " + resultObj?.ToString());
 
             context.Transformation.SetText(resultObj);
         }
 
-        public void Execute(TemplateElemTransformationContext context, object item)
+        void ExecuteCore(TemplateElemTransformationContext context, object contextObj, AstNode node)
         {
-            if (context.Ast == null)
+            if (contextObj == null || node == null)
                 return;
 
-            ExecuteCore(context, item, context.Ast);
-        }
-
-        void ExecuteCore(TemplateElemTransformationContext context, object contextItem, AstNode node)
-        {
-            if (node == null)
-                return;
-
-            if (node is PropAstNode prop)
+            if (node is InstructionAstNode prop)
             {
-                if (contextItem == null)
-                    throw new TemplateProcessorException("No context item.");
+                context.CurrentInstruction = prop;
 
-                if (!prop.DeclaringType.IsAssignableFrom(contextItem.GetType()))
-                    throw new TemplateProcessorException($"Invalid template property path state: " +
-                        $"current item (type '{contextItem.GetType()}') is not of expected type '{prop.DeclaringType}'.");
+                if (!prop.SourceType.IsAssignableFrom(contextObj.GetType()))
+                    throw new TemplateProcessorException($"Invalid template expression state: " +
+                        $"context object (type '{contextObj.GetType()}') is not of expected type '{prop.SourceType}'.");
 
-                if (prop.ReturnType.IsSimple)
+                if (prop.ReturnType.IsSimpleType)
                 {
-                    if (prop.CustomDefinition != null)
+                    if (prop.Definition != null)
                     {
-                        if (prop.CustomDefinition.ExecuteCore != null)
+
+                        if (prop.Definition.ExecuteCore != null)
                         {
-                            prop.CustomDefinition.ExecuteCore(context, contextItem);
+                            prop.Definition.ExecuteCore(context, contextObj);
                         }
                         else
                         {
-                            var value = prop.CustomDefinition
-                                .GetTargetValuesCore(context, contextItem)
+                            var value = prop.Definition
+                                .GetValuesCore(context, contextObj)
                                 .Where(x => x != null)
                                 .FirstOrDefault();
 
                             if (value != null)
                                 context.SetValue(value);
                         }
+                        context.CurrentInstruction = null;
                     }
                     else
                     {
-                        var value = prop.PropInfo.GetValue(contextItem);
+                        var value = prop.PropInfo.GetValue(contextObj);
                         if (value != null)
                             context.SetValue(value);
                     }
@@ -109,16 +97,16 @@ namespace Casimodo.Lib.Templates
                     return;
                 }
 
-                if (prop.CustomDefinition != null)
+                if (prop.Definition != null)
                 {
-                    var items = prop.CustomDefinition.GetTargetValuesCore(context, contextItem);
+                    var items = prop.Definition.GetValuesCore(context, contextObj);
                     foreach (var item in items)
                         ExecuteCore(context, item, prop.Right);
                 }
                 else
                 {
-                    // Contract.ResponsiblePeople.Where(x.Role.Name == "Hero").Select(x.AnyEmail).Join("; ")
-                    var item = prop.PropInfo.GetValue(contextItem);
+                    // Get value via reflection.
+                    var item = prop.PropInfo.GetValue(contextObj);
                     ExecuteCore(context, item, prop.Right);
                 }
             }
@@ -138,24 +126,24 @@ namespace Casimodo.Lib.Templates
             if (contextItem == null || node == null)
                 yield break;
 
-            var prop = node as PropAstNode;
+            var prop = node as InstructionAstNode;
             if (prop == null)
                 throw new TemplateProcessorException("A property AST node was expected.");
 
-            if (!prop.DeclaringType.IsAssignableFrom(contextItem.GetType()))
+            if (!prop.SourceType.IsAssignableFrom(contextItem.GetType()))
                 throw new TemplateProcessorException($"Invalid template property path state: " +
-                    $"current item (type '{contextItem.GetType()}') is not of expected type '{prop.DeclaringType}'.");
+                    $"current item (type '{contextItem.GetType()}') is not of expected type '{prop.SourceType}'.");
 
             // If primitive values ahead then return the current context item and stop.
-            if (prop.ReturnType.IsSimple)
+            if (prop.ReturnType.IsSimpleType)
             {
                 yield return contextItem;
                 yield break;
             }
 
-            if (prop.CustomDefinition != null)
+            if (prop.Definition != null)
             {
-                var values = prop.CustomDefinition.GetTargetValuesCore(context, contextItem);
+                var values = prop.Definition.GetValuesCore(context, contextItem);
                 foreach (var item in values)
                     foreach (var res in GetItemsCore(context, item, prop.Right))
                         yield return res;

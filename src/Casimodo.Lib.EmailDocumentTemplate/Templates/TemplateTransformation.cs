@@ -71,7 +71,7 @@ namespace Casimodo.Lib.Templates
             return _properties;
         }
 
-        public TemplateDataPropAccessor GetPropAccessor(string name, Type type = null)
+        public TemplateDataPropAccessor GetPropAccessor(string name, Type type = null, bool required = true)
         {
             if (name == null && type == null)
                 throw new ArgumentException("At least one of @name or @type must be specified.");
@@ -79,7 +79,8 @@ namespace Casimodo.Lib.Templates
             var prop = _properties.FirstOrDefault(x =>
                 (name == null || x.Name == name) &&
                 (type == null || x.Type == type));
-            if (prop == null)
+
+            if (prop == null && required)
                 throw new TemplateProcessorException($"Data property '{name}' not found.");
 
             return prop;
@@ -109,6 +110,12 @@ namespace Casimodo.Lib.Templates
 
     public abstract class TemplateDataPropAccessor
     {
+        public TemplateDataPropAccessor()
+        {
+            Guid = Guid.NewGuid();
+        }
+
+        public Guid Guid { get; set; }
         public string Name { get; set; }
         public Type Type { get; set; }
 
@@ -122,50 +129,59 @@ namespace Casimodo.Lib.Templates
         public abstract object CreateDefaultObject();
     }
 
-    public class TemplateTransformationCustomProps
+    public interface ICustomInstructionDefinitionResolver
     {
-        public List<TemplateStepCustomPropBase> Items { get; set; } = new List<TemplateStepCustomPropBase>();
+        TemplateInstructionDefinition ResolveProperty(Type sourceType, string propName);
+    }
+
+    public class TemplateCustomPropertyDefinitionsContainer : ICustomInstructionDefinitionResolver
+    {
+        public TemplateInstructionDefinition ResolveProperty(Type sourceType, string propName)
+        {
+            return Items.FirstOrDefault(x => x.Name == propName && x.SourceType.IsAssignableFrom(sourceType));
+        }
+
+        public List<TemplateInstructionDefinition> Items { get; set; } = new List<TemplateInstructionDefinition>();
 
         public void AddCustomComplexProp<TSourceType, TTargetType>(string name,
             Func<TemplateElemTransformationContext, TSourceType, TTargetType> value = null,
             Func<TemplateElemTransformationContext, TSourceType, IEnumerable<TTargetType>> values = null)
         {
-            var item = new TemplateStepCustomProp<TSourceType>
+            var item = new TemplateInstructionDefinition<TSourceType>
             {
-                PropName = name,
-                TargetType = typeof(TTargetType)
+                Name = name,
+                ReturnType = typeof(TTargetType)
             };
             if (value != null)
             {
-                item.IsList = false;
-                item.GetTargetValue = (c, x) => value(c, x) as object;
+                item.IsListType = false;
+                item.GetValue = (c, x) => value(c, x) as object;
             }
 
             if (values != null)
             {
-                item.IsList = true;
-                item.GetTargetValues = (c, x) => values(c, x).Cast<object>();
+                item.IsListType = true;
+                item.GetValues = (c, x) => values(c, x).Cast<object>();
             }
 
             Items.Add(item);
         }
 
-        public void AddCustomProp<TSourceType>(string props, bool list = false,
+        public void AddCustomProp<TSourceType>(string props,
             Func<TemplateElemTransformationContext, TSourceType, object> value = null,
             Func<TemplateElemTransformationContext, TSourceType, IEnumerable<object>> values = null,
             Action<TemplateElemTransformationContext, TSourceType> execute = null)
         {
+            props = props ?? "";
             foreach (var prop in props.Split(","))
             {
-                var item = new TemplateStepCustomProp<TSourceType>
+                var item = new TemplateInstructionDefinition<TSourceType>
                 {
-                    PropName = prop.Trim(),
-                    IsList = list,
-                    TargetType = null,
+                    Name = prop?.Trim(),
+                    ReturnType = null,
                     IsSimpleType = true,
-                    GetTargetValue = value,
-                    GetTargetValues = values,
-                    Execute = execute
+                    GetValue = value,
+                    GetValues = values
                 };
 
                 if (execute != null)
@@ -178,34 +194,7 @@ namespace Casimodo.Lib.Templates
 
     public class TemplateTransformation
     {
-        public TemplateTransformation(TemplateProcessor processor)
-        {
-            Guard.ArgNotNull(processor, nameof(processor));
-
-            Processor = processor;
-        }
-
-        public TemplateProcessor Processor { get; private set; }
-
-        protected bool Matches(string name)
-        {
-            return Processor.Matches(name);
-        }
-
-        protected bool ContextMatches(string name)
-        {
-            return Processor.ContextMatches(name);
-        }
-
-        public bool ContextMatches(string name, Type type)
-        {
-            return Processor.ContextMatches(name, type);
-        }
-
-        public bool ContextMatches(Type type)
-        {
-            return Processor.ContextMatches(type);
-        }
+        public TemplateProcessor Processor { get; set; }
 
         public void SetText(object value)
         {

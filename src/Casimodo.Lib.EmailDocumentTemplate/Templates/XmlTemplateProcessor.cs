@@ -14,6 +14,7 @@ namespace Casimodo.Lib.Templates
     public class XmlTemplateElement : TemplateElement
     {
         public XElement Elem { get; set; }
+        public bool IsArea { get; set; }
     };
 
     public abstract class XmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
@@ -58,24 +59,24 @@ namespace Casimodo.Lib.Templates
                 var telem = new XmlTemplateElement
                 {
                     Elem = elem,
-                    Kind = TemplateElemKind.Property
+                    Expression = (string)elem.Attr("use")
                 };
 
-                if (elem.HasAttr("expr"))
+                InitializeTemplateElement(telem);
+
+                if (telem.Kind == TemplateNodeKind.CSharpExpression && telem.Expression != null)
                 {
-                    telem.Expression = ((string)elem.Attr("expr") ?? "").Replace("'", "\"");
-                    telem.IsCSharpExpression = true;
-                }
-                else
-                {
-                    telem.Expression = (string)elem.Attr("use");
+                    // KABU TODO: IMPORTANT: Maybe we should force putting C# expression into element content
+                    //   rather than having it on and XML attribute where we need to convert to double quotes,
+                    //   plus can't use single quotes.
+                    telem.Expression = telem.Expression.Replace("'", "\"");
                 }
 
                 items.Add(telem);
             }
 
             foreach (var item in items)
-                BuildTemplateElement(item);
+                InitializeTemplateElement(item);
 
             return items;
         }

@@ -14,6 +14,7 @@ namespace Casimodo.Lib.Templates
     {
         public HtmlNode Elem { get; set; }
         public HtmlAttribute Attr { get; set; }
+        public bool IsArea { get; set; }
     };
 
     public abstract class HtmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
@@ -230,12 +231,12 @@ namespace Casimodo.Lib.Templates
                      Elem = CleanupAttributes(node),
                      Attr = attr,
                      Expression = attr.Value,
-                     Kind = attr.Name == "data-area" ? TemplateElemKind.Area : TemplateElemKind.Property
+                     IsArea = attr.Name == "data-area"
                  })
                .ToList();
 
             foreach (var item in items)
-                BuildTemplateElement(item);
+                InitializeTemplateElement(item);
 
             return items;
         }
