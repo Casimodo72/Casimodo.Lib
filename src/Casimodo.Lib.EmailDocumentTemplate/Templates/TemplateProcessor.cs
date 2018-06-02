@@ -29,8 +29,6 @@ namespace Casimodo.Lib.Templates
 
     public abstract class TemplateProcessor : ITemplateProcessor
     {
-        public List<string> ListValues { get; set; } = new List<string>();
-
         public abstract void SetText(string value);
         public abstract void SetImage(Guid? imageFileId, bool removeIfEmpty = false);
 
@@ -42,66 +40,12 @@ namespace Casimodo.Lib.Templates
 
         public bool IsMatch { get; set; }
 
-        public bool ContextMatches(string name)
-        {
-            if (string.IsNullOrEmpty(name) &&
-                string.IsNullOrEmpty(CurTemplateElement.RootPropertyName))
-                return true;
-
-            return CurTemplateElement.RootPropertyName == name;
-        }
-
-        public bool ContextMatches(string name, Type type)
-        {
-            if (ContextItem.Type != null)
-                return ContextItem.Type == type;
-
-            if (string.IsNullOrEmpty(name) &&
-                string.IsNullOrEmpty(CurTemplateElement.RootPropertyName))
-                return true;
-
-            return CurTemplateElement.RootPropertyName == name;
-        }
-
-        public bool ContextMatches(Type type)
-        {
-            if (ContextItem.Type != null)
-                return ContextItem.Type == type;
-
-            return true;
-        }
-
-        public void SetCurrentContext(string name, object item)
-        {
-            ClearCurrentContext();
-            ContextItem.Name = name;
-            ContextItem.Item = item;
-            if (item != null)
-                ContextItem.Type = item.GetType();
-        }
-
-        public void ClearCurrentContext()
-        {
-            ContextItem.Name = null;
-            ContextItem.Item = null;
-            ContextItem.Type = null;
-        }
-
-        public class ContextItemInfo
-        {
-            public string Name { get; set; }
-            public object Item { get; set; }
-            public Type Type { get; set; }
-        }
-
-        public ContextItemInfo ContextItem { get; private set; } = new ContextItemInfo();
-
-        public bool Matches(string path)
+        public bool MatchesExpression(string expression)
         {
             if (IsMatch)
                 return false;
 
-            if (CurTemplateElement.CurrentPath != path)
+            if (CurTemplateElement.Expression != expression)
                 return false;
 
             IsMatch = true;
@@ -205,37 +149,6 @@ namespace Casimodo.Lib.Templates
         public string GetDataUri(string mediaType, byte[] data)
         {
             return $"data:{mediaType};base64,{Convert.ToBase64String(data)}";
-        }
-
-        const string CSharpExpressionPrefix = "cs:";
-
-        protected void InitializeTemplateElement(TemplateElement item)
-        {
-            if (item.Kind == TemplateNodeKind.CSharpExpression)
-                return;
-
-            if (item.Expression.StartsWith(CSharpExpressionPrefix))
-            {
-                item.Expression = item.Expression.Substring(CSharpExpressionPrefix.Length);
-                item.Kind = TemplateNodeKind.CSharpExpression;
-                return;
-            }
-
-            var idx = item.Expression.IndexOf(".");
-
-            if (idx == -1)
-            {
-                item.RootPropertyName = item.Expression;
-                item.CurrentPath = null;
-            }
-            else
-            {
-                item.RootPropertyName = item.Expression.Substring(0, idx);
-
-                idx += 1;
-                if (idx < item.Expression.Length)
-                    item.CurrentPath = item.Expression.Substring(idx);
-            }
         }
 
         protected void ThrowUnhandledTemplateId(string id)

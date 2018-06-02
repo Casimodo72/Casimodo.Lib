@@ -1,4 +1,5 @@
 ﻿using Nito.AsyncEx;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,7 +7,7 @@ namespace Casimodo.Lib.Templates
 {
     public class TemplateExpressionProcessor
     {
-        public void Execute(TemplateElemTransformationContext context)
+        public void Execute(TemplateExpressionContext context)
         {
             Guard.ArgNotNull(context, nameof(context));
 
@@ -15,113 +16,124 @@ namespace Casimodo.Lib.Templates
 
             if (context.Ast is CSharpScriptAstNode scriptNode)
             {
-                context.SetValue(AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer)));
+                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));
 
-                //if (context.Value) is string text)
+                context.SetReturnValue(ToEnumerable(value));
+
+                //if (context.Value is string text)
                 //    System.Diagnostics.Debug.WriteLine("Text: " + text);
-                //else if (context.Value) is IEnumerable enumerable)
+                //else if (context.Value is IEnumerable enumerable)
                 //    System.Diagnostics.Debug.WriteLine("List: " + enumerable?.Cast<object>().Select(x => x.ToString()).Join(", "));
                 //else
                 //    System.Diagnostics.Debug.WriteLine("Single: " + context.Value?.ToString());
             }
             else
             {
-                ExecuteCore(context, context.DataContainer, context.Ast);
+                var values = ExecuteCore(context, context.DataContainer, context.Ast);
+                if (values.Count() != 0)
+                    context.SetReturnValue(values);
             }
-
-            // NOTE: Set value only if it was provided, because instructions might
-            //   not return any value but manipulate the output directly instead.
-            if (context.HasValue)
-                context.Transformation.SetText(context.Value);
         }
 
-        void ExecuteCSharpExpression(TemplateElemTransformationContext context)
+        IEnumerable<object> ExecuteCore(TemplateExpressionContext context, object contextObj, AstNode node)
         {
-            var scriptNode = context.Ast as CSharpScriptAstNode;
-            if (scriptNode == null)
-                return;
+            Guard.ArgNotNull(contextObj, nameof(contextObj));
+            Guard.ArgNotNull(node, nameof(node));
 
-            var resultObj = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));
+            var values = Enumerable.Empty<object>();
 
-            //if (resultObj is string text)
-            //    System.Diagnostics.Debug.WriteLine("Text: " + (string)resultObj);
-            //else if (resultObj is IEnumerable enu)
-            //    System.Diagnostics.Debug.WriteLine("List: " + enu?.Cast<object>().Select(x => x.ToString()).Join(", "));
-            //else
-            //    System.Diagnostics.Debug.WriteLine("Single: " + resultObj?.ToString());
-
-            context.Transformation.SetText(resultObj);
-        }
-
-        void ExecuteCore(TemplateElemTransformationContext context, object contextObj, AstNode node)
-        {
-            if (contextObj == null || node == null)
-                return;
-
-            if (node is InstructionAstNode prop)
+            if (node is InstructionAstNode instruction)
             {
-                context.CurrentInstruction = prop;
+                context.CurrentInstruction = instruction;
 
-                if (!prop.SourceType.IsAssignableFrom(contextObj.GetType()))
+                if (!instruction.SourceType.IsAssignableFrom(contextObj.GetType()))
                     throw new TemplateProcessorException($"Invalid template expression state: " +
-                        $"context object (type '{contextObj.GetType()}') is not of expected type '{prop.SourceType}'.");
+                        $"context object (type '{contextObj.GetType()}') is not of expected type '{instruction.SourceType}'.");
 
-                if (prop.ReturnType.IsSimpleType)
+                if (instruction.Definition != null)
                 {
-                    if (prop.Definition != null)
+                    // Handle custom instructions.
+
+                    if (instruction.Definition.ExecuteCore != null)
                     {
+                        // This is an executing instruction.
+                        // Such instructions have to value getter and will
+                        // modify the output directly.
 
-                        if (prop.Definition.ExecuteCore != null)
-                        {
-                            prop.Definition.ExecuteCore(context, contextObj);
-                        }
-                        else
-                        {
-                            var value = prop.Definition
-                                .GetValuesCore(context, contextObj)
-                                .Where(x => x != null)
-                                .FirstOrDefault();
+                        if (context.IsModificationDenied)
+                            throw new TemplateProcessorException("Invalid template expression. " +
+                                "The current mode does not allow modification of the transformation's output.");
 
-                            if (value != null)
-                                context.SetValue(value);
-                        }
-                        context.CurrentInstruction = null;
+                        if (instruction.Right != null)
+                            throw new TemplateProcessorException("Invalid template expression. " +
+                                "Custom executing instructions must appear at last position in the expression.");
+
+                        instruction.Definition.ExecuteCore(context, contextObj);
+
+                        // Executing instructions do not have return values.
+                        return Enumerable.Empty<object>();
                     }
                     else
                     {
-                        var value = prop.PropInfo.GetValue(contextObj);
-                        if (value != null)
-                            context.SetValue(value);
+                        // Call instruction's values getter.
+                        values = instruction.Definition.GetValuesCore(context, contextObj)
+                            ?? Enumerable.Empty<object>();
+
+                        //if (values != null)
+                        //    context.SetValue(values);
                     }
-
-                    return;
-                }
-
-                if (prop.Definition != null)
-                {
-                    var items = prop.Definition.GetValuesCore(context, contextObj);
-                    foreach (var item in items)
-                        ExecuteCore(context, item, prop.Right);
+                    context.CurrentInstruction = null;
                 }
                 else
                 {
-                    // Get value via reflection.
-                    var item = prop.PropInfo.GetValue(contextObj);
-                    ExecuteCore(context, item, prop.Right);
+                    // Get property value.
+                    var propValue = instruction.PropInfo.GetValue(contextObj);
+                    values = ToEnumerable(propValue);
                 }
+
+                if (instruction.Right != null)
+                {
+                    // Execute next instruction.
+
+                    if (values.Count() > 1)
+                        throw new TemplateProcessorException("Invalid template expression. " +
+                            "Intermediate instructions of normal expressions must not return more than one value. " +
+                            "Use CSharp expressions instead.");
+
+                    var value = values.FirstOrDefault();
+
+                    if (value != null)
+                    {
+                        // Execute next instructions and set return values.
+                        values = ExecuteCore(context, value, instruction.Right);
+                    }
+                    else
+                        values = new[] { (object)null };
+                }
+
+                return values;
             }
             else
             {
-                throw new TemplateProcessorException($"Unexpected type of AST node '{node.GetType()}'.");
+                throw new TemplateProcessorException("Invalid template expression. " +
+                    $"Unexpected type of syntax node '{node.GetType()}'.");
             }
         }
 
-        public IEnumerable<object> GetItems(TemplateElemTransformationContext context, object item, AstNode node)
+        IEnumerable<object> ToEnumerable(object value)
+        {
+            if (value is IEnumerable enumerable && !(value is string))
+                return ((IEnumerable)enumerable).Cast<object>();
+            else
+                return new[] { value };
+        }
+
+        public IEnumerable<object> GetItems(TemplateExpressionContext context, object item, AstNode node)
         {
             return GetItemsCore(context, item, node);
         }
 
-        public IEnumerable<object> GetItemsCore(TemplateElemTransformationContext context, object contextItem, AstNode node)
+        public IEnumerable<object> GetItemsCore(TemplateExpressionContext context, object contextItem, AstNode node)
         {
             if (contextItem == null || node == null)
                 yield break;

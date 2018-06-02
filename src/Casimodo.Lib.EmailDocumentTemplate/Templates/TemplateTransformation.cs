@@ -13,12 +13,31 @@ namespace Casimodo.Lib.Templates
         public void AddProp<T>(string name, T instance = null)
             where T : class, new()
         {
-            _properties.Add(new TemplateDataPropAccessor<T>
+            _properties.Add(new TemplateDataPropAccessor
             {
                 Type = typeof(T),
                 Name = name,
                 InstanceObject = instance
             });
+        }
+
+        public void AddProp(Type type, string name, object instance = null)
+        {
+            _properties.Add(new TemplateDataPropAccessor
+            {
+                Type = type,
+                Name = name,
+                InstanceObject = instance
+            });
+        }
+
+        public void RemoveProp(string name)
+        {
+            var prop = GetPropAccessor(name, required: false);
+            if (prop == null)
+                return;
+
+            _properties.Remove(prop);
         }
 
         public void SetProp<T>(object instance)
@@ -55,15 +74,11 @@ namespace Casimodo.Lib.Templates
             return (T)prop.InstanceObject;
         }
 
-        public object Prop(string name, bool defaultIfNull = false)
+        public object Prop(string name)
         {
             var prop = GetPropAccessor(name);
 
-            var value = defaultIfNull
-                ? prop.InstanceObjectOrDefault
-                : prop.InstanceObject;
-
-            return value;
+            return prop.InstanceObject;
         }
 
         public IEnumerable<TemplateDataPropAccessor> GetPropAccessors()
@@ -96,19 +111,9 @@ namespace Casimodo.Lib.Templates
         {
             get { return (T)InstanceObject; }
         }
-
-        public T CreateDefault()
-        {
-            return new T();
-        }
-
-        public override object CreateDefaultObject()
-        {
-            return new T();
-        }
     }
 
-    public abstract class TemplateDataPropAccessor
+    public class TemplateDataPropAccessor
     {
         public TemplateDataPropAccessor()
         {
@@ -119,14 +124,7 @@ namespace Casimodo.Lib.Templates
         public string Name { get; set; }
         public Type Type { get; set; }
 
-        public object InstanceObjectOrDefault
-        {
-            get { return InstanceObject ?? CreateDefaultObject(); }
-        }
-
         public object InstanceObject { get; set; }
-
-        public abstract object CreateDefaultObject();
     }
 
     public interface ICustomInstructionDefinitionResolver
@@ -144,9 +142,17 @@ namespace Casimodo.Lib.Templates
         public List<TemplateInstructionDefinition> Items { get; set; } = new List<TemplateInstructionDefinition>();
 
         public void AddCustomComplexProp<TSourceType, TTargetType>(string name,
-            Func<TemplateElemTransformationContext, TSourceType, TTargetType> value = null,
-            Func<TemplateElemTransformationContext, TSourceType, IEnumerable<TTargetType>> values = null)
+            Func<TemplateExpressionContext, TSourceType, TTargetType> value = null,
+            Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> values = null)
         {
+            CheckComplexSourceType(typeof(TSourceType));
+
+            if (values != null && TemplateExpressionParser.IsSimple(typeof(TTargetType)))
+                throw new TemplateProcessorException(
+                    "Custom template expression instructions which " +
+                    "return multiple values must return values of complex type. But the specified " +
+                    $"return type '{typeof(TTargetType).Name}' is a simple type.");
+
             var item = new TemplateInstructionDefinition<TSourceType>
             {
                 Name = name,
@@ -168,10 +174,12 @@ namespace Casimodo.Lib.Templates
         }
 
         public void AddCustomProp<TSourceType>(string props,
-            Func<TemplateElemTransformationContext, TSourceType, object> value = null,
-            Func<TemplateElemTransformationContext, TSourceType, IEnumerable<object>> values = null,
-            Action<TemplateElemTransformationContext, TSourceType> execute = null)
+            Func<TemplateExpressionContext, TSourceType, object> value = null,
+            Func<TemplateExpressionContext, TSourceType, IEnumerable<object>> values = null,
+            Action<TemplateExpressionContext, TSourceType> execute = null)
         {
+            CheckComplexSourceType(typeof(TSourceType));
+
             props = props ?? "";
             foreach (var prop in props.Split(","))
             {
@@ -189,6 +197,14 @@ namespace Casimodo.Lib.Templates
 
                 Items.Add(item);
             }
+        }
+
+        void CheckComplexSourceType(Type type)
+        {
+            if (TemplateExpressionParser.IsSimple(type))
+                throw new TemplateProcessorException(
+                    "Custom template expression instructions must have a complex source type. " +
+                    $"But the specified source type '{type.Name}' is a simple type.");
         }
     }
 

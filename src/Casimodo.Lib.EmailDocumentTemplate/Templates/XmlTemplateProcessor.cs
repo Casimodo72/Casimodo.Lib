@@ -56,27 +56,11 @@ namespace Casimodo.Lib.Templates
 
             foreach (var elem in template.Descendants("value"))
             {
-                var telem = new XmlTemplateElement
-                {
-                    Elem = elem,
-                    Expression = (string)elem.Attr("use")
-                };
-
-                InitializeTemplateElement(telem);
-
-                if (telem.Kind == TemplateNodeKind.CSharpExpression && telem.Expression != null)
-                {
-                    // KABU TODO: IMPORTANT: Maybe we should force putting C# expression into element content
-                    //   rather than having it on and XML attribute where we need to convert to double quotes,
-                    //   plus can't use single quotes.
-                    telem.Expression = telem.Expression.Replace("'", "\"");
-                }
+                var telem = TemplateExpressionFactory.CreateExpression<XmlTemplateElement>((string)elem.Attr("use"), isAttrOrigin: true);
+                telem.Elem = elem;
 
                 items.Add(telem);
             }
-
-            foreach (var item in items)
-                InitializeTemplateElement(item);
 
             return items;
         }

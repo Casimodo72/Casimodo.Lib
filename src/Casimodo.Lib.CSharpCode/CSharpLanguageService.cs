@@ -30,6 +30,8 @@ namespace Casimodo.Lib.CSharp
 
     public class CSharpScriptWrapper
     {
+        public string Code { get; set; }
+        internal Script<object> _script;
         public bool IsSuccess { get; set; }
         public List<string> ErrorMessages { get; set; }
         public Func<object, Task<object>> RunAsync { get; set; }
@@ -44,11 +46,13 @@ namespace Casimodo.Lib.CSharp
 
         public CSharpScriptWrapper CompileScript(string code, CSharpScriptOptionsWrapper options, Type globalsType)
         {
-            var script = CSharpScript.Create(code, options: options.Options, globalsType: globalsType);
+            Script<object> script = CSharpScript.Create(code, options: options.Options, globalsType: globalsType);
 
             var diagnostics = script.Compile();
 
             var result = new CSharpScriptWrapper();
+            result.Code = code;
+            result._script = script;
 
             var errors = diagnostics.Where(diagnostic =>
                 diagnostic.IsWarningAsError ||
@@ -59,7 +63,7 @@ namespace Casimodo.Lib.CSharp
             result.ErrorMessages = errors.Select(x => x.GetMessage()).ToList();
             result.RunAsync = async (globals) =>
             {
-                var state = await script.RunAsync(globals);
+                var state = await result._script.RunAsync(globals);
                 return state.ReturnValue;
             };
 

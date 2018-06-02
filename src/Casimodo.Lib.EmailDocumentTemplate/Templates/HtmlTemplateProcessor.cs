@@ -226,20 +226,21 @@ namespace Casimodo.Lib.Templates
                  where node.NodeType == HtmlNodeType.Element
                  let attr = node.Attributes.FirstOrDefault(attr => attr.Name == "data-property" || attr.Name == "data-placeholder")
                  where attr != null
-                 select new HtmlTemplateElement
-                 {
-                     Elem = CleanupAttributes(node),
-                     Attr = attr,
-                     Expression = attr.Value,
-                     IsArea = attr.Name == "data-area"
-                 })
+                 select CreateTemplateElement(node, attr))
                .ToList();
-
-            foreach (var item in items)
-                InitializeTemplateElement(item);
 
             return items;
         }
+        HtmlTemplateElement CreateTemplateElement(HtmlNode node, HtmlAttribute attr)
+        {
+            var elem = TemplateExpressionFactory.CreateExpression<HtmlTemplateElement>(attr.Value, isAttrOrigin: true);
+            elem.Elem = CleanupAttributes(node);
+            elem.Attr = attr;
+            elem.IsArea = attr.Name == "data-area";
+
+            return elem;
+        }
+
 
         protected HtmlNode CurElem
         {

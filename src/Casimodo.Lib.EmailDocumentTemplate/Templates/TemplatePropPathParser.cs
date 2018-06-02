@@ -109,6 +109,49 @@ namespace Casimodo.Lib.Templates
         }
     }
 
+    public class TemplateExpressionFactory
+    {
+        const string CSharpExpressionPrefix = "cs:";
+
+        public static T CreateExpression<T>(string expression, TemplateNodeKind? kind = null, bool isAttrOrigin = false)
+            where T : TemplateExpression, new()
+        {
+            var item = new T();
+
+            item.Kind = kind ?? TemplateNodeKind.Expression;
+
+            expression = expression?.Trim();
+
+            if (expression?.StartsWith(CSharpExpressionPrefix) == true)
+            {
+                if (item.Kind != TemplateNodeKind.Expression)
+                    throw new TemplateProcessorException(
+                        $"Template node of kind '{item.Kind}' must not start with the " +
+                        $"CSharp expression prefix '{CSharpExpressionPrefix}'.");
+
+                item.Kind = TemplateNodeKind.CSharpExpression;
+
+                expression = expression.Substring(CSharpExpressionPrefix.Length);
+
+                if (isAttrOrigin)
+                {
+                    // KABU TODO: IMPORTANT: Maybe we should force putting C# expression into element content
+                    //   rather than having it on and XML attribute where we need to convert to double quotes,
+                    //   plus can't use single quotes.
+                    expression = expression.Replace("'", "\"");
+                }
+            }
+            else
+            {
+                item.Kind = TemplateNodeKind.Expression;
+            }
+
+            item.Expression = expression;
+
+            return item;
+        }
+    }
+
     // KABU TODO: Do we want to implement functions like "EnableArea(Contract.InvoiceRecipient)" ?.
     public class TemplateExpressionParser : SimpleStringTokenParser
     {

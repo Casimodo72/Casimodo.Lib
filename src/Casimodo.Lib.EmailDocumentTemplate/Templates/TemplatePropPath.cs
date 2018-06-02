@@ -15,32 +15,24 @@ namespace Casimodo.Lib.Templates
         CSharpExpression
     }
 
-    public class TemplateNode 
+    public class TemplateNode
     {
         public TemplateNodeKind Kind { get; set; } = TemplateNodeKind.None;
         public string Expression { get; set; }
     }
 
     public class TemplateExpression : TemplateNode
-    {
+    { }
 
-    }
+    public class TemplateValueTemplate : TemplateExpression
+    { }
 
-    public class TemplateElement : TemplateNode
-    {
-        public string RootPropertyName { get; set; }
-        public object RootContextItem { get; set; }
-        public string CurrentPath { get; set; }
-    };
-
-    public class TemplateValueTemplate : TemplateNode
-    {
-        public List<TemplateExpression> Items { get; set; } = new List<TemplateExpression>();
-    }
+    public class TemplateElement : TemplateExpression
+    { };
 
     public class TemplateEnvContainer
     {
-        public TemplateElemTransformationContext Context { get; set; }
+        public TemplateExpressionContext Context { get; set; }
     }
 
     public class TemplateExternalPropertiesContainer
@@ -64,27 +56,27 @@ namespace Casimodo.Lib.Templates
         public string Value { get; set; }
     }
 
-
-
-    public class TemplateElemTransformationContext
+    public class TemplateExpressionContext
     {
         public bool IsMatch { get; set; }
 
-        public bool HasValue { get; private set; }
+        public bool IsModificationDenied { get; set; }
 
-        public void SetValue(object value)
+        public bool HasReturnValue { get; private set; }
+
+        public void SetReturnValue(IEnumerable<object> value)
         {
-            Value = value;
-            HasValue = true;
+            ReturnValue = value ?? Enumerable.Empty<object>();
+            HasReturnValue = true;
         }
 
-        public object Value { get; private set; }
+        public IEnumerable<object> ReturnValue { get; private set; } = Enumerable.Empty<object>();
 
         public AstNode Ast { get; set; }
 
         public InstructionAstNode CurrentInstruction { get; set; }
 
-        List<object> ContextItems { get; set; } = new List<object>(1);
+        List<object> Services { get; set; } = new List<object>(3);
 
         public TemplateTransformation Transformation { get; set; }
 
@@ -95,18 +87,18 @@ namespace Casimodo.Lib.Templates
 
         public TemplateDataContainer DataContainer { get; set; }
 
-        public void Use(object context)
+        public void Use(object service)
         {
-            if (context == null)
+            if (service == null)
                 return;
 
-            ContextItems.Add(context);
+            Services.Add(service);
         }
 
         public T Get<T>() where T : class
         {
             var type = typeof(T);
-            var item = ContextItems.FirstOrDefault(x => x.GetType().IsAssignableFrom(type));
+            var item = Services.FirstOrDefault(x => x.GetType().IsAssignableFrom(type));
             if (item == null)
                 throw new TemplateProcessorException($"An instance of type '{type.FullName}' was not found.");
 
@@ -155,10 +147,10 @@ namespace Casimodo.Lib.Templates
             SourceType = typeof(TSource);
         }
 
-        public Func<TemplateElemTransformationContext, TSource, object> GetValue { get; set; }
-        public Func<TemplateElemTransformationContext, TSource, IEnumerable<object>> GetValues { get; set; }
+        public Func<TemplateExpressionContext, TSource, object> GetValue { get; set; }
+        public Func<TemplateExpressionContext, TSource, IEnumerable<object>> GetValues { get; set; }
 
-        public override IEnumerable<object> GetValuesCore(TemplateElemTransformationContext context, object item)
+        public override IEnumerable<object> GetValuesCore(TemplateExpressionContext context, object item)
         {
             if (GetValue != null)
                 return Enumerable.Repeat(GetValue(context, (TSource)item), 1);
@@ -175,8 +167,8 @@ namespace Casimodo.Lib.Templates
         public bool IsListType { get; set; }
         public bool IsSimpleType { get; set; }
 
-        public Action<TemplateElemTransformationContext, object> ExecuteCore { get; set; }
+        public Action<TemplateExpressionContext, object> ExecuteCore { get; set; }
 
-        public abstract IEnumerable<object> GetValuesCore(TemplateElemTransformationContext context, object item);
+        public abstract IEnumerable<object> GetValuesCore(TemplateExpressionContext context, object item);
     }
 }
