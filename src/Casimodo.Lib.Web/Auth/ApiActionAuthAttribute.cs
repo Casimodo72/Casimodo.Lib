@@ -1,7 +1,9 @@
 ﻿using Casimodo.Lib.Auth;
 using Microsoft.AspNet.Identity.Owin;
+using System.Net;
 using System.Net.Http;
 using System.Web;
+using System.Web.Http.Controllers;
 
 namespace Casimodo.Lib.Web.Auth
 {
@@ -25,6 +27,23 @@ namespace Casimodo.Lib.Web.Auth
             return actionContext.Request.GetOwinContext()
                 .Get<ActionAuthManager>()
                 .IsPermitted(actionContext.RequestContext.Principal, action: Action, part: Part, group: Group, vrole: "*");
+        }
+
+        protected override void HandleUnauthorizedRequest(HttpActionContext actionContext)
+        {
+
+            string message = "Unauthorized resource";
+            //base.HandleUnauthorizedRequest(actionContext);
+
+            if (actionContext.Request.Properties.TryGetValue("System.Web.OData.Path", out object prop))
+                if (prop is System.Web.OData.Routing.ODataPath odataPath)
+                    message = $"Unauthorized OData resource '{odataPath.NavigationSource.Name}'";
+
+            actionContext.Response = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Content = new StringContent(message)
+            };
         }
     }
 }

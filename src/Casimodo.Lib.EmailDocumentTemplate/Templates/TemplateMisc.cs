@@ -132,6 +132,13 @@ namespace Casimodo.Lib.Templates
         public Type Type { get; set; }
     }
 
+    public class FunctionAstNode : AstNode
+    {
+        public Type SourceType { get; set; }
+        public string Name { get; set; }
+        public TemplateInstructionDefinition Definition { get; set; }
+    }
+
     public class InstructionAstNode : AstNode
     {
         public Type SourceType { get; set; }
@@ -159,13 +166,23 @@ namespace Casimodo.Lib.Templates
         }
     }
 
+    /// <summary>
+    /// Currently only global void functions are needed.
+    /// </summary>
+    public class TemplateFunctionDefinition
+    {
+        public string Name { get; set; }
+
+        public Action<TemplateExpressionContext, object> ExecuteCore { get; set; }
+    }
+
     public abstract class TemplateInstructionDefinition
     {
         public Type SourceType { get; set; }
         public string Name { get; set; }
         public Type ReturnType { get; set; }
-        public bool IsListType { get; set; }
-        public bool IsSimpleType { get; set; }
+        public bool IsReturnTypeList { get; set; }
+        public bool IsReturnTypeSimple { get; set; }
 
         public Action<TemplateExpressionContext, object> ExecuteCore { get; set; }
 

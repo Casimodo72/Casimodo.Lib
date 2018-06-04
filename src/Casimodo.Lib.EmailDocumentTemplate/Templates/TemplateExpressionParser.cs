@@ -157,7 +157,7 @@ namespace Casimodo.Lib.Templates
     {
         public CSharpScriptOptionsWrapper CSharpScriptOptions { get; set; }
 
-        public List<ICustomInstructionDefinitionResolver> InstructionDefinitionResolvers { get; set; } = new List<ICustomInstructionDefinitionResolver>();
+        public List<ITemplateInstructionResolver> InstructionResolvers { get; set; } = new List<ITemplateInstructionResolver>();
 
         AstTypeInfo CurType { get; set; }
 
@@ -304,8 +304,8 @@ namespace Casimodo.Lib.Templates
 
                 if (node == null)
                 {
-                    // Handle custom properties (or overrides of declared properties) first.
-                    node = ParseCustomProp(token);
+                    // Handle custom instructions (or overrides of declared properties) first.
+                    node = ParseCustomInstruction(token);
                     if (node == null)
                         node = ParseProp(token);
                 }
@@ -337,16 +337,16 @@ namespace Casimodo.Lib.Templates
             return new InstructionAstNode();
         }
 
-        InstructionAstNode ParseCustomProp(string propName)
+        InstructionAstNode ParseCustomInstruction(string propName)
         {
-            if (InstructionDefinitionResolvers == null)
+            if (InstructionResolvers == null)
                 return null;
 
             TemplateInstructionDefinition definition = null;
 
-            foreach (var resolver in InstructionDefinitionResolvers)
+            foreach (var resolver in InstructionResolvers)
             {
-                definition = resolver.ResolveProperty(CurType.Type, propName);
+                definition = resolver.ResolveInstruction(CurType.Type, propName);
                 if (definition != null)
                     break;
             }
@@ -362,8 +362,8 @@ namespace Casimodo.Lib.Templates
             node.ReturnType = new AstTypeInfo
             {
                 Type = definition.ReturnType,
-                IsListType = definition.IsListType,
-                IsSimpleType = definition.IsSimpleType
+                IsListType = definition.IsReturnTypeList,
+                IsSimpleType = definition.IsReturnTypeSimple
             };
 
             return node;
@@ -373,7 +373,22 @@ namespace Casimodo.Lib.Templates
         {
             var iprop = CurType.Type.GetProperty(name);
             if (iprop == null)
-                return null;
+            {
+
+                // Search in interfaces of interface.
+                if (CurType.Type.IsInterface)
+                {
+                    foreach (var iface in CurType.Type.GetInterfaces())
+                    {
+                        iprop = iface.GetProperty(name);
+                        if (iprop != null)
+                            break;
+                    }
+                }
+
+                if (iprop == null)
+                    return null;
+            }
 
             var prop = CreatePropNode();
             prop.SourceType = CurType.Type;

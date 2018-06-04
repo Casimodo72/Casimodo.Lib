@@ -127,79 +127,125 @@ namespace Casimodo.Lib.Templates
         public object InstanceObject { get; set; }
     }
 
-    public interface ICustomInstructionDefinitionResolver
+    public interface ITemplateInstructionResolver
     {
-        TemplateInstructionDefinition ResolveProperty(Type sourceType, string propName);
+        TemplateInstructionDefinition ResolveInstruction(Type sourceType, string propName);
     }
 
-    public class TemplateCustomPropertyDefinitionsContainer : ICustomInstructionDefinitionResolver
+    public class TemplateInstructions : ITemplateInstructionResolver
     {
-        public TemplateInstructionDefinition ResolveProperty(Type sourceType, string propName)
+        public TemplateInstructionDefinition ResolveInstruction(Type sourceType, string propName)
         {
-            return Items.FirstOrDefault(x => x.Name == propName && x.SourceType.IsAssignableFrom(sourceType));
+            return Instructions.FirstOrDefault(x => x.Name == propName && x.SourceType.IsAssignableFrom(sourceType));
         }
 
-        public List<TemplateInstructionDefinition> Items { get; set; } = new List<TemplateInstructionDefinition>();
+        public TemplateFunctionDefinition ResolveFunction(string funcName)
+        {
+            return Functions.FirstOrDefault(x => x.Name == funcName);
+        }
 
-        public void AddCustomComplexProp<TSourceType, TTargetType>(string name,
+        public List<TemplateInstructionDefinition> Instructions { get; set; } = new List<TemplateInstructionDefinition>();
+        public List<TemplateFunctionDefinition> Functions { get; set; } = new List<TemplateFunctionDefinition>();
+
+        public void Prop<TSourceType, TTargetType>(string names,
+            Func<TemplateExpressionContext, TSourceType, TTargetType> value)
+        {
+            AddInstruction<TSourceType, TTargetType>(names, value: value);
+        }
+
+        public void CollectionProp<TSourceType, TTargetType>(string names,
+            Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> values)
+        {
+            AddInstruction<TSourceType, TTargetType>(names, values: values);
+        }
+
+        void AddInstruction<TSourceType, TTargetType>(string names,
             Func<TemplateExpressionContext, TSourceType, TTargetType> value = null,
             Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> values = null)
         {
             CheckComplexSourceType(typeof(TSourceType));
+            Guard.ArgNotNullOrWhitespace(names, nameof(names));
+            Guard.ArgMutuallyExclusive(value, values, nameof(value), nameof(values));
+            Guard.ArgOneNotNull(value, values, nameof(value), nameof(values));
 
-            if (values != null && TemplateExpressionParser.IsSimple(typeof(TTargetType)))
+            var isReturnTypeSimple = TemplateExpressionParser.IsSimple(typeof(TTargetType));
+
+            if (values != null && isReturnTypeSimple)
                 throw new TemplateProcessorException(
                     "Custom template expression instructions which " +
                     "return multiple values must return values of complex type. But the specified " +
                     $"return type '{typeof(TTargetType).Name}' is a simple type.");
 
-            var item = new TemplateInstructionDefinition<TSourceType>
+            names = names ?? "";
+            foreach (var name in names.Split(",").Select(x => x.Trim()))
             {
-                Name = name,
-                ReturnType = typeof(TTargetType)
-            };
-            if (value != null)
-            {
-                item.IsListType = false;
-                item.GetValue = (c, x) => value(c, x) as object;
-            }
+                CheckName(name);
 
-            if (values != null)
-            {
-                item.IsListType = true;
-                item.GetValues = (c, x) => values(c, x).Cast<object>();
-            }
+                var item = new TemplateInstructionDefinition<TSourceType>
+                {
+                    Name = name,
+                    ReturnType = typeof(TTargetType),
+                    IsReturnTypeSimple = isReturnTypeSimple
+                };
 
-            Items.Add(item);
+                if (value != null)
+                {
+                    item.IsReturnTypeList = false;
+                    item.GetValue = (c, x) => value(c, x) as object;
+                }
+                else if (values != null)
+                {
+                    item.IsReturnTypeList = true;
+                    item.GetValues = (c, x) => values(c, x).Cast<object>();
+                }
+
+                Instructions.Add(item);
+            }
         }
 
-        public void AddCustomProp<TSourceType>(string props,
-            Func<TemplateExpressionContext, TSourceType, object> value = null,
-            Func<TemplateExpressionContext, TSourceType, IEnumerable<object>> values = null,
+        public void Action<TSourceType>(string name,
             Action<TemplateExpressionContext, TSourceType> execute = null)
         {
             CheckComplexSourceType(typeof(TSourceType));
+            CheckName(name);
+            Guard.ArgNotNull(execute, nameof(execute));
 
-            props = props ?? "";
-            foreach (var prop in props.Split(","))
+            var item = new TemplateInstructionDefinition<TSourceType>
             {
-                var item = new TemplateInstructionDefinition<TSourceType>
-                {
-                    Name = prop?.Trim(),
-                    ReturnType = null,
-                    IsSimpleType = true,
-                    GetValue = value,
-                    GetValues = values
-                };
+                Name = name?.Trim(),
+                ReturnType = null,
+                IsReturnTypeSimple = true
+            };
 
-                if (execute != null)
-                    item.ExecuteCore = (c, x) => execute(c, (TSourceType)x);
+            item.ExecuteCore = (c, x) => execute(c, (TSourceType)x);
 
-                Items.Add(item);
-            }
+            Instructions.Add(item);
         }
 
-        void CheckComplexSourceType(Type type)
+
+        // KABU TODO: REMOVE? Intended for function "EnableArea", but currently - maybe as a workaround -
+        //   I'm using expressions like "Something-Area" with a registered executing instruction handler instead.
+        void AddGlobalFunc<TSourceType>(string name, Action<TemplateExpressionContext> execute = null)
+        {
+            var func = new TemplateFunctionDefinition
+            {
+                Name = name
+            };
+
+            func.ExecuteCore = (c, x) => execute(c);
+
+            Functions.Add(func);
+        }
+
+        void CheckName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Empty instruction name.");
+            if (name.Contains("."))
+                throw new ArgumentException("The instruction name must not contain any dot characters.");
+        }
+
+        public void CheckComplexSourceType(Type type)
         {
             if (TemplateExpressionParser.IsSimple(type))
                 throw new TemplateProcessorException(

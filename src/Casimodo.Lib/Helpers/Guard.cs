@@ -15,7 +15,7 @@ namespace Casimodo.Lib
         {
             Guard.ArgNotNull(arg, name);
             if (arg.Length == 0)
-                throw new ArgumentException("The array must not be empty.", name); 
+                throw new ArgumentException("The array must not be empty.", name);
         }
 
         public static void ArgNotNone<T>(T arg, string name)
@@ -48,5 +48,18 @@ namespace Casimodo.Lib
             if (string.IsNullOrWhiteSpace(arg))
                 throw new ArgumentException($"The argument '{name}' must not be null, empty or whitespace.");
         }
+
+        public static void ArgOneNotNull(object arg1, object arg2, string name1, string name2)
+        {
+            if (arg1 == null && arg2 == null)
+                throw new ArgumentException($"One of the arguments {name1} and {name2} must have a value.");
+        }
+
+        public static void ArgMutuallyExclusive(object arg1, object arg2, string name1, string name2)
+        {
+            if (arg1 != null && arg2 != null)
+                throw new ArgumentException($"The arguments {name1} and {name2} are mutually exclusive.");
+        }
+
     }
 }
