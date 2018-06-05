@@ -773,7 +773,7 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder InlineDetails(MojViewConfig view)
         {
             if (view.Group != View.Group)
-                throw new MojenException("The editor must not be in a different group.");
+                throw new MojenException("The inline details view must not be in a different group.");
 
             View.InlineDetailsView = view;
 
