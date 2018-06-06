@@ -151,15 +151,15 @@ namespace Casimodo.Lib.Templates
             return $"data:{mediaType};base64,{Convert.ToBase64String(data)}";
         }
 
-        protected void ThrowUnhandledTemplateId(string id)
+        protected void ThrowUnhandledTemplateExpression(string expression)
         {
-            throw new TemplateProcessorException($"Unhandled template element ID '{id}'.");
+            throw new TemplateException($"Unhandled template element. Expression '{expression}'.");
         }
 
         public void ThrowUnhandledTemplateIfNoMatch()
         {
             if (!IsMatch)
-                ThrowUnhandledTemplateId(CurTemplateElement.Expression);
+                ThrowUnhandledTemplateExpression(CurTemplateElement.Expression);
         }
     }
 }

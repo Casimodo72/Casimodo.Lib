@@ -1,12 +1,5 @@
-﻿using Casimodo.Lib;
-using Casimodo.Lib.SimpleParser;
-using HtmlAgilityPack;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Hosting;
 using System.Xml.Linq;
 
 namespace Casimodo.Lib.Templates
@@ -14,7 +7,6 @@ namespace Casimodo.Lib.Templates
     public class XmlTemplateElement : TemplateElement
     {
         public XElement Elem { get; set; }
-        public bool IsArea { get; set; }
     };
 
     public abstract class XmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
@@ -56,7 +48,7 @@ namespace Casimodo.Lib.Templates
 
             foreach (var elem in template.Descendants("value"))
             {
-                var telem = TemplateExpressionFactory.CreateExpression<XmlTemplateElement>((string)elem.Attr("use"), isAttrOrigin: true);
+                var telem = TemplateNodeFactory.Create<XmlTemplateElement>((string)elem.Attr("use"));
                 telem.Elem = elem;
 
                 items.Add(telem);

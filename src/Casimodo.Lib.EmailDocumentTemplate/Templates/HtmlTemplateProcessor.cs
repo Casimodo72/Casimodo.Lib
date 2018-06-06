@@ -1,11 +1,9 @@
-﻿using Casimodo.Lib;
-using Casimodo.Lib.SimpleParser;
+﻿using Casimodo.Lib.SimpleParser;
 using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web.Hosting;
 
 namespace Casimodo.Lib.Templates
@@ -14,7 +12,6 @@ namespace Casimodo.Lib.Templates
     {
         public HtmlNode Elem { get; set; }
         public HtmlAttribute Attr { get; set; }
-        public bool IsArea { get; set; }
     };
 
     public abstract class HtmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
@@ -233,10 +230,9 @@ namespace Casimodo.Lib.Templates
         }
         HtmlTemplateElement CreateTemplateElement(HtmlNode node, HtmlAttribute attr)
         {
-            var elem = TemplateExpressionFactory.CreateExpression<HtmlTemplateElement>(attr.Value, isAttrOrigin: true);
+            var elem = TemplateNodeFactory.Create<HtmlTemplateElement>(attr.Value);
             elem.Elem = CleanupAttributes(node);
             elem.Attr = attr;
-            elem.IsArea = attr.Name == "data-area";
 
             return elem;
         }

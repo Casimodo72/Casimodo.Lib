@@ -22,13 +22,23 @@ namespace Casimodo.Lib.Templates
     }
 
     public class TemplateExpression : TemplateNode
-    { }
+    {
+        public TemplateExpression()
+        {
+            Kind = TemplateNodeKind.Expression;
+        }
+    }
 
     public class TemplateValueTemplate : TemplateExpression
-    { }
+    {
+        public TemplateValueTemplate()
+        {
+            Kind = TemplateNodeKind.ValueTemplate;
+        }
+    }
 
     public class TemplateElement : TemplateExpression
-    { };
+    { }
 
     public class TemplateEnvContainer
     {
@@ -100,7 +110,7 @@ namespace Casimodo.Lib.Templates
             var type = typeof(T);
             var item = Services.FirstOrDefault(x => x.GetType().IsAssignableFrom(type));
             if (item == null)
-                throw new TemplateProcessorException($"An instance of type '{type.FullName}' was not found.");
+                throw new TemplateException($"An instance of type '{type.FullName}' was not found.");
 
             return (T)item;
         }

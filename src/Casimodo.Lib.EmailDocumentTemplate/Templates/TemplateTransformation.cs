@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Templates
             var prop = GetPropAccessor(name);
 
             if (instance != null && prop.Type != null && instance.GetType() != prop.Type)
-                throw new TemplateProcessorException($"Incorrent property type '{instance.GetType().Name}'. Expected was property of type '{prop.Type}'.");
+                throw new TemplateException($"Incorrent property type '{instance.GetType().Name}'. Expected was property of type '{prop.Type}'.");
 
             prop.InstanceObject = instance;
         }
@@ -96,7 +96,7 @@ namespace Casimodo.Lib.Templates
                 (type == null || x.Type == type));
 
             if (prop == null && required)
-                throw new TemplateProcessorException($"Data property '{name}' not found.");
+                throw new TemplateException($"Data property '{name}' not found.");
 
             return prop;
         }
@@ -171,7 +171,7 @@ namespace Casimodo.Lib.Templates
             var isReturnTypeSimple = TemplateExpressionParser.IsSimple(typeof(TTargetType));
 
             if (values != null && isReturnTypeSimple)
-                throw new TemplateProcessorException(
+                throw new TemplateException(
                     "Custom template expression instructions which " +
                     "return multiple values must return values of complex type. But the specified " +
                     $"return type '{typeof(TTargetType).Name}' is a simple type.");
@@ -248,7 +248,7 @@ namespace Casimodo.Lib.Templates
         public void CheckComplexSourceType(Type type)
         {
             if (TemplateExpressionParser.IsSimple(type))
-                throw new TemplateProcessorException(
+                throw new TemplateException(
                     "Custom template expression instructions must have a complex source type. " +
                     $"But the specified source type '{type.Name}' is a simple type.");
         }

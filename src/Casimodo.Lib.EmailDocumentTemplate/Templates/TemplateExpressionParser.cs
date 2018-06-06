@@ -8,138 +8,30 @@ using System.Text.RegularExpressions;
 
 namespace Casimodo.Lib.Templates
 {
-    public class TemplateException : Exception
-    {
-        public TemplateException() { }
-        public TemplateException(string message) : base(message) { }
-    }
-
-    public class SimpleStringTokenParser
-    {
-        protected readonly List<string> _tokens = new List<string>();
-        protected int _curPos;
-
-        public void Initialize(string text)
-        {
-            Guard.ArgNotNull(text, nameof(text));
-
-            _curPos = 0;
-        }
-
-        public bool IsEnd
-        {
-            get { return _curPos >= _tokens.Count; }
-        }
-
-        public void CheckIs(string text, bool caseSensitive = true)
-        {
-            if (!Is(text, caseSensitive: caseSensitive))
-                ThrowUnexpectedToken(text);
-        }
-
-        void ThrowUnexpectedToken(string text)
-        {
-            throw new SimpleParserException($"Invalid token '{Current()}'. Expected was '{text}'.");
-        }
-
-        public bool Skip(string text, bool caseSensitive = true, bool required = false)
-        {
-            var ok = Is(text, caseSensitive: caseSensitive);
-
-            if (required && !ok)
-                ThrowUnexpectedToken(text);
-
-            if (!ok)
-                return false;
-
-            Next();
-
-            return true;
-        }
-
-        public bool Is(string text, bool caseSensitive = true, bool required = false)
-        {
-            if (IsEnd) return false;
-            if (string.IsNullOrEmpty(text))
-                return false;
-
-            bool result;
-            if (caseSensitive)
-                result = string.Equals(Current(), text, StringComparison.Ordinal);
-            else
-                result = string.Equals(Current(), text, StringComparison.OrdinalIgnoreCase);
-
-            if (required && !result)
-                ThrowUnexpectedEnd();
-
-            return result;
-        }
-
-        public string Peek(int offset = 1)
-        {
-            var pos = _curPos + offset;
-            if (pos >= _tokens.Count)
-                return null;
-
-            return _tokens[pos];
-        }
-
-        void ThrowUnexpectedEnd()
-        {
-            throw new SimpleParserException("Unexpected end of input.");
-        }
-
-        public bool Next(bool required = false)
-        {
-            if (required && IsEnd)
-                ThrowUnexpectedEnd();
-
-            if (_curPos < _tokens.Count)
-                _curPos++;
-
-            return !IsEnd;
-        }
-
-        public string Current()
-        {
-            if (IsEnd)
-                return null;
-
-            return _tokens[_curPos];
-        }
-    }
-
-    public class TemplateExpressionFactory
+    public class TemplateNodeFactory
     {
         const string CSharpExpressionPrefix = "cs:";
 
-        public static T CreateExpression<T>(string expression, TemplateNodeKind? kind = null, bool isAttrOrigin = false)
-            where T : TemplateExpression, new()
+        public static T Create<T>(string expression, TemplateNodeKind? kind = null)
+            where T : TemplateNode, new()
         {
             var item = new T();
 
-            item.Kind = kind ?? TemplateNodeKind.Expression;
+            if (kind != null)
+                item.Kind = kind.Value;
 
             expression = expression?.Trim();
 
             if (expression?.StartsWith(CSharpExpressionPrefix) == true)
             {
                 if (item.Kind != TemplateNodeKind.Expression)
-                    throw new TemplateProcessorException(
+                    throw new TemplateException(
                         $"Template node of kind '{item.Kind}' must not start with the " +
                         $"CSharp expression prefix '{CSharpExpressionPrefix}'.");
 
                 item.Kind = TemplateNodeKind.CSharpExpression;
 
                 expression = expression.Substring(CSharpExpressionPrefix.Length);
-
-                if (isAttrOrigin)
-                {
-                    // KABU TODO: IMPORTANT: Maybe we should force putting C# expression into element content
-                    //   rather than having it on and XML attribute where we need to convert to double quotes,
-                    //   plus can't use single quotes.
-                    expression = expression.Replace("'", "\"");
-                }
             }
             else
             {
@@ -152,20 +44,19 @@ namespace Casimodo.Lib.Templates
         }
     }
 
-    // KABU TODO: Do we want to implement functions like "EnableArea(Contract.InvoiceRecipient)" ?.
+    // KABU TODO: Do we want to implement functions like "EnableArea(Foo.Bar)" ?
     public class TemplateExpressionParser : SimpleStringTokenParser
     {
         public CSharpScriptOptionsWrapper CSharpScriptOptions { get; set; }
-
         public List<ITemplateInstructionResolver> InstructionResolvers { get; set; } = new List<ITemplateInstructionResolver>();
-
-        AstTypeInfo CurType { get; set; }
+        AstTypeInfo CurType;
 
         void Tokenize(string expression)
         {
-            // NOTE: The following chars must be escaped: \ * + ? | { [ ( ) ^ $ . # " and space.
-            Regex regex = new Regex(@"([\.])");
+            _tokens.AddRange(new Regex(@"([\.])").Split(expression).Where(x => !string.IsNullOrEmpty(x)));
 
+            // KABU TODO: REMOVE: No functions and thus no literal arguments expected anymore.
+#if (false)
             var tokens = regex.Split(expression);
 
             // Trim non-literal tokens.
@@ -174,8 +65,7 @@ namespace Casimodo.Lib.Templates
             for (int i = 0; i < tokens.Length; i++)
             {
                 token = tokens[i];
-
-                // KABU TODO: REMOVE: No literals expected anymore.
+               
                 if (token == "\"")
                     literal = !literal;
                 else
@@ -189,6 +79,7 @@ namespace Casimodo.Lib.Templates
 
                 _tokens.Add(token);
             }
+#endif
         }
 
         public AstNode ParseTemplateExpression(TemplateDataContainer data, string expression, TemplateNodeKind kind)
@@ -201,8 +92,6 @@ namespace Casimodo.Lib.Templates
 
         public AstNode ParseCSharpExpression(TemplateDataContainer data, string expression)
         {
-            var scriptService = new CSharpLanguageServiceWrapper();
-
             var code = BuildCSharpScript(data, expression);
 
             var script = new CSharpLanguageServiceWrapper().CompileScript(
@@ -234,7 +123,7 @@ namespace Casimodo.Lib.Templates
                 var result = ParseAny(itype);
 
                 if (!IsEnd)
-                    throw new SimpleParserException("Invalid expression.");
+                    throw new TemplateException("Invalid expression.");
 
                 return result;
             }
@@ -248,29 +137,29 @@ namespace Casimodo.Lib.Templates
         {
             var sb = new StringBuilder();
             var className = "T" + Guid.NewGuid().ToString().Replace("-", "");
-            sb.Append(@"public class " + className + @" { ");
-            sb.Append(Environment.NewLine);
-            sb.Append("TemplateDataContainer _data;");
-            sb.Append(Environment.NewLine);
-            sb.Append("public ");
-            sb.Append(className);
-            sb.Append(@"(TemplateDataContainer data) { _data = data; }");
-            sb.Append(Environment.NewLine);
+            sb.o(@"public class " + className + @" { ");
+            sb.o(Environment.NewLine);
+            sb.o("TemplateDataContainer _data;");
+            sb.o(Environment.NewLine);
+            sb.o("public ");
+            sb.o(className);
+            sb.o(@"(TemplateDataContainer data) { _data = data; }");
+            sb.o(Environment.NewLine);
 
             foreach (var prop in data.GetPropAccessors())
             {
-                sb.Append(string.Format(
+                sb.o(string.Format(
                     "public {0} {1} {{ get {{ return _data.Prop<{0}>(\"{1}\"); }} }}",
                     prop.Type.FullName, prop.Name));
 
-                sb.Append(Environment.NewLine);
+                sb.o(Environment.NewLine);
             }
 
-            sb.Append(@"public object Execute() { return ");
-            sb.Append(expression);
-            sb.Append("; } }");
-            sb.Append(Environment.NewLine);
-            sb.Append("return new " + className + "(Self).Execute();");
+            sb.o(@"public object Execute() { return ");
+            sb.o(expression);
+            sb.o("; } }");
+            sb.o(Environment.NewLine);
+            sb.o("return new " + className + "(Self).Execute();");
 
             return sb.ToString();
         }
@@ -298,7 +187,7 @@ namespace Casimodo.Lib.Templates
                 var token = Current();
 
                 if (IsSpecialToken(token))
-                    throw new SimpleParserException("A property or function was expected.");
+                    throw new TemplateException("A property, instruction or function was expected.");
 
                 Next();
 
@@ -318,7 +207,7 @@ namespace Casimodo.Lib.Templates
                     return node;
                 }
 
-                throw new SimpleParserException($"Invalid expression '{token}'.");
+                throw new TemplateException($"Invalid expression '{token}'.");
             }
             finally
             {
@@ -332,7 +221,7 @@ namespace Casimodo.Lib.Templates
             _curPos = 0;
         }
 
-        InstructionAstNode CreatePropNode()
+        InstructionAstNode CreateInstructionNode()
         {
             return new InstructionAstNode();
         }
@@ -354,7 +243,7 @@ namespace Casimodo.Lib.Templates
             if (definition == null)
                 return null;
 
-            var node = CreatePropNode();
+            var node = CreateInstructionNode();
             node.SourceType = CurType.Type;
             node.Name = definition.Name;
             node.Definition = definition;
@@ -374,7 +263,6 @@ namespace Casimodo.Lib.Templates
             var iprop = CurType.Type.GetProperty(name);
             if (iprop == null)
             {
-
                 // Search in interfaces of interface.
                 if (CurType.Type.IsInterface)
                 {
@@ -390,7 +278,7 @@ namespace Casimodo.Lib.Templates
                     return null;
             }
 
-            var prop = CreatePropNode();
+            var prop = CreateInstructionNode();
             prop.SourceType = CurType.Type;
             prop.Name = iprop.Name;
             prop.PropInfo = iprop;
@@ -404,6 +292,8 @@ namespace Casimodo.Lib.Templates
             return prop;
         }
 
+        // KABU TODO: REMOVE: No functions and thus no literal arguments expected anymore.
+#if (false)
         bool IsQuote()
         {
             return Is("\"");
@@ -433,6 +323,7 @@ namespace Casimodo.Lib.Templates
 
             return node;
         }
+#endif
 
         internal static bool IsSimple(Type type)
         {
