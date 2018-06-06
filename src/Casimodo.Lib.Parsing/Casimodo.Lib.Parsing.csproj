@@ -103,9 +103,17 @@
     <Compile Include="ParserBase.cs" />
     <Compile Include="ParserException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleStringParser.cs" />
+    <Compile Include="SimpleStringTokenParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
+      <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
+      <Name>Casimodo.Lib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
