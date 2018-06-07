@@ -743,13 +743,7 @@ namespace Casimodo.Lib.Mojen
 
                         if (vprop.IsLookupDistinct)
                         {
-                            // Kendo's filterCell will use the view property for removing duplicates,
-                            //   which does not work with our foreign data, so we need
-                            //   to provide distinct values server-side.
-                            dataSourceUrl = string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
-                                this.GetODataPath(vinfo.TargetType),
-                                this.GetODataQueryFunc(distinct: true, appendCall: false),
-                                dprop.Name);
+                            dataSourceUrl = GetDistinctDataSourceReadUrl(context, vinfo.TargetType, dprop.Name);
                         }
                         else
                         {
@@ -772,13 +766,7 @@ namespace Casimodo.Lib.Mojen
 
                     if (vprop.IsLookupDistinct)
                     {
-                        // Kendo's filterCell will use the view property for removing duplicates,
-                        //   which does not work with our foreign data, so we need
-                        //   to provide distinct values server-side.
-                        dataSourceUrl = string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
-                        this.GetODataPath(view.TypeConfig),
-                        this.GetODataQueryFunc(distinct: true, appendCall: false),
-                        dprop.Name);
+                        dataSourceUrl = GetDistinctDataSourceReadUrl(context, view.TypeConfig, dprop.Name);
                     }
                     else
                     {
@@ -873,6 +861,20 @@ namespace Casimodo.Lib.Mojen
             }
 
             End(","); // Column
+        }
+
+        string GetDistinctDataSourceReadUrl(WebViewGenContext context, MojType type, string propName)
+        {
+            // KABU TODO: VERY IMPORTANT: FIX: If a custom read method was configured,
+            //   then this will incorrectly use the default QueryDistinct read method.
+
+            // Kendo's filterCell will use the view property for removing duplicates,
+            //   which does not work with our foreign data, so we need
+            //   to provide distinct values server-side.
+            return string.Format("{0}/{1}(On='{2}')?$select={2}&$orderby={2}",
+                this.GetODataPath(type),
+                this.GetODataQueryFunc(distinct: true, appendCall: false),
+                propName);
         }
 
         bool HasPropAttributes(MojViewProp vprop, MojProp dprop)

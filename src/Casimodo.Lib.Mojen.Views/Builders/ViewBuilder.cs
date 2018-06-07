@@ -353,7 +353,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder SelectFilter(string filterExpression)
+        /// <summary>
+        /// Warning: This applies the filter to the original query URL.
+        /// If a component is used where an overall filter is computed dynamically
+        /// then this will fail, because it will be overriden or will produce
+        /// errors if the computing mechanism does not expect a filter on the original query URL.
+        /// </summary>
+        public MojViewBuilder RiskySelectFilter(string filterExpression)
         {
             View.CustomSelectFilter = filterExpression;
             return this;

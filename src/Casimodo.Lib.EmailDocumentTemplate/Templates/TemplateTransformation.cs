@@ -168,7 +168,7 @@ namespace Casimodo.Lib.Templates
             Guard.ArgMutuallyExclusive(value, values, nameof(value), nameof(values));
             Guard.ArgOneNotNull(value, values, nameof(value), nameof(values));
 
-            var isReturnTypeSimple = TemplateExpressionParser.IsSimple(typeof(TTargetType));
+            var isReturnTypeSimple = TypeHelper.IsSimple(typeof(TTargetType));
 
             if (values != null && isReturnTypeSimple)
                 throw new TemplateException(
@@ -247,7 +247,7 @@ namespace Casimodo.Lib.Templates
 
         public void CheckComplexSourceType(Type type)
         {
-            if (TemplateExpressionParser.IsSimple(type))
+            if (TypeHelper.IsSimple(type))
                 throw new TemplateException(
                     "Custom template expression instructions must have a complex source type. " +
                     $"But the specified source type '{type.Name}' is a simple type.");

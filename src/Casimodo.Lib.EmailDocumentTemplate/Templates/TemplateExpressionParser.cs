@@ -286,7 +286,7 @@ namespace Casimodo.Lib.Templates
             {
                 Type = iprop.PropertyType,
                 IsListType = false,
-                IsSimpleType = IsSimple(iprop.PropertyType)
+                IsSimpleType = TypeHelper.IsSimple(iprop.PropertyType)
             };
 
             return prop;
@@ -324,18 +324,5 @@ namespace Casimodo.Lib.Templates
             return node;
         }
 #endif
-
-        internal static bool IsSimple(Type type)
-        {
-            // Source: https://stackoverflow.com/questions/863881/how-do-i-tell-if-a-type-is-a-simple-type-i-e-holds-a-single-value
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                // Nullable type, check if the nested type is simple.
-                return IsSimple(type.GetGenericArguments()[0]);
-            }
-
-            return type.IsPrimitive || type.IsEnum || type.Equals(typeof(string)) || type.Equals(typeof(decimal));
-        }
     }
 }
