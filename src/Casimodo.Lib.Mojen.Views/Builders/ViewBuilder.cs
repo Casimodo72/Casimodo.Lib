@@ -604,6 +604,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Taggable()
+        {
+            View.IsTaggable = true;
+
+            return this;
+        }
+
         public MojViewBuilder MinHeight(int height)
         {
             View.MinHeight = height;

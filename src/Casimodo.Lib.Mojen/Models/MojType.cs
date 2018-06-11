@@ -146,6 +146,9 @@ namespace Casimodo.Lib.Mojen
         public Guid? Id { get; set; }
 
         [DataMember]
+        public Guid? MoTypeId { get; set; }
+
+        [DataMember]
         public MojTypeKind Kind { get; set; }
 
         public bool IsOfKind(params MojTypeKind[] kinds)

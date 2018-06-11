@@ -278,6 +278,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool UseMVVM { get; set; }
 
+        public bool IsTaggable { get; set; }
         public bool IsAuthEnabled { get; set; } = true;
         public bool IsAuthAmbientForGroup { get; set; }
         public bool IsAuthAmbientApplied { get; set; }

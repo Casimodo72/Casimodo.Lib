@@ -163,6 +163,18 @@ namespace Casimodo.Lib.Mojen
             // Container element for the Kendo grid widget.
             O($"<div id='{context.ComponentId}' class='component-root'></div>");
 
+            if (context.View.IsTaggable)
+            {
+                O();
+                // KABU TODO: Currently just a hack.
+                // Add a row context menu in order to edit the tags of the selected data item.
+                O("<ul id='context-menu-{0}' style='text-wrap:none;min-width:150px;display:none'>",
+                    context.ComponentId);
+                // TODO: LOCALIZE
+                O("<li data-name='EditTags'>Markierungen setzen</li>");
+                O("</ul>");
+            }
+
             // Details view Kendo template
             if (context.View.InlineDetailsView != null)
             {

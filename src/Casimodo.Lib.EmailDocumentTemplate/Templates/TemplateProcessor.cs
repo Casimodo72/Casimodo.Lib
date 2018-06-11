@@ -29,6 +29,8 @@ namespace Casimodo.Lib.Templates
 
     public abstract class TemplateProcessor : ITemplateProcessor
     {
+        public TemplateDataContainer Data { get; set; }
+
         public abstract void SetText(string value);
         public abstract void SetImage(Guid? imageFileId, bool removeIfEmpty = false);
 

@@ -73,9 +73,18 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TTypeBuilder Id(string guid)
+        public TTypeBuilder Id(string guid, bool mo = false)
         {
             TypeConfig.Id = new Guid(guid);
+            if (mo)
+                MoTypeId(guid);
+
+            return This();
+        }
+
+        public TTypeBuilder MoTypeId(string guid)
+        {
+            TypeConfig.MoTypeId = new Guid(guid);
 
             return This();
         }
