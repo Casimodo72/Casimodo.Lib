@@ -10,27 +10,6 @@ namespace Casimodo.Lib.Mojen
                 PerformWrite(controller, GenerateControllerCore);
         }
 
-        public void OMvcActionAuthAttribute(MojViewConfig view)
-        {
-            if (view.IsAuthEnabled)
-            {
-                O("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
-                    view.GetPartName(),
-                    MojenUtils.ToCsValue(view.Group),
-                    view.MainRoleName);
-            }
-        }
-
-        public void OOutputCacheAttribute()
-        {
-            if (WebConfig.OutputCache.IsEnabled)
-            {
-                O("[CustomOutputCache(CacheProfile = \"{0}\"{1})]",
-                    WebConfig.OutputCache.CacheProfile,
-                    WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
-            }
-        }
-
         void GenerateControllerCore(MojControllerConfig controller)
         {
             ONamespace(controller.Namespace);

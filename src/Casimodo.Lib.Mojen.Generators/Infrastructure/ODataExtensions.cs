@@ -128,7 +128,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public static MojHttpRequestConfig CreateODataTransport(this AppPartGenerator gen,
-            MojViewConfig view, MojViewConfig editorView,
+            MojViewConfig view, MojViewConfig editorView = null,
             string customQueryBase = null, string customQueryMethod = null)
         {
             var c = new MojHttpRequestConfig();

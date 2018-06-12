@@ -11,14 +11,14 @@ namespace Casimodo.Lib.Mojen
             {
                 // Index
                 O();
-                OMvcActionAuthAttribute(view);
-                OOutputCacheAttribute();
+                this.OMvcActionAuthAttribute(view);
+                this.OOutputCacheAttribute();
                 O($"public ActionResult {view.ControllerActionName}()");
                 Begin();
 
-                string name = BuildFileName(view, extension: false);
-                if (name != "Index")
-                    O($"return View(\"{name}\");");
+                string path = view.GetVirtualFilePath();
+                if (path != "Index")
+                    O($"return View(\"{path}\");");
                 else
                     O("return View();");
 
@@ -29,8 +29,8 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Lookup.Is))
             {
                 O();
-                OMvcActionAuthAttribute(view);
-                OOutputCacheAttribute();
+                this.OMvcActionAuthAttribute(view);
+                this.OOutputCacheAttribute();
                 O($"public ActionResult {view.ControllerActionName}({view.Lookup.Parameters.ToMethodArguments()})");
                 Begin();
 
@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
 
                 var method = view.IsPartial ? "PartialView" : "View";
 
-                O($"return {method}(\"{BuildFileName(view, extension: false)}\");");
+                O($"return {method}(\"{view.GetVirtualFilePath()}\");");
 
                 End();
             }
@@ -50,16 +50,23 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Standalone.Is))
             {
                 O();
-                OMvcActionAuthAttribute(view);
-                OOutputCacheAttribute();
+                this.OMvcActionAuthAttribute(view);
+                this.OOutputCacheAttribute();
                 O($"public ActionResult {view.ControllerActionName}()");
                 Begin();
 
                 var method = view.IsPartial ? "PartialView" : "View";
 
-                O($"return {method}(\"{BuildFileName(view, extension: false)}\");");
+                O($"return {method}(\"{view.GetVirtualFilePath()}\");");
 
                 End();
+            }
+
+            // Let IMvcActionInjectors inject further MVC actions.
+            foreach (var view in controller.Views)
+            {
+                foreach (var gen in App.Generators.OfType<IMvcActionInjector>())
+                    gen.GenerateMvcActionFor(this, view);
             }
 
             // KABU REVISIT: Dispose anything?

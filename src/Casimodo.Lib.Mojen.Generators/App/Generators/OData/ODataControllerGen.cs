@@ -158,6 +158,10 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 
+            // Let other generaors inject further actions.
+            foreach (var gen in App.Generators.OfType<IWebApiODataActionInjector>())
+                gen.GenerateWebApiODataActionFor(this, Type);
+
             // Dispose
             O();
             O("protected override void Dispose(bool disposing)");

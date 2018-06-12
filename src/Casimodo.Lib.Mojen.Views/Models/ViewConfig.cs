@@ -103,6 +103,8 @@ namespace Casimodo.Lib.Mojen
 
         public string Url { get; set; }
 
+        public string VirtualFilePath { get; set; }
+
         public string Title { get; set; }
 
         public string GetDefaultTitle()

@@ -165,7 +165,7 @@ namespace Casimodo.Lib.Mojen
             return Get<T>();
         }
 
-        public void Add(MojenGenerator generator)
+        public void Use(MojenGenerator generator)
         {
             if (generator == null) throw new ArgumentNullException("generator");
             generator.Initialize(this);

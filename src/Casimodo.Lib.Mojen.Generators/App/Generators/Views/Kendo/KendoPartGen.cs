@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Mojen
                 },
                 content: () =>
                 {
-                    var transport = this.CreateODataTransport(view, view);
+                    var transport = this.CreateODataTransport(view, editorView: view);
 
                     // OData read query URL factory
                     OPropValueFactory("readQuery", transport.ODataSelectUrl);
@@ -44,7 +44,7 @@ namespace Casimodo.Lib.Mojen
 
             O();
             OB("var vm = new ViewModel(");
-            OViewModelOptions(context, isList: false);
+            OViewModelOptions(context);
             End(").init();");
 
             O();
@@ -66,7 +66,7 @@ namespace Casimodo.Lib.Mojen
                 constructor: null,
                 content: () =>
                 {
-                    var transport = this.CreateODataTransport(view, null);
+                    var transport = this.CreateODataTransport(view);
 
                     // OData read query URL factory
                     OPropValueFactory("readQuery", transport.ODataSelectUrl);
@@ -81,7 +81,7 @@ namespace Casimodo.Lib.Mojen
 
             O();
             OB("var vm = new ViewModel(");
-            OViewModelOptions(context, isList: false);
+            OViewModelOptions(context);
             End(").init();");
 
             O();
@@ -346,11 +346,12 @@ namespace Casimodo.Lib.Mojen
             });
         }
 
-        public void OViewModelOptions(WebViewGenContext context, bool isList)
+        public void OViewModelOptions(WebViewGenContext context, string title = null, bool isList = false, bool dataType = true,
+            Action extend = null)
         {
             var view = context.View;
 
-            var title = context.View.Title;
+            title = title ?? context.View.Title;
             if (string.IsNullOrWhiteSpace(title))
                 title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
 
@@ -359,17 +360,23 @@ namespace Casimodo.Lib.Mojen
             O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
             O("group: {0},", MojenUtils.ToJsValue(view.Group));
             O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
-            O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
-            O("dataTypeId: {0},", MojenUtils.ToJsValue(view.TypeConfig.Id));
+            if (dataType)
+            {
+                O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
+                O("dataTypeId: {0},", MojenUtils.ToJsValue(view.TypeConfig.Id));
+            }
             O("isLookup: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
             O("isDialog: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
             O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
             O("isCustomSave: {0},", MojenUtils.ToJsValue(view.IsCustomSave));
             O("isTaggable: {0},", MojenUtils.ToJsValue(view.IsTaggable));
-            
+
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
             // OViewDimensionOptions(view);
+
+            if (extend != null)
+                extend();
 
             O("extra: options || null,");
 

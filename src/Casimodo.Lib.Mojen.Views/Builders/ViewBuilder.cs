@@ -565,6 +565,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder VirtualFilePath(string path)
+        {
+            View.VirtualFilePath = path;
+            return this;
+        }
+
         public MojViewBuilder CustomODataUpdateAction()
         {
             View.IsCustomODataUpdateAction = true;

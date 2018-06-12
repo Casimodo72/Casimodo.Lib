@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
             O("public ActionResult Index()");
             Begin();
 
-            string name = BuildFileName(view, extension: false);
+            string name = view.BuildFileName(extension: false);
             if (name != "Index")
                 O($"return View(\"{name}\");");
             else

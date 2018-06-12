@@ -129,7 +129,7 @@ namespace Casimodo.Lib.Mojen
                         {
                             // Add OData create action
                             O();
-                            O($"action = builder.EntityType<{typeName}>().Collection.Action(\"{editorOfViewGroup.GetODataCreateActionName()}\");");
+                            O($"action = {item}.Collection.Action(\"{editorOfViewGroup.GetODataCreateActionName()}\");");
                             O($"action.Parameter<{typeName}>(\"model\");");
                             O($"action.ReturnsFromEntitySet<{typeName}>(\"{type.PluralName}\");");
                         }
@@ -138,10 +138,14 @@ namespace Casimodo.Lib.Mojen
                         {
                             // Add OData update action
                             O();
-                            O($"builder.EntityType<{typeName}>().Action(\"{editorOfViewGroup.GetODataUpdateActionName()}\")");
+                            O($"{item}.Action(\"{editorOfViewGroup.GetODataUpdateActionName()}\")");
                             O($"    .Parameter<{typeName}>(\"model\");");
                         }
                     }
+
+                    // Let other generaors inject further configurations.
+                    foreach (var gen in App.Generators.OfType<IWebApiODataActionInjector>())
+                        gen.GenerateWebApiODataActionConfigFor(this, type);
 
                     Pop();
                     O("}");

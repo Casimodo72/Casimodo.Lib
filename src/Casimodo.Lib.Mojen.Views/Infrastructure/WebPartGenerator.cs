@@ -8,6 +8,107 @@ using System.Xml.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    public static class MvcExtensions
+    {
+        public static string GetVirtualFilePath(this MojViewConfig view, bool isFullRequired = false)
+        {
+            if (!string.IsNullOrEmpty(view.VirtualFilePath))
+                return view.VirtualFilePath;
+
+            return view.BuildFileName(extension: false);
+        }
+
+        public static string BuildFileName(this MojViewConfig view, string pathOrName = null, bool partial = false, bool extension = true)
+        {
+            partial = partial || view.IsPartial;
+
+            string name = pathOrName;
+            string path = null;
+
+            if (pathOrName != null && pathOrName.Contains("/", @"\"))
+            {
+                name = Path.GetFileName(pathOrName);
+                if (path != null)
+                    path = Path.Combine(path, Path.GetDirectoryName(pathOrName));
+                else
+                    path = Path.GetDirectoryName(pathOrName);
+            }
+
+            if (name == null)
+            {
+                name = view.FileName ?? view.Name ?? view.MainRoleName ?? view.CustomControllerActionName;
+
+                // NOTE: We now use the PluaralName for pages. I.e "People.cshtml" instead of "Index.cshtml".
+                if (!partial && view.IsPage && name == view.MainRoleName)
+                    name = view.TypeConfig.PluralName;
+            }
+
+            //// Must not have a file extension at this point.
+            //if (!string.IsNullOrEmpty(name))
+            //{
+            //    if (!string.IsNullOrEmpty(Path.GetExtension(name)))
+            //        throw new MojenException("The file extension must not be specified for view files.");
+            //}
+
+            if (view.Group != null && view.Group != name)
+            {
+                name = name ?? "";
+                // Prepend group name.
+                name = (name.StartsWith("_") ? "_" : "") + view.Group + (!string.IsNullOrEmpty(name) ? "." + name : "");
+            }
+
+            if (string.IsNullOrEmpty(name))
+                throw new MojenException("Failed to computed the file name/path of the view.");
+
+            // Ensure leading underscore for partial views.
+            if (partial && !name.StartsWith("_"))
+            {
+                //if (pathOrName.Contains("/", @"\"))
+                //{
+                //    var steps = pathOrName.Split('/', '\\');
+                //    if (!steps[steps.Length - 1].StartsWith("_"))
+                //        pathOrName = steps.Take(pathOrName.Length - 1).Join("/") + "_" + steps.Last();
+                //}
+                //else
+                //{
+                name = "_" + name;
+            }
+
+            if (view.IsForMobile)
+                name += ".Mobile";
+
+            if (extension)
+                name += ".cshtml";
+
+            pathOrName = path != null
+                ? Path.Combine(path, name).Replace(@"\", "/")
+                : name;
+
+            return pathOrName;
+        }
+
+        public static void OMvcActionAuthAttribute(this WebPartGenerator gen, MojViewConfig view)
+        {
+            if (view.IsAuthEnabled)
+            {
+                gen.O("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
+                    view.GetPartName(),
+                    MojenUtils.ToCsValue(view.Group),
+                    view.MainRoleName);
+            }
+        }
+
+        public static void OOutputCacheAttribute(this WebPartGenerator gen)
+        {
+            if (gen.WebConfig.OutputCache.IsEnabled)
+            {
+                gen.O("[CustomOutputCache(CacheProfile = \"{0}\"{1})]",
+                    gen.WebConfig.OutputCache.CacheProfile,
+                    gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
+            }
+        }
+    }
+
     public abstract class WebPartGenerator : AppPartGenerator
     {
         public WebAppBuildConfig WebConfig { get; set; }
@@ -323,14 +424,14 @@ namespace Casimodo.Lib.Mojen
             return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
         }
 
-        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string suffix = null)
+        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
         {
-            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, suffix));
+            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, part: part, suffix: suffix));
         }
 
-        public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string suffix = null)
+        public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
         {
-            return App.Get<WebAppBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, suffix);
+            return App.Get<WebAppBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, part: part, suffix: suffix);
         }
 
 
@@ -347,7 +448,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public string BuildJsScriptFileName(MojViewConfig view, string name = null,
-            string suffix = null, bool extension = true)
+            string suffix = null, string part = null, bool extension = true)
         {
             if (name == null)
             {
@@ -356,7 +457,7 @@ namespace Casimodo.Lib.Mojen
                 if (view.Group != null)
                     name += "." + view.Group;
 
-                name += "." + view.MainRoleName.ToLower();
+                name += "." + (part ?? "") + view.MainRoleName.ToLower();
 
                 // KABU TODO: ELIMINATE: Currently we need a hack to compensate for
                 //   the issue that lookup views are also lists.
@@ -391,83 +492,16 @@ namespace Casimodo.Lib.Mojen
 
         public string BuildFilePath(MojViewConfig view, string name = null, bool partial = false)
         {
-            name = BuildFileName(view, name, partial: partial);
+            name = view.BuildFileName(name, partial: partial);
 
             return Path.Combine(GetViewDirPath(view), name);
         }
 
         public string BuildVirtualFilePath(MojViewConfig view, string name = null, string path = null, bool partial = false)
         {
-            return $"~/Views/{view.TypeConfig.PluralName}/{BuildFileName(view, pathOrName: name, partial: partial)}";
+            return $"~/Views/{view.TypeConfig.PluralName}/{view.BuildFileName(pathOrName: name, partial: partial)}";
         }
 
-        public string BuildFileName(MojViewConfig view, string pathOrName = null, bool partial = false, bool extension = true)
-        {
-            partial = partial || view.IsPartial;
 
-            string name = pathOrName;
-            string path = null;
-
-            if (pathOrName != null && pathOrName.Contains("/", @"\"))
-            {
-                name = Path.GetFileName(pathOrName);
-                if (path != null)
-                    path = Path.Combine(path, Path.GetDirectoryName(pathOrName));
-                else
-                    path = Path.GetDirectoryName(pathOrName);
-            }
-
-            if (name == null)
-            {
-                name = view.FileName ?? view.Name ?? view.MainRoleName ?? view.CustomControllerActionName;
-
-                // NOTE: We now use the PluaralName for pages. I.e "People.cshtml" instead of "Index.cshtml".
-                if (!partial && view.IsPage && name == view.MainRoleName)
-                    name = view.TypeConfig.PluralName;
-            }
-
-            //// Must not have a file extension at this point.
-            //if (!string.IsNullOrEmpty(name))
-            //{
-            //    if (!string.IsNullOrEmpty(Path.GetExtension(name)))
-            //        throw new MojenException("The file extension must not be specified for view files.");
-            //}
-
-            if (view.Group != null && view.Group != name)
-            {
-                name = name ?? "";
-                // Prepend group name.
-                name = (name.StartsWith("_") ? "_" : "") + view.Group + (!string.IsNullOrEmpty(name) ? "." + name : "");
-            }
-
-            if (string.IsNullOrEmpty(name))
-                throw new MojenException("Failed to computed the file name/path of the view.");
-
-            // Ensure leading underscore for partial views.
-            if (partial && !name.StartsWith("_"))
-            {
-                //if (pathOrName.Contains("/", @"\"))
-                //{
-                //    var steps = pathOrName.Split('/', '\\');
-                //    if (!steps[steps.Length - 1].StartsWith("_"))
-                //        pathOrName = steps.Take(pathOrName.Length - 1).Join("/") + "_" + steps.Last();
-                //}
-                //else
-                //{
-                name = "_" + name;
-            }
-
-            if (view.IsForMobile)
-                name += ".Mobile";
-
-            if (extension)
-                name += ".cshtml";
-
-            pathOrName = path != null
-                ? Path.Combine(path, name).Replace(@"\", "/")
-                : name;
-
-            return pathOrName;
-        }
     }
 }

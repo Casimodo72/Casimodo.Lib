@@ -96,12 +96,12 @@ namespace Casimodo.Lib.Mojen
                 _core = null;
         }
 
-        protected void Br()
+        public void Br()
         {
             Write(Environment.NewLine);
         }
 
-        protected void Begin()
+        public void Begin()
         {
             O("{");
             PushBlockIndent();
@@ -136,12 +136,12 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        protected void o(string text, params object[] args)
+        public void o(string text, params object[] args)
         {
             Write(false, text, args);
         }
 
-        protected void Oo(string text, params object[] args)
+        public void Oo(string text, params object[] args)
         {
             Write(true, text, args);
         }
@@ -160,7 +160,7 @@ namespace Casimodo.Lib.Mojen
             Br();
         }
 
-        protected void O(string text, params object[] args)
+        public void O(string text, params object[] args)
         {
             if (text == null) return;
             Write(true, text, args);
@@ -304,7 +304,7 @@ namespace Casimodo.Lib.Mojen
             OJsObjectLiteral(builder.Elem, isArray: true);
         }
 
-        protected MojenGeneratorBase OB(string text, Action action)
+        public MojenGeneratorBase OB(string text, Action action)
         {
             OB(text);
             action();
@@ -316,14 +316,14 @@ namespace Casimodo.Lib.Mojen
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.
         /// </summary>
-        protected MojenGeneratorBase OBegin(string text, Action action)
+        public MojenGeneratorBase OBegin(string text, Action action)
         {
             OB(text);
             action();
             return this;
         }
 
-        protected void OBegin(string text, params object[] args)
+        public void OBegin(string text, params object[] args)
         {
             OB(text, args);
         }
@@ -332,7 +332,7 @@ namespace Casimodo.Lib.Mojen
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.
         /// </summary>
-        protected void OB(string text, params object[] args)
+        public void OB(string text, params object[] args)
         {
             Write(true, text, args);
 
@@ -361,7 +361,7 @@ namespace Casimodo.Lib.Mojen
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.
         /// </summary>
-        protected void ob(string text, params object[] args)
+        public void ob(string text, params object[] args)
         {
             Guard.ArgNotNull(text, nameof(text));
 
@@ -388,7 +388,7 @@ namespace Casimodo.Lib.Mojen
             Br();
         }
 
-        protected void O()
+        public void O()
         {
             Writer.WriteLine("");
         }
@@ -543,34 +543,28 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        //protected void OUsing(IEnumerable<string> namespaces)
-        //{
-        //    OUsingCore(namespaces);
-        //    O();
-        //}
-
         void OUsingSingle(string ns)
         {
             O($"using {ns};");
         }
 
-        protected void ORazorGeneratedFileComment()
+        public void ORazorGeneratedFileComment()
         {
             O("@* [Casimodo.Lib.Mojen:file-origin=generated]");
             O("   This is a GENERATED file. Manual changes will be overwritten. *@");
         }
 
-        protected void ORazorStyleSection(Action content)
+        public void ORazorStyleSection(Action content)
         {
             ORazorSection("Styles", content);
         }
 
-        protected void ORazorScriptSection(Action content)
+        public void ORazorScriptSection(Action content)
         {
             ORazorSection("BottomScripts", content);
         }
 
-        protected void ORazorSection(string name, Action content)
+        public void ORazorSection(string name, Action content)
         {
             OB("@section " + name);
             if (content != null)
@@ -578,24 +572,24 @@ namespace Casimodo.Lib.Mojen
             End();
         }
 
-        protected void ORazorUsing(params string[] namespaces)
+        public void ORazorUsing(params string[] namespaces)
         {
             ORazorUsing(namespaces.AsEnumerable());
         }
 
-        protected void ORazorUsing(IEnumerable<string> namespaces)
+        public void ORazorUsing(IEnumerable<string> namespaces)
         {
             foreach (var ns in namespaces)
                 O($"@using {ns}");
         }
 
-        protected void ONamespace(string ns)
+        public void ONamespace(string ns)
         {
             O($"namespace {ns}");
             Begin();
         }
 
-        protected void OSummary(IEnumerable<string> text)
+        public void OSummary(IEnumerable<string> text)
         {
             if (text == null || !text.Any() || text.All(x => string.IsNullOrWhiteSpace(x)))
                 return;
@@ -606,7 +600,7 @@ namespace Casimodo.Lib.Mojen
             O("/// </summary>");
         }
 
-        protected void OSummary(object obj)
+        public void OSummary(object obj)
         {
             if (obj == null)
                 return;
@@ -638,7 +632,7 @@ namespace Casimodo.Lib.Mojen
             else throw new MojenException(string.Format("Unexpected summary object type '{0}'.", obj.GetType().Name));
         }
 
-        protected void OSummary(params string[] text)
+        public void OSummary(params string[] text)
         {
             if (text == null)
                 return;

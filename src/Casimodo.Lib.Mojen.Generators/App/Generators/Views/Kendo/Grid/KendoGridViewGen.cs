@@ -65,7 +65,7 @@ namespace Casimodo.Lib.Mojen
                 KendoGen.BindEditorView<KendoFormEditorViewGen>(view);
 
                 Options = view.GetGeneratorConfig<KendoGridOptions>() ?? new KendoGridOptions();
-                TransportConfig = this.CreateODataTransport(view, editorView: null,
+                TransportConfig = this.CreateODataTransport(view,
                     customQueryBase: Options.CustomQueryBase,
                     customQueryMethod: Options.CustomQueryMethod);
 
