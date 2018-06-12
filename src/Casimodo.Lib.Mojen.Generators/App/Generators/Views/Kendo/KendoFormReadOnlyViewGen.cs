@@ -13,6 +13,7 @@ namespace Casimodo.Lib.Mojen
                 .Where(x => x.Uses(this)))
             {
                 KendoGen.BindEditorView<KendoFormEditorViewGen>(view);
+                KendoGen.BindCustomTagsEditorView(view);
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
@@ -92,7 +93,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Refresh button
                 O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
-                
+
                 XE("</div>"); // Commands
 
                 XE("</div>"); // Toolbar

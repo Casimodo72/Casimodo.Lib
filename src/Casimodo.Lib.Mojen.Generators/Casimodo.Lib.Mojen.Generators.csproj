@@ -161,7 +161,7 @@
     <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoDataSourceMex.cs" />
     <Compile Include="App\Generators\Mex\MexGeneratorBase.cs" />
-    <Compile Include="App\Generators\Views\Kendo\KendoTagsEditorViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\HardCodedKendoTagsEditorViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoFormEditorViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoFormReadOnlyViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\PageWithKendoGridContentViewGen.cs" />

@@ -63,6 +63,7 @@ namespace Casimodo.Lib.Mojen
                 Reset();
 
                 KendoGen.BindEditorView<KendoFormEditorViewGen>(view);
+                KendoGen.BindCustomTagsEditorView(view);
 
                 Options = view.GetGeneratorConfig<KendoGridOptions>() ?? new KendoGridOptions();
                 TransportConfig = this.CreateODataTransport(view,

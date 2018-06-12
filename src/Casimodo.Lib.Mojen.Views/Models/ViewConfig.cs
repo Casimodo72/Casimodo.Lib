@@ -213,6 +213,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewConfig EditorView { get; set; }
 
+        public MojViewConfig TagsEditorView { get; set; }
+
         public List<MojViewConfig> ContentViews { get; set; } = new List<MojViewConfig>();
 
         public bool CanCreate { get; set; }
@@ -228,6 +230,8 @@ namespace Casimodo.Lib.Mojen
         public MojStandaloneViewConfig Standalone { get; set; } = MojStandaloneViewConfig.None;
 
         public MojLookupViewConfig Lookup { get; set; } = MojLookupViewConfig.None;
+
+        public bool IsDialog { get; set; }
 
         public bool NoView { get; set; }
 

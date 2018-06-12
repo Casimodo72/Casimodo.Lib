@@ -298,6 +298,8 @@ namespace Casimodo.Lib.Mojen
                 Multiplicity = Data.MojMultiplicity.OneOrZero,
                 Parameters = new List<MojProp>(parameters)
             };
+            // Currently all lookup views are defined as dialogs.
+            View.IsDialog = true;
 
             Title(View.TypeConfig.DisplayPluralName);
 
@@ -562,6 +564,12 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder Modal()
         {
             View.IsModal = true;
+            return this;
+        }
+
+        public MojViewBuilder Dialog(bool value = true)
+        {
+            View.IsDialog = value;
             return this;
         }
 

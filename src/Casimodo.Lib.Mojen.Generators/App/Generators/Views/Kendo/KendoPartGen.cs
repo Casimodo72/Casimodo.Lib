@@ -366,10 +366,11 @@ namespace Casimodo.Lib.Mojen
                 O("dataTypeId: {0},", MojenUtils.ToJsValue(view.TypeConfig.Id));
             }
             O("isLookup: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
-            O("isDialog: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
+            O("isDialog: {0},", MojenUtils.ToJsValue(view.IsDialog));
             O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
             O("isCustomSave: {0},", MojenUtils.ToJsValue(view.IsCustomSave));
             O("isTaggable: {0},", MojenUtils.ToJsValue(view.IsTaggable));
+            O("tagsEditorId: {0},", MojenUtils.ToJsValue(view.TagsEditorView?.Id));
 
             if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                 O("selectionMode: 'multiple',");
@@ -455,6 +456,20 @@ namespace Casimodo.Lib.Mojen
             {
                 new MojViewBuilder(view).EnsureEditAuthControlPropsIfMissing();
             }
+        }
+
+        public void BindCustomTagsEditorView(MojViewConfig view)
+        {
+            var controller = (view as MojControllerViewConfig).Controller;
+
+            // Try to find a matching editor.
+            view.TagsEditorView = App.GetItems<MojControllerViewConfig>()
+                .Where(x =>
+                    x != view &&
+                    x.Controller == controller &&
+                    x.Group == "Tags" &&
+                    x.Uses<HardCodedKendoTagsEditorViewGen>())
+                .SingleOrDefault();
         }
     }
 }
