@@ -268,12 +268,14 @@
     <Compile Include="Auth\AuthQuery.cs" />
     <Compile Include="Auth\ApiActionAuthAttribute.cs" />
     <Compile Include="Auth\MvcActionAuthAttribute.cs" />
+    <Compile Include="Controllers\ODataControllerBase.cs" />
     <Compile Include="CustomOutputCacheAttribute.cs" />
     <Compile Include="FileContentResult.cs" />
     <Compile Include="Helpers\HtmlHelperExtension.cs" />
     <Compile Include="Helpers\PickItemsHelper.cs" />
     <Compile Include="Helpers\SessionExtensions.cs" />
     <Compile Include="Helpers\UserExtensions.cs" />
+    <Compile Include="Infrastructure\Misc.cs" />
     <Compile Include="Infrastructure\SessionVarName.cs" />
     <Compile Include="Infrastructure\WebServiceTenantProvider.cs" />
     <Compile Include="Infrastructure\WebSessionTenantProvider.cs" />
@@ -306,6 +308,7 @@
       <Name>Casimodo.Lib</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -324,6 +324,11 @@ namespace Casimodo.Lib.Mojen
                             {
                                 o("<div class='toolbar'>");
 
+                                if (true)
+                                {
+                                    o("<div class='kmodo-grid-company-selector'></div>");
+                                }
+
                                 if (view.IsExportableToPdf)
                                     o("<button class='k-button k-grid-pdf'><span class='k-icon k-i-pdf'></span></button>");
 
@@ -336,7 +341,7 @@ namespace Casimodo.Lib.Mojen
 
                                 if (view.IsNavigatableTo)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
-
+                               
                                 // KABU TODO: REMOVE?
                                 //if (view.CustomActions.Any())
                                 //{
@@ -537,10 +542,38 @@ namespace Casimodo.Lib.Mojen
             // Check references. Check the whole path for multiplicity of one.
             if (vprop.IsReferenced)
             {
+                // KABU TODO: IMPORTANT: Currently disabled.
                 var path = vprop.GetFormedPath();
-                foreach (var step in path.Steps)
-                    if (!step.SourceProp.Reference.IsToOne)
-                        throw new MojenException("The whole path must have a multiplicity of one.");
+                var firstToManyPos = path.Steps.FindIndex(x => x.SourceProp.Reference.IsToMany);
+
+                if (firstToManyPos != -1)
+                {
+                    if (string.IsNullOrEmpty(vprop.CustomTemplateName))
+                        throw new MojenException("If no custom template is defined for a grid column, " +
+                            "then the whole formed property path must have a multiplicity of one.");
+
+                    // Build new effective property path:
+                    //    The path must stop at the first reference with a multiplicity of "x-to-many".
+                    var props = new List<string>();
+
+                    foreach (var step in path.Steps)
+                    {
+                        props.Add(step.SourceProp.Name);
+
+                        if (step.SourceProp.Reference.IsToMany)
+                            break;
+
+                        if (step.TargetProp != null)
+                            props.Add(step.TargetProp.Name);
+                    }
+
+                    propPath = props.Join(".");
+                }
+                //foreach (var step in path.Steps)
+                //    if (!step.SourceProp.Reference.IsToOne)
+                //    {
+                //        throw new MojenException("The whole path must have a multiplicity of one.");
+                //    }
             }
 
             OB("");
@@ -684,42 +717,42 @@ namespace Casimodo.Lib.Mojen
                 // enabled: true,
                 // delay: 1500
 
-                string cellTemplate = null;
-                Action cellTemplateBuild = null;
+                string filterCellTemplate = null;
+                Action filterCellTemplateBuild = null;
 
                 // Specifies whether to show or hide the DropDownList with the operators.
-                bool showOperators = false;
+                bool filterShowOperators = false;
 
-                string @operator = null;
+                string filterOperator = null;
 
-                string dataSourceUrl = null;
+                string filterSataSourceUrl = null;
 
-                string dataSourceData = null;
+                string filterDataSourceData = null;
 
                 // Specifies the AutoComplete filter option. Possible values are same as the one 
                 // for the AutoComplete filter option- "startswidht", "endswith", "contains".
-                string dataSourceAutoCompleteOperator = null;
+                string filterDataSourceAutoCompleteOperator = null;
 
-                string dataSourceTextField = null;
+                string filterDataSourceTextField = null;
 
                 // Use this options to enable the MultiCheck filtering support for that column.
                 // WARNING: If you have enabled the columns.multi option and your Grid uses serverPaging 
                 // (or ServerOperations(true) if using the MVC wrappers) you need to provide columns.filterable.dataSource. 
                 // If columns.filterable.dataSource is not provided: bad performance.
-                bool multi = false;
+                bool filterMulti = false;
 
                 if (vprop.Type.IsEnum)
                 {
                     // KABU TODO: ELIMINATE: Razor helpers are not allowed in component JS anymore.
                     throw new MojenException("Razor helpers are not allowed in component JS anymore.");
                     // Enums will be looked up based on static values.
-                    dataSourceData = $"@(PickItemsHelper.ToJsArray<{vprop.Type.NameNormalized}>(names: true))";
+                    filterDataSourceData = $"@(PickItemsHelper.ToJsArray<{vprop.Type.NameNormalized}>(names: true))";
 
                     // DropDownList template
                     var nullable = vprop.Type.CanBeNull;
-                    cellTemplate = $"kendomodo.gridEnumFilterColTemplate{(nullable ? "Nullable" : "")}";
+                    filterCellTemplate = $"kendomodo.gridEnumFilterColTemplate{(nullable ? "Nullable" : "")}";
 
-                    dataSourceTextField = "text";
+                    filterDataSourceTextField = "text";
                 }
                 else if (vprop.Reference.Is)
                 {
@@ -728,19 +761,19 @@ namespace Casimodo.Lib.Mojen
                     if (vinfo.TargetType.DataSetSize == MojDataSetSizeKind.ExtraSmall)
                     {
                         // Kendo DropDownList
-                        dataSourceTextField = dprop.Name;
+                        filterDataSourceTextField = dprop.Name;
                         var nullable = vprop.Reference.IsToZero;
-                        cellTemplateBuild = new Action(() =>
+                        filterCellTemplateBuild = new Action(() =>
                         {
                             ob("function (args)");
                             O("kendomodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
-                                dataSourceTextField,
-                                dataSourceTextField,
+                                filterDataSourceTextField,
+                                filterDataSourceTextField,
                                 MojenUtils.ToJsValue(nullable));
                             End(",");
                         });
 
-                        dataSourceUrl = string.Format("{0}/{1}?$select={2}&$orderby={2}",
+                        filterSataSourceUrl = string.Format("{0}/{1}?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
                                 this.GetODataQueryFunc(false),
                                 dprop.Name);
@@ -750,17 +783,17 @@ namespace Casimodo.Lib.Mojen
                         if (!dprop.Type.IsString)
                             throw new MojenException("AutoComplete column filters are intended for strings only.");
 
-                        dataSourceTextField = dprop.Name;
-                        @operator = "contains";
-                        dataSourceAutoCompleteOperator = "contains";
+                        filterDataSourceTextField = dprop.Name;
+                        filterOperator = "contains";
+                        filterDataSourceAutoCompleteOperator = "contains";
 
                         if (vprop.IsLookupDistinct)
                         {
-                            dataSourceUrl = GetDistinctDataSourceReadUrl(context, vinfo.TargetType, dprop.Name);
+                            filterSataSourceUrl = GetDistinctDataSourceReadUrl(context, vinfo.TargetType, dprop.Name);
                         }
                         else
                         {
-                            dataSourceUrl = string.Format("{0}/{1}?$select={2}&$orderby={2}",
+                            filterSataSourceUrl = string.Format("{0}/{1}?$select={2}&$orderby={2}",
                                 this.GetODataPath(vinfo.TargetType),
                                 this.GetODataQueryFunc(false),
                                 dprop.Name);
@@ -774,64 +807,64 @@ namespace Casimodo.Lib.Mojen
                     if (vprop.Type.IsString)
                     {
                         // Use "contains" as default operator for strings.
-                        @operator = "contains";
+                        filterOperator = "contains";
                     }
 
                     if (vprop.IsLookupDistinct)
                     {
-                        dataSourceUrl = GetDistinctDataSourceReadUrl(context, view.TypeConfig, dprop.Name);
+                        filterSataSourceUrl = GetDistinctDataSourceReadUrl(context, view.TypeConfig, dprop.Name);
                     }
                     else
                     {
                         // Example "odata/Contracts/Ga.Query()?$select=Number"
-                        dataSourceUrl = TransportConfig.ODataFilterUrl + vprop.Name;
+                        filterSataSourceUrl = TransportConfig.ODataFilterUrl + vprop.Name;
                     }
                 }
 
-                if (cellTemplate != null)
-                    O($"template: {cellTemplate},");
-                else if (cellTemplateBuild != null)
+                if (filterCellTemplate != null)
+                    O($"template: {filterCellTemplate},");
+                else if (filterCellTemplateBuild != null)
                 {
                     Oo($"template: ");
-                    cellTemplateBuild();
+                    filterCellTemplateBuild();
                 }
 
-                if (!showOperators)
+                if (!filterShowOperators)
                     O($"showOperators: false,");
 
-                if (@operator != null)
-                    O($"operator: '{@operator}',");
+                if (filterOperator != null)
+                    O($"operator: '{filterOperator}',");
 
-                if (multi)
+                if (filterMulti)
                     O($"multi: true,");
 
-                if (dataSourceAutoCompleteOperator != null)
-                    O($"suggestionOperator: '{dataSourceAutoCompleteOperator}',");
+                if (filterDataSourceAutoCompleteOperator != null)
+                    O($"suggestionOperator: '{filterDataSourceAutoCompleteOperator}',");
 
-                if (dataSourceUrl != null || dataSourceData != null)
+                if (filterSataSourceUrl != null || filterDataSourceData != null)
                 {
                     // OData data source
                     OB("dataSource:");
 
-                    if (dataSourceUrl != null)
+                    if (filterSataSourceUrl != null)
                     {
                         O($"type: \"odata-v4\",");
-                        O($"transport: {{ read: {{ url: \"{dataSourceUrl}\" }} }}");
+                        O($"transport: {{ read: {{ url: \"{filterSataSourceUrl}\" }} }}");
 
                         // KABU TODO: REVISIT: May want to enable serverFiltering, so that
                         //   the values are always re-fetched from server.
                         //serverFiltering: true, 
                     }
 
-                    if (dataSourceData != null)
+                    if (filterDataSourceData != null)
                     {
-                        O($"data: {dataSourceData},");
+                        O($"data: {filterDataSourceData},");
                     }
 
                     End(","); // DataSource
 
-                    if (dataSourceTextField != null)
-                        O($"dataTextField: '{dataSourceTextField}',");
+                    if (filterDataSourceTextField != null)
+                        O($"dataTextField: '{filterDataSourceTextField}',");
                 }
 
                 End(); // Cell

@@ -42,7 +42,10 @@ namespace Casimodo.Lib.Mojen
             g.O("[HttpPost]");
             g.O("public IHttpActionResult UpdateTags(ODataActionParameters parameters)");
             g.Begin();
-            g.O("return this.UpdateIndependentCollection<{0}, {1}>(parameters, nameof({0}.Tags),",
+            g.O("_db.Context.Configuration.LazyLoadingEnabled = false;");
+            g.O("_db.Context.Configuration.AutoDetectChangesEnabled = false;");
+            g.O();
+            g.O("if (this.UpdateIndependentCollection<{0}, {1}>(parameters, _db.Context, nameof({0}.Tags),",
                 ownerTypeName, itemTypeName);
             g.Push();
             g.O("validateItem: (controller, owner, item) =>");
@@ -51,8 +54,13 @@ namespace Casimodo.Lib.Mojen
                 ownerTypeName);
             g.O("    controller.ThrowBadRequest(\"The {0} is not assignable to this object.\");",
                 itemTypeName);
-            g.End(");");
+            g.End("))");
             g.Pop();
+            g.Begin();
+            g.O("_db.SaveChanges();");
+            g.End();
+            g.O();
+            g.O("return Ok(1);");
             g.End();
 
             return true;
