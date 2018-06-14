@@ -16,6 +16,9 @@ namespace Casimodo.Lib.Mojen
                 O($"public ActionResult {view.ControllerActionName}()");
                 Begin();
 
+                if (view.IsGlobalCompanyFilterEnabled == false)
+                    O("ViewBag.HideGlobalCompanyFilter = true;");
+
                 string path = view.GetVirtualFilePath();
                 if (path != "Index")
                     O($"return View(\"{path}\");");

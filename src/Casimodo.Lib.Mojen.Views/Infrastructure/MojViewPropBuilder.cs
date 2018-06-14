@@ -53,11 +53,11 @@ namespace Casimodo.Lib.Mojen
     {
         static readonly List<string> CloneFromModelExcludedProps = new List<string> { };
 
-        protected MojViewBuilder _viewBuilder;
+        protected MojViewBuilder ViewBuilder { get; private set; }
 
         protected virtual void Initialize(MojViewBuilder viewBuilder, MojProp sourceProp)
         {
-            _viewBuilder = viewBuilder;
+            ViewBuilder = viewBuilder;
 
             Prop = new MojViewProp(viewBuilder.View, sourceProp);
             Type vt = typeof(MojViewProp);
@@ -100,17 +100,12 @@ namespace Casimodo.Lib.Mojen
 
         protected MojType TypeConfig
         {
-            get { return _viewBuilder.View.TypeConfig; }
+            get { return ViewBuilder.View.TypeConfig; }
         }
 
-        protected MojViewConfig View
+        public MojViewConfig View
         {
-            get { return _viewBuilder.View; }
-        }
-
-        protected MojViewBuilder ViewBuilder
-        {
-            get { return _viewBuilder; }
+            get { return ViewBuilder.View; }
         }
 
         public TBuilder Label(string label)

@@ -500,6 +500,18 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder UseGlobalCompanyFilter(bool value = true)
+        {
+            View.IsGlobalCompanyFilterEnabled = value;
+            return this;
+        }
+
+        public MojViewBuilder UseCompanyFilter(bool value = true)
+        {
+            View.IsCompanyFilterEnabled = value;
+            return this;
+        }
+
         public MojViewBuilder ClientCached()
         {
             View.IsCachedOnClient = true;

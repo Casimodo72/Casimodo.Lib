@@ -324,10 +324,8 @@ namespace Casimodo.Lib.Mojen
                             {
                                 o("<div class='toolbar'>");
 
-                                if (true)
-                                {
+                                if (view.IsCompanyFilterEnabled)
                                     o("<div class='kmodo-grid-company-selector'></div>");
-                                }
 
                                 if (view.IsExportableToPdf)
                                     o("<button class='k-button k-grid-pdf'><span class='k-icon k-i-pdf'></span></button>");
@@ -341,7 +339,7 @@ namespace Casimodo.Lib.Mojen
 
                                 if (view.IsNavigatableTo)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
-                               
+
                                 // KABU TODO: REMOVE?
                                 //if (view.CustomActions.Any())
                                 //{

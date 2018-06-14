@@ -294,6 +294,10 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsFilterable { get; set; } = true;
 
+        public bool? IsGlobalCompanyFilterEnabled { get; set; }
+
+        public bool IsCompanyFilterEnabled { get; set; }
+
         public bool IsNavigatableTo { get; set; }
 
         // KABU TODO: REMOVE: public List<MojViewActionConfig> CustomActions { get; set; } = new List<MojViewActionConfig>();

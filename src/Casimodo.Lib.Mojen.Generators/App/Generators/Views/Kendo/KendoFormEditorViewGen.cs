@@ -902,14 +902,20 @@ namespace Casimodo.Lib.Mojen
                         O("return;");
                         End();
 
+                        var targetType = reference.ForeignKey.Reference.ToType;
+                        var isDeactivatable = cascadeFromInfo.Config.IsDeactivatable;
                         // Filter by the cascade-from field & value.
-                        O($"options.filters.push({{ field: '{reference.ForeignKey.Name}', value: cascadeFromVal, operator: 'eq' }});");
+                        O($"options.filters.push({{ field: '{reference.ForeignKey.Name}', " +
+                            "value: cascadeFromVal, operator: 'eq', "+
+                            $"targetType: '{targetType.Name}', " +
+                            $"targetTypeId: '{targetType.Id}', " +
+                            $"deactivatable: {MojenUtils.ToJsValue(isDeactivatable)} }});");
 
                         if (cascadeFromInfo.Config.IsDeactivatable)
                         {
                             O($"options.filterCommands.push({{ field: '{reference.ForeignKey.Name}', " +
                                 $"value: cascadeFromVal, " +
-                                $"deactivatable: {MojenUtils.ToJsValue(cascadeFromInfo.Config.IsDeactivatable)}, " +
+                                $"deactivatable: {MojenUtils.ToJsValue(isDeactivatable)}, " +
                                 $"title: '{cascadeFromInfo.Config.Title}'}});");
                         }
                         O();
@@ -946,8 +952,11 @@ namespace Casimodo.Lib.Mojen
                     O("return;");
                     End();
 
-
-                    O($"var filter = {{ field: '{targetPath}', value: cascadeFromVal, operator: 'eq' }};");
+                    O($"var filter = {{ field: '{targetPath}', " +
+                        "value: cascadeFromVal, operator: 'eq', " +
+                        $"targetType: '{targetType}', targetTypeId: '{targetType.Id}', " +                       
+                        $"deactivatable: {MojenUtils.ToJsValue(false)} }};");
+                   
                     O($"options.filters.push(filter);");
                 }
 

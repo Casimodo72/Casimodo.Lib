@@ -369,6 +369,8 @@ namespace Casimodo.Lib.Mojen
             O("isDialog: {0},", MojenUtils.ToJsValue(view.IsDialog));
             O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
             O("isCustomSave: {0},", MojenUtils.ToJsValue(view.IsCustomSave));
+            O("isCompanyFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsCompanyFilterEnabled));
+            O("isGlobalCompanyFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsGlobalCompanyFilterEnabled == true));
             O("isTaggable: {0},", MojenUtils.ToJsValue(view.IsTaggable));
             O("tagsEditorId: {0},", MojenUtils.ToJsValue(view.TagsEditorView?.Id));
 
