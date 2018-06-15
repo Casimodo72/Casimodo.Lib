@@ -324,18 +324,19 @@ namespace Casimodo.Lib.Mojen
                             {
                                 o("<div class='toolbar'>");
 
+                               
+
                                 if (view.IsCompanyFilterEnabled)
-                                    o("<div class='kmodo-grid-company-selector'></div>");
+                                    o("<div class='kmodo-grid-company-filter-selector'></div>");
+
+                                if (view.IsTagsFilterEnabled)
+                                    o("<div class='kmodo-grid-tags-filter-selector'></div>");
 
                                 if (view.IsExportableToPdf)
                                     o("<button class='k-button k-grid-pdf'><span class='k-icon k-i-pdf'></span></button>");
 
                                 if (view.IsExportableToExcel)
-                                    o("<button class='k-button k-grid-excel'><span class='k-icon k-i-excel'></span></button>");
-
-                                // Add refresh button
-                                if (view.IsReloadable)
-                                    o("<button class='k-button k-grid-refresh'><span class='k-icon k-i-refresh'></span></button>");
+                                    o("<button class='k-button k-grid-excel'><span class='k-icon k-i-excel'></span></button>");                           
 
                                 if (view.IsNavigatableTo)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
@@ -355,6 +356,10 @@ namespace Casimodo.Lib.Mojen
                                 //        else throw new MojenException($"Unhandled view action kind '{action.Kind}'.");
                                 //    }
                                 //}
+
+                                // Add refresh button
+                                if (view.IsReloadable)
+                                    o("<a class='k-button k-grid-refresh' href='#'><span class='k-icon k-i-refresh'></span></a>");
 
                                 if (CanCreate)
                                 {

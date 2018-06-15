@@ -298,6 +298,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCompanyFilterEnabled { get; set; }
 
+        public bool IsTagsFilterEnabled { get; set; }
+
         public bool IsNavigatableTo { get; set; }
 
         // KABU TODO: REMOVE: public List<MojViewActionConfig> CustomActions { get; set; } = new List<MojViewActionConfig>();
