@@ -302,21 +302,19 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             O();
-            OB("fn.getBaseFilters = function ()");
-            O("var filters = [];");
+            OB("fn.initBaseFilters = function ()");
 
             if (context.View.IsFilteredByLoggedInPerson)
             {
-                O($"filters.push({{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
+                O($"this._baseFilters.push({{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
                     $"operator: 'eq', value: window.casimodo.run.authInfo.PersonId }});");
             }
 
             if (context.View.SimpleFilter != null)
             {
-                O($"filters.push.apply(filters, {KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)});");
+                O($"this._baseFilters.push.apply(this._baseFilters, {KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)});");
             }
 
-            O("return filters;");
             End(";");
         }
 

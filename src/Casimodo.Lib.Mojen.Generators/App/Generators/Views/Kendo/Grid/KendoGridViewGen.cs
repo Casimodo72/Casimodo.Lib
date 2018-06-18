@@ -335,7 +335,7 @@ namespace Casimodo.Lib.Mojen
                                     o("<div class='km-grid-tool-filter'><span class='icon-tag'></span><div class='km-grid-tags-filter-selector'></div></div>");
 
                                 if (view.IsNavigatableTo)
-                                    o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
+                                    o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'></button>");
 
                                 // KABU TODO: REMOVE?
                                 //if (view.CustomActions.Any())
