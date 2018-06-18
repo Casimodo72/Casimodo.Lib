@@ -169,7 +169,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 // KABU TODO: Currently just a hack.
                 // Add a row context menu in order to edit the tags of the selected data item.
-                O("<ul id='context-menu-{0}' style='text-wrap:none;min-width:150px;display:none'>",
+                O("<ul id='tags-context-menu-{0}' style='text-wrap:none;min-width:150px;display:none'>",
                     context.ComponentId);
                 // TODO: LOCALIZE
                 O("<li data-name='EditTags'>Markierungen setzen</li>");
@@ -322,21 +322,17 @@ namespace Casimodo.Lib.Mojen
 
                             KendoJsTemplate(() =>
                             {
-                                o("<div class='toolbar'>");
+                                o("<div class='km-grid-toolbar-content'>");
 
-                               
+                                o("<div class='km-grid-tools-row'>");
+
+                                o("<div class='km-grid-tools'>");
 
                                 if (view.IsCompanyFilterEnabled)
-                                    o("<div class='kmodo-grid-company-filter-selector'></div>");
+                                    o("<div class='km-grid-tool-filter'><span class='icon-company'></span><div class='km-grid-company-filter-selector'></div></div>");
 
                                 if (view.IsTagsFilterEnabled)
-                                    o("<div class='kmodo-grid-tags-filter-selector'></div>");
-
-                                if (view.IsExportableToPdf)
-                                    o("<button class='k-button k-grid-pdf'><span class='k-icon k-i-pdf'></span></button>");
-
-                                if (view.IsExportableToExcel)
-                                    o("<button class='k-button k-grid-excel'><span class='k-icon k-i-excel'></span></button>");                           
+                                    o("<div class='km-grid-tool-filter'><span class='icon-tag'></span><div class='km-grid-tags-filter-selector'></div></div>");
 
                                 if (view.IsNavigatableTo)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'>Navigation: Filter entfernen</button>");
@@ -357,19 +353,49 @@ namespace Casimodo.Lib.Mojen
                                 //    }
                                 //}
 
-                                // Add refresh button
-                                if (view.IsReloadable)
-                                    o("<a class='k-button k-grid-refresh' href='#'><span class='k-icon k-i-refresh'></span></a>");
+                                o("</div>"); // tools left                              
+
+                                o("<div class='km-grid-tools-right'>");
+
+
+                                // Add grid data export context menu.
+                                if (context.View.IsExportableToPdf || context.View.IsExportableToExcel)
+                                {
+                                    o("<ul class='km-grid-tools-menu'>");
+                                    o("<li><span></span><ul>");
+                                    //  style='text-wrap:none;min-width:150px;display:none'
+
+                                    if (context.View.IsExportableToExcel)
+                                        // TODO: LOCALIZE
+                                        o("<li data-name='ExportToExcel'>Exportieren nach Excel</li>");
+
+                                    if (context.View.IsExportableToPdf)
+                                        // TODO: LOCALIZE
+                                        o("<li data-name='ExportToPdf'>Exportieren nach PDF</li>");
+
+                                    //o("<button class='k-button k-grid-pdf'><span class='k-icon k-i-pdf'></span></button>");
+                                    //o("<button class='k-button k-grid-excel'><span class='k-icon k-i-excel'></span></button>");
+                                    o("</ul></li>");
+                                    o("</ul>");
+                                }
+
 
                                 if (CanCreate)
                                 {
                                     // Add a create (+) button.
                                     // NOTE: We are using a custom "create" button (k-grid-custom-add) instead of
                                     //   kendo grid's default button (k-grid-add).
-                                    o("<a class='k-button k-grid-custom-add hide' href='#'><span class='k-icon k-add'></span></a>");
+                                    o("<a class='k-button k-grid-custom-add hide' style='margin-right:24px;margin-left:24px' href='#'><span class='k-icon k-add'></span></a>");
                                 }
 
-                                o("</div>");
+                                // Add refresh button
+                                if (view.IsReloadable)
+                                    o("<a class='k-button k-grid-refresh' href='#'><span class='k-icon k-i-refresh'></span></a>");
+
+                                o("</div>"); // tools-right
+
+                                o("</div>"); // tools-row
+                                o("</div>"); // toolbar-content
                             });
 
                             o("\")"); // Template
