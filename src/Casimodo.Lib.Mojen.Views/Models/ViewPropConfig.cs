@@ -146,8 +146,9 @@ namespace Casimodo.Lib.Mojen
             {
                 if (step.SourceProp.Reference.IsToMany)
                 {
-                    if (depth != 0 || !step.SourceProp.Reference.IsIdependent)
-                        throw new MojenException("Collections in the navigation path are only alloed if they are native and independent.");
+                    // KABU TODO: IMPORTANT: Currently disabled due to experiments with MoTag 
+                    //if (depth != 0 || !step.SourceProp.Reference.IsIdependent)
+                    //    throw new MojenException("Collections in the navigation path are only alloed if they are native and independent.");
                 }
                 else if (!step.SourceProp.Reference.IsToOne)
                     throw new MojenException("Only references with multiplicity One or OneOrZero are allowed at this step in the navigation path.");
@@ -334,6 +335,7 @@ namespace Casimodo.Lib.Mojen
         public MojStringSubstringConfig StringSubstring { get; set; } = MojStringSubstringConfig.None;
 
         public string CustomTemplateName { get; set; }
+        public string CustomTemplatePropPath { get; set; }
         public string CustomEditorViewName { get; set; }
         public string CustomViewName { get; set; }
 

@@ -911,7 +911,13 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.CustomTemplateName != null)
             {
-                template = $"{App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('{vprop.CustomTemplateName}')";
+                var templateDataPropPath = "dataItem";
+                if (vprop.CustomTemplatePropPath != null)
+                    templateDataPropPath += "." + vprop.CustomTemplatePropPath;
+
+                template = $"function(dataItem) {{ return {App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('{vprop.CustomTemplateName}')({templateDataPropPath}); }}";
+               
+                // template = $"{App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('{vprop.CustomTemplateName}')";
             }
 
             if (template != null)

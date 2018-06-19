@@ -52,8 +52,8 @@ namespace Casimodo.Lib.Templates
         {
             var prop = GetPropAccessor(name);
 
-            if (instance != null && prop.Type != null && instance.GetType() != prop.Type)
-                throw new TemplateException($"Incorrent property type '{instance.GetType().Name}'. Expected was property of type '{prop.Type}'.");
+            if (instance != null && prop.Type != null && !prop.Type.IsAssignableFrom(instance.GetType()))
+                throw new TemplateException($"Incorrent property type '{instance.GetType().Name}'. Expected was a type assignable to type '{prop.Type}'.");
 
             prop.InstanceObject = instance;
         }
