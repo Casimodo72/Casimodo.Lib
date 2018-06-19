@@ -180,8 +180,9 @@ namespace Casimodo.Lib.Mojen
 
         static string GetCustomDisplayLabel(MojViewProp vprop, string label)
         {
-            if (vprop.DisplayLabel != null &&
-                vprop.DisplayLabel != vprop.OrigTargetProp.DisplayLabel)
+            if (vprop.DisplayLabel != null)
+            // TODO: REMOVE: Always use the configured DisplayLabel.
+            // && vprop.DisplayLabel != vprop.OrigTargetProp.DisplayLabel)
             {
                 label = vprop.DisplayLabel;
             }
