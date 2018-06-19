@@ -400,6 +400,7 @@ namespace Casimodo.Lib.Mojen
             O("height: {0},", MojenUtils.ToJsValue(view.Height));
             O("minHeight: {0},", MojenUtils.ToJsValue(view.MinHeight));
             O("maxHeight: {0},", MojenUtils.ToJsValue(view.MaxHeight));
+            O("maximize: {0},", MojenUtils.ToJsValue(view.IsMaximized));
         }
 
         public void ODataSourceModelFactory(WebViewGenContext context, MojHttpRequestConfig transport)

@@ -242,6 +242,7 @@ namespace Casimodo.Lib.Mojen
         public int? Height { get; set; }
         public int? MinHeight { get; set; }
         public int? MaxHeight { get; set; }
+        public bool IsMaximized { get; set; }
 
         public bool IsCustom { get; set; }
 

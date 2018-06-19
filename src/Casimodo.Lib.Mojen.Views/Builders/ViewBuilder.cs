@@ -603,6 +603,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Maximize()
+        {
+            View.IsMaximized = true;
+            return this;
+        }
+
         public MojViewBuilder Width(int width)
         {
             View.Width = width;
