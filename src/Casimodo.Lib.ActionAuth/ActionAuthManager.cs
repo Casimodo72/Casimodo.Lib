@@ -350,6 +350,18 @@ namespace Casimodo.Lib.Auth
             return this;
         }
 
+        public ActionAuthBuilder GetPart(string item, string group = null)
+        {
+            var part = _manager.Parts.SingleOrDefault(x => x.PartName == item && x.PartGroup == group);
+
+            if (part == null)
+                throw new Exception($"Part '{item}' not found.");
+   
+            CurrentPart = part;
+
+            return this;
+        }
+
         public ActionAuthBuilder AddPage(string part, string title, string url, string group = null)
         {
             if (!url.StartsWith("/"))

@@ -58,6 +58,7 @@ namespace Casimodo.Lib.Mojen
             bool alias = false,
             bool allowCollections = false)
         {
+            var isEntity = vprop.DeclaringType.IsEntity();
             var path = vprop.FormedNavigationTo;
 
             if (!path.Is || !path.IsForeign)
@@ -99,8 +100,8 @@ namespace Casimodo.Lib.Mojen
                 return BuildForeignKeyInfo(vprop, step);
             }
 
-            var targetType = path.TargetType;
-            var targetDisplayProp = path.TargetProp;
+            var targetType = isEntity ? path.TargetType.StoreOrSelf : path.TargetType;
+            var targetDisplayProp = isEntity ? path.TargetProp.StoreOrSelf : path.TargetProp;
             string display = "";
 
             if (column)
@@ -160,6 +161,11 @@ namespace Casimodo.Lib.Mojen
         static MojViewPropInfo BuildForeignKeyInfo(MojViewProp vprop, MojFormedNavigationPathStep step)
         {
             var depth = vprop.FormedNavigationTo.Steps.IndexOf(step) + 1;
+            var isEntity = vprop.DeclaringType.IsEntity();
+
+            var targetDisplayProp = isEntity ? step.TargetProp.StoreOrSelf : step.TargetProp;
+            var targetType = isEntity ? step.TargetType.StoreOrSelf : step.TargetType;
+
             return new MojViewPropInfo
             {
                 IsForeignKey = true,
@@ -170,11 +176,11 @@ namespace Casimodo.Lib.Mojen
                 PropAliasPath = step.SourceProp.GetFormedForeignKeyPath(true),
                 // NOTE: Prop and TargetDisplayProp are *not* equal in this case.
                 Prop = step.SourceProp,
-                TargetDisplayProp = step.TargetProp,
-                TargetType = step.TargetType,
+                TargetDisplayProp = targetDisplayProp,
+                TargetType = targetType,
 
                 // If selector property then display the target type's display name.
-                CustomDisplayLabel = GetCustomDisplayLabel(vprop, step.TargetType.DisplayName)
+                CustomDisplayLabel = GetCustomDisplayLabel(vprop, targetType.DisplayName)
             };
         }
 

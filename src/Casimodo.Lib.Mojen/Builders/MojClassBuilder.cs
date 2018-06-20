@@ -457,15 +457,6 @@ namespace Casimodo.Lib.Mojen
 
             AssignDeletedMarkerPropsByConvention();
 
-            // KABU TODO: REMOVE
-            //if (TypeConfig.IsEntity())
-            //{
-            //    foreach (MojProp prop in TypeConfig.LocalProps.Where(x => x.Reference.Is))
-            //    {
-
-            //    }
-            //}
-
             // Check props
             foreach (MojProp prop in TypeConfig.LocalProps)
             {
@@ -513,6 +504,10 @@ namespace Casimodo.Lib.Mojen
 
                 // Store properties
                 ProcessPendingStoreProps();
+
+                foreach (var comp in TypeConfig.Comparisons)
+                    if (!store.Comparisons.Contains(comp))
+                        store.Comparisons.Add(comp);
 
                 // Build the store type.
                 MojTypeBuilder.Create<MojEntityBuilder>(App, store).Build();
