@@ -481,12 +481,15 @@ namespace Casimodo.Lib.Mojen
 
                 var builder = MojTypeBuilder.Create<MojEntityBuilder>(App, store);
 
+                // KABU TODO: Use property attributes in order to automate assignment
+                //   to the store MojType.
                 store.Id = TypeConfig.Id;
                 store.DisplayName = TypeConfig.DisplayName;
                 store.DisplayPluralName = TypeConfig.DisplayPluralName;
                 store.DataContextName = TypeConfig.DataContextName;
                 store.IsMultitenant = TypeConfig.IsMultitenant;
                 store.IsODataOpenType = TypeConfig.IsODataOpenType;
+                store.IsHardDeleteEnabled = TypeConfig.IsHardDeleteEnabled;
                 store.VerMap = MojVersionMapping.CloneFrom(TypeConfig.VerMap);
                 store.LocalPick = TypeConfig.LocalPick;
                 store.DataSetSize = TypeConfig.DataSetSize;

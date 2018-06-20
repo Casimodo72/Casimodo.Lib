@@ -73,21 +73,20 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TTypeBuilder Id(string guid, bool mo = false)
+        public TTypeBuilder Id(string guid)
         {
             TypeConfig.Id = new Guid(guid);
-            if (mo)
-                MoTypeId(guid);
 
             return This();
         }
 
-        public TTypeBuilder MoTypeId(string guid)
+        public TTypeBuilder HardDelete(bool enabled = true)
         {
-            TypeConfig.MoTypeId = new Guid(guid);
+            TypeConfig.IsHardDeleteEnabled = enabled;
 
             return This();
         }
+
 
         public TTypeBuilder Display(string name, string plural = null)
         {

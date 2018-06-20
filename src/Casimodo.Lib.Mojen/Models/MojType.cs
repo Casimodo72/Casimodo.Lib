@@ -144,10 +144,7 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public Guid? Id { get; set; }
-
-        [DataMember]
-        public Guid? MoTypeId { get; set; }
-
+      
         [DataMember]
         public MojTypeKind Kind { get; set; }
 
@@ -369,6 +366,9 @@ namespace Casimodo.Lib.Mojen
         {
             get { return CheckPropNotNull("Key", FindKey()); }
         }
+
+        [DataMember]
+        public bool IsHardDeleteEnabled { get; set; }
 
         public MojProp GetDeletedMarker(params MojPropDeletedMarker[] kinds)
         {

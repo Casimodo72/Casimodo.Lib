@@ -31,7 +31,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        WebODataBuildConfig OData { get; set; }
+        WebODataBuildConfig ODataConfig { get; set; }
 
         ODataControllerOptions Options { get; set; }
 
@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
-            OData = App.Get<WebODataBuildConfig>();
+            ODataConfig = App.Get<WebODataBuildConfig>();
 
             var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses(this)).ToArray();
 
@@ -58,7 +58,7 @@ namespace Casimodo.Lib.Mojen
                 Type = controller.TypeConfig.RequiredStore;
 
                 string controllerFilePath = Path.Combine(
-                    OData.WebODataControllersDirPath,
+                    ODataConfig.WebODataControllersDirPath,
                     this.GetODataControllerName(controller.TypeConfig) + ".generated.cs");
 
                 PerformWrite(controllerFilePath, () => GenerateController());
@@ -100,7 +100,7 @@ namespace Casimodo.Lib.Mojen
                 GetAllDataNamespaces()
             );
 
-            ONamespace(OData.WebODataServicesNamespace);
+            ONamespace(ODataConfig.WebODataServicesNamespace);
 
             foreach (var attr in Controller.Attrs)
             {
@@ -108,7 +108,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             O($"[ODataRoutePrefix(\"{Type.PluralName}\")]");
-            O($"public partial class {this.GetODataControllerName(Type)} : {OData.WebODataControllerBaseClass}");
+            O($"public partial class {this.GetODataControllerName(Type)} : {ODataConfig.WebODataControllerBaseClass}");
             Begin();
 
             // EF DB repository
@@ -218,7 +218,7 @@ namespace Casimodo.Lib.Mojen
 
             O();
             OApiActionAuthAttribute(editorView, "Create");
-            O("[HttpPost]");            
+            O("[HttpPost]");
             O($"public async Task<IHttpActionResult> {action}(ODataActionParameters parameters)");
             Begin();
             O($"return await CreateCore(parameters?.Values?.FirstOrDefault() as {editorView.TypeConfig.Name});");
@@ -282,14 +282,14 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{OData.Ns}.{OData.Query}()\")]");
+            O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.Query}()\")]");
             Oo("[EnableQuery(");
             if (false)
 #pragma warning disable CS0162
                 o("PageSize = 20, ");
 #pragma warning restore CS0162
             oO($"AllowedQueryOptions = LookupQueryOptions, MaxExpansionDepth = {Options.MaxExpansionDepth})]");
-            O($"public System.Web.Http.IHttpActionResult {OData.Query}()");
+            O($"public System.Web.Http.IHttpActionResult {ODataConfig.Query}()");
             Begin();
             O("return Ok(CustomFilter(_db.Query()));");
             End();
@@ -298,9 +298,9 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{OData.Ns}.{OData.QueryDistinct}(on={{on}})\")]");
+            O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.QueryDistinct}(on={{on}})\")]");
             O("[EnableQuery]");
-            O($"public System.Web.Http.IHttpActionResult {OData.QueryDistinct}(string on)");
+            O($"public System.Web.Http.IHttpActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();
             O($"return Ok(CustomFilter(_db.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
             End();
@@ -479,9 +479,8 @@ namespace Casimodo.Lib.Mojen
             O($"var item = {repository}.Get({key.VName});");
             O();
 
-            if (OData.IsPhysicalDeletionEnabled)
+            if (Type.IsHardDeleteEnabled || ODataConfig.IsPhysicalDeletionEnabled)
             {
-                // WARNING: Only for development purposes.
                 GeneratePhysicalDelete();
             }
             else
@@ -510,7 +509,7 @@ namespace Casimodo.Lib.Mojen
         {
             O("// Delete physically");
             var repository = Type.Kind == MojTypeKind.Model ? "_db.Entities" : "_db";
-            O($"{repository}.Delete(item);");
+            O($"{repository}.Delete(item, isPhysicalDeletionAuthorized: true);");
         }
 
         public void OApiActionAuthAttribute(MojViewConfig view, string action)
