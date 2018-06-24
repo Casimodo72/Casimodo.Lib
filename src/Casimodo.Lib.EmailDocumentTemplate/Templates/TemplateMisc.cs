@@ -63,7 +63,10 @@ namespace Casimodo.Lib.Templates
 
         public Guid Guid { get; set; }
         public string Name { get; set; }
+        public string DisplayName { get; set; }
+        public string Type { get; set; }
         public string Value { get; set; }
+        public bool IsInput { get; set; }
     }
 
     public class TemplateExpressionContext
