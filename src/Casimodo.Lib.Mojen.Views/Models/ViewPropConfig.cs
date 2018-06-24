@@ -258,6 +258,25 @@ namespace Casimodo.Lib.Mojen
         Bold = 1,
     }
 
+    public static class MojViewModeExtensions
+    {
+        public static IEnumerable<MojViewMode> GetAtomicFlags(this MojViewMode value)
+        {
+            var items = new List<MojViewMode>();
+
+            if (value.HasFlag(MojViewMode.Create))
+                items.Add(MojViewMode.Create);
+
+            if (value.HasFlag(MojViewMode.Read))
+                items.Add(MojViewMode.Read);
+
+            if (value.HasFlag(MojViewMode.Update))
+                items.Add(MojViewMode.Update);
+
+            return items;
+        }
+    }
+
     [Flags]
     public enum MojViewMode
     {
@@ -373,9 +392,9 @@ namespace Casimodo.Lib.Mojen
 
         public string GetRemoveOnMarkerClasses()
         {
-            return HideModes.ToString().Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => "remove-on-" + x)
-                .Join(" ");
+            return HideModes.GetAtomicFlags()
+            .Select(mode => "remove-on-" + mode)
+            .Join(" ");
         }
 
         /// <summary>

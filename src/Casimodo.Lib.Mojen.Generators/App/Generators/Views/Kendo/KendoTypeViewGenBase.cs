@@ -490,11 +490,8 @@ namespace Casimodo.Lib.Mojen
 
                     if (context.View.IsEditor)
                     {
-                        if (hideModes.HasFlag(MojViewMode.Create))
-                            @class += " remove-on-Create";
-
-                        if (hideModes.HasFlag(MojViewMode.Update))
-                            @class += " remove-on-Update";
+                        foreach (var mode in hideModes.GetAtomicFlags())
+                            @class += " remove-on-" + mode;
                     }
 
                     if (!context.View.IsEditor && hideModes.HasFlag(MojViewMode.Read))
