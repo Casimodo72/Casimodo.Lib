@@ -67,6 +67,8 @@ namespace Casimodo.Lib.Templates
         public string Type { get; set; }
         public string Value { get; set; }
         public bool IsInput { get; set; }
+
+        public string Kind { get; set; }
     }
 
     public class TemplateExpressionContext
