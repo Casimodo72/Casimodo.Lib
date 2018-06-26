@@ -222,18 +222,7 @@ namespace Casimodo.Lib.Mojen
                 // Read-only property label.
                 ReadOnlyGen.OPropLabel(context);
             }
-        }
-
-        string GetDisplayNameFor(WebViewGenContext context)
-        {
-            var info = context.PropInfo;
-
-            // Show customized text if explicitely defined on the view property.
-            if (info.CustomDisplayLabel != null)
-                return info.CustomDisplayLabel;
-
-            return $"@(Html.DisplayNameFor(m => m.{info.PropPath}))";
-        }
+        }     
 
         public override void ORunLabel(WebViewGenContext context, string text)
         {
@@ -611,9 +600,13 @@ namespace Casimodo.Lib.Mojen
             // Invisible input field for property binding and validation,            
             Oo($"<input id='{propPath}' name='{propPath}' data-bind='value:{propPath}' class='k-input k-valid'");
             o(" type ='text' style='display: none;' aria-disabled='false' aria-readonly='false' ");
+
             if (prop.IsRequiredOnEdit)
+                // KABU TODO: How to avoid having to specify the whole sentence here?
+                //   We want to specify the display-name only.
                 // KABU TODO: LOCALIZE
-                o($" data-val-required=\"Das Feld '{GetDisplayNameFor(context)}' ist erforderlich.\"");
+                o($" data-val-required=\"'{GetDisplayNameFor(context)}' ist erforderlich.\"");
+
             oO(" />");
         }
 
@@ -906,7 +899,7 @@ namespace Casimodo.Lib.Mojen
                         var isDeactivatable = cascadeFromInfo.Config.IsDeactivatable;
                         // Filter by the cascade-from field & value.
                         O($"options.filters.push({{ field: '{reference.ForeignKey.Name}', " +
-                            "value: cascadeFromVal, operator: 'eq', "+
+                            "value: cascadeFromVal, operator: 'eq', " +
                             $"targetType: '{targetType.Name}', " +
                             $"targetTypeId: '{targetType.Id}', " +
                             $"deactivatable: {MojenUtils.ToJsValue(isDeactivatable)} }});");
@@ -954,9 +947,9 @@ namespace Casimodo.Lib.Mojen
 
                     O($"var filter = {{ field: '{targetPath}', " +
                         "value: cascadeFromVal, operator: 'eq', " +
-                        $"targetType: '{targetType}', targetTypeId: '{targetType.Id}', " +                       
+                        $"targetType: '{targetType}', targetTypeId: '{targetType.Id}', " +
                         $"deactivatable: {MojenUtils.ToJsValue(false)} }};");
-                   
+
                     O($"options.filters.push(filter);");
                 }
 
@@ -1062,7 +1055,7 @@ namespace Casimodo.Lib.Mojen
 
             // DropDown list
             // See http://demos.telerik.com/aspnet-mvc/dropdownlist/index
-            O($"@(Html.Kendo().DropDownList().Name(\"{propPath}\")");
+            O($"@(Html.Kendo().DropDownListFor(m => m.{propPath})");
             Push();
 
             O($".ValuePrimitive(true)");
@@ -1109,8 +1102,13 @@ namespace Casimodo.Lib.Mojen
             if (prop.IsRequiredOnEdit)
                 ElemFlag("required");
 
-            // AddClassAttr("kendo-force-validation");
+            // KABU TODO: REMOVE: AddClassAttr("kendo-force-validation");
             ElemClass("form-control");
+            // KABU TODO: REVISIT: Kendo's MVC DropDownList wrapper does not output
+            //   the attribute "data-display-name" which is needed for the validation error message.
+            //   Why? Other Kendo MVC wrappers do output that attribute.
+            //   We have to add it manually.
+            ElemAttr("data-display-name", GetDisplayNameFor(context));
             OMvcAttrs(context, kendo: true);
 
             Pop();

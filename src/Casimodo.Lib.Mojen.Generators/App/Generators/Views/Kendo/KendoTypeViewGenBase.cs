@@ -591,12 +591,21 @@ namespace Casimodo.Lib.Mojen
 
             Oo($"<label for='{vitem.PropPath}' class='{LabelClass}'>");
 
-            if (vitem.CustomDisplayLabel != null)
-                o(vitem.CustomDisplayLabel);
-            else
-                o($"@(Html.DisplayNameFor(x => x.{vitem.PropPath}))");
+            o(GetDisplayNameFor(context));
 
             oO("</label>");
+        }
+
+        public string GetDisplayNameFor(WebViewGenContext context)
+        {
+            var info = context.PropInfo;
+
+            // Show customized text if explicitely defined on the view property.
+            if (info.CustomDisplayLabel != null)
+                return info.CustomDisplayLabel;
+            else
+                // KABU TODO: This is never hit in our current project. 
+                return $"@(Html.DisplayNameFor(m => m.{info.PropPath}))";
         }
 
         public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = (context) => { };
