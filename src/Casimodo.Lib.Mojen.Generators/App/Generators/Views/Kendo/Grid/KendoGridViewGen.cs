@@ -724,7 +724,7 @@ namespace Casimodo.Lib.Mojen
             // KABU TODO: IMPORTANT: Fix: Currently we hard-code all navigated-to properties to be sortable,
             //   because the view-property (which is a clone of the type's native property)
             //   is a reference property and is *not* sortable by default (set in MojClassPropBuilder).
-            if (!vprop.IsSortable && !vprop.IsReferenced)
+            if (!vprop.IsSortable) // TODO: REMOVE: && !vprop.IsReferenced)
                 O("sortable: false,");
 
             if (!vprop.IsGroupable)

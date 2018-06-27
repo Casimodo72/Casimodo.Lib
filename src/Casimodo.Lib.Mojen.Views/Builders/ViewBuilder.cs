@@ -980,12 +980,14 @@ namespace Casimodo.Lib.Mojen
         /// <param name="hidden">Property will be fetched but is not part of the view and the data update mask.</param>
         /// <param name="readOnly"></param>
         /// <param name="external">Intended to be edited via a user-provided custom template.</param>
-        /// <returns></returns>
         public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool? readOnly = null, bool external = false, bool label = true)
         {
             var pbuilder = SimplePropCore(prop, readOnly: readOnly ?? false, hidden: hidden);
 
             pbuilder.Prop.NoLabel = !label;
+
+            // View props are sortable by default.
+            pbuilder.Prop.IsSortable = true;
 
             if (hidden || external)
             {
