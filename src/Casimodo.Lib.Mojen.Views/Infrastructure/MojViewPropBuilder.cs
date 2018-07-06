@@ -407,7 +407,7 @@ namespace Casimodo.Lib.Mojen
         /// so IMPL definition of lookups without having to specify a property.
         /// </summary>
         /// <returns></returns>
-        public MojViewPropBuilder Lookup(string group = null, string viewId = null)
+        public MojViewPropBuilder Lookup(string group = null, string viewAlias = null, string viewId = null)
         {
             Prop.IsSelector = true;
             Prop.Lookup = new MojLookupViewPropConfig
@@ -415,6 +415,7 @@ namespace Casimodo.Lib.Mojen
                 Is = true,
                 TargetType = Prop.FormedNavigationTo.TargetType,
                 ViewGroup = group,
+                ViewAlias = viewAlias,
                 ViewId = viewId
             };
 

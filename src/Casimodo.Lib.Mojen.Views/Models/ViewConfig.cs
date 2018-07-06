@@ -351,15 +351,17 @@ namespace Casimodo.Lib.Mojen
             {
                 var viewType = prop.Lookup.TargetType;
                 var viewId = prop.Lookup.ViewId;
-                var viewGroup = prop.Lookup.ViewGroup; // ?? "Lookup";
+                var viewAlias = prop.Lookup.ViewAlias;
+                var viewGroup = prop.Lookup.ViewGroup;
 
                 var lookupViews = app.GetItems<MojViewConfig>()
                     .Where(x =>
                         x.Lookup.Is &&
-                        x.TypeConfig == viewType &&
+                        x.TypeConfig == viewType &&                      
                         (viewId == null || viewId == x.Id) &&
-                        viewGroup == x.Group)
-                    //(viewGroup == null || viewGroup == x.Group))
+                        (viewAlias == null || viewAlias == x.Alias) &&
+                        (viewGroup == x.Group || (viewGroup == null && (viewId != null || viewAlias != null)))
+                    )
                     .ToArray();
 
                 if (lookupViews.Count() != 1)

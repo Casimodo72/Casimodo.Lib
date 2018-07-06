@@ -629,7 +629,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsForeign(MojProp prop)
         {
-            if (prop.FormedNavigationFrom.Is && prop.FormedNavigationFrom.TargetType != this)
+            if (prop.FormedNavigationFrom.Is) // && prop.FormedNavigationFrom.TargetType != this)
                 return true;
 
             if (prop.DeclaringType == this || TestAncestorOrSelf(type => type == prop.DeclaringType))

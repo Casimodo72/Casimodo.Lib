@@ -420,6 +420,8 @@ namespace Casimodo.Lib.Mojen
         public string ViewId { get; set; }
 
         public string ViewGroup { get; set; }
+
+        public string ViewAlias { get; set; }
     }
 
     public class MojLookupCascadeFromScopeViewPropConfig : MojBase

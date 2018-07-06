@@ -642,6 +642,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder Configure(Func<MojViewBuilder, MojViewBuilder> configure)
+        {
+            configure(this);
+
+            return this;
+        }
+
         public MojViewBuilder Taggable()
         {
             View.IsTaggable = true;
@@ -730,6 +737,12 @@ namespace Casimodo.Lib.Mojen
         {
             View.HasFactory = true;
 
+            return this;
+        }
+
+        public MojViewBuilder Alias(string alias)
+        {
+            View.Alias = alias;
             return this;
         }
 
@@ -1075,6 +1088,8 @@ namespace Casimodo.Lib.Mojen
 
             var pbuilder = MojViewPropBuilder.Create(this, effectiveProp);
             pbuilder.Prop.FormedNavigationTo = path;
+            if (pbuilder.Prop.FormedNavigationFrom.Is)
+                throw new Exception();
             pbuilder.Prop.OrigTargetProp = prop;
 
             return pbuilder;
