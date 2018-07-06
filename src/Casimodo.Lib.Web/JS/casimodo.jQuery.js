@@ -14,8 +14,11 @@ $.fn.visible = function () {
     return this.css('visibility', 'visible');
 };
 
-$.fn.invisible = function () {
-    return this.css('visibility', 'hidden');
+$.fn.invisible = function (collapse) {
+    if (collapse)
+        return this.css('visibility', 'collapse');
+    else
+        return this.css('visibility', 'hidden');
 };
 
 $.fn.listHandlers = function (events) {

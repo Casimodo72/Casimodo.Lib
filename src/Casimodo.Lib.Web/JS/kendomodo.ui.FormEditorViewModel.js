@@ -236,64 +236,124 @@ var kendomodo;
                 this.$toolbar = this.$view.find(".k-edit-buttons");
 
                 this.dataSource.one("change", function (e) {
-
-                    if (!self.dataSource.data().length) return;
-
-                    var model = self.dataSource.data()[0];
-                    var editable = self.$view.kendoEditable({ model: model, clearContainer: false }).data("kendoEditable");
-                    var saveable = false;
-
-                    var $saveCmd = self.$toolbar.find(".k-update").on("click", function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        if (self._iedit.isSaving)
-                            return false;
-
-                        self._editors.forEach(function (ed) {
-
-                            // Perform save() on code-mirror editor in order to
-                            //   populate the textarea with the current value.
-                            //   This is needed because code-mirror does not update
-                            //   the underlying textarea automatically.
-                            if (ed.type === "CodeMirror") {
-                                ed.component.save();
-                                ed.$el.change();
-                            }
-                        });
-
-                        if (editable.validatable.validate() && saveable) {
-                            self._save();
-                        }
-                        return false;
-                    });
-
-                    var $cancelCmd = self.$toolbar.find(".k-cancel").on("click", function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        self._cancel();
-                        return false;
-                    });
-
-                    editable.bind("change", function (e) {
-                        editable.validatable.validate();
-                    });
-
-                    editable.validatable.bind("validate", function (e) {
-                        saveable = e.valid && model.dirty;
-
-                        //var errors = editable.validatable.errors();
-                        //if (errors.length) {
-                        //    alert("Got errors");
-                        //}
-
-                        //$saveCmd.prop('disabled', !saveable);
-                        if (saveable)
-                            $saveCmd.removeClass("k-state-disabled");
-                        else
-                            $saveCmd.addClass("k-state-disabled");
-                    });
+                    self._initCommitBehavior();
                 });
+            };
+
+            fn._getErrorTemplate = function () {
+                return `<a href="\\#" class="km-form-field-error-tooltip" data-tooltip="#:message#"><span class='icon-prop-validation-error'></a>`;
+            };
+
+            fn._initCommitBehavior = function () {
+                var self = this;
+
+                if (!self.dataSource.data().length) return;
+
+                var model = self.dataSource.data()[0];
+                var editable = self.$view.kendoEditable({
+                    model: model,
+                    clearContainer: false,
+                    errorTemplate: this._getErrorTemplate()
+                }).data("kendoEditable");
+
+                var saveAttempted = false;
+
+                var $saveCmd = self._$saveCmd = self.$toolbar.find(".k-update").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (self._iedit.isSaving)
+                        return false;
+
+                    saveAttempted = true;
+
+                    self._editors.forEach(function (ed) {
+
+                        // Perform save() on code-mirror editor in order to
+                        //   populate the textarea with the current value.
+                        //   This is needed because code-mirror does not update
+                        //   the underlying textarea automatically.
+                        if (ed.type === "CodeMirror") {
+                            ed.component.save();
+                            ed.$el.change();
+                        }
+                    });
+
+                    // Save only if modified and valid.
+                    if (model.dirty && editable.validatable.validate()) {
+                        self._save();
+                    }
+                    return false;
+                });
+
+                var $cancelCmd = self.$toolbar.find(".k-cancel").on("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    self._cancel();
+                    return false;
+                });
+
+                editable.bind("change", function (e) {
+
+                    if (saveAttempted) {
+                        // Validate all if a save was already attempted.
+                        editable.validatable.validate();
+                    }
+                    else {
+                        
+                        var field = Object.keys(e.values)[0];
+                        var value = e.values[field];
+                        var input = self._findInputElement(field, value);
+
+                        // NOTE: if we don't find the specific input element
+                        //   then this might be a hidden field or a complex type field.
+                        //   We will ignore such fields if a save was not attempted yet.
+
+                        if (input && input.length === 1) {
+                            var valid = editable.validatable.validateInput(input);
+
+                            // If a save was not attempted yet then enable the
+                            //   save button when there are changes.
+                            self._updateSaveable(model.dirty && valid);
+                        }
+                    }
+                });
+
+                editable.validatable.bind("validate", function (e) {
+
+                    self._updateSaveable(e.valid && model.dirty);
+
+                    // Just for debug purposes.
+                    //var errors = editable.validatable.errors();
+                    //if (errors.length) {
+                    //    alert("Got errors");
+                    //}
+                });
+            };
+
+            fn._updateSaveable = function (saveable) {
+                if (saveable)
+                    this._$saveCmd.removeClass("k-state-disabled");
+                else
+                    this._$saveCmd.addClass("k-state-disabled");
+            };
+
+            fn._findInputElement = function (fieldName, fieldValue) {
+                // KABU TODO: Unfortunately Kendo's editable change event does
+                //   not give us the input element. Thus we need find it
+                //   in the same way Kendo does.
+
+                var self = this;
+                var bindAttribute = kendo.attr('bind');
+                var bindingRegex = new RegExp('(value|checked)\\s*:\\s*' + fieldName + '\\s*(,|$)');
+
+                var input = $(':input[' + bindAttribute + '*="' + fieldName + '"]', this.$view)
+                    .filter('[' + kendo.attr('validate') + '!=\'false\']').filter(function () {
+                        return bindingRegex.test($(this).attr(bindAttribute));
+                    });
+
+
+                return input;
             };
 
             fn._initTextRenderers = function () {

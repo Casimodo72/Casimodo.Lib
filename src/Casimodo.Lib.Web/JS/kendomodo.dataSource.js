@@ -3,18 +3,34 @@
 var kendomodo;
 (function (kendomodo) {
 
+    kendomodo.findDataSourceFilter = function (filters, predicate) {
+        if (!filters || !filters.length)
+            return null;
+
+        var filter;
+        for (var i = 0; i < filters.length; i++) {
+            filter = filters[i];
+            if (filter.logic) {
+                var foundFilter = kendomodo.findDataSourceFilter(filter.filters, predicate);
+                if (foundFilter)
+                    return foundFilter;
+            }
+            else if (predicate(filter))
+                return filter;
+        }
+
+        return null;
+    };
+
     kendomodo.parameterMapForOData = function (data, type, strategy) {
 
         var effectiveData = data;
-        if (type === "update" && strategy === "Action") {
+        if (strategy === "Action" && (type === "update" || type === "create")) {
+            // We are using OData actions for updates.
             // OData actions need a named parameter in the payload.
             effectiveData = new kendo.data.ObservableObject({
                 model: data
             });
-        }
-
-        if (type === "read") {
-
         }
 
         if (type !== "read") {
@@ -240,10 +256,12 @@ var kendomodo;
         });
     };
 
-    function createReadDataSource(url, parameter) {
-        return new kendo.data.DataSource({
+    function createReadDataSource(url, parameter, options) {
+
+        var dsoptions = {
             type: "odata-v4",
             transport: {
+                parameterMap: function (data, type) { return kendomodo.parameterMapForOData(data, type, null); },
                 read: {
                     url: url,
                     dataType: "json",
@@ -259,8 +277,20 @@ var kendomodo;
                 model: {
                     id: "Id"
                 }
-            }
-        });
+            },
+            pageSize: 0,
+            serverPaging: true,
+            serverSorting: true,
+            serverFiltering: true
+        };
+
+        if (options) {
+            Object.keys(options).forEach(function (prop) {
+                dsoptions[prop] = options[prop];
+            });
+        }
+
+        return new kendo.data.DataSource(dsoptions);
     }
     kendomodo.createReadDataSource = createReadDataSource;
 
@@ -368,13 +398,13 @@ var kendomodo;
         }
     };
 
-    // KABU TODO: ELIMINATE and move into the view models.
     kendomodo.onServerErrorOData = function (args) {
 
         var message = casimodo.getResponseErrorMessage("odata", args.xhr);
 
         casimodo.ui.showError(message);
 
+        // KABU TODO: ELIMINATE and move into the view models.
         var $errorBox = $("#validation-errors-box");
         if ($errorBox) {
             $errorBox.empty();

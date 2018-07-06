@@ -416,8 +416,7 @@ var kendomodo;
             fn.processNavigation = function () {
                 var self = this;
 
-                var args = casimodo.ui.navigationArgs.consume(this._options.id);
-                if (!args)
+                if (!this._hasBaseFilter(KEY_FILTER_ID))
                     return this;
 
                 this.one("dataBound", function (e) {
@@ -429,11 +428,30 @@ var kendomodo;
                 this.component.tbody.find(".k-filter-row")
                     .hide();
 
-                this.setArgs(args);
-
                 // Display button for deactivation of the "specific-item" filter.
-                this.component.wrapper.find(".k-grid-toolbar .kmodo-clear-guid-filter-command")
-                    .addClass("active-filter-toggle-button")
+                var $command = this._$toolbar.find(".kmodo-clear-guid-filter-command");
+
+                // Clear single object filter on demand.
+                // Views can be called with a item GUID filter which loads only a single specific object.
+                // This is used for navigation from other views to a specific object.
+                // In order to remove that filter, a "Clear GUID filter" command is placed on the toolbar.      
+                $command.on("click", function (e) {
+
+                    // Hide the command button.
+                    $(this).hide(100);
+
+                    // Show the grid's filters which were hidden since we displayed only a single object.
+                    self.component.thead.find(".k-filter-row")
+                        .show(100);
+
+                    // Remove single entity filter and reload.
+                    self._removeBaseFilter(KEY_FILTER_ID);
+                    self.refresh();
+                });
+
+                $command.text("Filter: Navigation");
+
+                $command.addClass("active-filter-toggle-button")
                     .show();
 
                 return this;
@@ -549,7 +567,7 @@ var kendomodo;
                 });
             };
 
-            fn.optionsSetLocalData = function(data) {
+            fn.optionsSetLocalData = function (data) {
                 this.componentOptions.dataSource.data(data);
             };
 
@@ -557,17 +575,87 @@ var kendomodo;
                 return $el.closest("tr[role=row]");
             };
 
+            fn._isTaggable = function () {
+                return !!this._options.tagsEditorId; // || this._options.isTaggable;
+            };
+
+            fn.exportDataTo = function (target) {
+                if (target === "excel")
+                    this.component.saveAsExcel();
+                else if (target === "pdf")
+                    this.component.saveAsPDF();
+            };
+
+            fn._getAllConsumerFilters = function () {
+
+                var filters = this._options.filters || [];
+
+                if (this.args && this.args.filters && this.args.filters !== this._options.filters)
+                    filters = filters.concat(this.args.filters);
+
+                return filters;
+            }
+
+            fn._hasNonRemovableCompanyFilter = function () {
+
+                return !!kendomodo.findDataSourceFilter(this._getAllConsumerFilters(),
+                    function (filter) {
+                        // KABU TODO: MAGIC Company type ID
+                        return filter.targetTypeId === "59a58131-960d-4197-a537-6fbb58d54b8a" &&
+                            !filter.deactivatable;
+                    });
+            };
+
+            fn._updateTagFilterSelector = function () {
+
+                if (this._tagsFilterSelector) {
+                    var companyFilter = this._findBaseFilter(COMPANY_FILTER_ID);
+                    var companyId = companyFilter ? companyFilter.value : null;
+                    var filters = kendomodo.buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
+
+                    this._tagsFilterSelector.dataSource.filter(filters);
+                }
+            };
+
+            fn._getCurrentCompanyId = function () {
+
+            };
+
+            var KEY_FILTER_ID = "5883120a-b1a6-4ac8-81a2-1d23028daebe";
+            var COMPANY_FILTER_ID = "b984dd7b-5d7a-48bf-b7f1-db26522c63df";
+            var TAGS_FILTER_ID = "2bd9e0d8-7b2d-4c1e-90c0-4d7eac6d01a4";
+
             fn.createComponent = function () {
                 if (this.component)
                     return this.component;
 
                 var self = this;
 
+                this.initBaseFilters();
+
+                // Evaluate navigation args
+                var naviArgs = casimodo.ui.navigationArgs.consume(this._options.id);
+                if (naviArgs && naviArgs.itemId) {
+                    this._setBaseFilter(KEY_FILTER_ID, { field: this.keyName, value: naviArgs.itemId });
+                }
+
+                var isCompanyChangeable = !this._hasNonRemovableCompanyFilter();
+
+                if (self._options.isGlobalCompanyFilterEnabled &&
+                    isCompanyChangeable &&
+                    // Don't filter by global company if navigating to a specific entity.
+                    !self._hasBaseFilter(KEY_FILTER_ID)) {
+
+                    var companyId = casimodo.getGlobalInitialCompanyId();
+                    if (companyId)
+                        self._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
+                }
+
                 var $component = this._options.$component || null;
 
                 // Find the element of the grid.
                 if (!$component)
-                    $component = $('#grid-' + this._options.id);
+                    $component = $("#grid-" + this._options.id);
 
                 var kendoGridOptions = this.initComponentOptions();
 
@@ -606,13 +694,91 @@ var kendomodo;
                 }
 
                 // Toolbar commands
-                var $toolbar = self.component.wrapper.find(".k-grid-toolbar > .toolbar");
+                var $toolbar = this._$toolbar = self.component.wrapper.find(".km-grid-toolbar-content");
 
                 // Refresh command
                 $toolbar.find(".k-grid-refresh").on("click", function (e) {
                     self.refresh();
                     // KABU TODO: REMOVE: self.component.dataSource.read();
                 });
+
+                var initialCompanyId = null;
+                if (self._options.isCompanyFilterEnabled) {
+
+                    var $companySelector = $toolbar.find(".km-grid-company-filter-selector");
+                    if ($companySelector.length) {
+
+                        if (!isCompanyChangeable) {
+                            // The component was instructed to operate on a specific Company.
+                            // Do not allow changing that Company.
+                            $companySelector.remove();
+                        }
+                        else {
+                            // Use the globally provided current Company if configured to do so.
+                            initialCompanyId =
+                                (self._options.isGlobalCompanyFilterEnabled &&
+                                    // Don't filter by global company if navigating to a specific entity.
+                                    !self._hasBaseFilter(KEY_FILTER_ID))
+                                    ? casimodo.getGlobalInitialCompanyId()
+                                    : null;
+
+                            self._companyFilterSelector = kendomodo.ui.createCompanySelector(
+                                $companySelector,
+                                function (companyId) {
+                                    if (companyId)
+                                        self._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
+                                    else
+                                        self._removeBaseFilter(COMPANY_FILTER_ID);
+
+                                    self.refresh();
+
+                                    self._updateTagFilterSelector();
+
+                                },
+                                { CompanyId: initialCompanyId }
+                            );
+                        }
+                    }
+                }
+
+                if (self._options.isTagsFilterEnabled) {
+                    var $selector = $toolbar.find(".km-grid-tags-filter-selector");
+                    if ($selector.length) {
+                        self._tagsFilterSelector = kendomodo.ui.createMoTagFilterSelector(
+                            $selector,
+                            {
+                                changed: function (tagId) {
+                                    if (tagId) {
+                                        var expression = "Tags/any(tag: tag/Id eq " + tagId + ")";
+                                        self._setBaseFilter(TAGS_FILTER_ID, { expression: expression });
+                                    }
+                                    else
+                                        self._removeBaseFilter(TAGS_FILTER_ID);
+
+                                    self.refresh();
+                                },
+                                filters: kendomodo.buildTagsDataSourceFilters(self._options.dataTypeId, initialCompanyId)
+                            }
+                        );
+                    }
+                }
+
+                // Export menu
+                var $toolsMenu = $toolbar.find(".km-grid-tools-menu");
+                $toolsMenu.kendoMenu({
+                    openOnClick: true,
+                    select: function (e) {
+                        var name = $(e.item).data("name");
+
+                        e.sender.close();
+
+                        if (name === "ExportToExcel")
+                            self.exportDataTo("excel");
+                        else if (name === "ExportToPdf")
+                            self.exportDataTo("pdf");
+                    }
+                });
+                //$toolsMenu.find(">li").first().find("span.k-link").first().css("padding", "0px").css("padding-top", "6px");
 
                 // Init custom command buttons on the grid's toolbar.
                 // KABU TODO: CLARIFY: What was "self.extension" about?
@@ -625,23 +791,6 @@ var kendomodo;
                 }
 
                 if (!this._options.isLookup) {
-                    // Clear single object filter on demand.
-                    // Views can be called with a item GUID filter which loads only a single specific object.
-                    // This is used for navigation from other views to a specific object.
-                    // In order to remove that filter, a "Clear GUID filter" command is placed on the toolbar.      
-                    $toolbar.find(".kmodo-clear-guid-filter-command").on("click", function (e) {
-
-                        // Hide the command button.
-                        $(this).hide(100);
-
-                        // Show the grid's filters which were hidden since we displayed only a single object.
-                        self.component.thead.find(".k-filter-row")
-                            .show(100);
-
-                        // Clear filters and reload.
-                        self.applyFilter(null);
-                    });
-
 
                     this.component.tbody.on("click", ".k-grid-custom-edit", function (e) {
                         if (self._state.isEditing)
@@ -653,6 +802,53 @@ var kendomodo;
 
                         return false;
                     });
+
+                    // EditTags context menu action.
+                    if (this._isTaggable()) {
+
+                        var $contextMenu = $component.parent().find("#tags-context-menu-grid-" + this._options.id);
+                        $contextMenu.kendoContextMenu({
+                            target: $component,
+                            filter: "tr[role=row]",
+                            open: function (e) {
+                                var menu = e.sender;
+                                var name = $(e.item).data("name");
+                                var grid = self.component;
+                                var dataItem = grid.dataItem(e.target);
+
+                                // KABU TODO: IMPORTANT: Apply auth.
+                                //kendomodo.enableContextMenuItems(menu, "EditTags", xyz);
+                            },
+                            select: function (e) {
+                                var menu = e.sender;
+                                var name = $(e.item).data("name");
+                                var grid = self.component;
+                                var dataItem = grid.dataItem(e.target);
+
+                                // KABU TODO: This may be just a temporary hack.
+                                //   We could / should use a service instead in the future.
+                                if (name === "EditTags") {
+                                    // Open tags (MoTags) editor.
+                                    kendomodo.ui.openById(self._options.tagsEditorId,
+                                        {
+                                            itemId: dataItem[self.keyName],
+                                            filters: kendomodo.buildTagsDataSourceFilters(self._options.dataTypeId, dataItem.CompanyId),
+                                            // TODO: LOCALIZE
+                                            title: "Markierungen bearbeiten",
+
+                                            minWidth: 400,
+                                            minHeight: 500,
+
+                                            finished: function (result) {
+                                                if (result.isOk) {
+                                                    self.refresh();
+                                                }
+                                            }
+                                        });
+                                }
+                            }
+                        });
+                    }
                 }
 
                 this.component.tbody.on("click", "span.page-navi", kendomodo.ui.onPageNaviEvent);
@@ -718,14 +914,14 @@ var kendomodo;
                     self._dialogWindow.close();
                 });
 
+                var $toolbarLeft = this._$toolbar.find(".km-grid-tools").first();
+
                 var filterCommands = this.args.filterCommands;
-                if (typeof filterCommands !== "undefined" && filterCommands.length) {
+                if (filterCommands && filterCommands.length) {
 
                     // Add deactivatable filter buttons to the grid's toolbar.
                     // Those represent initially active filters as defined by the caller.
                     // The filter/button will be removed by pressing the button.
-
-                    var $toolbar = this.component.wrapper.find(".k-grid-toolbar > .toolbar");
 
                     for (var i = 0; i < filterCommands.length; i++) {
                         var cmd = filterCommands[i];
@@ -745,7 +941,7 @@ var kendomodo;
                                 self.refresh();
                             });
                             // Append button to grid's toolbar.
-                            $toolbar.append($btn);
+                            $toolbarLeft.append($btn);
                         }
                     }
                 }

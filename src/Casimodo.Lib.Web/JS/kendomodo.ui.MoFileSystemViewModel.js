@@ -95,6 +95,7 @@ var kendomodo;
                 this._getDisplayedOwners().forEach(x => {
                     x.set("Id", null);
                     x.set("Name", "?");
+                    x.set("CompanyId", null);
                 });
             };
 
@@ -105,6 +106,7 @@ var kendomodo;
 
                 owner.set("Id", values.Id);
                 owner.set("Name", values.Name);
+                owner.set("CompanyId", values.CompanyId || null);
             };
 
             fn._getDisplayedOwners = function () {
@@ -112,19 +114,34 @@ var kendomodo;
             };
 
             fn._onCurrentOwnerChanged = function () {
-                var item = this._getCurrentOwner();
+                var owner = this._getCurrentOwner();
 
                 // Clear the folders tree view model. This will also enable
                 // expansion of all folders after the next refresh.
                 this._components.treeViewModel.clear();
                 this._components.filesViewModel.clear();
                 // Set the selected owner.
-                this._components.treeViewModel.setOwner(item);
+                this._components.treeViewModel.setOwner(owner);
                 // Don't refresh initially, but alwas refresh subsequently, so that the
                 // consumer can have control over the first refresh.
                 if (this._isComponentInitialized) {
                     this._components.treeViewModel.refresh();
                 }
+
+                // Update available tags.
+                if (this._components.tagFilterSelector &&
+                    this._lastCompanyId !== owner.CompanyId) {
+
+                    this._lastCompanyId = owner.CompanyId;
+
+                    this._components.tagFilterSelector.dataSource.filter(
+                        kendomodo.buildTagsDataSourceFilters(geoassistant.MoTypeKeys.File, owner.CompanyId)
+                    );
+                }
+            };
+
+            fn._onTagFilterChanged = function () {
+                var tagFilter = this._componentModels.tags.current;
             };
 
             fn.getCurrentFolder = function () {
@@ -205,11 +222,25 @@ var kendomodo;
                     current: null,
                     items: this._options.owners,
                     changed: function (e) {
-                        var item = e.sender.dataItem();
+                        //var item = e.sender.dataItem();
                         self._onCurrentOwnerChanged();
                     }
                 });
                 kendo.bind(options.$area.find("input.mo-file-system-owner-selector"), this._componentModels.owners);
+
+                var $selector = options.$area.find("input.mo-file-system-tag-filter-selector");
+                if ($selector.length) {
+                    this._components.tagFilterSelector = kendomodo.ui.createMoTagFilterSelector(
+                        $selector,
+                        {
+                            changed: function (tagId) {
+                                self._components.treeViewModel.setTagFilter(tagId);
+                                self._components.treeViewModel.refresh();
+                            },
+                            filters: kendomodo.buildTagsDataSourceFilters(geoassistant.MoTypeKeys.File)
+                        }
+                    );
+                }
             };
 
             fn._createMoFileCollectionViewModel = function (options) {
@@ -285,6 +316,10 @@ var kendomodo;
                 this.filesGridViewModel.selectionManager.on("selectionChanged", function (e) { self.trigger("selectionChanged", e); });
                 this.filesGridViewModel.selectionManager.on("selectionItemAdded", function (e) { self.trigger("selectionItemAdded", e); });
                 this.filesGridViewModel.selectionManager.on("selectionItemRemoved", function (e) { self.trigger("selectionItemRemoved", e); });
+            };
+
+            fn.setTagFilter = function (tagId) {
+                this._filterTagId = tagId;
             };
 
             fn.getDataSource = function () {
@@ -462,7 +497,7 @@ var kendomodo;
                                 // Open Mo file tags editor.
                                 kendomodo.ui.openById("844ed81d-dbbb-4278-abf4-2947f11fa4d3",
                                     {
-                                        filters: [{ field: "AssignableToTypeId", operator: "eq", value: geoassistant.MoTypeKeys.File }],
+                                        filters: kendomodo.buildTagsDataSourceFilters(geoassistant.MoTypeKeys.File, self.owner.CompanyId),
                                         itemId: file.Id,
                                         title: "Datei-Markierungen bearbeiten",
                                         message: file.File.FileName,
@@ -847,6 +882,12 @@ var kendomodo;
                 return this.refreshFolders(selection);
             };
 
+            fn.setTagFilter = function (tagId) {
+                this._filterTagId = tagId;
+
+                this.moFileCollectionViewModel.setTagFilter(tagId);
+            };
+
             fn.refreshFolders = function (selection) {
 
                 var self = this;
@@ -878,6 +919,10 @@ var kendomodo;
                     query += "&$expand=Permissions($select=RoleId)";
                     //query += "&$orderby=Name&";
                     query += "&$filter=OwnerId eq " + self.owner.Id;
+
+                    if (self._filterTagId) {
+                        query += " and (IsContainer eq true or Tags/any(tag: tag/Id eq " + self._filterTagId + "))";
+                    }
 
                     casimodo.oDataQuery(query)
                         .then(function (items) {
@@ -957,12 +1002,15 @@ var kendomodo;
                 // Hide upload-component if in recycle-bin.
                 this.moFileCollectionViewModel._setFileUploadVisible(!isInRecycleBin);
 
-                var filter = [
+                var filters = [
                     { field: "ParentId", operator: "eq", value: folder.Id },
                     { field: "IsContainer", operator: "eq", value: false }
                 ];
 
-                this.moFileCollectionViewModel.applyFilter(filter);
+                if (this._filterTagId)
+                    filters.push({ customExpression: "Tags/any(tag: tag/Id eq " + this._filterTagId + ")" });
+
+                this.moFileCollectionViewModel.applyFilter(filters);
             };
 
             fn.isRoot = function (folder) {

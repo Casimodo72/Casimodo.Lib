@@ -42,7 +42,8 @@ var kendomodo;
 
                 casimodo.ui.navigationArgs.add({
                     id: listReg.id,
-                    filters: [{ field: "Id", operator: "eq", value: options.itemId }]
+                    itemId: options.itemId
+                    // filters: [{ field: "Id", operator: "eq", value: options.itemId }]
                 });
 
                 window.open(reg.url, "");
@@ -131,7 +132,7 @@ var kendomodo;
             if (!wnd) {
                 var top = 1;
 
-                var ownd = reg;
+                var ownd = Object.assign({}, reg);
 
                 // Width
                 ownd.width = options.width || ownd.width || null;
@@ -212,9 +213,12 @@ var kendomodo;
                     owindow.minWidth = ownd.minWidth;
                     owindow.maxWidth = ownd.maxWidth;
                     owindow.width = ownd.width;
-                }
+                }               
 
-                wnd = $("<div></div>")
+                // Somehow the window is always too small for the content.
+                //   Maybe it's an effect of using Bootstrap.
+                //   We'll add a padding of 40px.
+                wnd = $("<div style='padding-right: 40px'></div>")
                     //.appendTo(casimodo.ui.findDialogContainer())
                     .kendoWindow(owindow)
                     .data('kendoWindow');
@@ -225,12 +229,14 @@ var kendomodo;
 
                 if (options.finished) {
                     wnd.one("close", function (e) {
-                        // KABU TODO: IMPORTANT: Should we hand control over this to
-                        //   the view model?
-                        // This occurs when the user closes the dialog
-                        //  via the dialog window title bar's close button.
-                        args.isOk = false;
-                        args.isCancelled = true;
+                        if (e.userTriggered === true) {
+                            // KABU TODO: IMPORTANT: Should we hand control over this to
+                            //   the view model?
+                            // This occurs when the user closes the dialog
+                            //  via the dialog window title bar's close button.
+                            args.isOk = false;
+                            args.isCancelled = true;                          
+                        }
 
                         options.finished(args);
                     });
@@ -255,7 +261,7 @@ var kendomodo;
             if (!initialCreate) {
                 _centerKendoWindowHorizontally(wnd);
 
-                if (options.maximize === true)
+                if (reg.maximize === true || options.maximize === true)
                     wnd.maximize();
 
                 kendomodo.ui.progress(false);
@@ -284,7 +290,7 @@ var kendomodo;
 
                     _centerKendoWindowHorizontally(wnd);
 
-                    if (options.maximize === true)
+                    if (reg.maximize === true || options.maximize === true)
                         wnd.maximize();
 
                     if (options.vm)

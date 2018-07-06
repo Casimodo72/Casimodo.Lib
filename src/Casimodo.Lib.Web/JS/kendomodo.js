@@ -3,6 +3,9 @@
 kendo.ui.Pager.prototype.options.messages.allPages = "Alle";
 kendo.ui.Pager.prototype.options.messages.display = "{0} - {1} von {2}";
 
+kendo.ui.FilterCell.prototype.options.messages.isFalse = "nein";
+kendo.ui.FilterCell.prototype.options.messages.isTrue = "ja";
+
 var kendomodo;
 (function (kendomodo) {
 
@@ -98,41 +101,6 @@ var kendomodo;
         return $window.data('kendoWindow');
     };
 
-    // KABU TODO: REMOVE: Not used anymore.
-    //kendomodo.initDialogActions = function ($container, args) {
-
-    //    var wnd = kendomodo.findKendoWindow($container);
-
-    //    $container.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", function () {
-    //        args.buildResult();
-    //        args.isCancelled = false;
-    //        args.isOk = true;
-    //        wnd.close();
-    //    });
-
-    //    $container.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-    //        args.isCancelled = true;
-    //        args.isOk = false;
-    //        wnd.close();
-    //    });
-    //};
-
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    // KABU TODO: REMOVE? Not used.
-    //kendomodo.onFileUploadFailed = function (e) {
-    //    alert("File Error");
-    //    var prop = $(e.sender.element).data('file-prop');
-    //    // KABU TODO: IMPL
-    //};
-
-    // KABU TODO: REMOVE? Not used.
-    //kendomodo.onFileUploadRemoving = function (e) {
-    //    alert("File removing ", e.files);
-    //    var prop = $(e.sender.element).data('file-prop');
-    //    // KABU TODO: IMPL
-    //};
-
     kendomodo.getColorCellTemplate = function (color) {
         // See http://www.mediaevent.de/css/transparenz.html
         if (!color || casimodo.isEmptyOrWhiteSpace(color))
@@ -142,51 +110,13 @@ var kendomodo;
         return "<div style='width: 30px; background-color: " + color + "'>&nbsp;</div>";
     };
 
-    // KABU TODO: REMOVE? Not used.
-    //kendomodo.getColorValueCellTemplate = function (value, color) {
-    //    if (typeof value === "undefined" || value === null || value === "")
-    //        return "";
-
-    //    // See http://www.mediaevent.de/css/transparenz.html
-    //    if (!color || casimodo.isEmptyOrWhiteSpace(color) || color === "#ffffff")
-    //        // KABU TODO: Which color to use for null?
-    //        color = "black";
-
-    //    return "<span style='color: " + color + "'>" + kendo.htmlEncode(value) + "</span>";
-    //};
-
     // KABU TODO: REMOVE? KEEP: maybe we can use this in the future.
     kendomodo.getShowPhotoCellTemplate = function (uri) {
         return "<a class='kendomodo-button-show-image k-button' href='#' data-file-uri='" + uri + "'><span class='casimodo-icon-show-image'></span></a>";
         // return "<div data-file-uri='" + uri + "' class='kendomodo-button-show-image'>&nbsp;</div>";
     };
 
-    // KABU TODO: REMOVE: Not used 
-    // Only used by the "_KendoAutoComplete.cshtml" partial view.
-    //kendomodo.onExperimentalAutoCompleteChanged = function (e) {
-    //    // "this" is Kendo.AutoComplete.
-
-    //    throw new Error("Method onExperimentalAutoCompleteChanged is not implemented yet.");
-
-    //    var filterValue = this.value();
-
-    //    // KABU TODO: How to find the grid in context from here?
-    //    var grid = $("#peopleGrid").data("kendoGrid");
-
-    //    // Apply filter.
-    //    if (filterValue) {
-    //        grid.dataSource.filter({
-    //            field: this.options.dataTextField, operator: "eq", value: filterValue
-    //        });
-    //    } else {
-    //        grid.dataSource.filter({
-    //        });
-    //    }
-    //};
-
-    // Misc utils ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
-
-   
+    // Misc utils ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
 
     kendomodo.toDisplayDateTime = function (value) {
         return value ? kendo.toString(new Date(value), "dd.MM.yyyy  HH:mm") : null;

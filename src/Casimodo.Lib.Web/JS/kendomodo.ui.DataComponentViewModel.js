@@ -11,6 +11,7 @@ var kendomodo;
 
                 this.dataSource = null;
                 this.dataSourceOptions = null;
+                this._baseFilters = [];
 
                 this.auth.canView = false;
 
@@ -139,6 +140,7 @@ var kendomodo;
 
                     var filters = [];
                     var i;
+
                     var baseFilters = self.getBaseFilters();
                     for (i = 0; i < baseFilters.length; i++)
                         filters.push(baseFilters[i]);
@@ -188,10 +190,6 @@ var kendomodo;
                         options.schema.model[prop] = this._options.computedFields[prop];
                 }
 
-                //if (typeof this._options.extendDataSourceOptions === "function") {
-                //    this._options.extendDataSourceOptions(options);
-                //}
-
                 this.extendDataSourceOptions(options);
 
                 this.dataSource = new kendo.data.DataSource(options);
@@ -239,7 +237,27 @@ var kendomodo;
 
                 // Displays server errors in the grid's pop up editor.
                 // Data source error handler: http://demos.telerik.com/aspnet-mvc/grid/editing-popup
-                return kendomodo.onServerErrorOData(e);
+                var message = casimodo.getResponseErrorMessage("odata", e.xhr);
+
+                var result = kendomodo.ui._tryCleanupHtml(message);
+                if (result.ok)
+                    message = result.html;
+
+                casimodo.ui.showError(message);
+
+                // KABU TODO: ELIMINATE and move into the view models.
+                var $errorBox = $("#validation-errors-box");
+                if ($errorBox) {
+                    $errorBox.empty();
+                    var template = result.ok
+                        ? kendo.template("<li>#=message #</li>")
+                        : kendo.template("<li>#:message #</li>");
+                    $errorBox.append(template({
+                        message: message
+                    }));
+                }
+
+                return message;
             };
 
             fn.setDataSource = function (value) {
@@ -251,8 +269,46 @@ var kendomodo;
                 fixFilters(this.filters);
             };
 
+            fn.initBaseFilters = function () {
+                // NOP
+            };
+
             fn.getBaseFilters = function () {
-                return [];
+                return this._baseFilters;
+            };
+
+            fn._setBaseFilter = function (id, data) {
+
+                var filters = this.getBaseFilters();
+
+                var filter = filters.find(x => x._filterId === id);
+                if (!filter) {
+                    filter = { operator: "eq", _filterId: id };
+                    filters.push(filter);
+                }
+
+                if (typeof data.field !== "undefined")
+                    filter.field = data.field;
+                if (typeof data.value !== "undefined")
+                    filter.value = data.value;
+                if (typeof data.expression !== "undefined")
+                    filter.customExpression = data.expression;
+            };
+
+            fn._removeBaseFilter = function (id) {
+
+                var filters = this.getBaseFilters();
+                var idx = filters.findIndex(x => x._filterId === id);
+                if (idx !== -1)
+                    filters.splice(idx, 1);
+            };
+
+            fn._hasBaseFilter = function (id) {
+                return -1 !== this.getBaseFilters().findIndex(x => x._filterId === id);
+            };
+
+            fn._findBaseFilter = function (id) {
+                return this.getBaseFilters().find(x => x._filterId === id);
             };
 
             // NOTE: Operates only on the first level of filters.

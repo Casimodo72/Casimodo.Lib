@@ -123,8 +123,11 @@ var casimodo;
                 reg.vmType = item.vmType || null;
                 reg.isDialog = !!item.isDialog;
                 reg.url = item.url;
+                reg.minWidth = item.minWidth || null;
                 reg.maxWidth = item.maxWidth || null;
+                reg.minHeight = item.minHeight || null;
                 reg.maxHeight = item.maxHeight || null;
+                reg.maximize = !!item.maximize;
                 reg.editorId = item.editorId || null;
 
                 this.items.push(reg);
@@ -134,8 +137,15 @@ var casimodo;
                 return this.namespace + "." + reg.part + (reg.group ? "_" + reg.group + "_" : "") + reg.role;
             };
 
-            fn.getById = function (id) {
-                return this.items.find(x => x.id === id);
+            fn.getById = function (id, options) {
+                var item = this.items.find(x => x.id === id);
+
+                if (item && options) {
+                    item = Object.assign(Object.create(Object.getPrototypeOf(item)), item);
+                    item._options = options;
+                }
+
+                return item;
             };
 
             fn.getByAlias = function (alias) {
@@ -164,11 +174,25 @@ var casimodo;
             };
 
             fn.createViewModel = function (item, options) {
+
+                if (item._options && options)
+                    throw new Error("Component options were already provided.");
+
+                if (item._options)
+                    options = item._options;
+
                 var typeName = this._buidTypeName(item);
                 return casimodo.getValueAtPropPath(window, typeName + "Factory").create(options);
             };
 
             fn.createViewModelOnly = function (item, options) {
+
+                if (item._options && options)
+                    throw new Error("Component options were already provided.");
+
+                if (item._options)
+                    options = item._options;
+
                 if (item.vmType) {
                     return new item.vmType({ id: item.id, isDialog: item.isDialog, isLookup: item.isLookup });
                 }

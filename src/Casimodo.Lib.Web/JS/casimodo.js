@@ -138,9 +138,9 @@ var casimodo;
     casimodo.toDisplayBool = function (value) {
         // KABU TODO: How to return culture specific values?
         if (value === true)
-            return "Ja";
+            return "ja";
         else if (value === false)
-            return "Nein";
+            return "nein";
 
         return "";
     };

@@ -1,6 +1,22 @@
 ﻿
 var kendomodo;
 (function (kendomodo) {
+
+    kendomodo.buildTagsDataSourceFilters = function (dataTypeId, companyId) {
+        var filters = [];
+        filters.push({ field: "AssignableToTypeId", operator: "eq", value: dataTypeId });
+        if (typeof companyId !== "undefined") {
+            filters.push({
+                logic: "or",
+                filters: [
+                    { field: "CompanyId", operator: "eq", value: companyId, targetTypeId: "59a58131-960d-4197-a537-6fbb58d54b8a", deactivatable: false },
+                    { field: "CompanyId", operator: "eq", value: null }]
+            });
+        }
+
+        return filters;
+    };
+
     (function (ui) {
 
         ui.progress = function (isbusy, $el) {
@@ -152,7 +168,7 @@ var kendomodo;
             options.ok = true;
             options.cancel = false;
 
-            var result = _tryCleanupHtml(message);
+            var result = kendomodo.ui._tryCleanupHtml(message);
             if (result.ok)
                 message = result.html;
 
@@ -286,7 +302,7 @@ var kendomodo;
             return constructor;
         })();
 
-        function _tryCleanupHtml(text) {
+        ui._tryCleanupHtml = function (text) {
             try {
                 var root = (new DOMParser()).parseFromString(text, "text/html").documentElement;
                 var body = Array.from(root.children).find(x => x.localName === "body");
@@ -337,6 +353,13 @@ var kendomodo;
                 parent.removeChild(remove[i]);
             }
         }
+
+        ui.clearDropDownList = function (component) {
+            component.text("");
+            component.element.val(null);
+            component.selectedIndex = -1;
+            component._oldIndex = 0;
+        };
 
     })(kendomodo.ui || (kendomodo.ui = {}));
 })(kendomodo || (kendomodo = {}));
