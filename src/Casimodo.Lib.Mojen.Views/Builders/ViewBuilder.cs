@@ -627,6 +627,17 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder CustomCommand(string name, string displayName)
+        {
+            View.CustomCommands.Add(new MojViewCommand
+            {
+                Name = name,
+                DisplayName = displayName
+            });
+
+            return this;
+        }
+
         public MojViewBuilder Content(Action<MojViewBuilder> build)
         {
             build(this);

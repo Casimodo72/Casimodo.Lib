@@ -16,6 +16,12 @@ namespace Casimodo.Lib.Mojen
         public bool UseAllCheckBox { get; set; }
     }
 
+    public class MojViewCommand
+    {
+        public string Name { get; set; }
+        public string DisplayName { get; set; }
+    }
+
     public class MojControllerViewConfig : MojViewConfig
     {
         public MojControllerConfig Controller { get; set; }
@@ -216,6 +222,8 @@ namespace Casimodo.Lib.Mojen
         public MojViewConfig TagsEditorView { get; set; }
 
         public List<MojViewConfig> ContentViews { get; set; } = new List<MojViewConfig>();
+
+        public List<MojViewCommand> CustomCommands { get; set; } = new List<MojViewCommand>();
 
         public bool CanCreate { get; set; }
 

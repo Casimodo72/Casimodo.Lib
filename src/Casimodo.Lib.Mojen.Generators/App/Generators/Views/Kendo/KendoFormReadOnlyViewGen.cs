@@ -83,6 +83,11 @@ namespace Casimodo.Lib.Mojen
                 // Command buttons.
                 XB("<div class='details-view-commands'>");
 
+                foreach (var command in context.View.CustomCommands)
+                {
+                    O($"<button type='button' class='k-button btn custom-command' data-command-name='{command.Name}'>{command.DisplayName}</button>");
+                }
+
                 // Edit button
                 if (context.View.EditorView != null && context.View.EditorView.CanModify)
                 {
