@@ -367,18 +367,27 @@ namespace Casimodo.Lib.Mojen
             O("isDialog: {0},", MojenUtils.ToJsValue(view.IsDialog));
             O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
             O("isCustomSave: {0},", MojenUtils.ToJsValue(view.IsCustomSave));
+
+            // Company filters
             O("isCompanyFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsCompanyFilterEnabled));
             O("isGlobalCompanyFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsGlobalCompanyFilterEnabled == true));
-            O("isTagsFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsTagsFilterEnabled));
-            O("isTaggable: {0},", MojenUtils.ToJsValue(view.IsTaggable));
-            O("tagsEditorId: {0},", MojenUtils.ToJsValue(view.TagsEditorView?.Id));
 
-            if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
-                O("selectionMode: 'multiple',");
-            // OViewDimensionOptions(view);
+            if (isList)
+            {
+                // Selection
+                if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
+                    O("selectionMode: 'multiple',");
 
-            if (extend != null)
-                extend();
+                O("hasRowContextMenu: {0},", MojenUtils.ToJsValue(context.View.HasListItemContextMenu));
+                // Tags
+                O("isTaggable: {0},", MojenUtils.ToJsValue(view.IsTaggable));
+                O("isTagsFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsTagsFilterEnabled));
+                O("tagsEditorId: {0},", MojenUtils.ToJsValue(view.TagsEditorView?.Id));
+            }
+
+            // KABU TODO: REMOVE? OViewDimensionOptions(view);
+
+            extend?.Invoke();
 
             O("extra: options || null,");
 

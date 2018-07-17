@@ -113,6 +113,8 @@ namespace Casimodo.Lib.Mojen
 
         public string Title { get; set; }
 
+        public string ListComponentId { get; set; }
+
         public string GetDefaultTitle()
         {
             if (!string.IsNullOrEmpty(Title))
@@ -225,6 +227,8 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojViewCommand> CustomCommands { get; set; } = new List<MojViewCommand>();
 
+        public List<MojViewCommand> ListItemCommands { get; set; } = new List<MojViewCommand>();
+
         public bool CanCreate { get; set; }
 
         public bool CanModify { get; set; }
@@ -294,6 +298,12 @@ namespace Casimodo.Lib.Mojen
         public bool UseMVVM { get; set; }
 
         public bool IsTaggable { get; set; }
+
+        public bool HasListItemContextMenu
+        {
+            get { return IsTaggable || ListItemCommands.Count != 0; }
+        }
+
         public bool IsAuthEnabled { get; set; } = true;
         public bool IsAuthAmbientForGroup { get; set; }
         public bool IsAuthAmbientApplied { get; set; }
@@ -365,7 +375,7 @@ namespace Casimodo.Lib.Mojen
                 var lookupViews = app.GetItems<MojViewConfig>()
                     .Where(x =>
                         x.Lookup.Is &&
-                        x.TypeConfig == viewType &&                      
+                        x.TypeConfig == viewType &&
                         (viewId == null || viewId == x.Id) &&
                         (viewAlias == null || viewAlias == x.Alias) &&
                         (viewGroup == x.Group || (viewGroup == null && (viewId != null || viewAlias != null)))

@@ -638,6 +638,17 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder ListItemCommand(string name, string displayName)
+        {
+            View.ListItemCommands.Add(new MojViewCommand
+            {
+                Name = name,
+                DisplayName = displayName
+            });
+
+            return this;
+        }
+
         public MojViewBuilder Content(Action<MojViewBuilder> build)
         {
             build(this);
@@ -662,7 +673,13 @@ namespace Casimodo.Lib.Mojen
 
         public MojViewBuilder Taggable()
         {
+            if (View.IsTaggable)
+                return this;
+
             View.IsTaggable = true;
+
+            // KABU TODO: LOCALIZE?
+            ListItemCommand("EditTags", "Markierungen setzen");
 
             return this;
         }
@@ -754,6 +771,12 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder Alias(string alias)
         {
             View.Alias = alias;
+            return this;
+        }
+
+        public MojViewBuilder ListComponentId(string listComponentId)
+        {
+            View.ListComponentId = listComponentId;
             return this;
         }
 
