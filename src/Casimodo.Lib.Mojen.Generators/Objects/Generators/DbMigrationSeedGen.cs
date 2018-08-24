@@ -50,9 +50,9 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(DataConfig.DataNamespace + ".Migrations");
 
-            O("sealed partial class DbMigrationSeed : DbMigrationSeedBase");
+            O("partial class DbMigrationSeed : DbMigrationSeedBase");
             Begin();
-            O("{0} Context;", DataConfig.DbContextName);
+            O("public {0} Context {{ get; set; }}", DataConfig.DbContextName);
             O();
             O("public void Seed({0} context)", DataConfig.DbContextName);
             Begin();
@@ -176,7 +176,7 @@ namespace Casimodo.Lib.Mojen
             if (storeType.Name != "User")
             {
                 // Generate add method.
-                O("void Add({0} item)", storeType.ClassName);
+                O("public void Add({0} item)", storeType.ClassName);
                 Begin();
                 // Set any non-nullable DateTimes to DateTime.Now, otherwise
                 // SQL Server will bark about not being able to convert from datetime to datetime2.

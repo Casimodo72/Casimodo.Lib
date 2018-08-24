@@ -45,6 +45,8 @@ namespace Casimodo.Lib.Mojen
             var unique = prop.DbAnno.Unique;
             var sequence = prop.DbAnno.Sequence;
 
+            O("{");
+            Push();
             if (prop.Type.CanBeNull)
             {
                 O($"if ({item}.{prop.Name} == null) ThrowUniquePropValueMustNotBeNull<{type.ClassName}>(\"{prop.Name}\");");
@@ -93,6 +95,9 @@ namespace Casimodo.Lib.Mojen
                 O($"    ThrowUniquePropValueExistsCustom<{type.ClassName}>(\"{prop.Name}\", {item}.{prop.Name}, \"{unique.ErrorMessage}\");");
             else
                 O($"    ThrowUniquePropValueExists<{type.ClassName}>(\"{prop.Name}\", {item}.{prop.Name});");
+
+            Pop();
+            O("}");
         }
 
         public override void OHelpers()

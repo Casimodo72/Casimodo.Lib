@@ -649,6 +649,15 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder RemoveListItemCommand(string name)
+        {
+            var cmd = View.ListItemCommands.FirstOrDefault(x => x.Name == name);
+            if (cmd != null)
+                View.ListItemCommands.Remove(cmd);
+
+            return this;
+        }
+
         public MojViewBuilder Content(Action<MojViewBuilder> build)
         {
             build(this);
@@ -671,15 +680,20 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder Taggable()
+        public MojViewBuilder Taggable(bool value = true)
         {
-            if (View.IsTaggable)
+            if (View.IsTaggable == value)
                 return this;
 
-            View.IsTaggable = true;
+            View.IsTaggable = value;
 
-            // KABU TODO: LOCALIZE?
-            ListItemCommand("EditTags", "Markierungen setzen");
+            if (value)
+            {
+                // KABU TODO: LOCALIZE?
+                ListItemCommand("EditTags", "Markierungen setzen");
+            }
+            else
+                RemoveListItemCommand("EditTags");
 
             return this;
         }

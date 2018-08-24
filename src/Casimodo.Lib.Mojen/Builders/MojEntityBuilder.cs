@@ -16,9 +16,11 @@
             // Check: All unique index member properties must be required.
             foreach (var prop in TypeConfig.LocalProps)
             {
-                foreach (var p in prop.DbAnno.Unique.GetParams(includeTenant: true))
-                    if (p.Prop.Type.CanBeNull && !p.Prop.Rules.IsRequired)
-                        throw new MojenException("All unique index member properties must be required or non-nullable.");
+                // KABU TODO: INDEX-PROP-NULLABLE: Currently disabled since in object "Party" we have
+                //   two potential index scenarios where only one index is actually active.
+                //foreach (var p in prop.DbAnno.Unique.GetParams(includeTenant: true))
+                //    if (p.Prop.Type.CanBeNull && !p.Prop.Rules.IsRequired)
+                //        throw new MojenException("All unique index member properties must be required or non-nullable.");
             }
 
             return TypeConfig;

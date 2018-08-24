@@ -99,8 +99,10 @@ namespace Casimodo.Lib.Mojen
 
             Index();
 
-            if (!PropConfig.Rules.IsRequired)
-                throw new MojenException("All unique index member properties must be required.");
+            // KABU TODO: INDEX-PROP-NULLABLE: Currently disabled since in object "Party" we have
+            //   two potential index scenarios where only one index is actually active.
+            //if (!PropConfig.Rules.IsRequired)
+            //    throw new MojenException("All unique index member properties must be required.");
 
             PropConfig.DbAnno.Unique = new MojUniqueConfig
             {
