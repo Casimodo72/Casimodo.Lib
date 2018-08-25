@@ -244,6 +244,8 @@ namespace Casimodo.Lib.Mojen
             O("_db.ReferenceLoading(false);");
             O();
 
+            O("OnCreatingExtended(model);");
+
             // KABU TODO: IMPORTANT: MOVE to repository core layer.
             // Apply DB sequences.
             foreach (var prop in Type.GetProps().Where(x => x.DbAnno.Sequence.IsDbSequence))
@@ -258,6 +260,9 @@ namespace Casimodo.Lib.Mojen
             O("return Created(item);");
 
             End();
+
+            O();
+            O($"partial void OnCreatingExtended({Type.ClassName} model);");
         }
 
         // Filters
@@ -416,10 +421,12 @@ namespace Casimodo.Lib.Mojen
             // Disable loading of referenced entities.
             O("_db.ReferenceLoading(false);");
 
+            // TODO: REMOVE: O("OnUpdatingExtended(model, group);");
+
             // Update the item.
             O($"var item = _db.Update({key.VName}, model, mask);");
 
-            O("OnUpdatingExtended(item, group);");
+            O("OnUpdatedExtended(item, group);");
 
             // Save to DB
             O($"{GetDbContextSaveChangesExpression("_db")};");
@@ -428,7 +435,8 @@ namespace Casimodo.Lib.Mojen
             End();
 
             O();
-            O($"partial void OnUpdatingExtended({Type.ClassName} model, string group);");
+            // TODO: REMOVE: O($"partial void OnUpdatingExtended({Type.ClassName} model, string group);");
+            O($"partial void OnUpdatedExtended({Type.ClassName} model, string group);");
         }
 
         // Patch ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
