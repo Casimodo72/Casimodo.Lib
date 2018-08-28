@@ -338,6 +338,7 @@ namespace Casimodo.Lib.Mojen
                                     o("<div class='km-grid-tool-filter'><span class='icon-company'></span><div class='km-grid-company-filter-selector'></div></div>");
 
                                 if (view.IsTagsFilterEnabled)
+                                    //o("<div class='km-grid-tool-filter'><span class='icon-tag'></span><select class='km-grid-tags-filter-selector'></select></div>");
                                     o("<div class='km-grid-tool-filter'><span class='icon-tag'></span><div class='km-grid-tags-filter-selector'></div></div>");
 
                                 if (view.IsNavigatableTo)
