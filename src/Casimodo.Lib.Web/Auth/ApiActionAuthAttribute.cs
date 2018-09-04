@@ -35,8 +35,8 @@ namespace Casimodo.Lib.Web.Auth
             string message = "Unauthorized resource";
             //base.HandleUnauthorizedRequest(actionContext);
 
-            if (actionContext.Request.Properties.TryGetValue("System.Web.OData.Path", out object prop))
-                if (prop is System.Web.OData.Routing.ODataPath odataPath)
+            if (actionContext.Request.Properties.TryGetValue("Microsoft.AspNet.OData.Path", out object prop))
+                if (prop is Microsoft.AspNet.OData.Routing.ODataPath odataPath)
                     message = $"Unauthorized OData resource '{odataPath.NavigationSource.Name}'";
 
             actionContext.Response = new HttpResponseMessage

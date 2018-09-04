@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
                 "System.Linq",
                 "System.Web",
                 "System.Web.Http",
-                "Microsoft.AspNet.OData.Builder", //"System.Web.OData.Builder",
+                "Microsoft.AspNet.OData.Builder", //"Microsoft.AspNet.OData.Builder",
                 GetAllDataNamespaces());
 
             ONamespace(WebConfig.WebAppConfigNamespace);

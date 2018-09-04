@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Results;
-using System.Web.OData;
+using Microsoft.AspNet.OData;
 
 namespace Casimodo.Lib.Web
 {

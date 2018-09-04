@@ -13,9 +13,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Web.Http;
-using System.Web.OData;
-using System.Web.OData.Extensions;
-using System.Web.OData.Query;
+using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Extensions;
+using Microsoft.AspNet.OData.Query;
 
 namespace Casimodo.Lib.Web
 {

@@ -364,6 +364,10 @@ namespace Casimodo.Lib.Mojen
 
                                 o("<div class='km-grid-tools-right'>");
 
+                                foreach (var command in context.View.CustomCommands)
+                                {
+                                    o($"<button type='button' class='k-button btn custom-command' data-command-name='{command.Name}'>{command.DisplayName}</button>");
+                                }
 
                                 // Add grid data export context menu.
                                 if (context.View.IsExportableToPdf || context.View.IsExportableToExcel)

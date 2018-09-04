@@ -7,7 +7,7 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Web.Http.Controllers;
-using System.Web.OData;
+using Microsoft.AspNet.OData;
 
 // KABU TODO: REVISIT: This file is just a temporary bucket until I find better places.
 
