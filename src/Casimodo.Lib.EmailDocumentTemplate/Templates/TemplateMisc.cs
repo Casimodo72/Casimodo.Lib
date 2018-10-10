@@ -38,7 +38,11 @@ namespace Casimodo.Lib.Templates
     }
 
     public class TemplateElement : TemplateExpression
-    { }
+    {
+        public bool IsForeach { get; set; }
+        public bool IsCondition { get; set; }
+        public string ValueTemplateName { get; set; }
+    }
 
     public class TemplateEnvContainer
     {
@@ -93,12 +97,13 @@ namespace Casimodo.Lib.Templates
 
         List<object> Services { get; set; } = new List<object>(3);
 
-        public TemplateTransformation Transformation { get; set; }
+        public TemplateCoreContext CoreContext { get; set; }
 
-        public TemplateProcessor Processor
-        {
-            get { return Transformation.Processor; }
-        }
+        /// <summary>
+        /// NOTE: Will be null when evaluating an expression is not expected
+        /// to modify the output.
+        /// </summary>
+        public TemplateProcessor Processor { get; set; }
 
         public TemplateDataContainer DataContainer { get; set; }
 
@@ -175,7 +180,13 @@ namespace Casimodo.Lib.Templates
         public override IEnumerable<object> GetValuesCore(TemplateExpressionContext context, object item)
         {
             if (GetValue != null)
-                return Enumerable.Repeat(GetValue(context, (TSource)item), 1);
+            {
+                var result = GetValue(context, (TSource)item);
+                if (result is IEnumerable<object> enumerable)
+                    return enumerable;
+                else
+                    return Enumerable.Repeat(result, 1);
+            }
 
             return GetValues(context, (TSource)item);
         }

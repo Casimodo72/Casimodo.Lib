@@ -27,10 +27,25 @@ namespace Casimodo.Lib.Templates
         }
     }
 
+    public class TemplateLoopCursorVariable<T> : TemplateLoopCursor
+      where T : class
+    {
+        public T Value { get { return (T)ValueObject; } }
+    }
+
+    public class TemplateLoopCursor
+    {
+        public object ValueObject { get; set; }
+        public int Index { get; set; }
+        public bool IsLast { get; set; }
+        public bool IsFirst { get; set; }
+        public bool IsOdd { get; set; }
+        public int Count { get; set; }
+    }
+
+
     public abstract class TemplateProcessor : ITemplateProcessor
     {
-        public TemplateDataContainer Data { get; set; }
-
         public abstract void SetText(string value);
         public abstract void SetImage(Guid? imageFileId, bool removeIfEmpty = false);
 
@@ -41,6 +56,84 @@ namespace Casimodo.Lib.Templates
         public TemplateElement CurTemplateElement { get; protected set; }
 
         public bool IsMatch { get; set; }
+
+        public bool IsErrorOnUnresolvedItemSupressed { get; set; }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public TemplateCoreContext CoreContext { get; set; }
+
+        protected IEnumerable<object> FindObjects(TemplateExpression expression)
+        {
+            return GetExpressionProcessor().FindObjects(CoreContext, expression);
+        }
+
+        protected bool EvaluateCondition(TemplateExpression expression)
+        {
+            return GetExpressionProcessor().EvaluateCondition(CoreContext, expression);
+        }
+
+        protected object EvaluateValue(TemplateExpression expression)
+        {
+            return GetExpressionProcessor().EvaluateValue(CoreContext, expression);
+        }
+
+        bool _isInTransformation;
+
+        public event TemplateProcessorEvent ElementExecuted;
+
+        protected void ExecuteCurrentTemplateElement()
+        {
+            if (_isInTransformation)
+                throw new TemplateException(
+                    "A transformation is already being preformed. " +
+                    "Nested transformations are not supported.");
+
+            _isInTransformation = true;
+
+            Execute(CurTemplateElement);
+
+            ElementExecuted?.Invoke(this, new TemplateProcessorEventArgs { Processor = this });
+
+            if (!IsErrorOnUnresolvedItemSupressed)
+                ThrowUnhandledTemplateIfNoMatch();
+
+            _isInTransformation = false;
+        }
+
+        public void Execute(TemplateElement element)
+        {
+            var context = CoreContext.CreateExpressionContext(templateProcessor: this);
+
+            context.Ast = ParseExpression(element);
+
+            GetExpressionProcessor().Execute(context);
+
+            // NOTE: Set value only if it was provided, because instructions might
+            //   not return any value but manipulate the output directly instead.
+            if (context.HasReturnValue)
+                SetText(context.ReturnValue.FirstOrDefault());
+
+            this.IsMatch = true;
+        }
+
+        public AstNode ParseExpression(TemplateExpression element)
+        {
+            return CoreContext.GetExpressionParser().ParseTemplateExpression(CoreContext.Data, element.Expression, element.Kind);
+        }
+
+        TemplateExpressionProcessor _pathProcessor;
+        public TemplateExpressionProcessor GetExpressionProcessor()
+        {
+            if (_pathProcessor == null)
+                _pathProcessor = new TemplateExpressionProcessor();
+
+            return _pathProcessor;
+        }
+
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         public bool MatchesExpression(string expression)
         {

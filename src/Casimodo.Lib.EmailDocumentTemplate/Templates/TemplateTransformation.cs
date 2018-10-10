@@ -1,5 +1,6 @@
 ﻿using Casimodo.Lib;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,8 +11,8 @@ namespace Casimodo.Lib.Templates
         public TemplateDataContainer Self { get { return this; } }
         readonly List<TemplateDataPropAccessor> _properties = new List<TemplateDataPropAccessor>();
 
-        public void AddProp<T>(string name, T instance = null)
-            where T : class, new()
+        public void AddProp<T>(string name, T instance = default(T))
+            where T : new()
         {
             _properties.Add(new TemplateDataPropAccessor
             {
@@ -59,12 +60,13 @@ namespace Casimodo.Lib.Templates
         }
 
         public T Prop<T>(string name)
-            where T : class
+            
         {
             var prop = GetPropAccessor(name);
 
             return (T)prop.InstanceObject;
         }
+
         public T Prop<T>()
             where T : class
         {
@@ -254,64 +256,125 @@ namespace Casimodo.Lib.Templates
         }
     }
 
-    public class TemplateTransformation
+    public abstract class TemplateCoreContext
     {
-        public TemplateProcessor Processor { get; set; }
+        //public TemplateProcessor Processor { get; set; }
 
-        public void SetText(object value)
+        public TemplateDataContainer Data { get; set; }
+
+        /// <summary>
+        /// Additional properties (and values) provided by external means. E.g. by the FlexEmailDocumentTemplate itself.
+        /// </summary>
+        public TemplateExternalPropertiesContainer ExternalPropertiesContainer { get; set; }
+            = new TemplateExternalPropertiesContainer();
+
+        /// <summary>
+        /// Processes properties defined by the template itself.
+        /// </summary>
+        public virtual void ProcessCustomProperty(TemplateExpressionContext context)
         {
-            Processor.SetText(value);
+            var propName = context.CurrentInstruction.Name;
+
+            var prop = ExternalPropertiesContainer.Items.FirstOrDefault(x => x.Name == propName);
+            if (prop == null)
+                throw new TemplateException($"External property '{propName}' not found.");
+
+            // KABU TODO: ELIMINATE: We now use dedicated area definitions ending with "-Area".
+            // Handle areas.
+            if (prop.Name.EndsWith(".Area"))
+            {
+                // Remove the whole area if:
+                // 1) Area was configured to be removed
+                // 2) Area was configured to be removed when there is no value
+                if (prop.Value.ToLower() == "false")
+                    context.Processor.EnableArea(false);
+                else if (prop.Value.ToLower() == "value")
+                {
+                    string areaContentPropName = prop.Name.RemoveRight(".Area");
+                    var areaContentProp = ExternalPropertiesContainer.Items.FirstOrDefault(x => x.Name == areaContentPropName);
+                    if (areaContentProp == null)
+                        throw new TemplateException($"External property '{propName}' not found.");
+
+                    if (string.IsNullOrWhiteSpace(areaContentProp.Value))
+                        context.Processor.EnableArea(false);
+                }
+            }
+            else
+            {
+                context.Processor.SetText(prop.Value);
+            }
+
+            context.Processor.IsMatch = true;
         }
 
-        public void SetText(string value)
+        readonly ConcurrentDictionary<Guid, TemplateInstructionDefinition> _instructionDefinitionsCache =
+           new ConcurrentDictionary<Guid, TemplateInstructionDefinition>();
+
+        /// <summary>
+        /// Resolves data root properties and external properties.
+        /// </summary>
+        public TemplateInstructionDefinition ResolveInstruction(Type sourceType, string propName)
         {
-            Processor.SetText(value);
+            if (sourceType == typeof(TemplateExternalPropertiesContainer))
+            {
+                var prop = ExternalPropertiesContainer.Items.FirstOrDefault(x => x.Name == propName);
+                if (prop == null)
+                    return null;
+
+                TemplateInstructionDefinition definition;
+                if (_instructionDefinitionsCache.TryGetValue(prop.Guid, out definition))
+                    return definition;
+
+                definition = new TemplateInstructionDefinition<TemplateExternalPropertiesContainer>
+                {
+                    Name = prop.Name,
+                    ReturnType = typeof(string),
+                    IsReturnTypeSimple = true
+                };
+
+                definition.ExecuteCore = (c, x) => ProcessCustomProperty(c);
+
+                _instructionDefinitionsCache.TryAdd(prop.Guid, definition);
+
+                return definition;
+            }
+            else if (sourceType == typeof(TemplateDataContainer))
+            {
+                var prop = Data.GetPropAccessor(propName, required: false);
+                if (prop == null)
+                    return null;
+
+                if (_instructionDefinitionsCache.TryGetValue(prop.Guid, out TemplateInstructionDefinition def))
+                    return def;
+
+                var definition = new TemplateInstructionDefinition<TemplateDataContainer>
+                {
+                    Name = prop.Name,
+                    ReturnType = prop.Type
+                };
+
+                definition.GetValue = (c, x) => x.Prop(c.CurrentInstruction.Name);
+
+                _instructionDefinitionsCache.TryAdd(prop.Guid, definition);
+
+                return definition;
+            }
+
+            return null;
         }
 
-        public void SetTextOrRemove(object value)
-        {
-            Processor.SetTextOrRemove(value);
-        }
+        public abstract TemplateExpressionParser GetExpressionParser();
 
-        public void SetTextNonEmpty(string text)
+        public virtual TemplateExpressionContext CreateExpressionContext(TemplateProcessor templateProcessor)
         {
-            Processor.SetTextNonEmpty(text);
-        }
+            var context = new TemplateExpressionContext();
+            context.CoreContext = this;
+            context.DataContainer = Data;
+            context.Processor = templateProcessor;
 
-        public bool IsEmpty(string value)
-        {
-            return Processor.IsEmpty(value);
-        }
+            Data.Prop<TemplateEnvContainer>().Context = context;
 
-
-        public void SetDate(DateTimeOffset? value)
-        {
-            Processor.SetDate(value);
-        }
-
-        public void SetZonedTime(DateTimeOffset? value)
-        {
-            Processor.SetZonedTime(value);
-        }
-
-        public void SetZonedDateTime(DateTimeOffset? value, string format = null)
-        {
-            Processor.SetZonedDateTime(value, format);
-        }
-
-        public bool EnableArea(object value)
-        {
-            return Processor.EnableArea(value);
-        }
-
-        public void EnableArea(bool enabled)
-        {
-            Processor.EnableArea(enabled);
-        }
-
-        public bool EnableValue(object value)
-        {
-            return Processor.EnableValue(value);
+            return context;
         }
     }
 }

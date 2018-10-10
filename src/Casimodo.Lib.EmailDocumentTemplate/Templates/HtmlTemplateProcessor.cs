@@ -12,28 +12,61 @@ namespace Casimodo.Lib.Templates
     {
         public HtmlNode Elem { get; set; }
         public HtmlAttribute Attr { get; set; }
-        public bool IsForeach { get; set; }
+
     };
+
+    public class HtmlTemplate
+    {
+        public HtmlDocument Doc { get; set; }
+        public List<HtmlInlineTemplate> InlineTemplates { get; set; } = new List<HtmlInlineTemplate>();
+    }
+
+    public class HtmlInlineTemplate
+    {
+        public string Name { get; set; }
+        public HtmlNode Elem { get; set; }
+    }
+    public class TemplateProcessorEventArgs : EventArgs
+    {
+        public TemplateProcessor Processor { get; set; }
+    }
+
+    public delegate void TemplateProcessorEvent(object sender, TemplateProcessorEventArgs e);
+
 
     public abstract class HtmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
     {
+        public static class TemplateAttr
+        {
+            public const string Property = "data-property";
+            public const string Placeholder = "data-placeholder";
+            public const string Foreach = "data-foreach";
+            public const string If = "data-if";
+            public const string Template = "data-template";
+            public const string IncludeTemplate = "data-include-template";
+            public const string ValueTemplateName = "data-value-template";
+        }
+
         public HtmlTemplateProcessor()
         { }
 
-
-        protected List<HtmlDocument> Fragments { get; set; } = new List<HtmlDocument>();
+        protected List<HtmlTemplate> Fragments { get; set; } = new List<HtmlTemplate>();
 
         public RazorRemoverParser RazorRemover { get; set; } = new RazorRemoverParser();
 
+        // KABU TODO: MAGIC paths.
+        // KABU TODO: ELIMINATE
         string BaseDocumentCssPath { get; set; } = "~/Content/app/css/print/print-document.css";
+        // KABU TODO: ELIMINATE
         string BaseContainerCssPath { get; set; } = "~/Content/app/css/print/print-container.css";
 
+        // KABU TODO: MAGIC path.
         public string ImagePageTemplatePath { get; set; } = "~/Content/app/print/image-page-template.html";
 
         string ImagePageTemplate { get; set; }
 
         string PageTemplate { get; set; }
-        HtmlDocument Page { get; set; }
+        HtmlTemplate Page { get; set; }
 
         public new HtmlTemplateElement CurTemplateElement
         {
@@ -41,35 +74,86 @@ namespace Casimodo.Lib.Templates
             set { base.CurTemplateElement = value; }
         }
 
-        public virtual void ProcessTemplate(HtmlDocument pageTemplate, Action visitor)
+        HtmlTemplate CurrentTemplate { get; set; }
+
+        public void ProcessTemplate(HtmlTemplate template)
         {
-            ProcessTemplateCore(pageTemplate.DocumentNode, visitor);
+            CurrentTemplate = template;
+            ProcessTemplateElemCore(CurrentTemplate.Doc.DocumentNode, ExecuteCurrentTemplateElement);
         }
 
-        public Func<TemplateExpression, IEnumerable<object>> FindObjects = (expression) => Enumerable.Empty<object>();
-
-        void ProcessTemplateCore(HtmlNode elem, Action visitor)
+        void ProcessTemplateElemCore(HtmlNode elem, Action visitor)
         {
             VisitTemplateElements(elem, () =>
             {
                 if (CurTemplateElement.IsForeach)
                 {
-                    var items = FindObjects(CurTemplateElement)
+                    var values = FindObjects(CurTemplateElement)
                         .Where(x => x != null)
                         .ToArray();
 
-                    var originalForeachElem = CurTemplateElement.Elem;
-                    var parentElem = originalForeachElem.ParentNode;
-                    var cursorNode = originalForeachElem;
+                    var originalElem = CurTemplateElement.Elem;
 
-                    foreach (var item in items)
+                    if (values.Length != 0)
                     {
-                        Data.AddProp(item.GetType(), "item", item);
+                        var parentElem = originalElem.ParentNode;
+                        var cursorNode = originalElem;
+                        // KABU TODO: IMPORTANT: We don't allow nested foreach instructions yet.
 
-                        // Operate on a clone of the original "foreach" template element.
-                        var currentTemplateElem = originalForeachElem.Clone();
+                        // KABU TODO: IMPORTANT: If we allow nested foreach then:
+                        // 1) make loop variable name adjustable by consumer.
+                        // 2) store/restore loop variable of outer scope with same name.
+                        //    This means an equal loop variable name will shadow variables in outer scope.
 
-                        ProcessTemplateCore(currentTemplateElem, visitor);
+                        var itemVarName = "item";
+
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            var value = values[i];
+
+                            var item = (TemplateLoopCursor)Activator.CreateInstance(
+                                typeof(TemplateLoopCursorVariable<>).MakeGenericType(new Type[] { value.GetType() }));
+
+                            CoreContext.Data.AddProp(item.GetType(), itemVarName, item);
+
+                            item.ValueObject = values[i];
+
+                            item.Index = i;
+                            item.IsOdd = i % 2 != 0;
+                            item.IsFirst = i == 0;
+                            item.IsLast = i == values.Length - 1;
+
+                            // Operate on a clone of the original "foreach" template element.
+                            var currentTemplateElem = originalElem.Clone();
+
+                            ProcessTemplateElemCore(currentTemplateElem, visitor);
+
+                            // Insert all children of the transformed "foreach" template element.
+                            foreach (var child in currentTemplateElem.ChildNodes)
+                            {
+                                parentElem.InsertAfter(child, cursorNode);
+                                cursorNode = child;
+                            }
+
+                            CoreContext.Data.RemoveProp(itemVarName);
+                        }
+                    }
+
+                    // Remove the original "foreach" template element and its content.
+                    originalElem.Remove();
+                }
+                else if (CurTemplateElement.IsCondition)
+                {
+                    var originalElem = CurTemplateElement.Elem;
+                    var parentElem = originalElem.ParentNode;
+                    var cursorNode = originalElem;
+
+                    if (EvaluateCondition(CurTemplateElement))
+                    {
+                        // Operate on a clone of the original "if" element.
+                        var currentTemplateElem = originalElem.Clone();
+
+                        ProcessTemplateElemCore(currentTemplateElem, visitor);
 
                         // Insert all children of the transformed "foreach" template element.
                         foreach (var child in currentTemplateElem.ChildNodes)
@@ -77,18 +161,54 @@ namespace Casimodo.Lib.Templates
                             parentElem.InsertAfter(child, cursorNode);
                             cursorNode = child;
                         }
-
-                        Data.RemoveProp("item");
                     }
 
-                    // Remove the original "foreach" template element and its content.
-                    originalForeachElem.Remove();
+                    // Remove the original "if" element and its content.
+                    originalElem.Remove();
+                }
+                else if (CurTemplateElement.ValueTemplateName != null)
+                {
+                    var template = GetInlineTemplate(CurTemplateElement.ValueTemplateName);
+
+                    var originalElem = CurTemplateElement.Elem;
+                    var parentElem = originalElem.ParentNode;
+                    var cursorNode = originalElem;
+                    var valueVarName = "value";
+                    var value = EvaluateValue(CurTemplateElement);
+
+                    CoreContext.Data.AddProp(value?.GetType() ?? typeof(object), valueVarName, value);
+
+                    // Operate on a clone of the original value template element.
+                    var currentTemplateElem = template.Elem.Clone();
+
+                    ProcessTemplateElemCore(currentTemplateElem, visitor);
+
+                    // Insert all children of the transformed "foreach" template element.
+                    foreach (var child in currentTemplateElem.ChildNodes)
+                    {
+                        parentElem.InsertAfter(child, cursorNode);
+                        cursorNode = child;
+                    }
+
+                    CoreContext.Data.RemoveProp(valueVarName);
+
+                    // Remove the original element and its content.
+                    originalElem.Remove();
                 }
                 else
                 {
                     visitor();
                 }
             });
+        }
+
+        HtmlInlineTemplate GetInlineTemplate(string name)
+        {
+            var template = CurrentTemplate.InlineTemplates.FirstOrDefault(x => x.Name == name);
+            if (template == null)
+                throw new TemplateException($"Inline template '{name}' not found.");
+
+            return template;
         }
 
         public Func<string> CreatePageTemplate = () => "";
@@ -133,13 +253,12 @@ namespace Casimodo.Lib.Templates
         public Func<IEnumerable<string>> GetLibCssFilePaths = () => Enumerable.Empty<string>();
         public Func<IEnumerable<string>> GetCssFilePaths = () => Enumerable.Empty<string>();
 
+        // KABU TODO: ELIMINATE
         IEnumerable<string> GetBaseCssFilePaths()
         {
             yield return BaseDocumentCssPath;
             yield return BaseContainerCssPath;
         }
-
-
 
         public string StylesHtml { get; set; }
 
@@ -205,13 +324,20 @@ namespace Casimodo.Lib.Templates
             return string.IsNullOrWhiteSpace(template) ? null : template;
         }
 
-        public HtmlDocument NewPage()
+        // KABU TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
+        public HtmlTemplate NewPage()
         {
             if (PageTemplate == null)
                 PageTemplate = CreatePageTemplate();
 
-            var fragment = new HtmlDocument();
-            fragment.LoadHtml(PageTemplate);
+            var doc = new HtmlDocument();
+            doc.LoadHtml(PageTemplate);
+
+            var fragment = new HtmlTemplate();
+            fragment.Doc = doc;
+            fragment.InlineTemplates = GetInlineTemplateHtmlElemNodes(doc.DocumentNode).ToList();
+
+            ExpandInlineHtmlTemplates(fragment);
 
             Fragments.Add(fragment);
 
@@ -220,13 +346,45 @@ namespace Casimodo.Lib.Templates
             return fragment;
         }
 
-        public HtmlDocument NewImagePage()
+        void ExpandInlineHtmlTemplates(HtmlTemplate fragment)
+        {
+            foreach (var node in GetHtmlElemNodes(fragment.Doc.DocumentNode)
+                .Where(x => HasAttr(x, TemplateAttr.IncludeTemplate))
+                .ToArray())
+            {
+                // Replace template includes with template content.
+
+                var templateName = node.GetAttributeValue(TemplateAttr.IncludeTemplate, null);
+
+                var template = fragment.InlineTemplates.FirstOrDefault(x => x.Name == templateName);
+                if (template == null)
+                    throw new TemplateException($"Inline template '{templateName}' not found.");
+
+                var templateElem = template.Elem.Clone();
+                var cursorNode = node;
+                // Insert all children of the transformed "foreach" template element.
+                foreach (var child in templateElem.ChildNodes)
+                {
+                    node.ParentNode.InsertAfter(child, cursorNode);
+                    cursorNode = child;
+                }
+
+                // Remove "include template" instruction from tree.
+                node.Remove();
+            }
+        }
+
+        public HtmlTemplate NewImagePage()
         {
             if (ImagePageTemplate == null)
                 ImagePageTemplate = LoadTemplatePart(ImagePageTemplatePath);
 
-            var fragment = new HtmlDocument();
-            fragment.LoadHtml(ImagePageTemplate);
+            var doc = new HtmlDocument();
+            doc.LoadHtml(ImagePageTemplate);
+
+            var fragment = new HtmlTemplate();
+            fragment.Doc = doc;
+
             Fragments.Add(fragment);
             Page = fragment;
 
@@ -252,7 +410,7 @@ namespace Casimodo.Lib.Templates
             {
                 using (var writer = new System.IO.StringWriter())
                 {
-                    page.Save(writer);
+                    page.Doc.Save(writer);
                     writer.Flush();
 
                     sb.Append(writer.ToString());
@@ -268,6 +426,57 @@ namespace Casimodo.Lib.Templates
             sb.Append("</html>");
 
             return sb.ToString();
+        }
+
+        IEnumerable<HtmlInlineTemplate> GetInlineTemplateHtmlElemNodes(HtmlNode root)
+        {
+            // Return top level "data-template" element nodes.
+            foreach (var node in root.ChildNodes
+                .Where(x => x.NodeType == HtmlNodeType.Element)
+                .ToArray())
+            {
+                if (HasAttr(node, TemplateAttr.Template))
+                {
+                    node.Remove();
+                    yield return new HtmlInlineTemplate
+                    {
+                        Name = Attr(node, TemplateAttr.Template),
+                        Elem = node
+                    };
+                }
+            }
+        }
+
+        protected IEnumerable<HtmlNode> GetHtmlElemNodes(HtmlNode parent)
+        {
+            if (parent.OwnerDocument == null)
+                // Node might have already been removed by the transformation.
+                yield break;
+
+            foreach (var node in parent.ChildNodes
+                .Where(x => x.NodeType == HtmlNodeType.Element)
+                .ToArray())
+            {
+                yield return node;
+
+                // Skip content of template includes.
+                if (HasAttr(node, TemplateAttr.IncludeTemplate))
+                    continue;
+
+                // Process children.
+                foreach (var node2 in GetHtmlElemNodes(node))
+                    yield return node2;
+            }
+        }
+
+        bool HasAttr(HtmlNode node, string attrName)
+        {
+            return node.Attributes.FirstOrDefault(a => a.Name == attrName) != null;
+        }
+
+        string Attr(HtmlNode node, string attrName)
+        {
+            return node.GetAttributeValue(attrName, null);
         }
 
         protected IEnumerable<HtmlTemplateElement> GetTemplateElements(HtmlNode elem)
@@ -287,15 +496,17 @@ namespace Casimodo.Lib.Templates
 
                 // KABU TODO: MAGIC strings
                 var attr = node.Attributes.FirstOrDefault(a =>
-                    a.Name == "data-property" ||
-                    a.Name == "data-placeholder" ||
-                    a.Name == "data-foreach");
+                    a.Name == TemplateAttr.Property ||
+                    // KABU TODO: IMPORTANT: Change occurences of "data-placeholder" to "data-property".
+                    a.Name == TemplateAttr.Placeholder ||
+                    a.Name == TemplateAttr.Foreach ||
+                    a.Name == TemplateAttr.If);
 
                 if (attr != null)
                     yield return CreateTemplateElement(node, attr);
 
-                // Don't process the content of a "foreach" instruction.
-                if (attr?.Name == "data-foreach")
+                // Don't process the content of loop and conditional instructions.
+                if (attr?.Name == TemplateAttr.Foreach || attr?.Name == TemplateAttr.If)
                     continue;
 
                 // Process children.
@@ -309,7 +520,9 @@ namespace Casimodo.Lib.Templates
             var elem = TemplateNodeFactory.Create<HtmlTemplateElement>(attr.Value);
             elem.Elem = CleanupAttributes(node);
             elem.Attr = attr;
-            elem.IsForeach = attr.Name == "data-foreach";
+            elem.IsForeach = attr.Name == TemplateAttr.Foreach;
+            elem.IsCondition = attr.Name == TemplateAttr.If;
+            elem.ValueTemplateName = Attr(node, TemplateAttr.ValueTemplateName);
 
             return elem;
         }
@@ -416,7 +629,7 @@ namespace Casimodo.Lib.Templates
 
         protected HtmlNode E(string name, params object[] content)
         {
-            var elem = Page.CreateElement(name);
+            var elem = Page.Doc.CreateElement(name);
 
             if (content != null)
             {
@@ -429,7 +642,7 @@ namespace Casimodo.Lib.Templates
                         continue;
 
                     if (obj is string)
-                        elem.AppendChild(HtmlEntity.Entitize(Page.CreateTextNode((string)obj)));
+                        elem.AppendChild(HtmlEntity.Entitize(Page.Doc.CreateTextNode((string)obj)));
                     else
                         elem.AppendChild((HtmlNode)obj);
                 }
@@ -440,7 +653,7 @@ namespace Casimodo.Lib.Templates
 
         protected HtmlAttribute A(string name, string value)
         {
-            return Page.CreateAttribute(name, value);
+            return Page.Doc.CreateAttribute(name, value);
         }
 
         protected string ShrinkDecimal(decimal? value)
@@ -463,6 +676,7 @@ namespace Casimodo.Lib.Templates
         {
             var attrs = elem.Attributes;
             attrs.Remove("id");
+            // KABU TODO: Remove all attributes starting with "ng-" and "data-" (except for template attributes).
             attrs.Remove("ng-bind");
             attrs.Remove("ng-hide");
             attrs.Remove("data-ng-src");

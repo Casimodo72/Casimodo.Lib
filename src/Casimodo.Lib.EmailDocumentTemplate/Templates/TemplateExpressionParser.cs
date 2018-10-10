@@ -1,6 +1,7 @@
 ﻿using Casimodo.Lib.CSharp;
 using Casimodo.Lib.SimpleParser;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -150,7 +151,7 @@ namespace Casimodo.Lib.Templates
             {
                 sb.o(string.Format(
                     "public {0} {1} {{ get {{ return _data.Prop<{0}>(\"{1}\"); }} }}",
-                    prop.Type.FullName, prop.Name));
+                    GetScriptableTypeName(prop.Type), prop.Name));
 
                 sb.o(Environment.NewLine);
             }
@@ -162,6 +163,23 @@ namespace Casimodo.Lib.Templates
             sb.o("return new " + className + "(Self).Execute();");
 
             return sb.ToString();
+        }
+
+        static string GetScriptableTypeName(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                int backtickIndex = type.FullName.IndexOf('`');
+                if (backtickIndex <= 0)
+                    throw new Exception($"Unexpected full name of generic type ({type.FullName}).");
+
+                return type.FullName.Remove(backtickIndex) +
+                    $"<{string.Join(",", type.GetGenericArguments().Select(t => GetScriptableTypeName(t)))}>";
+            }
+            else
+            {
+                return type.FullName;
+            }
         }
 
         static List<string> _anySpecialTokens = new List<string>
@@ -293,6 +311,7 @@ namespace Casimodo.Lib.Templates
         }
 
         // KABU TODO: REMOVE: No functions and thus no literal arguments expected anymore.
+        //   Use CSharp expressions instead.
 #if (false)
         bool IsQuote()
         {

@@ -49,12 +49,13 @@ namespace Casimodo.Lib.Auth
 
             return Url;
 
-            var path = Url;
+            // KABU TODO: REMOVE?
+            //var path = Url;
 
-            if (path.StartsWith("/"))
-                return path;
-            else
-                return "/" + path;
+            //if (path.StartsWith("/"))
+            //    return path;
+            //else
+            //    return "/" + path;
         }
 
         public override string ToString()

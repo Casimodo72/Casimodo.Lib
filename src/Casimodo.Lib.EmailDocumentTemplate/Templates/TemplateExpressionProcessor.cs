@@ -7,6 +7,79 @@ namespace Casimodo.Lib.Templates
 {
     public class TemplateExpressionProcessor
     {
+        public IEnumerable<object> FindObjects(TemplateCoreContext coreContext, TemplateExpression expression)
+        {
+            var context = ParseAndEvaluateValue(coreContext, expression);
+
+            return context.HasReturnValue ? context.ReturnValue : Enumerable.Empty<object>();
+        }
+
+        public bool EvaluateCondition(TemplateCoreContext coreContext, TemplateExpression expression)
+        {
+            var context = ParseAndEvaluateValue(coreContext, expression);
+
+            return context.HasReturnValue ? ConditionResultToBoolean(context.ReturnValue) : false;
+        }
+
+        public object EvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        {
+            var context = ParseAndEvaluateValue(coreContext, expression);
+
+            return context.HasReturnValue ? EvaluatedResultToValue(context.ReturnValue) : null;
+        }
+
+        public TemplateExpressionContext ParseAndEvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        {
+            Guard.ArgNotNull(expression, nameof(expression));
+
+            var context = coreContext.CreateExpressionContext(templateProcessor: null);
+            // We do not want to modify the template here. We just want to get a value. 
+            context.IsModificationDenied = true;
+            context.Ast = ParseExpression(coreContext, expression);
+
+            this.Execute(context);
+
+            return context;
+        }
+
+        public AstNode ParseExpression(TemplateCoreContext coreContext, TemplateExpression element)
+        {
+            return coreContext.GetExpressionParser().ParseTemplateExpression(coreContext.Data, element.Expression, element.Kind);
+        }
+
+        public static object EvaluatedResultToValue(IEnumerable<object> evaluatedResult)
+        {
+            if (evaluatedResult == null)
+                return null;
+
+            var value = evaluatedResult.FirstOrDefault();
+            if (value == null)
+                return null;
+
+            return value;
+        }
+
+        public static bool ConditionResultToBoolean(IEnumerable<object> evaluatedResult)
+        {
+            if (evaluatedResult == null)
+                return false;
+
+            var value = evaluatedResult.FirstOrDefault();
+            if (value == null)
+                return false;
+
+            if (value is bool bval)
+                return bval;
+            else if (value is string sval)
+                return !string.IsNullOrEmpty(sval);
+            else if (value is int ival)
+                return ival > 0;
+            else if (value is decimal dval)
+                return dval > 0;
+
+            return true;
+        }
+
         public void Execute(TemplateExpressionContext context)
         {
             Guard.ArgNotNull(context, nameof(context));

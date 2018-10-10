@@ -57,6 +57,11 @@ namespace Casimodo.Lib.Templates
             return items;
         }
 
+        public void ProcessTemplate(XElement template)
+        {
+            ProcessTemplateElements(template, ExecuteCurrentTemplateElement);
+        }
+
         protected void ProcessTemplateElements(XElement template, Action action)
         {
             var elements = GetTemplateElements(template);
