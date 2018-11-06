@@ -2,6 +2,7 @@
 using Casimodo.Lib.SimpleParser;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -91,14 +92,33 @@ namespace Casimodo.Lib.Templates
                 return ParseExpression(data.GetType(), expression);
         }
 
+        class CodeCacheItem
+        {
+            public string Code { get; set; }
+            public CSharpScriptWrapper Script { get; set; }
+        }
+
+        static readonly ConcurrentBag<CodeCacheItem> _codeCache = new ConcurrentBag<CodeCacheItem>();
+        const string ComparableScriptClassName = "#Tc6e8b1d6-9e4f-4ef5-bee7-34882f417efa#";
+
         public AstNode ParseCSharpExpression(TemplateDataContainer data, string expression)
         {
-            var code = BuildCSharpScript(data, expression);
+            // We're using the same class name in order to be able to compare the code
+            //  and later replace this name with a unique class name.
+            var code = BuildCSharpScriptPhaseOne(ComparableScriptClassName, data, expression);
+            var script = _codeCache.Where(x => x.Code == code).Select(x => x.Script).FirstOrDefault();
 
-            var script = new CSharpLanguageServiceWrapper().CompileScript(
-                code,
-                CSharpScriptOptions,
-                typeof(TemplateDataContainer));
+            if (script == null)
+            {
+                var effectiveCode = code.Replace(ComparableScriptClassName, "T" + Guid.NewGuid().ToString().Replace("-", ""));
+
+                script = new CSharpLanguageServiceWrapper().CompileScript(
+                    effectiveCode,
+                    CSharpScriptOptions,
+                    typeof(TemplateDataContainer));
+
+                _codeCache.Add(new CodeCacheItem { Code = code, Script = script });
+            }
 
             var scriptNode = new CSharpScriptAstNode();
             scriptNode.Script = script;
@@ -134,10 +154,9 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        string BuildCSharpScript(TemplateDataContainer data, string expression)
+        string BuildCSharpScriptPhaseOne(string className, TemplateDataContainer data, string expression)
         {
             var sb = new StringBuilder();
-            var className = "T" + Guid.NewGuid().ToString().Replace("-", "");
             sb.o(@"public class " + className + @" { ");
             sb.o(Environment.NewLine);
             sb.o("TemplateDataContainer _data;");

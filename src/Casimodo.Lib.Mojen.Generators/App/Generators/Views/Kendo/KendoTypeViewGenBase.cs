@@ -115,7 +115,6 @@ namespace Casimodo.Lib.Mojen
         /// <summary>
         /// For HTML boolean attributes like "readonly" which don't have an attribute value.
         /// </summary>
-        /// <param name="name"></param>
         public void ElemFlag(string name)
         {
             Attributes.Add(XA(name, name));
@@ -529,11 +528,20 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public virtual void ORunBegin(WebViewGenContext context)
-        { }
+        public bool IsRunSingleCustomView(WebViewGenContext context)
+        {
+            return context.Run.Count == 1 && context.Run.FirstOrDefault()?.Directive == "custom-view";
+        }
 
-        public virtual void ORunEnd(WebViewGenContext context)
-        { }
+        public virtual bool ORunBegin(WebViewGenContext context)
+        {
+            return !IsRunSingleCustomView(context);
+        }
+
+        public virtual bool ORunEnd(WebViewGenContext context)
+        {
+            return !IsRunSingleCustomView(context);
+        }
 
         public MojViewPropInfo CreateViewPropInfo(WebViewGenContext context, ViewTemplateItem item)
         {

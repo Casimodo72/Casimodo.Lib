@@ -82,10 +82,15 @@ namespace Casimodo.Lib.Templates
             ProcessTemplateElemCore(CurrentTemplate.Doc.DocumentNode, ExecuteCurrentTemplateElement);
         }
 
+        List<HtmlNode> _processedNodes = new List<HtmlNode>();
+
         void ProcessTemplateElemCore(HtmlNode elem, Action visitor)
         {
             VisitTemplateElements(elem, () =>
             {
+                if (_processedNodes.Any(x => x == CurTemplateElement.Elem))
+                    throw new Exception("This node was already processed.");
+
                 if (CurTemplateElement.IsForeach)
                 {
                     var values = FindObjects(CurTemplateElement)
@@ -131,6 +136,7 @@ namespace Casimodo.Lib.Templates
                             // Insert all children of the transformed "foreach" template element.
                             foreach (var child in currentTemplateElem.ChildNodes)
                             {
+                                _processedNodes.Add(child);
                                 parentElem.InsertAfter(child, cursorNode);
                                 cursorNode = child;
                             }
@@ -158,6 +164,7 @@ namespace Casimodo.Lib.Templates
                         // Insert all children of the transformed "foreach" template element.
                         foreach (var child in currentTemplateElem.ChildNodes)
                         {
+                            _processedNodes.Add(child);
                             parentElem.InsertAfter(child, cursorNode);
                             cursorNode = child;
                         }
@@ -186,6 +193,7 @@ namespace Casimodo.Lib.Templates
                     // Insert all children of the transformed "foreach" template element.
                     foreach (var child in currentTemplateElem.ChildNodes)
                     {
+                        _processedNodes.Add(child);
                         parentElem.InsertAfter(child, cursorNode);
                         cursorNode = child;
                     }

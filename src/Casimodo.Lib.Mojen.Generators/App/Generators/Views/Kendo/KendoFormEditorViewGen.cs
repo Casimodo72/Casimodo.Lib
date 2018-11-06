@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
                 if (view.IsCustom)
                     throw new Exception("'Custom' is not supported for editor views. Use 'Viewless' instead.");
 
-                if (!view.IsViewless)
+                if (!view.IsCustomView)
                 {
                     PerformWrite(view, () => GenerateView(context));
                 }
@@ -159,19 +159,25 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public override void ORunBegin(WebViewGenContext context)
+        public override bool ORunBegin(WebViewGenContext context)
         {
-            if (context.Cur.Directive == "custom-view") return;
+            if (!base.ORunBegin(context))
+                return false;
 
             // Form group
             XB($"<div class='{GetFormGroupClass(context)}'>");
+
+            return true;
         }
 
-        public override void ORunEnd(WebViewGenContext context)
+        public override bool ORunEnd(WebViewGenContext context)
         {
-            if (context.Cur.Directive == "custom-view") return;
+            if (!base.ORunEnd(context))
+                return false;
 
             XE("</div>");
+
+            return true;
         }
 
         string GetFormGroupClass(WebViewGenContext context)
@@ -222,7 +228,7 @@ namespace Casimodo.Lib.Mojen
                 // Read-only property label.
                 ReadOnlyGen.OPropLabel(context);
             }
-        }     
+        }
 
         public override void ORunLabel(WebViewGenContext context, string text)
         {

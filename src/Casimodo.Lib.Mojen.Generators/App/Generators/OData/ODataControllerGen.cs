@@ -193,8 +193,10 @@ namespace Casimodo.Lib.Mojen
             foreach (var viewGroup in Controller.GetViewGroups().OrderBy(x => x))
             {
                 var editorView = Controller.GetEditorView(viewGroup);
-                if (editorView == null || editorView.HasNoApi || !editorView.CanCreate)
+                if (editorView == null || editorView.HasNoApi || !editorView.CanCreate
+                    || editorView.IsCustomODataCreateAction)
                     continue;
+
 
                 var action = editorView.GetODataCreateActionName();
                 if (actions.Contains(action))
@@ -202,7 +204,6 @@ namespace Casimodo.Lib.Mojen
 
                 actions.Add(action);
 
-                // KABU TODO: This is never called anymore in our scenario.
                 GenerateCreateSingle(editorView);
             }
         }
@@ -227,17 +228,21 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateCreateMain()
         {
-            O();
-            OApiActionAuthAttribute(Type, "Create");
-            O("[HttpPost]");
-            O("[ODataRoute]");
-            O($"public async Task<IHttpActionResult> Post({Type.ClassName} model)");
-            Begin();
-            O("return await CreateCore(model);");
-            End();
+            // No default create method if no editor exists.
+            if (Controller.GetEditorView(null) != null)
+            {
+                O();
+                OApiActionAuthAttribute(Type, "Create");
+                O("[HttpPost]");
+                O("[ODataRoute]");
+                O($"public async Task<IHttpActionResult> Post({Type.ClassName} model)");
+                Begin();
+                O("return await CreateCore(model);");
+                End();
+            }
 
             O();
-            O($"public async Task<IHttpActionResult> CreateCore({Type.ClassName} model)");
+            O($"async Task<IHttpActionResult> CreateCore({Type.ClassName} model)");
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
@@ -337,7 +342,7 @@ namespace Casimodo.Lib.Mojen
             if (editorView == null)
                 return;
 
-            if (editorView.IsCustomODataUpdateAction)
+            if (editorView.IsCustomODataUpdateData)
                 return;
 
             O();
@@ -367,7 +372,8 @@ namespace Casimodo.Lib.Mojen
         void GenerateUpdateSingle(string group)
         {
             var editorView = Controller.GetEditorView(group);
-            if (editorView == null || editorView.HasNoApi || !editorView.CanModify)
+            if (editorView == null || editorView.HasNoApi || !editorView.CanModify
+                || editorView.IsCustomODataUpdateAction)
                 return;
 
             if (editorView.IsCustomODataUpdateAction)

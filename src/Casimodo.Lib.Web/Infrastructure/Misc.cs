@@ -57,7 +57,7 @@ namespace Casimodo.Lib.Web
                 if (itemIds.Contains(item.Id))
                     continue;
 
-                // Remove tag.
+                // Remove item.
                 items.Remove(item);
                 objectStateManager.ChangeRelationshipState(owner, item, collectionPropName, EntityState.Deleted);
 
@@ -81,7 +81,7 @@ namespace Casimodo.Lib.Web
                 if (validateItem != null)
                     validateItem(controller, owner, item);
 
-                // Add tag.
+                // Add item.
                 items.Add(item);
                 objectStateManager.ChangeRelationshipState(owner, item, collectionPropName, EntityState.Added);
             }
@@ -132,6 +132,7 @@ namespace Casimodo.Lib.Web
 #endif
         }
 
+        // KABU TODO: Not used. Remove?
         public static System.Web.Mvc.RedirectToRouteResult TenantNotSelected()
         {
             return new System.Web.Mvc.RedirectToRouteResult(new System.Web.Routing.RouteValueDictionary(new { action = "Index", controller = "TenantSelector" }));

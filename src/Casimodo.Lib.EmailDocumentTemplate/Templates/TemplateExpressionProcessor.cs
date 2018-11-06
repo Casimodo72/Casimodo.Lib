@@ -1,6 +1,7 @@
 ﻿using Nito.AsyncEx;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Casimodo.Lib.Templates
@@ -89,7 +90,7 @@ namespace Casimodo.Lib.Templates
 
             if (context.Ast is CSharpScriptAstNode scriptNode)
             {
-                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));
+                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));             
 
                 context.SetReturnValue(ToEnumerable(value));
             }

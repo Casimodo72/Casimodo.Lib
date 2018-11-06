@@ -123,7 +123,8 @@ namespace Casimodo.Lib.SimpleParser
             Next(text.Length);
             return true;
         }
-        bool CheckExpected(string text, bool caseSensitive = true)
+
+        public bool CheckExpected(string text, bool caseSensitive = true)
         {
             if (IsEnd)
                 return false;

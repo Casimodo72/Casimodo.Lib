@@ -125,7 +125,7 @@ namespace Casimodo.Lib.Mojen
             // http://docs.telerik.com/kendo-ui/web/grid/appearance
 
             // View & style
-            if (!context.View.IsViewless)
+            if (!context.View.IsCustomView)
             {
                 PerformWrite(context.View, () =>
                 {

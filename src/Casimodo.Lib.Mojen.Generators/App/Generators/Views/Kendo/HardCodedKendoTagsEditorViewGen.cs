@@ -97,7 +97,7 @@ namespace Casimodo.Lib.Mojen
                     View = view
                 });
 
-                if (view.IsCustom || view.IsViewless)
+                if (view.IsCustom || view.IsCustomView)
                     throw new Exception("'Custom' and 'Viewless' is not supported for this view.");
 
                 TransportConfig = this.CreateODataTransport(view);

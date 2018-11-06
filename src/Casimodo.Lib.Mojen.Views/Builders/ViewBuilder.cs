@@ -90,6 +90,8 @@ namespace Casimodo.Lib.Mojen
         public MojControllerBuilder ControllerBuilder { get; private set; }
     }
 
+    // KABU TODO: We might need to move the *content* building methods into a seperate class.
+    //     E.g. into "MojViewContentBuilder".
     public class MojViewBuilder
     {
         public MojViewBuilder(MojViewConfig view)
@@ -185,9 +187,9 @@ namespace Casimodo.Lib.Mojen
             throw new MojenException($"Options '{nameof(T)}' not found.");
         }
 
-        public MojViewBuilder Viewless()
+        public MojViewBuilder CustomView()
         {
-            View.IsViewless = true;
+            View.IsCustomView = true;
             return this;
         }
 
@@ -597,9 +599,16 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder CustomODataUpdateAction()
+        public MojViewBuilder CustomODataCreate()
         {
-            View.IsCustomODataUpdateAction = true;
+            View.IsCustomODataCreateAction = true;
+            return this;
+        }
+
+        public MojViewBuilder CustomODataUpdate(bool action = false, bool updateMask = false)
+        {
+            View.IsCustomODataUpdateAction = !action;
+            View.IsCustomODataUpdateData = !updateMask;
             return this;
         }
 
@@ -950,7 +959,7 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public ViewTemplate UseCustomView(string name, MojViewMode showOn = MojViewMode.All)
+        public ViewTemplate IncludeCustomView(string name, MojViewMode showOn = MojViewMode.All)
         {
             return View.Template.CustomView(name, showOn);
         }

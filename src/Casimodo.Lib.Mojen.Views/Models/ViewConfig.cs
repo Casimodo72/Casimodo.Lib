@@ -237,7 +237,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCustomSave { get; set; }
 
-        public bool IsViewless { get; set; }
+        public bool IsCustomView { get; set; }
 
         public MojStandaloneViewConfig Standalone { get; set; } = MojStandaloneViewConfig.None;
 
@@ -281,7 +281,10 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsEscapingNeeded { get; set; } = true;
 
+        public bool IsCustomODataCreateAction { get; set; }
+
         public bool IsCustomODataUpdateAction { get; set; }
+        public bool IsCustomODataUpdateData { get; set; }
 
         public ViewTemplate Template { get; private set; } = new ViewTemplate();
 

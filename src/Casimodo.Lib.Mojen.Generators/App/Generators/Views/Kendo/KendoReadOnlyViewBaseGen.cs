@@ -43,14 +43,24 @@ namespace Casimodo.Lib.Mojen
             XE("</div>");
         }
 
-        public override void ORunBegin(WebViewGenContext context)
+        public override bool ORunBegin(WebViewGenContext context)
         {
+            if (!base.ORunBegin(context))
+                return false;
+
             XB($"<div class='{FormGroupClass}'>");
+
+            return true;
         }
 
-        public override void ORunEnd(WebViewGenContext context)
+        public override bool ORunEnd(WebViewGenContext context)
         {
+            if (!base.ORunEnd(context))
+                return false;
+
             XE("</div>");
+
+            return false;
         }
 
         public override void OProp(WebViewGenContext context)
