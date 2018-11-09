@@ -286,6 +286,7 @@ namespace Casimodo.Lib.Mojen
         public void OXP(string name, params object[] content)
         {
             var builder = XPropCore(name, content: content);
+            builder.Complex();
             OJsObjectLiteral(builder.Elem);
         }
 
@@ -862,7 +863,7 @@ namespace Casimodo.Lib.Mojen
                     annotation.ContentAction();
                 }
             }
-            else if (isArray || cur.HasElements || annotation?.ContentAction != null)
+            else if (isArray || cur.HasElements || annotation?.IsComplex == true || annotation?.ContentAction != null)
             {
                 var block = isArray ? MojenGenerator.ArrayBlock : MojenGenerator.CodeBlock;
                 oO(block.StartToken);

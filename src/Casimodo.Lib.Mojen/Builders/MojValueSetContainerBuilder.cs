@@ -239,6 +239,16 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojValueSetContainerBuilder With(object[] values, Action<MojValueSetBuilder> buildValueSet = null)
+        {
+            var builder = new MojValueSetBuilder(this).Add().O(values);
+            _onAdded?.Invoke(builder);
+            if (buildValueSet != null)
+                buildValueSet(builder);
+
+            return this;
+        }
+
         public MojValueSetBuilder AddDummy()
         {
             return new MojValueSetBuilder(this).AddDummy();

@@ -79,7 +79,7 @@ namespace Casimodo.Lib.Mojen
                 context.ComponentId = "grid-" + view.Id;
 
                 // Edit capabilities
-                CanModify = !view.Kind.Roles.HasFlag(MojViewRole.Lookup) && view.EditorView != null && view.EditorView.CanModify;
+                CanModify = view.CanModify && !view.Kind.Roles.HasFlag(MojViewRole.Lookup) && view.EditorView?.CanModify == true;
                 CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
                 CanDelete = CanModify && Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
 

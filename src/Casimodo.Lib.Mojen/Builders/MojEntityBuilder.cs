@@ -1,10 +1,19 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿using System;
+
+namespace Casimodo.Lib.Mojen
 {
     public sealed class MojEntityBuilder : MojClassBuilder<MojEntityBuilder, MojEntityPropBuilder>
     {
         public MojEntityBuilder Table(string tableName)
         {
             TypeConfig.TableName = tableName;
+
+            return This();
+        }
+
+        public MojEntityBuilder Content(Action<MojEntityBuilder> build)
+        {
+            build(This());
 
             return This();
         }
