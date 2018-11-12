@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         public void OViewModelOnEditing(MojViewConfig view, bool canCreate)
         {
-            OB("fn.onEditingGenerated = function(context)");
+            OB("onEditingGenerated(context)");
             O("var self = this;");
 
             GenOnEditing_OnPropChanged(view);
@@ -18,18 +18,16 @@ namespace Casimodo.Lib.Mojen
             GenOnEditing_QueryReferencedObject(view, canCreate);
             GenOnEditing_SetLoggedInPerson(view);
 
-            End(";");
+            End();
         }
 
         // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
         //public void OViewModelOnPrepareView(MojViewConfig view)
         //{
-        //    OB("fn.onPrepareView = function(context)");
+        //    OB("onPrepareView(context)");
         //    O("var self = this;");
-
         //    GenOnPrepareView_Hide(view);          
-
-        //    End(";");
+        //    End();
         //}
 
         void GenOnEditing_SetLoggedInPerson(MojViewConfig view)

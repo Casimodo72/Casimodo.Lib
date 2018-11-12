@@ -95,7 +95,7 @@ namespace Casimodo.Lib.Mojen
         {
             KendoGen.OBeginComponentViewModelFactory(context);
             O();
-            OB("var vm = new kendomodo.ui.FormIndyCollectionEditorViewModel(");
+            OB("var vm = new kmodo.IndyCollectionEditorForm(");
 
             var listProp = context.View.TypeConfig.GetProp(ListPropName);
             var title = listProp.DisplayLabel;

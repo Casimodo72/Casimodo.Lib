@@ -202,7 +202,7 @@ namespace Casimodo.Lib.Mojen
 
             KendoGen.OBeginComponentViewModelFactory(context);
 
-            KendoGen.OViewModelClass("ViewModel", extends: "kendomodo.ui.GridViewModel",
+            KendoGen.OViewModelClass("ViewModel", extends: "kmodo.GridComponent",
             constructor: () =>
             {
                 O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
@@ -252,7 +252,7 @@ namespace Casimodo.Lib.Mojen
         public void GenGridOptionsFactory(WebViewGenContext context)
         {
             // Grid options factory function.
-            OB("fn.createComponentOptions = function()");
+            OB("createComponentOptions()");
 
             // NOTE: We are using the internal data source factory function.
             OB("var options ="); GenGridOptions(context);
@@ -263,7 +263,7 @@ namespace Casimodo.Lib.Mojen
             O("    options = this.createComponentOptionsOverride(options);");
             O();
             O("return options;");
-            End(";"); // Grid options factory function.            
+            End(); // Grid options factory function.            
         }
 
         void GenGridOptions(WebViewGenContext context)
@@ -299,10 +299,9 @@ namespace Casimodo.Lib.Mojen
             // Row selection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if (view.ItemSelection.IsEnabled && !view.ItemSelection.UseCheckBox)
             {
-                OXP("selectable",
-                    $"mode: {(view.ItemSelection.IsMultiselect ? "'multiple'" : "'row'")}"
-                );
-
+                // NOTE: Currently we support "multiple" or "row" only:
+                O($"selectable: {(view.ItemSelection.IsMultiselect ? "'multiple'" : "'row'")},");
+                // Kendo options:
                 // "row" - the user can select a single row.
                 // "cell" - the user can select a single cell.
                 // "multiple, row" - the user can select multiple rows.

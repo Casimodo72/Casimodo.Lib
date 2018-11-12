@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
             OBeginComponentViewModelFactory(context);
 
             O();
-            OViewModelClass("ViewModel", extends: "kendomodo.ui.FormEditorViewModel",
+            OViewModelClass("ViewModel", extends: "kmodo.EditorFormComponent",
                 constructor: () =>
                 {
                     O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
@@ -62,7 +62,7 @@ namespace Casimodo.Lib.Mojen
             OBeginComponentViewModelFactory(context);
 
             O();
-            OViewModelClass("ViewModel", extends: "kendomodo.ui.FormReadOnlyViewModel",
+            OViewModelClass("ViewModel", extends: "kmodo.ReadOnlyFormComponent",
                 constructor: null,
                 content: () =>
                 {
@@ -302,7 +302,7 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             O();
-            OB("fn.initBaseFilters = function ()");
+            OB("initBaseFilters()");
 
             if (context.View.IsFilteredByLoggedInPerson)
             {
@@ -315,7 +315,7 @@ namespace Casimodo.Lib.Mojen
                 O($"this._baseFilters.push.apply(this._baseFilters, {KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)});");
             }
 
-            End(";");
+            End();
         }
 
         public void ODataSourceListOptions(WebViewGenContext context, MojHttpRequestConfig transport,
@@ -423,7 +423,7 @@ namespace Casimodo.Lib.Mojen
             Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
             Guard.ArgNotNull(content, nameof(content));
 
-            OJsClass(null, name, extends, isPrivate: true,
+            OJsClass_ES6(null, name, extends, isPrivate: true,
                 constructorOptions: "options",
                 constructor: constructor,
                 content: content);

@@ -363,6 +363,61 @@ namespace Casimodo.Lib.Mojen
             Action constructor = null,
             Action content = null)
         {
+            OJsClass_ES6(ns, name, extends, isStatic, isPrivate, constructorOptions, constructor, content);
+        }
+
+        public void OJsClass_ES6(string ns, string name, string extends = null,
+            bool isStatic = false, bool isPrivate = false,
+            string constructorOptions = null,
+            Action constructor = null,
+            Action content = null)
+        {
+            if (string.IsNullOrWhiteSpace(extends))
+                extends = "";
+
+            var isDerived = !string.IsNullOrEmpty(extends);
+            var hasOptions = !string.IsNullOrWhiteSpace(constructorOptions);
+        
+            OB($"class {name}{(isDerived ? " extends " + extends : "")}");
+
+            // Constructor
+            O();
+            OB($"constructor({(hasOptions ? constructorOptions : "")})");
+
+            if (isDerived)
+                O($"super({(hasOptions ? constructorOptions : "")});");
+
+            if (constructor != null)
+            {
+                O();
+                constructor();
+            }
+
+            End(); // End of constructor
+
+            if (content != null)
+            {
+                O();
+                content();
+            }
+
+            End(); // End of class
+
+            if (!isPrivate)
+            {
+                if (isStatic)
+                    O("{0}.{1} = new {1}();", ns, name);
+                else
+                    O("{0}.{1} = {1};", ns, name);
+            }
+        }
+
+        void OJsClass_ES5(string ns, string name, string extends = null,
+            bool isStatic = false, bool isPrivate = false,
+            string constructorOptions = null,
+            Action constructor = null,
+            Action content = null)
+        {
             if (string.IsNullOrWhiteSpace(extends))
                 extends = "";
 

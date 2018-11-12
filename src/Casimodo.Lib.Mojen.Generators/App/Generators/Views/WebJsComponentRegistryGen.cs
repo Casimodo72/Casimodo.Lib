@@ -25,18 +25,18 @@ namespace Casimodo.Lib.Mojen
 
                 OJsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
                 {
-                    OJsClass(nscontext.Current, "ComponentRegistry",
-                        isPrivate: false, isStatic: true,
-                        extends: "casimodo.ui.ComponentRegistry",
+                    OJsClass_ES6(nscontext.Current, "ComponentRegistry",
+                        isPrivate: true,
+                        extends: "cmodo.ComponentRegistry",
                         constructor: () =>
                         {
-                            O("this.namespace = {0};", MojenUtils.ToJsValue(WebConfig.ScriptUINamespace));
+                            O("this.ns = {0};", MojenUtils.ToJsValue(WebConfig.ScriptUINamespace));
                         },
                         content: () =>
                         {
                             foreach (var item in components.Where(x => x.View?.Id != null))
                             {
-                                O("fn.get{0}{1}{2} = function (options) {{ return this.getById({3}, options); }};",
+                                O("get{0}{1}{2}(options) {{ return this.getById({3}, options); }}",
                                     item.View.GetPartName(),
                                     item.View.MainRoleName,
                                     (item.View.Group != null ? "_" + item.View.Group : ""),
@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
                         });
 
                     O();
-                    O("var reg = casimodo.ui.componentRegistry = {0}.ComponentRegistry;", nscontext.Current);
+                    O("var reg = cmodo.componentRegistry = new ComponentRegistry;");
 
                     O();
                     foreach (var item in components)

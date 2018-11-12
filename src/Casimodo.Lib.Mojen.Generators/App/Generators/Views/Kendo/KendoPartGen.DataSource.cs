@@ -29,21 +29,21 @@ namespace Casimodo.Lib.Mojen
         public void OPropValueFactory(string prop, object value)
         {
             var func = "create" + prop.FirstLetterToUpper();
-            OB($"fn.{func} = function ()");
+            OB($"{func}()");
             O($"return this.{prop} || (this.{prop} = {MojenUtils.ToJsValue(value)});");
-            End(";");
+            End();
         }
 
         public void OOptionsFactory(string prop, Action options)
         {
             var func = "create" + prop.FirstLetterToUpper();
-            OB($"fn.{func} = function ()");
+            OB($"{func}()");
 
             OB($"return this.{prop} || (this.{prop} =");
             options();
             End(");");
 
-            End(";");
+            End();
         }
 
         public void ODataSourceOptionsFactory(WebViewGenContext context, Action options)
