@@ -7,6 +7,14 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoPartGen : WebPartGenerator
     {
+        public KendoPartGen()
+        {
+            ClassGen = AddSub<JsClassGen>();
+            ClassGen.SetParent(this);
+        }
+
+        public JsClassGen ClassGen { get; private set; }
+
         public void OEditorViewModel(WebViewGenContext context)
         {
             // View model for standalone editor views.
@@ -90,6 +98,18 @@ namespace Casimodo.Lib.Mojen
             OEndComponentViewModelFactory(context);
         }
 
+        public void OViewModelClass(string name, string extends, Action constructor, Action content)
+        {
+            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
+            Guard.ArgNotNull(content, nameof(content));
+
+            ClassGen.OJsClass(null, name, extends, export: false,
+                constructorOptions: "options",
+                constructor: constructor,
+                content: content);
+        }
+
         // KABU TODO: MAGIC: Move to config layer.
         public class GeoPlaceLookupWebViewConfig
         {
@@ -104,7 +124,7 @@ namespace Casimodo.Lib.Mojen
         {
             var view = new GeoPlaceLookupWebViewConfig();
 
-            Oo($"kendomodo.ui.openById('{view.Id}',");
+            Oo($"kmodo.openById('{view.Id}',");
 
             if (options is Action)
             {
@@ -124,7 +144,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OOpenDialogView(WebViewGenContext context, MojViewConfig dialogView, Action ok, object options = null)
         {
-            Oo($"kendomodo.ui.openById('{dialogView.Id}',");
+            Oo($"kmodo.openById('{dialogView.Id}',");
 
             if (options is Action)
             {
@@ -155,7 +175,7 @@ namespace Casimodo.Lib.Mojen
 
             End(";"); // View model factory.
 
-            OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "casimodo.ui.createComponentViewModelFactory()"));
+            OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "cmodo.createComponentViewModelFactory()"));
         }
 
         public WebViewGenContext InitComponentNames(WebViewGenContext context)
@@ -210,7 +230,7 @@ namespace Casimodo.Lib.Mojen
 
                 O($"wnd.content('<div style=\"margin: 12px\">{message}</div>');");
 
-                O("kendomodo.setModalWindowBehavior(wnd);");
+                O("kmodo.setModalWindowBehavior(wnd);");
 
                 O("wnd.center().open();");
 
@@ -229,7 +249,7 @@ namespace Casimodo.Lib.Mojen
                 if (window.IsParentModal)
                     animation = options.Add("animation", "false");
                 else
-                    animation = options.Add("animation", "kendomodo.getDefaultDialogWindowAnimation()");
+                    animation = options.Add("animation", "kmodo.getDefaultDialogWindowAnimation()");
             }
 
 #if (false)
@@ -307,7 +327,7 @@ namespace Casimodo.Lib.Mojen
             if (context.View.IsFilteredByLoggedInPerson)
             {
                 O($"this._baseFilters.push({{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
-                    $"operator: 'eq', value: window.casimodo.run.authInfo.PersonId }});");
+                    $"operator: 'eq', value: window.cmodo.run.authInfo.PersonId }});");
             }
 
             if (context.View.SimpleFilter != null)
@@ -415,18 +435,6 @@ namespace Casimodo.Lib.Mojen
         public void ODataSourceModelFactory(WebViewGenContext context, MojHttpRequestConfig transport)
         {
             OOptionsFactory("dataModel", () => ODataSourceModelOptions(context, transport.ModelProps));
-        }
-
-        public void OViewModelClass(string name, string extends, Action constructor, Action content)
-        {
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
-            Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
-            Guard.ArgNotNull(content, nameof(content));
-
-            OJsClass_ES6(null, name, extends, isPrivate: true,
-                constructorOptions: "options",
-                constructor: constructor,
-                content: content);
         }
 
         public void BindPageContentView(MojControllerViewConfig view, MojViewRole role)

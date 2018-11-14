@@ -91,6 +91,7 @@
     <Compile Include="Infrastructure\ActionName.cs" />
     <Compile Include="Infrastructure\AppLayerBuildContext.cs" />
     <Compile Include="Infrastructure\AppPartGenerator.cs" />
+    <Compile Include="Infrastructure\JsClassGen.cs" />
     <Compile Include="Infrastructure\MojViewPropBuilder.cs" />
     <Compile Include="Infrastructure\MyT4TemplateBase.cs" />
     <Compile Include="Infrastructure\ViewTemplate.cs" />

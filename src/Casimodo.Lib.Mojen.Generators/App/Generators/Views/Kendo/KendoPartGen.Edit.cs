@@ -39,7 +39,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OB("if (context.isNew)");
             foreach (var prop in loggedInPersonProps)
-                O($"context.item.set('{prop.Reference.ForeignKey.Name}', window.casimodo.run.authInfo.PersonId);");
+                O($"context.item.set('{prop.Reference.ForeignKey.Name}', window.cmodo.run.authInfo.PersonId);");
             End();
         }
 

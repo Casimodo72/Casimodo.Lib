@@ -402,7 +402,7 @@ namespace Casimodo.Lib.Mojen
                 O(".Async(a => a.SaveUrl(\"api/UploadFile/{0}\").AutoUpload(true))", name);
                 O(".ShowFileList(false)");
                 O(".Messages(m => m.StatusUploaded(\" \").HeaderStatusUploaded(\" \").HeaderStatusUploading(\" \").StatusUploading(\" \"))");
-                O(".Events(e => e.Success(\"kendomodo.onPhotoUploaded\").Error(\"kendomodo.onFileUploadFailed\").Remove(\"kendomodo.onFileUploadRemoving\"))");
+                O(".Events(e => e.Success(\"kmodo.onPhotoUploaded\").Error(\"kmodo.onFileUploadFailed\").Remove(\"kmodo.onFileUploadRemoving\"))");
                 // Add the Kendo upload template defined above.
                 O(".TemplateId(\"{0}\")", uploadTemplateId);
 
@@ -652,9 +652,10 @@ namespace Casimodo.Lib.Mojen
                 O($"var $container = {JQuerySelectEditorContainer()};");
                 O($"var item = $container.find('input').first().prop('kendoBindingTarget').source;");
 
+                throw new MojenException("modo.addEntityToObservableArray does not exist yet.");
                 KendoGen.OOpenDialogView(context, dialog,
                     // Set value and fire the "change" event for the binding to pick up the new value.
-                    ok: () => O($"kendomodo.addEntityToObservableArray(item.{propPath}, result.item, '{targetType.Key.Name}');"));
+                    ok: () => O($"kmodo.addEntityToObservableArray(item.{propPath}, result.item, '{targetType.Key.Name}');"));
             });
             OScriptEnd();
 
@@ -797,7 +798,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"var $container = {JQuerySelectEditorContainer()};");
                 O($"var model = $container.find(\"input[name = '{propPath}']\").first().prop('kendoBindingTarget').source;");
-                O($"var info = new kendomodo.ui.GeoPlaceEditorInfo(model);");
+                O($"var info = new kmodo.GeoPlaceEditorInfo(model);");
                 if (geoConfig.SourcePropMap != null)
                 {
                     OB("info.map(");
@@ -894,7 +895,7 @@ namespace Casimodo.Lib.Mojen
                         OB("if (!cascadeFromVal)");
                         // Notify
                         // KABU TODO: LOCALIZE
-                        O($"kendomodo.ui.openInstructionDialog(\"" +
+                        O($"kmodo.openInstructionDialog(\"" +
                             $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
                             $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                         // Exit
@@ -940,11 +941,11 @@ namespace Casimodo.Lib.Mojen
                     var sourcePath = $"scopeVars.{sourceType.Name}.{sourceNavi.TargetPath}";
 
                     // Check value at path
-                    O($"cascadeFromVal = casimodo.getValueAtPropPath(vm, '{sourcePath}');");
+                    O($"cascadeFromVal = cmodo.getValueAtPropPath(vm, '{sourcePath}');");
                     OB("if (!cascadeFromVal)");
                     // Notify
                     // KABU TODO: LOCALIZE
-                    O($"kendomodo.ui.openInstructionDialog(\"" +
+                    O($"kmodo.openInstructionDialog(\"" +
                         $"Zuerst muss '{sourceProp.DisplayLabel}' gesetzt werden, " +
                         $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                     // Exit

@@ -24,9 +24,9 @@ namespace Casimodo.Lib.Mojen
                 OScriptUseStrict();
 
                 OJsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
-                {
-                    OJsClass_ES6(nscontext.Current, "ComponentRegistry",
-                        isPrivate: true,
+                {                
+                    ClassGen.OJsClass(ns: nscontext.Current, name: "ComponentRegistry",
+                        export: false,
                         extends: "cmodo.ComponentRegistry",
                         constructor: () =>
                         {

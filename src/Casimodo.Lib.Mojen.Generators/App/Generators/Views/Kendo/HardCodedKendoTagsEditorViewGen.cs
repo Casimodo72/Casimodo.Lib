@@ -137,7 +137,7 @@ namespace Casimodo.Lib.Mojen
         {
             KendoGen.OBeginComponentViewModelFactory(context);
             O();
-            OB("var vm = new kendomodo.ui.FormIndyCollectionEditorViewModel(");
+            OB("var vm = new kmodo.IndyCollectionEditorFormComponent(");
 
             // TODO: LOCALIZE
             var title = context.View.TypeConfig.DisplayName + " Markierungen";

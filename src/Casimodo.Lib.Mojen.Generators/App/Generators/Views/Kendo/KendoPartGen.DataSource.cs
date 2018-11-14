@@ -56,7 +56,7 @@ namespace Casimodo.Lib.Mojen
             // Fixup filter parameters
             // http://www.telerik.com/forums/guids-in-filters
             var mode = config.UseODataActions ? "'Action'" : "null";
-            O($"parameterMap: function (data, type) {{ return kendomodo.parameterMapForOData(data, type, {mode}); }},");
+            O($"parameterMap: function (data, type) {{ return kmodo.parameterMapForOData(data, type, {mode}); }},");
 
             // Read
             var readUrl = config.ReadQueryFactory ?? $"'{config.TransportConfig.ODataSelectUrl}'";
@@ -256,7 +256,7 @@ namespace Casimodo.Lib.Mojen
             o(".Transport(transport => transport");
 
             // http://www.telerik.com/forums/guids-in-filters
-            o(".ParameterMap(\"kendomodo.parameterMapForOData\")");
+            o(".ParameterMap(\"kmodo.parameterMapForOData\")");
 
             o(".Read(read => read");
 
@@ -275,12 +275,12 @@ namespace Casimodo.Lib.Mojen
         public void oOKendoJsLookupDataSource(string url, string valueProp, string displayProp, bool async = true) //, string parametersFunc = null)
         {
             // OData data source
-            oO($"kendomodo.oDataLookupValueAndDisplay('{url}', '{valueProp}', '{displayProp}', {MojenUtils.ToJsValue(async)});");
+            oO($"kmodo.oDataLookupValueAndDisplay('{url}', '{valueProp}', '{displayProp}', {MojenUtils.ToJsValue(async)});");
         }
 
         public void ODataFunction(string path, string func, string args, Action then)
         {
-            O($"casimodo.oDataFunction(\"{path}\", \"{func}\", {args ?? "null"})");
+            O($"cmodo.oDataFunction(\"{path}\", \"{func}\", {args ?? "null"})");
             Push();
             OB(".then(function(value)");
 
@@ -290,23 +290,25 @@ namespace Casimodo.Lib.Mojen
             Pop();
         }
 
-        public void ODataQuery(string query, string parameters, Action success)
-        {
-            OB($"kendomodo.query({query}, {parameters ?? "null"}, function(result)");
+        // KABU TODO: REMOVE
+        //public void ODataQuery(string query, string parameters, Action success)
+        //{
+        //    OB($"kmodo.query({query}, {parameters ?? "null"}, function(result)");
 
-            success();
+        //    success();
 
-            End(");");
-        }
+        //    End(");");
+        //}
 
-        public void ODataQueryFirstOrDefault(string query, string parameters, Action success)
-        {
-            O($"kendomodo.odataQueryFirstOrDefault({query}, {parameters ?? "null"})");
-            Push();
-            OB(".then(function(result)");
-            success();
-            End(");");
-            Pop();
-        }
+        // KABU TODO: REMOVE
+        //public void ODataQueryFirstOrDefault(string query, string parameters, Action success)
+        //{
+        //    O($"kmodo.odataQueryFirstOrDefault({query}, {parameters ?? "null"})");
+        //    Push();
+        //    OB(".then(function(result)");
+        //    success();
+        //    End(");");
+        //    Pop();
+        //}
     }
 }

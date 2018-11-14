@@ -31,7 +31,8 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateTypeKeys()
         {
-            OJsClass("TypeKeys", true, () =>
+            OJsClass(name: "TypeKeys", isstatic: true,
+                constructor: () =>
             {
                 var types = new List<MojType>();
                 foreach (var type in App.GetTypes())

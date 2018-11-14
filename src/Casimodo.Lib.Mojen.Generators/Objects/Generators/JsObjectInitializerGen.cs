@@ -39,7 +39,6 @@ namespace Casimodo.Lib.Mojen
                     O("//   because we don't want to send them to the server as they");
                     O("//   might be only partially expanded and because we must not change their values anyway.");
                     O("//   Except for independent associations (collections).");
-                    O();
 
                     foreach (var item in items)
                     {
@@ -73,7 +72,6 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var prop in nestedProps)
             {
-                O();
                 O($"if (!item.{prop.Name}) item.{prop.Name} = new {ModuleName}.{prop.Reference.ToType.Name}();");
             }
 
@@ -87,7 +85,6 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var prop in independentCollectionProps)
             {
-                O();
                 O($"if (!item.{prop.Name}) item.{prop.Name} = [];");
             }
 
@@ -103,8 +100,6 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var prop in referenceProps)
             {
-                O();
-
                 if (prop.Reference.IsToMany)
                 {
                     // KABU TODO: IMPORTANT: REVISIT: Currently we only support saving 
@@ -132,7 +127,6 @@ namespace Casimodo.Lib.Mojen
                         O($"if (item.{prop.Name}) {ModuleName}.Init{prop.Reference.ToType.Name}OnSaving(item.{prop.Name});");
                     }
                 }
-
             }
 
             End(";");

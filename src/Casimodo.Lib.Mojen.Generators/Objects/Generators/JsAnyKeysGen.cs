@@ -34,7 +34,8 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateAnyKeys(MojAnyKeysConfig config)
         {
-            OJsClass(config.ClassName, true, () =>
+            OJsClass(name: config.ClassName, isstatic: true, export: false,
+            constructor: () =>
             {
                 foreach (var item in config.Items)
                     O($"this.{item.Key} = {MojenUtils.ToJsValue(item.Value)};");

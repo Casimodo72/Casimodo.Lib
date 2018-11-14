@@ -111,6 +111,14 @@ namespace Casimodo.Lib.Mojen
 
     public abstract class WebPartGenerator : AppPartGenerator
     {
+        public WebPartGenerator()
+        {
+            ClassGen = AddSub<JsClassGen>();
+            ClassGen.SetParent(this);
+        }
+
+        public JsClassGen ClassGen { get; private set; }
+
         public WebAppBuildConfig WebConfig { get; set; }
 
         public override void Prepare()
@@ -292,10 +300,11 @@ namespace Casimodo.Lib.Mojen
         {
             while (context.Next())
             {
-                if (context.Index == 0)
-                    O($"var {context.Current};");
+                // KABU TODO: REMOVE
+                //if (context.Index == 0)
+                //    O($"var {context.Current};");
 
-                var absoluteNs = context.Previous != null ? context.Previous + "." + context.Current : context.Current;
+                var absoluteNs = context.Previous != null ? context.Previous + "." + context.Current : "window." + context.Current;
                 OB($"(function({context.Current})");
                 O();
 
@@ -357,117 +366,7 @@ namespace Casimodo.Lib.Mojen
         //    OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
         //}
 
-        public void OJsClass(string ns, string name, string extends = null,
-            bool isStatic = false, bool isPrivate = false,
-            string constructorOptions = null,
-            Action constructor = null,
-            Action content = null)
-        {
-            OJsClass_ES6(ns, name, extends, isStatic, isPrivate, constructorOptions, constructor, content);
-        }
-
-        public void OJsClass_ES6(string ns, string name, string extends = null,
-            bool isStatic = false, bool isPrivate = false,
-            string constructorOptions = null,
-            Action constructor = null,
-            Action content = null)
-        {
-            if (string.IsNullOrWhiteSpace(extends))
-                extends = "";
-
-            var isDerived = !string.IsNullOrEmpty(extends);
-            var hasOptions = !string.IsNullOrWhiteSpace(constructorOptions);
         
-            OB($"class {name}{(isDerived ? " extends " + extends : "")}");
-
-            // Constructor
-            O();
-            OB($"constructor({(hasOptions ? constructorOptions : "")})");
-
-            if (isDerived)
-                O($"super({(hasOptions ? constructorOptions : "")});");
-
-            if (constructor != null)
-            {
-                O();
-                constructor();
-            }
-
-            End(); // End of constructor
-
-            if (content != null)
-            {
-                O();
-                content();
-            }
-
-            End(); // End of class
-
-            if (!isPrivate)
-            {
-                if (isStatic)
-                    O("{0}.{1} = new {1}();", ns, name);
-                else
-                    O("{0}.{1} = {1};", ns, name);
-            }
-        }
-
-        void OJsClass_ES5(string ns, string name, string extends = null,
-            bool isStatic = false, bool isPrivate = false,
-            string constructorOptions = null,
-            Action constructor = null,
-            Action content = null)
-        {
-            if (string.IsNullOrWhiteSpace(extends))
-                extends = "";
-
-            var isDerived = !string.IsNullOrEmpty(extends);
-            var hasOptions = !string.IsNullOrWhiteSpace(constructorOptions);
-
-            OB($"var {name} = (function ({(isDerived ? "_super" : "")})");
-
-            if (isDerived)
-                O($"casimodo.__extends({name}, _super);");
-
-            // Constructor
-            O();
-            OB($"function {name}({(hasOptions ? constructorOptions : "")})");
-
-            if (isDerived)
-            {
-                O($"_super.call(this{(hasOptions ? ", " + constructorOptions : "")});");
-            }
-
-            if (constructor != null)
-            {
-                O();
-                constructor();
-            }
-
-            End(); // End of constructor
-
-            O();
-            O($"var fn = {name}.prototype;");
-
-            if (content != null)
-            {
-                O();
-                content();
-            }
-
-            O();
-            O($"return {name};");
-
-            End($")({extends});");
-
-            if (!isPrivate)
-            {
-                if (isStatic)
-                    O("{0}.{1} = new {1}();", ns, name);
-                else
-                    O("{0}.{1} = {1};", ns, name);
-            }
-        }
 
         public string BuildJSGetOrCreate(string name, string constructor)
         {

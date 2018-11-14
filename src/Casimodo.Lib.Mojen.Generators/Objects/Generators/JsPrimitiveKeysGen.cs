@@ -33,7 +33,8 @@ namespace Casimodo.Lib.Mojen
                     foreach (var item in items)
                     {
                         O();
-                        OJsClass(item.KeysContainerName, true, () => GeneratePrimitiveDefinition(moduleName, item));
+                        OJsClass(name: item.KeysContainerName, isstatic: true, export: false,
+                            constructor: () => GeneratePrimitiveDefinition(moduleName, item));
                     }
                 });
             });
@@ -60,7 +61,7 @@ namespace Casimodo.Lib.Mojen
                 var props = config.Items.Where(x => !x.IsNull).ToList();
                 for (int i = 0; i < props.Count; i++)
                 {
-                    if (i > 0) O();
+                    //if (i > 0) O();
 
                     item = props[i];
 

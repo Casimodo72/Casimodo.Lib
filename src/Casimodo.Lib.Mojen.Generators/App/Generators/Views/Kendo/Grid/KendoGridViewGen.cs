@@ -546,11 +546,11 @@ namespace Casimodo.Lib.Mojen
                     if (control.Attrs.FindOrDefault("AllItemsSelector") == "true")
                     {
                         O("headerAttributes: { 'class': 'all-list-items-selector' },");
-                        O($"headerTemplate: kendomodo.ui.templates.get('AllRowsCheckBoxSelectorGridCell'),");
+                        O($"headerTemplate: kmodo.templates.get('AllRowsCheckBoxSelectorGridCell'),");
                     }
 
                     O("attributes: { 'class': 'list-item-selector' },");
-                    O($"template: kendomodo.ui.templates.get('RowCheckBoxSelectorGridCell'),");
+                    O($"template: kmodo.templates.get('RowCheckBoxSelectorGridCell'),");
 
                     O("filterable: false,");
                     O("sortable: false");
@@ -680,11 +680,11 @@ namespace Casimodo.Lib.Mojen
             // Value template part.
             if (vpropType.IsBoolean)
             {
-                valueTemplate = $"casimodo.toDisplayBool(data.get('{propPath}'))";
+                valueTemplate = $"cmodo.toDisplayBool(data.get('{propPath}'))";
             }
             else if (vpropType.IsTimeSpan)
             {
-                valueTemplate = $"casimodo.toDisplayTimeSpan(data.get('{propPath}'))";
+                valueTemplate = $"cmodo.toDisplayTimeSpan(data.get('{propPath}'))";
             }
 
             // HTML template
@@ -693,14 +693,14 @@ namespace Casimodo.Lib.Mojen
                 // Color cell Kendo template.
                 O($"width: 33,");
 
-                template = $"#=kendomodo.getColorCellTemplate(data.get('{propPath}'))#";
+                template = $"#=kmodo.getColorCellTemplate(data.get('{propPath}'))#";
             }
             // Image file reference
             else if (dprop.FileRef.Is && dprop.FileRef.IsImage)
             {
                 O($"width: 70,");
 
-                template = $"#=kendomodo.getShowPhotoCellTemplate(data.get('{propAliasPath}Uri))#";
+                template = $"#=kmodo.getShowPhotoCellTemplate(data.get('{propAliasPath}Uri))#";
             }
             else if (dprop.FileRef.Is)
             {
@@ -789,7 +789,7 @@ namespace Casimodo.Lib.Mojen
 
                     // DropDownList template
                     var nullable = vprop.Type.CanBeNull;
-                    filterCellTemplate = $"kendomodo.gridEnumFilterColTemplate{(nullable ? "Nullable" : "")}";
+                    filterCellTemplate = $"kmodo.gridEnumFilterColTemplate{(nullable ? "Nullable" : "")}";
 
                     filterDataSourceTextField = "text";
                 }
@@ -805,7 +805,7 @@ namespace Casimodo.Lib.Mojen
                         filterCellTemplateBuild = new Action(() =>
                         {
                             ob("function (args)");
-                            O("kendomodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
+                            O("kmodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
                                 filterDataSourceTextField,
                                 filterDataSourceTextField,
                                 MojenUtils.ToJsValue(nullable));
@@ -925,9 +925,7 @@ namespace Casimodo.Lib.Mojen
                 if (vprop.CustomTemplatePropPath != null)
                     templateDataPropPath += "." + vprop.CustomTemplatePropPath;
 
-                template = $"function(dataItem) {{ return {App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('{vprop.CustomTemplateName}')({templateDataPropPath}); }}";
-
-                // template = $"{App.Get<WebAppBuildConfig>().ScriptNamespace}.templates.get('{vprop.CustomTemplateName}')";
+                template = $"function(dataItem) {{ return kmodo.templates.get('{vprop.CustomTemplateName}')({templateDataPropPath}); }}";
             }
 
             if (template != null)
