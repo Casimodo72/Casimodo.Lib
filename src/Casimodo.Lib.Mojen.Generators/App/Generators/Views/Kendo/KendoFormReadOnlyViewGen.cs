@@ -5,7 +5,7 @@ namespace Casimodo.Lib.Mojen
     public class KendoFormReadOnlyViewGen : KendoReadOnlyViewGenBase
     {
         public string ScriptFilePath { get; set; }
-        public string ScriptVirtualFilePath { get; set; }
+        //public string ScriptVirtualFilePath { get; set; }
 
         protected override void GenerateCore()
         {
@@ -23,8 +23,8 @@ namespace Casimodo.Lib.Mojen
 
                 });
 
-                ScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
-                ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
+                ScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
+                //ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
                 PerformWrite(view, () => GenerateView(context));
 
@@ -32,8 +32,6 @@ namespace Casimodo.Lib.Mojen
                 {
                     PerformWrite(ScriptFilePath, () =>
                     {
-                        OScriptUseStrict();
-
                         KendoGen.OReadOnlyViewModel(context);
                     });
 

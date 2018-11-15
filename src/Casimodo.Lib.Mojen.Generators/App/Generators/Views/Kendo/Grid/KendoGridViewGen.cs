@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
         public string InlineDetailsViewVirtualFilePath { get; set; }
 
         public string GridScriptFilePath { get; set; }
-        public string GridScriptVirtualFilePath { get; set; }
+        //public string GridScriptVirtualFilePath { get; set; }
 
         public override void Prepare()
         {
@@ -83,8 +83,8 @@ namespace Casimodo.Lib.Mojen
                 CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
                 CanDelete = CanModify && Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
 
-                GridScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
-                GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
+                GridScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
+                //GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
                 // Inline details              
                 if (view.InlineDetailsView != null)
@@ -198,72 +198,91 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            OUseStrict();
-
-            KendoGen.OBeginComponentViewModelFactory(context);
-
-            KendoGen.OViewModelClass("ViewModel", extends: "kmodo.GridComponent",
-            constructor: () =>
+            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
             {
-                O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
-            },
-            content: () =>
-            {
-                // OData read query URL factory
-                KendoGen.OPropValueFactory("readQuery", TransportConfig.ODataSelectUrl);
+                KendoGen.OBeginComponentViewModelFactory(context);
 
-                // Data model factory (used by the Kendo data source).
+                // KABU TODO: REMOVE
+                //KendoGen.OViewModelClass("ViewModel", extends: "kmodo.GridComponent",
+                //constructor: () =>
+                //{
+                //    //O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
+                //},
+                //content: () =>
+                //{
+                //    //// OData read query URL factory
+                //    //KendoGen.OPropValueFactory("readQuery", TransportConfig.ODataSelectUrl);
+
+                //    // Data model factory (used by the Kendo data source).
+                //    //O();
+                //    //KendoGen.ODataSourceModelFactory(context, TransportConfig);
+
+                //    // Data source options factory.
+                //    //O();
+                //    //KendoGen.ODataSourceOptionsFactory(context, () =>
+                //    //    KendoGen.ODataSourceListOptions(context,
+                //    //        TransportConfig,
+                //    //        create: false,
+                //    //        modify: false,
+                //    //        delete: false,
+                //    //        pageSize: Options.PageSize,
+                //    //        isServerPaging: Options.IsServerPaging,
+                //    //        initialSortProps: context.View.Props
+                //    //            .Where(x => x.InitialSort.Is)
+                //    //            .OrderBy(x => x.InitialSort.Index)
+                //    //            .ToArray()));
+
+                //    //KendoGen.BuildBaseFiltersArray(context);
+
+                //    //O();
+                //    //GenGridOptionsFactory(context);
+                //});
+
+                // Create view model with options.
                 O();
-                KendoGen.ODataSourceModelFactory(context, TransportConfig);
+                OB("return new kmodo.GridComponent(");
+                KendoGen.OViewModelOptions(context, isList: true,
+                    extend: () =>
+                    {
+                        O($"baseFilters: {KendoGen.BuildBaseFiltersArrayLiteral(context)},");
+                        // OData read query URL
+                        O($"readQuery: {MojenUtils.ToJsValue(TransportConfig.ODataSelectUrl)},");
 
-                // Data source options factory.
-                O();
-                KendoGen.ODataSourceOptionsFactory(context, () =>
-                    KendoGen.ODataSourceListOptions(context,
-                        TransportConfig,
-                        create: false,
-                        modify: false,
-                        delete: false,
-                        pageSize: Options.PageSize,
-                        isServerPaging: Options.IsServerPaging,
-                        initialSortProps: context.View.Props
-                            .Where(x => x.InitialSort.Is)
-                            .OrderBy(x => x.InitialSort.Index)
-                            .ToArray()));
+                        OB("dataSourceOptions: (e) =>");
+                        OB("return");
+                        KendoGen.ODataSourceListOptions(context,
+                            TransportConfig,
+                            create: false,
+                            modify: false,
+                            delete: false,
+                            pageSize: Options.PageSize,
+                            isServerPaging: Options.IsServerPaging,
+                            initialSortProps: context.View.Props
+                                .Where(x => x.InitialSort.Is)
+                                .OrderBy(x => x.InitialSort.Index)
+                                .ToArray());
+                        End(";");
+                        End(",");
 
-                KendoGen.OBaseFilters(context);
+                        OB("dataModel: (e) =>");
+                        OB("return");
+                        KendoGen.ODataSourceModelOptions(context, TransportConfig.ModelProps);
+                        End(";");
+                        End(",");
 
-                O();
-                GenGridOptionsFactory(context);
+                        OB("gridOptions: (e) =>");
+                        OB("return");
+                        GenGridOptions(context);
+                        End(";");
+                        End(",");
+                    });
+                End(").init();");
+
+                //O();
+                //O("return vm;");
+
+                KendoGen.OEndComponentViewModelFactory(context);
             });
-
-            // Create view model with options.
-            O();
-            OB("var vm = new ViewModel(");
-            KendoGen.OViewModelOptions(context, isList: true);
-            End(").init();");
-
-            O();
-            O("return vm;");
-
-            KendoGen.OEndComponentViewModelFactory(context);
-        }
-
-        public void GenGridOptionsFactory(WebViewGenContext context)
-        {
-            // Grid options factory function.
-            OB("createComponentOptions()");
-
-            // NOTE: We are using the internal data source factory function.
-            OB("var options ="); GenGridOptions(context);
-            End(";"); // Grid options object.
-            O();
-            // Apply override if applicable.
-            O("if (this.createComponentOptionsOverride)");
-            O("    options = this.createComponentOptionsOverride(options);");
-            O();
-            O("return options;");
-            End(); // Grid options factory function.            
         }
 
         void GenGridOptions(WebViewGenContext context)
@@ -447,7 +466,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             O("autoBind: false,");
-            O("dataSource: this.createDataSource(),");
+            O("dataSource: e.sender.createDataSource(),");
 
             // Columns ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~            
             O("columns: [");

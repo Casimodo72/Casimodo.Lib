@@ -4,16 +4,17 @@ namespace Casimodo.Lib.Mojen
 {
     public class KendoDataSourceMex : MexGeneratorBase<KendoDataSourceMex>
     {
+        /// <summary>
+        /// Returns comma separated kendo data source filter items.
+        /// </summary>
         public static string ToKendoDataSourceFilters(MexExpressionNode node)
         {
-            return new KendoDataSourceMex().BuildKendoDataSourceFilter(node).ToString();
+            return new KendoDataSourceMex().BuildKendoDataSourceFilters(node).ToString();
         }
 
-        public KendoDataSourceMex BuildKendoDataSourceFilter(MexExpressionNode expression)
+        public KendoDataSourceMex BuildKendoDataSourceFilters(MexExpressionNode expression)
         {
-            o("[");
             Build(expression);
-            o("]");
             return this;
         }
 

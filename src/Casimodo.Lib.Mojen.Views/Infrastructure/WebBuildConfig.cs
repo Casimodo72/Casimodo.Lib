@@ -54,10 +54,16 @@ namespace Casimodo.Lib.Mojen
         // Web views
         public string WebViewsDirPath { get; set; }
 
+        public string WebRegistryTypeScriptDirPath { get; set; }
+        public string WebViewsTypeScriptDirPath { get; set; }
+
         public string WebRegistryJavaScriptDirPath { get; set; }
 
         public string WebViewsJavaScriptDirPath { get; set; }
 
+        /// <summary>
+        /// KABU TODO: REMOVE? Not used
+        /// </summary>
         public string WebViewsJavaScriptVirtualDirPath { get; set; }
 
         public bool ThrowIfControllerActionIsMissing { get; set; }

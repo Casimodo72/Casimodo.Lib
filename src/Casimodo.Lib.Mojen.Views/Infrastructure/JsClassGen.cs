@@ -8,6 +8,45 @@ namespace Casimodo.Lib.Mojen
 {
     public class JsClassGen : MojenGenerator
     {
+        public void OTsClass(string ns, string name, string extends = null,
+               bool isstatic = false, bool export = true,
+               string constructorOptions = null,
+               Action constructor = null,
+               Action content = null)
+        {
+            if (string.IsNullOrWhiteSpace(extends))
+                extends = "";
+
+            var isDerived = !string.IsNullOrEmpty(extends);
+            var hasOptions = !string.IsNullOrWhiteSpace(constructorOptions);
+
+            OB($"{(export ? "export " : "")}class {name}{(isDerived ? " extends " + extends : "")}");
+
+            // Constructor
+            OB($"constructor({(hasOptions ? constructorOptions : "")})");
+
+            if (isDerived)
+                O($"super({(hasOptions ? constructorOptions : "")});");
+
+            if (constructor != null)
+            {
+                constructor();
+            }
+
+            End(); // End of constructor
+
+            if (content != null)
+            {
+                O();
+                content();
+            }
+
+            End(); // End of class
+
+            if (isstatic)
+                O("{0}.{1} = new {1}();", ns, name);
+        }
+
         public void OJsClass(string ns, string name, string extends = null,
                bool isstatic = false, bool export = true,
                string constructorOptions = null,

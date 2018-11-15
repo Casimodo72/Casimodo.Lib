@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
         public string ViewFileName { get; set; }
 
         public string ScriptFilePath { get; set; }
-        public string ScriptVirtualFilePath { get; set; }
+        //public string ScriptVirtualFilePath { get; set; }
 
         protected override void GenerateCore()
         {
@@ -26,8 +26,8 @@ namespace Casimodo.Lib.Mojen
             {
                 UsedViewPropInfos.Clear();
 
-                ScriptFilePath = BuildJsScriptFilePath(view, suffix: ".vm.generated");
-                ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
+                ScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
+                //ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
@@ -47,8 +47,6 @@ namespace Casimodo.Lib.Mojen
 
                 PerformWrite(ScriptFilePath, () =>
                 {
-                    OScriptUseStrict();
-
                     KendoGen.OEditorViewModel(context);
                 });
 

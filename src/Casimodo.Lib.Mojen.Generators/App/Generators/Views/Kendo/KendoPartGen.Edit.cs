@@ -8,27 +8,17 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoPartGen : WebPartGenerator
     {
-        public void OViewModelOnEditing(MojViewConfig view, bool canCreate)
+        public void OViewModelOnEditingOption(MojViewConfig view, bool canCreate)
         {
-            OB("onEditingGenerated(context)");
-            O("var self = this;");
+            OB("editing: (e) =>");
 
             GenOnEditing_OnPropChanged(view);
             GenOnEditing_ExtendEditModel(view);
             GenOnEditing_QueryReferencedObject(view, canCreate);
             GenOnEditing_SetLoggedInPerson(view);
 
-            End();
+            End(",");
         }
-
-        // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
-        //public void OViewModelOnPrepareView(MojViewConfig view)
-        //{
-        //    OB("onPrepareView(context)");
-        //    O("var self = this;");
-        //    GenOnPrepareView_Hide(view);          
-        //    End();
-        //}
 
         void GenOnEditing_SetLoggedInPerson(MojViewConfig view)
         {
@@ -37,55 +27,11 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             O();
-            OB("if (context.isNew)");
+            OB("if (e.isNew)");
             foreach (var prop in loggedInPersonProps)
-                O($"context.item.set('{prop.Reference.ForeignKey.Name}', window.cmodo.run.authInfo.PersonId);");
+                O($"e.item.set('{prop.Reference.ForeignKey.Name}', cmodo.run.authInfo.PersonId);");
             End();
         }
-
-        // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
-        //void GenOnPrepareView_Hide(MojViewConfig view)
-        //{
-        //    var hideProps = view.Props.Where(x =>
-        //        x.HideModes != MojViewMode.None &&
-        //        x.HideModes != MojViewMode.All)
-        //        .ToArray();
-
-        //    if (!hideProps.Any())
-        //        return;
-
-        //    O();
-
-        //    // Hide properties on create.
-        //    var props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Create)).ToArray();
-        //    if (props.Any())
-        //    {
-        //        // Execute when creating new.
-        //        OB("if (context.mode === 'create')");
-        //        GenOnPrepareView_HideProps(props);
-        //        End();
-        //    }
-
-        //    // Hide properties on update.
-        //    props = hideProps.Where(x => x.HideModes.HasFlag(MojViewMode.Update)).ToArray();
-        //    if (props.Any())
-        //    {
-        //        // Execute when modifying.
-        //        OB("if (context.mode === 'modify')");
-        //        GenOnPrepareView_HideProps(props);
-        //        End();
-        //    }
-        //}
-
-        // KABU TODO: REMOVE? Not needed anymore. We moved this inthe the view models.
-        //void GenOnPrepareView_HideProps(IEnumerable<MojViewProp> props)
-        //{
-        //    foreach (var prop in props)
-        //    {
-        //        string marker = prop.GetRemoveOnMarkerClasses();
-        //        O($"context.$view.find('div.form-group.{marker}').remove();");
-        //    }
-        //}
 
         public List<MiaPropSetterConfig> QueriedTriggerPropSetters { get; set; } = new List<MiaPropSetterConfig>();
 
@@ -106,7 +52,7 @@ namespace Casimodo.Lib.Mojen
 
             O();
 
-            OBegin("context.item.bind('change', function (e)");
+            OBegin("e.item.bind('change', function (ce)");
 
             if (triggers.Any())
                 GenOnEditing_OnPropChanged_TriggersCore(triggers);
@@ -137,7 +83,7 @@ namespace Casimodo.Lib.Mojen
                     if (viewCascadeFromProp == null)
                         throw new MojenException($"Cascade-from property '{cascadeTargetProp.Name}' is missing in the editor view.");
 
-                    o($"e.field === '{cascadeFromProp.Name}'");
+                    o($"ce.field === '{cascadeFromProp.Name}'");
 
                     if (++i < cascadeTargetProp.CascadeFromProps.Count)
                         o(" || ");
@@ -147,13 +93,13 @@ namespace Casimodo.Lib.Mojen
                 Push();
 
                 // Set cascade target prop to NULL.
-                O($"context.item.set('{cascadeTargetProp.Name}', null);");
+                O($"e.item.set('{cascadeTargetProp.Name}', null);");
 
                 // If applicable then also set the foreign key to null.
                 // Otherwise the referenced entity will not be fully cleared out.
                 if (cascadeTargetProp.IsNavigation)
                 {
-                    O($"context.item.set('{cascadeTargetProp.Reference.ForeignKey.Name}', null);");
+                    O($"e.item.set('{cascadeTargetProp.Reference.ForeignKey.Name}', null);");
                 }
 
                 Pop();
@@ -168,10 +114,10 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var trigger in triggers)
             {
-                OB($"if (e.field === '{trigger.ContextProp.FormedTargetPath}')");
+                OB($"if (ce.field === '{trigger.ContextProp.FormedTargetPath}')");
                 foreach (var map in trigger.Operations.Items.OfType<MiaPropSetterConfig>())
                 {
-                    O($"context.item.set('{map.Target.FormedTargetPath}', context.item.get('{map.Source.FormedTargetPath}') || null);");
+                    O($"e.item.set('{map.Target.FormedTargetPath}', e.item.get('{map.Source.FormedTargetPath}') || null);");
                 }
                 End();
             }
@@ -208,7 +154,7 @@ namespace Casimodo.Lib.Mojen
 
             O();
 
-            OB("context.item.bind('change', function (e)");
+            OB("e.item.bind('change', function (ce)");
             foreach (var looseReferenceGroup in looseReferenceGroups)
             {
                 var reference = looseReferenceGroup.First();
@@ -252,7 +198,7 @@ namespace Casimodo.Lib.Mojen
                 foreach (var setter in onCreateTriggerPropSetters)
                     sourceAssignments.Add($"{{ t: '{setter.Target.FormedTargetPath}', s: '{setter.Source.FormedTargetPath}'}}");
 
-                O($"if (e.field === '{reference.ForeignKeyPath}') self._setNestedItem(" +
+                O($"if (ce.field === '{reference.ForeignKeyPath}') e.sender._setNestedItem(" +
                     $"'{reference.ObjectPath}', " +
                     $"'{reference.ForeignKeyPath}', " +
                     $"'{reference.ObjectType.Key.Name}', " +
@@ -260,7 +206,7 @@ namespace Casimodo.Lib.Mojen
                     $"[{sourceAssignments.Join(", ")}]);");
 
                 // Example:
-                // if (e.field === 'ContractId') this._setNestedItem(
+                // if (ce.field === 'ContractId') this._setNestedItem(
                 //    'Contract', 'ContractId', 'Id',
                 //    '/odata/Contracts/Ga.Query()?$select=Id,City,CountryStateId,CountryId,Street,ZipCode&$expand=CountryState($select=Id,DisplayName),Country($select=Id,DisplayName)',
                 //    [{ t: 'Street', s: 'Street'}, { t: 'ZipCode', s: 'ZipCode'}]);
@@ -288,7 +234,7 @@ namespace Casimodo.Lib.Mojen
                 // IMPORTANT: Operate on store props.
                 var sprop = vprop.StoreOrSelf;
 
-                OB($"context.item.set('is{vprop.Name}SelectorEnabled', function ()");
+                OB($"e.item.set('is{vprop.Name}SelectorEnabled', function ()");
 
                 var expression = sprop.DbAnno.Unique.GetParams()
                     .Select(per => $"this.get('{per.Prop.Name}') != null")

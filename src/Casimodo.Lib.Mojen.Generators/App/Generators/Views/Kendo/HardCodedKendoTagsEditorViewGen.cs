@@ -89,7 +89,7 @@ namespace Casimodo.Lib.Mojen
                 .Where(x => x.Uses(this)))
             {
                 var name = view.TypeConfig.Name + ".Tags.indylist.editor.vm.generated";
-                ScriptFilePath = BuildJsScriptFilePath(view, name);
+                ScriptFilePath = BuildTsScriptFilePath(view, name);
                 //ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, name);
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
@@ -135,36 +135,38 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateViewModel(WebViewGenContext context)
         {
-            KendoGen.OBeginComponentViewModelFactory(context);
-            O();
-            OB("var vm = new kmodo.IndyCollectionEditorFormComponent(");
+            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+            {
+                KendoGen.OBeginComponentViewModelFactory(context);
+                O();
+                OB("return new kmodo.IndyCollectionEditorFormComponent(");
 
-            // TODO: LOCALIZE
-            var title = context.View.TypeConfig.DisplayName + " Markierungen";
-            KendoGen.OViewModelOptions(context, title: title, dataType: false,
-                extend: () =>
-                {
-                    // Hard-coded ID of the view's root HTML element.
-                    // This ID does not change because we reusing a single piece of HTML for all Tags Editors.
-                    O(@"viewId: '844ed81d-dbbb-4278-abf4-2947f11fa4d3',");
+                // TODO: LOCALIZE
+                var title = context.View.TypeConfig.DisplayName + " Markierungen";
+                KendoGen.OViewModelOptions(context, title: title, dataType: false,
+                    extend: () =>
+                    {
+                        // Hard-coded ID of the view's root HTML element.
+                        // This ID does not change because we reusing a single piece of HTML for all Tags Editors.
+                        O(@"viewId: '844ed81d-dbbb-4278-abf4-2947f11fa4d3',");
 
-                    // The hard-coded ID of the MoTag grid/list view component.
-                    O(@"sourceListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
-                    O(@"targetListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
+                        // The hard-coded ID of the MoTag grid/list view component.
+                        O(@"sourceListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
+                        O(@"targetListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
 
-                    // Hard-coded Mo
-                    O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand=Tags($select=Id,DisplayName)',",
-                        TransportConfig.ODataBaseUrl);
+                        // Hard-coded Mo
+                        O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand=Tags($select=Id,DisplayName)',",
+                                TransportConfig.ODataBaseUrl);
 
-                    O(@"targetContainerListField: 'Tags',");
-                    O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
-                    O(@"saveMethod: 'UpdateTags',");
-                });
+                        O(@"targetContainerListField: 'Tags',");
+                        O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
+                        O(@"saveMethod: 'UpdateTags',");
+                    });
 
-            End(").init();");
-            O();
-            O("return vm;");
-            KendoGen.OEndComponentViewModelFactory(context);
+                End(").init();");
+
+                KendoGen.OEndComponentViewModelFactory(context);
+            });
         }
     }
 }

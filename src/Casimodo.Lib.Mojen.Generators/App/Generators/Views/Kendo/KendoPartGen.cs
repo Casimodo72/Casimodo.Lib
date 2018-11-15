@@ -7,58 +7,44 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoPartGen : WebPartGenerator
     {
-        public KendoPartGen()
-        {
-            ClassGen = AddSub<JsClassGen>();
-            ClassGen.SetParent(this);
-        }
-
-        public JsClassGen ClassGen { get; private set; }
-
         public void OEditorViewModel(WebViewGenContext context)
         {
             // View model for standalone editor views.
             var view = context.View;
+            var transport = this.CreateODataTransport(view, editorView: view);
 
-            OBeginComponentViewModelFactory(context);
+            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+            {
+                OBeginComponentViewModelFactory(context);
 
-            O();
-            OViewModelClass("ViewModel", extends: "kmodo.EditorFormComponent",
-                constructor: () =>
-                {
-                    O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
-                },
-                content: () =>
-                {
-                    var transport = this.CreateODataTransport(view, editorView: view);
+                OB("return new kmodo.EditorForm(");
+                OViewModelOptions(context,
+                    extend: () =>
+                    {
+                        // OData read query URL
+                        O($"readQuery: {MojenUtils.ToJsValue(transport.ODataSelectUrl)},");
 
-                    // OData read query URL factory
-                    OPropValueFactory("readQuery", transport.ODataSelectUrl);
-
-                    O();
-                    ODataSourceModelFactory(context, transport);
-
-                    O();
-                    OOptionsFactory("dataSourceTransportOptions", () =>
+                        OB("transport: (e) =>");
+                        OB("return");
                         ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport,
                             create: context.View.CanCreate,
                             modify: context.View.CanModify,
-                            delete: context.View.CanDelete)));
+                            delete: context.View.CanDelete));
+                        End(";");
+                        End(",");
 
+                        OB("dataModel: (e) =>");
+                        OB("return");
+                        ODataSourceModelOptions(context, transport.ModelProps);
+                        End(";");
+                        End(",");
 
-                    O();
-                    OViewModelOnEditing(context.View, context.View.CanCreate);
-                });
+                        OViewModelOnEditingOption(context.View, context.View.CanCreate);
+                    });
+                End(").init();");
 
-            O();
-            OB("var vm = new ViewModel(");
-            OViewModelOptions(context);
-            End(").init();");
-
-            O();
-            O("return vm;");
-
-            OEndComponentViewModelFactory(context);
+                OEndComponentViewModelFactory(context);
+            });
         }
 
         public void OReadOnlyViewModel(WebViewGenContext context)
@@ -66,48 +52,35 @@ namespace Casimodo.Lib.Mojen
             // View model for standalone read-only views.
 
             var view = context.View;
+            var transport = this.CreateODataTransport(view);
 
-            OBeginComponentViewModelFactory(context);
+            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+            {
+                OBeginComponentViewModelFactory(context);
 
-            O();
-            OViewModelClass("ViewModel", extends: "kmodo.ReadOnlyFormComponent",
-                constructor: null,
-                content: () =>
-                {
-                    var transport = this.CreateODataTransport(view);
+                OB("return new kmodo.ReadOnlyFormComponent(");
+                OViewModelOptions(context,
+                    extend: () =>
+                    {
+                        // OData read query URL
+                        O($"readQuery: {MojenUtils.ToJsValue(transport.ODataSelectUrl)},");
 
-                    // OData read query URL factory
-                    OPropValueFactory("readQuery", transport.ODataSelectUrl);
+                        OB("transport: (e) =>");
+                        OB("return");
+                        ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport));
+                        End(";");
+                        End(",");
 
-                    O();
-                    ODataSourceModelFactory(context, transport);
+                        OB("dataModel: (e) =>");
+                        OB("return");
+                        ODataSourceModelOptions(context, transport.ModelProps);
+                        End(";");
+                        End(",");
+                    });
+                End(").init();");
 
-                    O();
-                    OOptionsFactory("dataSourceTransportOptions", () =>
-                        ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport)));
-                });
-
-            O();
-            OB("var vm = new ViewModel(");
-            OViewModelOptions(context);
-            End(").init();");
-
-            O();
-            O("return vm;");
-
-            OEndComponentViewModelFactory(context);
-        }
-
-        public void OViewModelClass(string name, string extends, Action constructor, Action content)
-        {
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
-            Guard.ArgNotNullOrWhitespace(extends, nameof(extends));
-            Guard.ArgNotNull(content, nameof(content));
-
-            ClassGen.OJsClass(null, name, extends, export: false,
-                constructorOptions: "options",
-                constructor: constructor,
-                content: content);
+                OEndComponentViewModelFactory(context);
+            });
         }
 
         // KABU TODO: MAGIC: Move to config layer.
@@ -164,33 +137,32 @@ namespace Casimodo.Lib.Mojen
 
         public void OBeginComponentViewModelFactory(WebViewGenContext context)
         {
-            OJsImmediateBegin("factory");
+            O($"export let {context.ViewModelFactoryName} = cmodo.createComponentViewModelFactory();");
+            OB($"{context.ViewModelFactoryName}.createCore = function (options)");
 
-            O();
-            OB("factory.createCore = function (options)");
+            //OJsImmediateBegin("factory");
+
+            //O();
+            //OB("factory.createCore = function (options)");
         }
 
         public void OEndComponentViewModelFactory(WebViewGenContext context)
         {
-
-            End(";"); // View model factory.
-
-            OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "cmodo.createComponentViewModelFactory()"));
+            End();
+            //End(";"); // View model factory.
+            //OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "cmodo.createComponentViewModelFactory()"));
         }
 
         public WebViewGenContext InitComponentNames(WebViewGenContext context)
         {
             context.UINamespace = GetJsScriptUINamespace(context.View);
             context.ComponentName = BuildJsClassName(context.View);
-            context.ViewModelFactoryName = GetJsScriptUINamespace(context.View) + "." + BuildJsClassName(context.View) + "Factory";
+            context.ViewModelFactoryName = BuildJsClassName(context.View) + "Factory";
+            context.ViewModelFactoryFullName = GetJsScriptUINamespace(context.View) + "." + context.ViewModelFactoryName;
 
             return context;
         }
 
-        public string GetSpaceName(MojViewConfig view)
-        {
-            return GetJsScriptUINamespace(view) + "." + BuildJsClassName(view) + "Space";
-        }
 
         // KABU TODO: REMOVE? Not used anymore because we're accessing nested objects via the
         //  kendo observable's accessor function now.
@@ -215,28 +187,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public void OModalMessage(MojenGeneratorBase gen, string containerVar, string message)
-        {
-            WriteTo(gen, () =>
-            {
-                Oo($"var wnd = $('<div></div>').appendTo({containerVar}).kendoWindow(");
-                OWindowOptions(new KendoWindowConfig
-                {
-                    Animation = false,
-                    Width = 300,
-                    IsModal = true,
-                });
-                oO(").data('kendoWindow');"); // Kendo window
-
-                O($"wnd.content('<div style=\"margin: 12px\">{message}</div>');");
-
-                O("kmodo.setModalWindowBehavior(wnd);");
-
-                O("wnd.center().open();");
-
-            });
-        }
-
+        // KABU TODO: REMOVE? Not used
         public void OWindowOptions(KendoWindowConfig window)
         {
             // See http://docs.telerik.com/KENDO-UI/api/javascript/ui/window
@@ -300,8 +251,8 @@ namespace Casimodo.Lib.Mojen
                 TransportConfig = transport,
                 // NOTE: Grouped views will use OData *actions* for updates.
                 UseODataActions = context.View.Group != null,
-                DataModelFactory = "this.createDataModel()",
-                ReadQueryFactory = "this.createReadQuery()",
+                DataModelFactory = "e.sender.createDataModel()",
+                ReadQueryFactory = "e.sender.createReadQuery()",
                 CanCreate = create,
                 CanModify = modify,
                 CanDelete = context.View.CanDelete,
@@ -309,33 +260,25 @@ namespace Casimodo.Lib.Mojen
             };
         }
 
-        void ODataSourceSingleOptions(WebViewGenContext context, MojHttpRequestConfig transport,
-            bool create, bool modify, bool delete)
-        {
-            ODataSourceOptions(context, GetDataSourceSingleConfig(context, transport, create, modify, delete));
-        }
 
-        public void OBaseFilters(WebViewGenContext context)
+        public string BuildBaseFiltersArrayLiteral(WebViewGenContext context)
         {
-            // Filters
             if (!context.View.HasFilters)
-                return;
+                return MojenUtils.ToJsValue(null);
 
-            O();
-            OB("initBaseFilters()");
+            var filters = new List<string>();
+            var sb = new StringBuilder();
 
             if (context.View.IsFilteredByLoggedInPerson)
-            {
-                O($"this._baseFilters.push({{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
-                    $"operator: 'eq', value: window.cmodo.run.authInfo.PersonId }});");
-            }
+                sb.Append(
+                    $"{{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
+                    "operator: 'eq', " +
+                    "value: cmodo.run.authInfo.PersonId },");
 
             if (context.View.SimpleFilter != null)
-            {
-                O($"this._baseFilters.push.apply(this._baseFilters, {KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)});");
-            }
+                sb.Append((KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)));
 
-            End();
+            return "[" + sb.ToString() + "]";
         }
 
         public void ODataSourceListOptions(WebViewGenContext context, MojHttpRequestConfig transport,
@@ -351,8 +294,8 @@ namespace Casimodo.Lib.Mojen
                 UseODataActions = context.View.Group != null,
 
                 // The data-source's model is created by the view model.
-                DataModelFactory = "this.createDataModel()",
-                ReadQueryFactory = "this.createReadQuery()",
+                DataModelFactory = "e.sender.createDataModel()",
+                ReadQueryFactory = "e.sender.createReadQuery()",
 
                 CanCreate = create,
                 CanModify = modify,
@@ -364,7 +307,8 @@ namespace Casimodo.Lib.Mojen
             });
         }
 
-        public void OViewModelOptions(WebViewGenContext context, string title = null, bool isList = false, bool dataType = true,
+        public void OViewModelOptions(WebViewGenContext context, string title = null,
+            bool isList = false, bool dataType = true,
             Action extend = null)
         {
             var view = context.View;
@@ -405,9 +349,7 @@ namespace Casimodo.Lib.Mojen
                 O("tagsEditorId: {0},", MojenUtils.ToJsValue(view.TagsEditorView?.Id));
             }
 
-            // KABU TODO: REMOVE? OViewDimensionOptions(view);
-
-            extend?.Invoke();
+            // KABU TODO: REMOVE? OViewDimensionOptions(view);          
 
             O("extra: options || null,");
 
@@ -417,25 +359,23 @@ namespace Casimodo.Lib.Mojen
                 O("id: {0},", MojenUtils.ToJsValue(view.EditorView.Id));
                 O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
                 // OViewDimensionOptions(view.EditorView);
-                End();
+                End(",");
             }
+
+            extend?.Invoke();
         }
 
-        void OViewDimensionOptions(MojViewConfig view)
-        {
-            O("width: {0},", MojenUtils.ToJsValue(view.Width));
-            O("minWidth: {0},", MojenUtils.ToJsValue(view.MinWidth));
-            O("maxWidth: {0},", MojenUtils.ToJsValue(view.MaxWidth));
-            O("height: {0},", MojenUtils.ToJsValue(view.Height));
-            O("minHeight: {0},", MojenUtils.ToJsValue(view.MinHeight));
-            O("maxHeight: {0},", MojenUtils.ToJsValue(view.MaxHeight));
-            O("maximize: {0},", MojenUtils.ToJsValue(view.IsMaximized));
-        }
-
-        public void ODataSourceModelFactory(WebViewGenContext context, MojHttpRequestConfig transport)
-        {
-            OOptionsFactory("dataModel", () => ODataSourceModelOptions(context, transport.ModelProps));
-        }
+        // KABU TODO: REMOVE?
+        //void OViewDimensionOptions(MojViewConfig view)
+        //{
+        //    O("width: {0},", MojenUtils.ToJsValue(view.Width));
+        //    O("minWidth: {0},", MojenUtils.ToJsValue(view.MinWidth));
+        //    O("maxWidth: {0},", MojenUtils.ToJsValue(view.MaxWidth));
+        //    O("height: {0},", MojenUtils.ToJsValue(view.Height));
+        //    O("minHeight: {0},", MojenUtils.ToJsValue(view.MinHeight));
+        //    O("maxHeight: {0},", MojenUtils.ToJsValue(view.MaxHeight));
+        //    O("maximize: {0},", MojenUtils.ToJsValue(view.IsMaximized));
+        //}
 
         public void BindPageContentView(MojControllerViewConfig view, MojViewRole role)
         {

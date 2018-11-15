@@ -19,6 +19,7 @@ namespace Casimodo.Lib.Mojen
         public string ComponentName { get; set; }
 
         public string ViewModelFactoryName { get; set; }
+        public string ViewModelFactoryFullName { get; set; }
 
         public MojViewConfig View { get; set; }
 

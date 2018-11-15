@@ -291,6 +291,29 @@ namespace Casimodo.Lib.Mojen
             public int Index { get; private set; } = -1;
         }
 
+        public void OTsNamespace(string ns, Action<MojNamespaceContext> action)
+        {
+            OTsNamespaceCore(new MojNamespaceContext(ns), action);
+        }
+
+        public void OTsNamespaceCore(MojNamespaceContext context, Action<MojNamespaceContext> action)
+        {
+            while (context.Next())
+            {
+                if (context.Previous != null)
+                    throw new MojenException("Only one namespace level is supported for TypeScript.");
+
+                var absoluteNs = context.Previous != null ? context.Previous + "." + context.Current : "window[\"" + context.Current + "\"]";
+                OB($"namespace {context.Current}");
+                O();
+
+                action?.Invoke(context);
+
+                End();
+            }
+        }
+
+
         public void OJsNamespace(string ns, Action<MojNamespaceContext> action)
         {
             OJsNamespaceCore(new MojNamespaceContext(ns), action);
@@ -366,7 +389,7 @@ namespace Casimodo.Lib.Mojen
         //    OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
         //}
 
-        
+
 
         public string BuildJSGetOrCreate(string name, string constructor)
         {
@@ -378,11 +401,17 @@ namespace Casimodo.Lib.Mojen
             return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
         }
 
+        public string BuildTsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
+        {
+            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsTypeScriptDirPath, BuildTsScriptFileName(view, name, part: part, suffix: suffix));
+        }
+
         public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
         {
             return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, part: part, suffix: suffix));
         }
 
+        // KABU TODO: REMOVE? Not used
         public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
         {
             return App.Get<WebAppBuildConfig>().WebViewsJavaScriptVirtualDirPath + "/" + BuildJsScriptFileName(view, name, part: part, suffix: suffix);
@@ -401,7 +430,19 @@ namespace Casimodo.Lib.Mojen
             return name;
         }
 
+        public string BuildTsScriptFileName(MojViewConfig view, string name = null,
+            string suffix = null, string part = null, bool extension = true)
+        {
+            return BuildScriptFileNameCore(view, "ts", name, suffix, part, extension);
+        }
+
         public string BuildJsScriptFileName(MojViewConfig view, string name = null,
+            string suffix = null, string part = null, bool extension = true)
+        {
+            return BuildScriptFileNameCore(view, "js", name, suffix, part, extension);
+        }
+
+        string BuildScriptFileNameCore(MojViewConfig view, string scriptType, string name = null,
             string suffix = null, string part = null, bool extension = true)
         {
             if (name == null)
@@ -424,8 +465,8 @@ namespace Casimodo.Lib.Mojen
                     name += suffix.FirstLetterToLower();
             }
 
-            if (extension && !name.EndsWith(".js"))
-                name += ".js";
+            if (extension && !name.EndsWith("." + scriptType))
+                name += "." + scriptType;
 
             name = name.Split('.').Select(x => x.FirstLetterToLower()).Join(".");
 

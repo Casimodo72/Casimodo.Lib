@@ -32,7 +32,7 @@ namespace Casimodo.Lib.Mojen
 
                 var name = view.TypeConfig.Name + "." + ListPropName + ".indylist.editor.vm.generated";
 
-                ScriptFilePath = BuildJsScriptFilePath(view, name);
+                ScriptFilePath = BuildTsScriptFilePath(view, name);
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
@@ -49,8 +49,6 @@ namespace Casimodo.Lib.Mojen
 
                 PerformWrite(ScriptFilePath, () =>
                 {
-                    OScriptUseStrict();
-
                     GenerateViewModel(context);
                 });
 
@@ -93,37 +91,38 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateViewModel(WebViewGenContext context)
         {
-            KendoGen.OBeginComponentViewModelFactory(context);
-            O();
-            OB("var vm = new kmodo.IndyCollectionEditorForm(");
+            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+            {
+                KendoGen.OBeginComponentViewModelFactory(context);
+                OB("return new kmodo.IndyCollectionEditorForm(");
 
-            var listProp = context.View.TypeConfig.GetProp(ListPropName);
-            var title = listProp.DisplayLabel;
-            KendoGen.OViewModelOptions(context, title: title, dataType: false,
-                extend: () =>
-                {
-                    // Hard-coded ID of the view's root HTML element.
-                    // This ID does not change because we reusing a single piece of HTML for all Tags Editors.
-                    O("viewId: '{0}',", context.View.Id);
+                var listProp = context.View.TypeConfig.GetProp(ListPropName);
+                var title = listProp.DisplayLabel;
+                KendoGen.OViewModelOptions(context, title: title, dataType: false,
+                    extend: () =>
+                    {
+                        // Hard-coded ID of the view's root HTML element.
+                        // This ID does not change because we reusing a single piece of HTML for all Tags Editors.
+                        O("viewId: '{0}',", context.View.Id);
 
-                    // The ID of the grid/list view component used for selection of list items.
-                    O("sourceListId: '{0}',", context.View.ListComponentId);
-                    O("targetListId: '{0}',", context.View.ListComponentId);
+                        // The ID of the grid/list view component used for selection of list items.
+                        O("sourceListId: '{0}',", context.View.ListComponentId);
+                        O("targetListId: '{0}',", context.View.ListComponentId);
 
-                    // KABU TODO: MAGIC: This assumes the properties "Id" and "DisplayName".
-                    O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand={1}($select=Id,DisplayName)',",
-                        TransportConfig.ODataBaseUrl,
-                        ListPropName);
+                        // KABU TODO: MAGIC: This assumes the properties "Id" and "DisplayName".
+                        O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand={1}($select=Id,DisplayName)',",
+                                TransportConfig.ODataBaseUrl,
+                                ListPropName);
 
-                    O(@"targetContainerListField: '{0}',", ListPropName);
-                    O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
-                    O(@"saveMethod: 'Update{0}',", ListPropName);
-                });
+                        O(@"targetContainerListField: '{0}',", ListPropName);
+                        O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
+                        O(@"saveMethod: 'Update{0}',", ListPropName);
+                    });
 
-            End(").init();");
-            O();
-            O("return vm;");
-            KendoGen.OEndComponentViewModelFactory(context);
+                End(").init();");
+
+                KendoGen.OEndComponentViewModelFactory(context);
+            });
         }
     }
 }

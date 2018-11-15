@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         protected override void GenerateCore()
         {
-            var filePath = Path.Combine(WebConfig.WebRegistryJavaScriptDirPath, "component.registry.generated.js");
+            var filePath = Path.Combine(WebConfig.WebRegistryTypeScriptDirPath, "ComponentRegistry.generated.ts");
 
             PerformWrite(filePath, () =>
             {
@@ -21,11 +21,11 @@ namespace Casimodo.Lib.Mojen
                 if (!components.Any())
                     return;
 
-                OScriptUseStrict();
+                //OScriptUseStrict();
 
-                OJsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+                OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
                 {                
-                    ClassGen.OJsClass(ns: nscontext.Current, name: "ComponentRegistry",
+                    ClassGen.OTsClass(ns: nscontext.Current, name: "ComponentRegistry",
                         export: false,
                         extends: "cmodo.ComponentRegistry",
                         constructor: () =>
