@@ -643,7 +643,7 @@ namespace Casimodo.Lib.Mojen
 
             XE("</div>"); // input-group
 
-            OScriptBegin();
+            OMvcScriptBegin();
             O($"// Lookup view for {propPath}");
             OnSelectorButtonClick(context, () =>
             {
@@ -655,7 +655,7 @@ namespace Casimodo.Lib.Mojen
                     // Set value and fire the "change" event for the binding to pick up the new value.
                     ok: () => O($"kmodo.addEntityToObservableArray(item.{propPath}, result.item, '{targetType.Key.Name}');"));
             });
-            OScriptEnd();
+            OMvcScriptEnd();
 
             // Tag item template
             OKendoTemplateBegin("tag-template");
@@ -729,7 +729,7 @@ namespace Casimodo.Lib.Mojen
             // Validation message
             O($"@Html.ValidationMessageFor(m => m.{propPath})");
 
-            OScriptBegin();
+            OMvcScriptBegin();
             O($"// Sequence value generator for {propPath}");
             O($"var inputs = $(\"input[name='{propPath}']\");");
             OnSelectorButtonClick(context, () =>
@@ -753,7 +753,7 @@ namespace Casimodo.Lib.Mojen
                     });
 
             });
-            OScriptEnd();
+            OMvcScriptEnd();
 
             return true;
         }
@@ -789,7 +789,7 @@ namespace Casimodo.Lib.Mojen
 
             XE("</div>"); // Input group
 
-            OScriptBegin();
+            OMvcScriptBegin();
             O("// Geo place lookup dialog.");
 
             OnSelectorButtonClick(context, () =>
@@ -820,7 +820,7 @@ namespace Casimodo.Lib.Mojen
                     }));
             });
 
-            OScriptEnd();
+            OMvcScriptEnd();
 
             return true;
         }
@@ -856,7 +856,7 @@ namespace Casimodo.Lib.Mojen
 
             XE("</div>"); // Input group
 
-            OScriptBegin();
+            OMvcScriptBegin();
             O($"// Lookup dialog for {propPath}");
 
             var cascadeFromInfos = BuildCascadeFromInfos(info);
@@ -963,7 +963,7 @@ namespace Casimodo.Lib.Mojen
                     ok: () => O($"$inputs.val(result.value).change();"),
                     options: "options");
             });
-            OScriptEnd();
+            OMvcScriptEnd();
 
             return true;
         }
@@ -1153,7 +1153,7 @@ namespace Casimodo.Lib.Mojen
 
             XE("</div>"); // input-group
 
-            OScriptBegin();
+            OMvcScriptBegin();
             O($"// Snippet editor for {propPath}");
             OnSelectorButtonClick(context, () =>
             {
@@ -1180,7 +1180,7 @@ namespace Casimodo.Lib.Mojen
                         O($"input.val(result.value).change();");
                     });
             });
-            OScriptEnd();
+            OMvcScriptEnd();
 
             return true;
         }

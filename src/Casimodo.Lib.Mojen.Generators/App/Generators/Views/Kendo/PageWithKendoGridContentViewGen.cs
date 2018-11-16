@@ -33,12 +33,12 @@ namespace Casimodo.Lib.Mojen
 
                     OMvcPartialView(gridVirtualFilePath);
 
-                    OScriptBegin();
+                    OMvcScriptBegin();
                     OJsOnPageReady(() =>
                     {
                         O($"cmodo.componentRegistry.getById({Quote(grid.Id)}).vm().processNavigation().refresh();");
                     });
-                    OScriptEnd();
+                    OMvcScriptEnd();
 
                     ORazorStyleSection(() =>
                     {

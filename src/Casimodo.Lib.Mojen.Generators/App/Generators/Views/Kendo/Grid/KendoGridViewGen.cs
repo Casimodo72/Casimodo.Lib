@@ -201,50 +201,12 @@ namespace Casimodo.Lib.Mojen
             OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
             {
                 KendoGen.OBeginComponentViewModelFactory(context);
-
-                // KABU TODO: REMOVE
-                //KendoGen.OViewModelClass("ViewModel", extends: "kmodo.GridComponent",
-                //constructor: () =>
-                //{
-                //    //O($"this.keyName = \"{context.View.TypeConfig.Key.Name}\";");
-                //},
-                //content: () =>
-                //{
-                //    //// OData read query URL factory
-                //    //KendoGen.OPropValueFactory("readQuery", TransportConfig.ODataSelectUrl);
-
-                //    // Data model factory (used by the Kendo data source).
-                //    //O();
-                //    //KendoGen.ODataSourceModelFactory(context, TransportConfig);
-
-                //    // Data source options factory.
-                //    //O();
-                //    //KendoGen.ODataSourceOptionsFactory(context, () =>
-                //    //    KendoGen.ODataSourceListOptions(context,
-                //    //        TransportConfig,
-                //    //        create: false,
-                //    //        modify: false,
-                //    //        delete: false,
-                //    //        pageSize: Options.PageSize,
-                //    //        isServerPaging: Options.IsServerPaging,
-                //    //        initialSortProps: context.View.Props
-                //    //            .Where(x => x.InitialSort.Is)
-                //    //            .OrderBy(x => x.InitialSort.Index)
-                //    //            .ToArray()));
-
-                //    //KendoGen.BuildBaseFiltersArray(context);
-
-                //    //O();
-                //    //GenGridOptionsFactory(context);
-                //});
-
-                // Create view model with options.
-                O();
                 OB("return new kmodo.GridComponent(");
                 KendoGen.OViewModelOptions(context, isList: true,
                     extend: () =>
                     {
                         O($"baseFilters: {KendoGen.BuildBaseFiltersArrayLiteral(context)},");
+
                         // OData read query URL
                         O($"readQuery: {MojenUtils.ToJsValue(TransportConfig.ODataSelectUrl)},");
 
@@ -401,9 +363,7 @@ namespace Casimodo.Lib.Mojen
                                     if (context.View.IsExportableToPdf)
                                         // TODO: LOCALIZE
                                         o("<li data-name='ExportToPdf'>Exportieren nach PDF</li>");
-
-                                    //o("<button class='k-button k-grid-pdf'><span class='k-icon k-i-pdf'></span></button>");
-                                    //o("<button class='k-button k-grid-excel'><span class='k-icon k-i-excel'></span></button>");
+                                    
                                     o("</ul></li>");
                                     o("</ul>");
                                 }

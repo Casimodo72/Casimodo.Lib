@@ -211,7 +211,7 @@ namespace Casimodo.Lib.Mojen
                 path, (async ? " async" : ""));
         }
 
-        public void OScriptBegin()
+        public void OMvcScriptBegin()
         {
             XB("<script>");
             OScriptUseStrict();
@@ -222,7 +222,7 @@ namespace Casimodo.Lib.Mojen
             O("\"use strict\";");
         }
 
-        public void OScriptEnd()
+        public void OMvcScriptEnd()
         {
             XE("</script>");
         }

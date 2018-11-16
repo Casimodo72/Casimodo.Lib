@@ -156,12 +156,16 @@ namespace Casimodo.Lib.Mojen
             // Available model options are: defaultValue, editable, nullable, parse,
             // type, from, validation.
             // See http://docs.telerik.com/kendo-ui/api/javascript/data/model#methods-Model.define            
-
+            var usedProps = new List<string>();
             int i = 0;
             foreach (var prop in props)
             {
                 StartBuffer();
+                if (usedProps.Contains(prop.Name))
+                {
 
+                }
+                usedProps.Add(prop.Name);
                 OB(prop.Name + ":");
 
                 // Property type
