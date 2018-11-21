@@ -58,7 +58,7 @@ namespace Casimodo.Lib.Mojen
             {
                 OBeginComponentViewModelFactory(context);
 
-                OB("return new kmodo.ReadOnlyFormComponent(");
+                OB("return new kmodo.ReadOnlyForm(");
                 OViewModelOptions(context,
                     extend: () =>
                     {
