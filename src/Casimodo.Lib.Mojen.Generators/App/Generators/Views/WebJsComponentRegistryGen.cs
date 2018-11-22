@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
                 OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
                 {                
                     ClassGen.OTsClass(ns: nscontext.Current, name: "ComponentRegistry",
-                        export: false,
+                        export: true,
                         extends: "cmodo.ComponentRegistry",
                         constructor: () =>
                         {
@@ -36,7 +36,7 @@ namespace Casimodo.Lib.Mojen
                         {
                             foreach (var item in components.Where(x => x.View?.Id != null))
                             {
-                                O("get{0}{1}{2}(options) {{ return this.getById({3}, options); }}",
+                                O("get{0}{1}{2}(options?: any) {{ return this.getById({3}, options); }}",
                                     item.View.GetPartName(),
                                     item.View.MainRoleName,
                                     (item.View.Group != null ? "_" + item.View.Group : ""),
