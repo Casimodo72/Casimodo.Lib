@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public partial class JsPrimitiveKeysGen : DataLayerGenerator
+    public partial class TsPrimitiveKeysGen : DataLayerGenerator
     {
-        public JsPrimitiveKeysGen()
+        public TsPrimitiveKeysGen()
         {
             Scope = "Context";
         }
@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
         {
             var webConfig = App.Get<WebDataLayerConfig>();
             var moduleName = webConfig.ScriptNamespace;
-            var outputDirPath = webConfig.JavaScriptDataDirPath;
+            var outputDirPath = webConfig.TypeScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
@@ -26,15 +26,16 @@ namespace Casimodo.Lib.Mojen
             if (!items.Any())
                 return;
 
-            PerformWrite(Path.Combine(outputDirPath, "primitives.generated.js"), () =>
+            PerformWrite(Path.Combine(outputDirPath, "Primitives.generated.ts"), () =>
             {
-                OJsNamespace(moduleName, () =>
+                OTsNamespace(moduleName, () =>
                 {
                     foreach (var item in items)
                     {
                         O();
-                        OJsClass(name: item.KeysContainerName, isstatic: true, export: false,
-                            constructor: () => GeneratePrimitiveDefinition(moduleName, item));
+                        OTsClass(null, name: item.KeysContainerName, export: true,
+                            hasconstructor: false,
+                            content: () => GeneratePrimitiveDefinition(moduleName, item));
                     }
                 });
             });
@@ -81,8 +82,7 @@ namespace Casimodo.Lib.Mojen
                     // Public static member
                     var name = item.Get(config.NamePropName);
                     var val = item.Get(config.ValuePropName);
-
-                    O("this.{0} = {1};", name.Value, MojenUtils.ToJsValue(val.Value));
+                    O("public static {0} = {1};", name.Value, MojenUtils.ToJsValue(val.Value));
                 }
             }
 
@@ -127,7 +127,7 @@ namespace Casimodo.Lib.Mojen
 
             // Mapping dictionary
             O();
-            OB($"var {dictionary} =");
+            OB($"private static {dictionary} =");
             string key;
             string value;
             foreach (MojValueSet item in config.Items)
@@ -138,7 +138,7 @@ namespace Casimodo.Lib.Mojen
                    .ToArray());
 
                 if (isToNamedValue)
-                    value = "this." + item.Get(config.NamePropName).Value;
+                    value = config.KeysContainerName + "." + item.Get(config.NamePropName).Value;
                 else
                     value = MojenUtils.ToJsValue(item.Get(toPropName).Value, parse: true);
 
@@ -150,7 +150,7 @@ namespace Casimodo.Lib.Mojen
             O();
             key = keyProps.Select(x => FirstCharToLower(x)).Join(", ");
 
-            OB($"this.get{toPropName}By{keyName} = function ({key})");
+            OB($"public static get{toPropName}By{keyName}({key})");
 
             key = string.Format(keyTemplate,
                 keyProps.Select(x => FirstCharToLower(x))
@@ -158,9 +158,9 @@ namespace Casimodo.Lib.Mojen
 
             O($"if (typeof {key} === 'undefined' || {key} === null) return null;");
 
-            O($"return {dictionary}['' + {key}] || null;");
+            O($"return {config.KeysContainerName}.{dictionary}['' + {key}] || null;");
 
-            End(";");
+            End();
         }
     }
 }

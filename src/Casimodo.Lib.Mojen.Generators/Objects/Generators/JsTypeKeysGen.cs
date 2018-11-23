@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class JsTypeKeysGen : DataLayerGenerator
+    public class TsTypeKeysGen : DataLayerGenerator
     {
-        public JsTypeKeysGen()
+        public TsTypeKeysGen()
         {
             Scope = "App";
         }
@@ -17,12 +17,12 @@ namespace Casimodo.Lib.Mojen
         {
             var webConfig = App.Get<WebDataLayerConfig>();
 
-            if (string.IsNullOrEmpty(webConfig.JavaScriptDataDirPath)) return;
+            if (string.IsNullOrEmpty(webConfig.TypeScriptDataDirPath)) return;
 
-            PerformWrite(Path.Combine(webConfig.JavaScriptDataDirPath, "primitives.TypeKeys.generated.js"),
+            PerformWrite(Path.Combine(webConfig.TypeScriptDataDirPath, "Primitives.TypeKeys.generated.ts"),
                 () =>
                 {
-                    OJsNamespace(webConfig.ScriptNamespace, () =>
+                    OTsNamespace(webConfig.ScriptNamespace, () =>
                     {
                         GenerateTypeKeys();
                     });
@@ -31,8 +31,10 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateTypeKeys()
         {
-            OJsClass(name: "TypeKeys", isstatic: true,
-                constructor: () =>
+            var className = "TypeKeys";
+
+            OTsClass(ns: null, name: className, hasconstructor: false,
+                content: () =>
             {
                 var types = new List<MojType>();
                 foreach (var type in App.GetTypes())
@@ -44,17 +46,17 @@ namespace Casimodo.Lib.Mojen
                 }
 
                 foreach (var type in types)
-                    O($"this.{type.Name} = '{type.Id}';");
+                    O($"public static {type.Name} = '{type.Id}';");
 
                 O();
-                OB("var _id2Name =");
+                OB("private static _id2Name =");
                 foreach (var type in types)
                     O($"'{type.Id}': '{type.Name}',");
                 End();
 
                 O();
-                OB("this.getNameById = function(id)");
-                O("return _id2Name[id] || null;");
+                OB("public static getNameById(id)");
+                O($"return {className}._id2Name[id] || null;");
                 End();
             });
         }

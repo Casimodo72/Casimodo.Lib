@@ -44,6 +44,9 @@ namespace Casimodo.Lib.Mojen
     public class WebDataLayerConfig : MojBase
     {
         [DataMember]
+        public string TypeScriptDataDirPath { get; set; }
+
+        [DataMember]
         public string JavaScriptDataDirPath { get; set; }
 
         [DataMember]
@@ -52,8 +55,7 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string AngularModuleName { get; set; }
 
-        [DataMember]
-        public string TypeScriptDataDirPath { get; set; }
+        
 
         [DataMember]
         public string ScriptNamespace { get; set; }

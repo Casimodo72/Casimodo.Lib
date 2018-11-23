@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class JsAnyKeysGen : DataLayerGenerator
+    public class TsAnyKeysGen : DataLayerGenerator
     {
-        public JsAnyKeysGen()
+        public TsAnyKeysGen()
         {
             Scope = "Context";
         }
@@ -21,9 +21,9 @@ namespace Casimodo.Lib.Mojen
             if (!configs.Any())
                 return;
 
-            PerformWrite(Path.Combine(webConfig.JavaScriptDataDirPath, $"primitives.AnyKeys.generated.js"), () =>
+            PerformWrite(Path.Combine(webConfig.TypeScriptDataDirPath, $"Primitives.AnyKeys.generated.ts"), () =>
             {
-                OJsNamespace(webConfig.ScriptNamespace, () =>
+                OTsNamespace(webConfig.ScriptNamespace, () =>
                 {
                     foreach (var config in configs)
                         GenerateAnyKeys(config);
@@ -34,11 +34,11 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateAnyKeys(MojAnyKeysConfig config)
         {
-            OJsClass(name: config.ClassName, isstatic: true, export: false,
-            constructor: () =>
+            OTsClass(ns: null, name: config.ClassName, hasconstructor: false,
+            content: () =>
             {
                 foreach (var item in config.Items)
-                    O($"this.{item.Key} = {MojenUtils.ToJsValue(item.Value)};");
+                    O($"public static {item.Key} = {MojenUtils.ToJsValue(item.Value)};");
             });
             O();
         }

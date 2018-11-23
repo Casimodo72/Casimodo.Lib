@@ -10,6 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         public void OTsClass(string ns, string name, string extends = null,
                bool isstatic = false, bool export = true,
+               bool hasconstructor = true,
                string constructorOptions = null,
                Action constructor = null,
                Action content = null)
@@ -22,18 +23,21 @@ namespace Casimodo.Lib.Mojen
 
             OB($"{(export ? "export " : "")}class {name}{(isDerived ? " extends " + extends : "")}");
 
-            // Constructor
-            OB($"constructor({(hasOptions ? constructorOptions : "")})");
-
-            if (isDerived)
-                O($"super({(hasOptions ? constructorOptions : "")});");
-
-            if (constructor != null)
+            if (hasconstructor)
             {
-                constructor();
-            }
+                // Constructor
+                OB($"constructor({(hasOptions ? constructorOptions : "")})");
 
-            End(); // End of constructor
+                if (isDerived)
+                    O($"super({(hasOptions ? constructorOptions : "")});");
+
+                if (constructor != null)
+                {
+                    constructor();
+                }
+
+                End(); // End of constructor
+            }
 
             if (content != null)
             {

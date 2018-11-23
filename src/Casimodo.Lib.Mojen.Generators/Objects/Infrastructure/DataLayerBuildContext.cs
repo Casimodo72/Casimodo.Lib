@@ -106,7 +106,7 @@ namespace Casimodo.Lib.Mojen
             var seed = Parent.AddItemsOfType(type);
             seed.UseIndex().Name("Name").Value("Id")
                 .Use<PrimitiveKeysGen>()
-                .Use<JsPrimitiveKeysGen>()
+                .Use<TsPrimitiveKeysGen>()
                 .Seed("Name", "DisplayName", "Id");
 
             return seed;

@@ -13,6 +13,13 @@ namespace Casimodo.Lib.Mojen
 
         public JsClassGen ClassGen { get; private set; }
 
+        public void OTsNamespace(string ns, Action action)
+        {
+            OB($"namespace {ns}");
+            O();
+            action?.Invoke();
+            End();
+        }
 
         public void OJsNamespace(string ns, Action action)
         {
@@ -40,23 +47,11 @@ namespace Casimodo.Lib.Mojen
         public void OJsClass(string ns, string name, bool isstatic = false, bool export = true, Action constructor = null, Action content = null)
         {
             ClassGen.OJsClass(ns, name, isstatic: isstatic, export: export, constructor: constructor, content: content);
+        }
 
-            // KABU TOOD: REMOVE
-            //OB($"var {name} = (function ()");
-            //OB($"function {name}()");
-
-            //content();
-
-            //End();
-
-            //O($"return {name};");
-
-            //End(")();");
-
-            //if (isstatic)
-            //    O("{0}.{1} = new {1}();", ns, name);
-            //else
-            //    O("{0}.{1} = {1};", ns, name);
+        public void OTsClass(string ns, string name, bool isstatic = false, bool export = true, bool hasconstructor = true, Action constructor = null, Action content = null)
+        {
+            ClassGen.OTsClass(ns, name, isstatic: isstatic, export: export, hasconstructor: hasconstructor, constructor: constructor, content: content);
         }
 
         public string GetJsDefaultValue(MojProp prop)
