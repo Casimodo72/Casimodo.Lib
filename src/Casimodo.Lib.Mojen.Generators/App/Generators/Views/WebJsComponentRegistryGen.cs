@@ -24,7 +24,7 @@ namespace Casimodo.Lib.Mojen
                 //OScriptUseStrict();
 
                 OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
-                {                
+                {
                     ClassGen.OTsClass(ns: nscontext.Current, name: "ComponentRegistry",
                         export: true,
                         extends: "cmodo.ComponentRegistry",
@@ -45,7 +45,8 @@ namespace Casimodo.Lib.Mojen
                         });
 
                     O();
-                    O("var reg = cmodo.componentRegistry = new ComponentRegistry;");
+                    O("export let componentRegistry = cmodo.componentRegistry = new ComponentRegistry;");
+                    O("let reg = componentRegistry;");
 
                     O();
                     foreach (var item in components)
