@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
             g.O("_db.Context.Configuration.LazyLoadingEnabled = false;");
             g.O("_db.Context.Configuration.AutoDetectChangesEnabled = false;");
             g.O();
-            g.O("if (this.UpdateIndependentCollection<{0}, {1}>(parameters, _db.Context, nameof({0}.Tags),",
+            g.O("if (this.UpdateIndependentCollection<{0}, {1}>(_db.Context, parameters, nameof({0}.Tags),",
                 ownerTypeName, itemTypeName);
             g.Push();
             g.O("validateItem: (controller, owner, item) =>");
