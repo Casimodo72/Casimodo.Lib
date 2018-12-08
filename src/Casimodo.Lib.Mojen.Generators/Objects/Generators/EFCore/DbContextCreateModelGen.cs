@@ -46,12 +46,11 @@ namespace Casimodo.Lib.Mojen
             var types = App.AllConcreteEntities.ToArray();
 
             OUsing(
-                "Casimodo.Lib.Data.Builder",
                 "System",
-                "System.Collections.Generic",
-                "System.ComponentModel.DataAnnotations.Schema",
-                "Microsoft.EntityFrameworkCore",
-                "System.Linq");
+                //"System.Linq",
+                //"System.Collections.Generic",
+                //"System.ComponentModel.DataAnnotations.Schema",
+                "Microsoft.EntityFrameworkCore");
 
             ONamespace(DataConfig.DataNamespace);
 
