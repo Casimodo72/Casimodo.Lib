@@ -13,6 +13,12 @@ namespace Casimodo.Lib.Mojen
 
     public delegate void MojUsedByEventHandler(object source, MojUsedByEventArgs args);
 
+    public class MojenAppMiddlewareItem
+    {
+        public string Name { get; set; }
+        public object Options { get; set; }
+    }
+
     public class MojenApp
     {
         public MojenApp()
@@ -22,6 +28,9 @@ namespace Casimodo.Lib.Mojen
             Contexts = new List<MojenBuildContext>();
             Configs = new List<MojenBuildConfig>();
         }
+
+        public List<MojenAppMiddlewareItem> Middlewares { get; private set; } = new List<MojenAppMiddlewareItem>();
+
         public void LoadConfigs(MojenMetaContainer container)
         {
             var items = container.GetItems<AppBuildConfig>().ToArray();
@@ -245,10 +254,10 @@ namespace Casimodo.Lib.Mojen
 
             item = GetItems<T>().FirstOrDefault();
             if (item != null)
-                return item;            
+                return item;
 
             if (required)
-                throw new MojenException($"The type '{nameof(T)}' was not found in the Mojen App.");
+                throw new MojenException($"The type '{typeof(T).GetType().Name}' was not found in the Mojen App.");
 
             return null;
         }

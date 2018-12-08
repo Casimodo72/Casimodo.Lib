@@ -55,6 +55,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojEntityPropBuilder Index()
         {
+            // KABU TODO: We do not support non-unique indexes across multiple props yet.
             if (PropConfig.DbAnno.Index.Is)
                 return This();
 
@@ -98,6 +99,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             Index();
+            PropConfig.DbAnno.Index.IsUnique = true;
 
             // KABU TODO: INDEX-PROP-NULLABLE: Currently disabled since in object "Party" we have
             //   two potential index scenarios where only one index is actually active.
@@ -116,29 +118,29 @@ namespace Casimodo.Lib.Mojen
 
                 // Ensure the tenant key is always the first member of the unique expression.
 
-                var tenant = App.CurrentBuildContext.Get<DataLayerConfig>().Tenant;
-                if (tenant == null)
+                var tenantType = App.CurrentBuildContext.Get<DataLayerConfig>().Tenant;
+                if (tenantType == null)
                     throw new MojenException("Failed to acquire the tenant type.");
 
-                if (uniqueMembers.Contains(tenant))
+                if (uniqueMembers.Contains(tenantType))
                     throw new MojenException("The tenant must not be specified explicitely.");
 
-                uniqueMembers.Insert(0, tenant);
+                uniqueMembers.Insert(0, tenantType);
 
                 var type = PropConfig.DeclaringType;
                 MojType perType;
                 MojProp perProp;
-                MojUniqueParameterKind kind;
+                MojIndexPropKind kind;
                 foreach (var obj in uniqueMembers)
                 {
-                    kind = MojUniqueParameterKind.UniqueMember;
+                    kind = MojIndexPropKind.IndexMember;
 
                     perType = obj as MojType;
                     if (perType != null)
                     {
                         // Tenant
-                        if (perType == tenant)
-                            kind = MojUniqueParameterKind.TenantUniqueMember;
+                        if (perType == tenantType)
+                            kind = MojIndexPropKind.TenantIndexMember;
 
                         perProp = type.FindReferenceWithForeignKey(to: perType, required: true)
                             .ForeignKey
@@ -156,9 +158,21 @@ namespace Casimodo.Lib.Mojen
 
                     PropConfig.DbAnno.Unique._parameters.Add(item);
 
-                    if (perType != tenant)
+                    PropConfig.DbAnno.Index.Participants.Add(new MojIndexParticipantConfig
+                    {
+                        Kind = kind,
+                        Prop = perProp
+                    });
+
+                    if (perType != tenantType)
                         PropConfig.CascadeFromProps.Add(perProp);
                 }
+
+                PropConfig.DbAnno.Index.Participants.Add(new MojIndexParticipantConfig
+                {
+                    Kind = MojIndexPropKind.IndexMember,
+                    Prop = PropConfig
+                });
             }
 
             return This();
@@ -182,7 +196,7 @@ namespace Casimodo.Lib.Mojen
             PropConfig.DbAnno.Sequence.IsDbSequence = false;
             PropConfig.DbAnno.Unique._parameters.Add(new MojUniqueParameterConfig
             {
-                Kind = MojUniqueParameterKind.StartSelector,
+                Kind = MojIndexPropKind.StartSelector,
                 Prop = selectorPath.Root.SourceProp
             });
 
@@ -209,7 +223,7 @@ namespace Casimodo.Lib.Mojen
             PropConfig.DbAnno.Sequence.IsDbSequence = false;
             PropConfig.DbAnno.Unique._parameters.Add(new MojUniqueParameterConfig
             {
-                Kind = MojUniqueParameterKind.StartSelector,
+                Kind = MojIndexPropKind.StartSelector,
                 Prop = selectorPath.Root.SourceProp
             });
 

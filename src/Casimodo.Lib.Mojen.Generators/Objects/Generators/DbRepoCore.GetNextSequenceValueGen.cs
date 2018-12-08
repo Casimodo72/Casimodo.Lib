@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    // KABU TODO: EF Core: Use native support for sequences.
+    //    See: https://docs.microsoft.com/en-us/ef/core/modeling/relational/sequences
+
     public class DbRepoCoreGetNextSequenceValueGen : DbRepoCoreGenBase
     {
         public DbRepoCoreGetNextSequenceValueGen()

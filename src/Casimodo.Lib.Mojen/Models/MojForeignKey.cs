@@ -76,7 +76,7 @@ namespace Casimodo.Lib.Mojen
             get { return Is && Binding.HasFlag(MojReferenceBinding.Associated); }
         }
 
-        public bool IsIdependent
+        public bool Independent
         {
             get { return Is && Binding.HasFlag(MojReferenceBinding.Independent); }
         }

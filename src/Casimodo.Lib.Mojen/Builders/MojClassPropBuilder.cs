@@ -44,18 +44,20 @@ namespace Casimodo.Lib.Mojen
             get { return TypeBuilder.TypeConfig; }
         }
 
-        public TPropBuilder IndependentCollectionOf(MojType type)
+        public TPropBuilder IndependenCollectionOf(MojType type)
         {
-            return CollectionOfCore(type,
+            CollectionOfCore(type,
                 owned: false,
                 nested: false,
                 axis: MojReferenceAxis.ToCollectionItem,
                 independent: true);
+
+            return This();
         }
 
         public TPropBuilder ChildCollectionOf(MojType type, bool nested = false,
             bool hidden = false,
-            string backref = null,
+            string backrefPropName = null,
             bool? backrefNew = null,
             bool? backrefRequired = null,
             bool isSoftDeleteCascadeDisabled = false)
@@ -63,7 +65,7 @@ namespace Casimodo.Lib.Mojen
             return CollectionOf2(type, owned: true, nested: nested,
                 axis: MojReferenceAxis.ToChild,
                 hidden: hidden,
-                backref: backref,
+                backrefPropName: backrefPropName,
                 backrefNew: backrefNew,
                 backrefRequired: backrefRequired,
                 isSoftDeleteCascadeDisabled: isSoftDeleteCascadeDisabled);
@@ -86,12 +88,12 @@ namespace Casimodo.Lib.Mojen
             // @backrefExplicit defaults to true, but is nullable because we need to know whether specified.
             bool? backrefExplicit = null,
             bool? backrefRequired = null,
-            string backref = null)
+            string backrefPropName = null)
         {
-            if (backref != null && backrefNew == null)
+            if (backrefPropName != null && backrefNew == null)
                 throw new MojenException("If the backref name is specified, then backrefNew must also be specified.");
 
-            if (backref != null && backrefExplicit != null)
+            if (backrefPropName != null && backrefExplicit != null)
                 throw new MojenException("If the backref name is specified, then backrefExplicit must *not* be specified.");
 
             // @backrefNew defaults to true, but is nullable because we need to know whether specified.
@@ -101,7 +103,7 @@ namespace Casimodo.Lib.Mojen
                 type = type.StoreOrSelf;
 
             MojProp backrefProp = null;
-            if (backrefNew == false && backref == null)
+            if (backrefNew == false && backrefPropName == null)
             {
                 // Use existing backref prop.
                 backrefProp = type.FindReferenceWithForeignKey(to: TypeConfig);
@@ -114,31 +116,31 @@ namespace Casimodo.Lib.Mojen
                 //    throw new MojenException($"The property '{type.Name}.{childToParentReferenceProp.Name}' " +
                 //        "is already a back-reference to an other property.");
             }
-            else if (backref != null)
+            else if (backrefPropName != null)
             {
-                backrefProp = type.FindProp(backref);
+                backrefProp = type.FindProp(backrefPropName);
                 if (backrefProp == null)
                 {
                     // Try with "Id" suffix.
-                    backrefProp = type.FindProp(backref + "Id");
+                    backrefProp = type.FindProp(backrefPropName + "Id");
                 }
 
                 if (backrefProp == null && backrefNew == false)
-                    throw new MojenException($"The child type '{type.Name}' has no property named '{backref}'.");
+                    throw new MojenException($"The child type '{type.Name}' has no property named '{backrefPropName}'.");
 
                 if (backrefProp != null && backrefNew == true)
-                    throw new MojenException($"The child type '{type.Name}' has already a property named '{backref}'.");
+                    throw new MojenException($"The child type '{type.Name}' has already a property named '{backrefPropName}'.");
 
                 if (backrefProp != null)
                 {
                     if (!backrefProp.Reference.Is)
                     {
-                        throw new MojenException($"The child type '{type.Name}' has a property named '{backref}' but it is not a reference property.");
+                        throw new MojenException($"The child type '{type.Name}' has a property named '{backrefPropName}' but it is not a reference property.");
 
                         // KABU TODO: Does not work with EF.
                         //if (backrefProp.Type.TypeNormalized != typeof(Guid))
                         //    throw new MojenException($"The backref property '{backrefProp.Name}' " +
-                        //        $"of child type '{type.Name}' must be of type GUID in order to create an independent association.");                    
+                        //        $"of child type '{type.Name}' must be of type GUID in order to create an unidirectional many-to-many relationship.");                    
                     }
                     else if (!backrefProp.Reference.IsToOne)
                     {
@@ -147,7 +149,7 @@ namespace Casimodo.Lib.Mojen
                     }
 
                     // TODO: REMOVE: childToParentProp = backrefProp;
-                    backref = null;
+                    backrefPropName = null;
                 }
             }
 
@@ -160,19 +162,20 @@ namespace Casimodo.Lib.Mojen
                 backrefProp: backrefProp,
                 backrefExplicit: backrefExplicit,
                 backrefRequired: backrefRequired,
-                backref: backref);
+                backrefPropName: backrefPropName);
         }
 
         internal TPropBuilder CollectionOfCore(MojType childType,
             MojReferenceAxis axis,
-            bool owned, bool nested, bool independent = false,
+            bool owned, bool nested,
+            bool independent = false,
             bool isSoftDeleteCascadeDisabled = false,
             bool hidden = false,
             // @backrefExplicit defaults to true, but is nullable because we need to know whether specified.
             bool? backrefExplicit = null,
             bool? backrefRequired = null,
             MojProp backrefProp = null,
-            string backref = null)
+            string backrefPropName = null)
         {
             if (axis == MojReferenceAxis.ToChild && !owned)
                 throw new MojenException("Child axis mismatch.");
@@ -180,7 +183,7 @@ namespace Casimodo.Lib.Mojen
             if (axis != MojReferenceAxis.ToChild && owned)
                 throw new MojenException("Child axis mismatch.");
 
-            if (backref != null && backrefExplicit != null)
+            if (backrefPropName != null && backrefExplicit != null)
                 throw new MojenException("If the backref name is specified, then backrefExplicit must *not* be specified.");
 
             if (backrefProp != null && backrefExplicit != null)
@@ -235,13 +238,13 @@ namespace Casimodo.Lib.Mojen
                         //   a navigational back-reference property.
                         var isBackNavigation = false;
 
-                        string backrefPropName;
-                        if (backref != null)
-                            backrefPropName = backref.RemoveRight("Id");
+                        string effectiveBackrefPropName;
+                        if (backrefPropName != null)
+                            effectiveBackrefPropName = backrefPropName.RemoveRight("Id");
                         else if (PropConfig.SingleName == childType.Name || backrefExplicit == false)
-                            backrefPropName = TypeConfig.Name;
+                            effectiveBackrefPropName = TypeConfig.Name;
                         else
-                            backrefPropName = PropConfig.SingleName + "Of" + TypeConfig.Name;
+                            effectiveBackrefPropName = PropConfig.SingleName + "Of" + TypeConfig.Name;
 
                         MojReferenceAxis backrefAxis = MojReferenceAxis.None;
                         if (axis == MojReferenceAxis.ToChild)
@@ -256,7 +259,7 @@ namespace Casimodo.Lib.Mojen
                         {
                             pbuilder =
                                 MojTypeBuilder.Create<MojEntityBuilder>(App, childType)
-                                    .Prop(backrefPropName)
+                                    .Prop(effectiveBackrefPropName)
                                         .ReferenceCore(to: TypeBuilder.TypeConfig,
                                             axis: backrefAxis,
                                             required: backrefRequired,
@@ -268,7 +271,7 @@ namespace Casimodo.Lib.Mojen
                         {
                             pbuilder =
                                 MojTypeBuilder.Create<MojModelBuilder>(App, childType)
-                                    .Prop(backrefPropName)
+                                    .Prop(effectiveBackrefPropName)
                                         .ReferenceCore(to: TypeBuilder.TypeConfig,
                                             axis: backrefAxis,
                                             required: backrefRequired,

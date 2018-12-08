@@ -79,7 +79,7 @@ namespace Casimodo.Lib.Mojen
             var independentCollectionProps = type.GetProps()
                 .Where(x =>
                     x.IsNavigation &&
-                    x.Reference.IsIdependent &&
+                    x.Reference.Independent &&
                     x.Reference.IsToMany
                 );
 
@@ -105,7 +105,7 @@ namespace Casimodo.Lib.Mojen
                     // KABU TODO: IMPORTANT: REVISIT: Currently we only support saving 
                     //   of independent collection props.
                     //   Neither nested or loose collections are saved currently.
-                    if (!prop.Reference.IsIdependent)
+                    if (!prop.Reference.Independent)
                     {
                         // NOTE: We delete the property in this case.
                         O($"if (typeof item.{prop.Name} !== 'undefined') delete item.{prop.Name};");

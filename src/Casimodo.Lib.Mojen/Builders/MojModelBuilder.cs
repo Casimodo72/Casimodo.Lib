@@ -48,23 +48,25 @@ namespace Casimodo.Lib.Mojen
 
         MojModelBuilder StoreCore(string entityName, string entityPluralName = null, Action<MojEntityBuilder> buildAction = null)
         {
-            var entity = MojType.CreateEntity(entityName);
-            if (entityPluralName != null)
-                entity.InitPluralName(entityPluralName);
-            entity.IsAbstract = TypeConfig.IsAbstract;
-            entity.Namespace = App.Get<DataLayerConfig>().DataNamespace;
-
-            TypeConfig.Store = entity;
-            TypeConfig.IsStoreOwner = true;
-
-            if (TypeConfig.BaseClass != null)
+            if (TypeConfig.Store == null)
             {
-                TypeConfig.Store.BaseClass = TypeConfig.BaseClass.Store;
-                TypeConfig.Store.BaseClassName = TypeConfig.BaseClass.Store.ClassName;
+                var entity = MojType.CreateEntity(entityName);
+                if (entityPluralName != null)
+                    entity.InitPluralName(entityPluralName);
+                entity.IsAbstract = TypeConfig.IsAbstract;
+                entity.Namespace = App.Get<DataLayerConfig>().DataNamespace;
+
+                TypeConfig.Store = entity;
+                TypeConfig.IsStoreOwner = true;
+
+                if (TypeConfig.BaseClass != null)
+                {
+                    TypeConfig.Store.BaseClass = TypeConfig.BaseClass.Store;
+                    TypeConfig.Store.BaseClassName = TypeConfig.BaseClass.Store.ClassName;
+                }
             }
 
-            if (buildAction != null)
-                buildAction(GetEntityBuilder());
+            buildAction?.Invoke(GetEntityBuilder());
 
             return this;
         }

@@ -1,8 +1,19 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
+    [DataContract(Namespace = MojContract.Ns)]
+    public class MojIndexParticipantConfig : MojBase
+    {
+        [DataMember]
+        public MojIndexPropKind Kind { get; set; }
+
+        [DataMember]
+        public MojProp Prop { get; set; }
+    }
+
     [DataContract(Namespace = MojContract.Ns)]
     public class MojIndexConfig : MojBase
     {
@@ -11,10 +22,21 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool Is { get; set; }
 
-        public MojIndexConfig Clone()
+        [DataMember]
+        public bool IsUnique { get; set; }
+
+        [DataMember]
+        public readonly List<MojIndexParticipantConfig> Participants = new List<MojIndexParticipantConfig>();
+
+        //public MojIndexConfig Clone()
+        //{
+        //    var clone = (MojIndexConfig)MemberwiseClone();
+        //    return clone;
+        //}
+
+        public override string ToString()
         {
-            var clone = (MojIndexConfig)MemberwiseClone();
-            return clone;
+            return $"I: {Is}, U: {IsUnique}";
         }
     }
 }

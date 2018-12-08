@@ -235,7 +235,7 @@ namespace Casimodo.Lib.Mojen
                     {
                         // Collections
                         // KABU TODO: Currently we only support updates of independent collections.
-                        if (reference.SourceProp.Reference.IsIdependent)
+                        if (reference.SourceProp.Reference.Independent)
                         {
                             yield return new XElement("Ref",
                                 new XAttribute("Name", reference.SourceProp.Name),

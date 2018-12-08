@@ -144,7 +144,7 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public Guid? Id { get; set; }
-      
+
         [DataMember]
         public MojTypeKind Kind { get; set; }
 
@@ -273,6 +273,9 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojAssignFromCollectionConfig AssignFromConfig = MojAssignFromCollectionConfig.None;
 
+        [DataMember]
+        public readonly List<MojIndexConfig> Indexes = new List<MojIndexConfig>(0);
+
         internal void AddLocalProp(MojProp prop)
         {
             prop.DeclaringType = this;
@@ -318,6 +321,13 @@ namespace Casimodo.Lib.Mojen
                 !x.DbAnno.Sequence.IsDbSequence &&
                  (x == prop || x.DbAnno.Unique.IsMember(prop)))
                  .Select(x => x.DbAnno);
+        }
+
+        public IEnumerable<MojProp> GetIndexProps(bool? unique = null)
+        {
+            return GetProps().Where(x =>
+                 x.DbAnno.Index.Is &&
+                 (unique == null || x.DbAnno.Unique.Is == unique));
         }
 
         [DataMember]
@@ -704,6 +714,15 @@ namespace Casimodo.Lib.Mojen
         public MojProp FindProp(string name)
         {
             return GetProps().FirstOrDefault(x => x.Name == name);
+        }
+
+        public MojProp GetProp(string name, bool required = true)
+        {
+            var prop = GetProps().FirstOrDefault(x => x.Name == name);
+            if (prop == null && required)
+                throw new MojenException($"Property '{name}' not found.");
+
+            return prop;
         }
 
         public IEnumerable<MojOrderConfig> GetOrderBy()

@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{12E22275-66C7-4440-8554-AE51EADF63F2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Casimodo.Lib.Mojen.Extensions</RootNamespace>
+    <AssemblyName>Casimodo.Lib.Mojen.Extensions</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DotNetCoreMiddlewareExtensions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen.Generators\Casimodo.Lib.Mojen.Generators.csproj">
+      <Project>{3645f8f3-9172-45f0-ad20-5651b00a7f45}</Project>
+      <Name>Casimodo.Lib.Mojen.Generators</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen.Views\Casimodo.Lib.Mojen.Views.csproj">
+      <Project>{e7b30b2d-e791-4032-80e2-1b4db4be4f02}</Project>
+      <Name>Casimodo.Lib.Mojen.Views</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
+      <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
+      <Name>Casimodo.Lib.Mojen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
+      <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
+      <Name>Casimodo.Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

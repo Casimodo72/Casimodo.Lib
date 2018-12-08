@@ -7,6 +7,11 @@ namespace Casimodo.Lib
 {
     public static class EnumerableExtensions
     {
+        public static bool HasDuplicates<TSource, TValue>(this IEnumerable<TSource> items, Func<TSource, TValue> selector)
+        {
+            return items.GroupBy(selector).Any(x => x.Count() > 1);
+        }
+
         public static IEnumerable<TSource> AddIfNotDefault<TSource>(this IEnumerable<TSource> items, Func<TSource> func)
         {
             foreach (var item in items)

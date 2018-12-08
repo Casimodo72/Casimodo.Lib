@@ -6,10 +6,10 @@ using System.Collections.Generic;
 
 namespace Casimodo.Lib.Mojen
 {
-    public enum MojUniqueParameterKind
+    public enum MojIndexPropKind
     {
-        UniqueMember = 0,
-        TenantUniqueMember = 1,
+        IndexMember = 0,
+        TenantIndexMember = 1,
         StartSelector = 2,
         EndSelector = 3
     }
@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Mojen
         public bool Is { get; set; }
 
         [DataMember]
-        public MojUniqueParameterKind Kind { get; set; }
+        public MojIndexPropKind Kind { get; set; }
 
         [DataMember]
         public MojProp Prop { get; set; }
@@ -123,7 +123,7 @@ namespace Casimodo.Lib.Mojen
 
         bool FilterTenant(MojUniqueParameterConfig item, bool include)
         {
-            return include || item.Kind != MojUniqueParameterKind.TenantUniqueMember;
+            return include || item.Kind != MojIndexPropKind.TenantIndexMember;
         }
 
         public bool HasUniqePerConstraint
@@ -139,8 +139,8 @@ namespace Casimodo.Lib.Mojen
         public IEnumerable<MojUniqueParameterConfig> GetMembers()
         {
             return _parameters.Where(x => 
-                x.Kind == MojUniqueParameterKind.UniqueMember ||
-                x.Kind == MojUniqueParameterKind.TenantUniqueMember);
+                x.Kind == MojIndexPropKind.IndexMember ||
+                x.Kind == MojIndexPropKind.TenantIndexMember);
         }
 
         public bool IsMember(MojProp prop)
