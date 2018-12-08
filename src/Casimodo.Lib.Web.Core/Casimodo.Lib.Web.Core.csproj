@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Data.Core\Casimodo.Lib.Data.Core.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Database.Core\Casimodo.Lib.Database.Core.csproj" />
+  </ItemGroup>
+
+</Project>
