@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -24,13 +25,26 @@ namespace Casimodo.Lib.Mojen
         public string Filter { get; set; }
     }
 
+    public class DataSeedSectionConfig
+    {
+        public string Name { get; set; }
+        public bool IsEnabled { get; set; }
+    }
+
     public class GlobalDataSeedConfig : MojBase
     {
-        public bool IsProductionDataFetchEnabled { get; set; }
-        public bool IsProductionDataOverwriteEnabled { get; set; }
+        public DataSeedSectionConfig[] Sections { get; set; } = Array.Empty<DataSeedSectionConfig>();
+        public bool IsSeedGeneratorEnabled { get; set; }
+        public bool IsSourceDbDataFetchEnabled { get; set; }
+        public bool IsSpecificSeedEnabled { get; set; }
         public bool IsInitialSeedEnabled { get; set; }
-        public string DbConnectionString { get; set; }
-        public string ProductionDataFetchOutputDirPath { get; set; }
+        public string SourceDbConnectionString { get; set; }
+        public string SourceDbDataFetchOutputDirPath { get; set; }
+
+        public bool IsSectionEnabled(string name)
+        {
+            return Sections.Any(x => x.Name == name && x.IsEnabled);
+        }
     }
 
     public abstract class EntityExporterGenBase : DataLayerGenerator
@@ -47,9 +61,9 @@ namespace Casimodo.Lib.Mojen
         {
             ExportConfig = App.Get<GlobalDataSeedConfig>(required: false);
 
-            if (ExportConfig == null || !ExportConfig.IsProductionDataFetchEnabled ||
-                string.IsNullOrEmpty(ExportConfig.ProductionDataFetchOutputDirPath) ||
-                string.IsNullOrEmpty(ExportConfig.DbConnectionString))
+            if (ExportConfig == null || !ExportConfig.IsSourceDbDataFetchEnabled ||
+                string.IsNullOrEmpty(ExportConfig.SourceDbDataFetchOutputDirPath) ||
+                string.IsNullOrEmpty(ExportConfig.SourceDbConnectionString))
                 return;
 
             GenerateExport();
@@ -96,7 +110,7 @@ namespace Casimodo.Lib.Mojen
 
             Type queryType = MojenUtils.CreateType(type, props);
 
-            using (var db = new DbContext(ExportConfig.DbConnectionString))
+            using (var db = new DbContext(ExportConfig.SourceDbConnectionString))
             {
                 foreach (var entity in db.Database.SqlQuery(queryType, $"select {fields} from {table}"))
                 {
@@ -120,7 +134,7 @@ namespace Casimodo.Lib.Mojen
             // Save to file
 
 
-            string outputDirPath = Options?.OutputDirPath ?? ExportConfig.ProductionDataFetchOutputDirPath;
+            string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchOutputDirPath;
             var filePath = Path.Combine(outputDirPath, "Data." + type.ClassName + ".Xml.generated.cs");
 
             rootElem.Save(filePath);

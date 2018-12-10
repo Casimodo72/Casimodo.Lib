@@ -17,6 +17,10 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
+            var config = App.Get<GlobalDataSeedConfig>();
+            if (!config.IsSeedGeneratorEnabled)
+                return;
+
             DataConfig = App.Get<DataLayerConfig>();
 
             var outputDirPath = DataConfig.DbSeedRegistryDirPath;
@@ -47,15 +51,17 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateSeedContainer(MojType[] types)
         {
-            OUsing("System", "System.Globalization", "Casimodo.Lib.Data", types.First().Namespace);
+            OUsing("System", "System.Globalization", "System.Threading.Tasks", "Casimodo.Lib.Data", types.First().Namespace);
 
             ONamespace(DataConfig.DataNamespace + ".Seed");
 
-            O($"partial class Seed{DataConfig.DbContextName} : DbSeedBase");
+            O($"partial class Seed{DataConfig.DbContextName}");
             Begin();
-            O("public {0} Context {{ get; set; }}", DataConfig.DbContextName);
-            O();
-            O("public void Seed({0} context)", DataConfig.DbContextName);
+            // TODO: REMOVE: O("public {0} Context {{ get; set; }}", DataConfig.DbContextName);
+            //O();
+
+            var isasync = types.SelectMany(x => x.Seedings).Any(x => x.IsAsync);
+            O($"public {GetAsyncMethod(isasync)} Seed({DataConfig.DbContextName} context)");
             Begin();
             O("if (!IsEnabled) return;");
             O("Context = context;");
@@ -64,11 +70,34 @@ namespace Casimodo.Lib.Mojen
             foreach (var type in types)
             {
                 var enabled = type.Seedings.All(x => x.IsEnabled);
-                O("{0}Seed{1}();", (enabled ? "" : "// DISABLED: "), type.PluralName);
+                O("{0}{1}Seed{2}();",
+                    GetAsyncAwait(type.Seedings.Any(x => x.IsAsync)),
+                    (enabled ? "" : "// DISABLED: "),
+                    type.PluralName);
             }
             End();
             End();
             End();
+        }
+
+        string GetAsyncMethod(MojValueSetContainer container)
+        {
+            return GetAsyncMethod(container.IsAsync);
+        }
+
+        string GetAsyncMethod(bool isasync)
+        {
+            return isasync ? "async Task" : "void";
+        }
+
+        string GetAsyncAwait(MojValueSetContainer container)
+        {
+            return container.IsAsync ? "await " : "";
+        }
+
+        string GetAsyncAwait(bool isasync)
+        {
+            return isasync ? "await " : "";
         }
 
         public void GenerateSeed(MojType type)
@@ -78,12 +107,12 @@ namespace Casimodo.Lib.Mojen
 
             MojType storeType = type.Kind == MojTypeKind.Entity ? type : type.GetNearestStore();
 
-            OUsing("System", "System.Linq", "Casimodo.Lib.Data",
+            OUsing("System", "System.Linq", "System.Threading.Tasks", "Casimodo.Lib.Data",
                 (DataConfig.DataNamespace != storeType.Namespace ? storeType.Namespace : null));
             ONamespace(DataConfig.DataNamespace + ".Seed");
-            O($"partial class DbSeed{DataConfig.DbContextName}");
+            O($"partial class Seed{DataConfig.DbContextName}");
             Begin();
-            O("void Seed{0}()", type.PluralName);
+            O($"{GetAsyncMethod(type.Seedings.Any(x => x.IsAsync))} Seed{type.PluralName}()");
             Begin();
 
             var assignments = new List<string>();
@@ -99,7 +128,7 @@ namespace Casimodo.Lib.Mojen
                 foreach (MojValueSet valueSet in valueSetContainer.Items)
                 {
                     assignments.Clear();
-                    Oo("Add(new {0} {{ ", storeType.ClassName);
+                    Oo($"{GetAsyncAwait(valueSetContainer)}Add(new {storeType.ClassName} {{ ");
 
                     foreach (MojValueSetProp val in valueSet.Values)
                     {
@@ -188,7 +217,7 @@ namespace Casimodo.Lib.Mojen
 
                 O("SetBasics(item);");
                 O("OnAdding(item);");
-                O("Context.{0}.AddOrUpdate(item);", storeType.PluralName);
+                O("AddOrUpdate(item);");
                 End();
 
                 // Partial OnAdding

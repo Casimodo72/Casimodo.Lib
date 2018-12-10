@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
 
                 AuthUserOptions = Options as AuthUserEntityExporterOptions;
 
-                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.ProductionDataFetchOutputDirPath;
+                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchOutputDirPath;
 
                 var filePath = Path.Combine(outputDirPath, item.TargetType.Name + ".Seed.generated.cs");
 
@@ -117,11 +117,11 @@ namespace Casimodo.Lib.Mojen
             if (props.Any(x => x.Type.Type == null))
                 throw new MojenException("Deed definition must not contain non simple type properties.");
 
-            var fields = props.Select(x => "[" + x.Name + "]").Join(", ");
+            var dbFields = props.Select(x => "[" + container.GetImportPropName(x.Name) + "]").Join(", ");
 
-            var table = storeType.TableName;
+            var dbTable = storeType.TableName;
 
-            var query = $"select {fields} from [{table}]";
+            var query = $"select {dbFields} from [{dbTable}]";
 
             // Sort
             if (!string.IsNullOrWhiteSpace(Options.OrderBy))
@@ -131,7 +131,7 @@ namespace Casimodo.Lib.Mojen
 
             Type queryType = MojenUtils.CreateType(storeType, props);
 
-            using (var db = new DbContext(ExportConfig.DbConnectionString))
+            using (var db = new DbContext(ExportConfig.SourceDbConnectionString))
             {
                 var allUserToRole = db.Database.SqlQuery(typeof(AuthUserRole), "select UserId, RoleId from AuthUserRoles").Cast<AuthUserRole>().ToArray();
                 var allRoles = db.Database.SqlQuery(typeof(AuthRole), "select Id, Name from AuthRoles").Cast<AuthRole>().ToArray();

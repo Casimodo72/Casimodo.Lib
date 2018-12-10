@@ -325,7 +325,7 @@ namespace Casimodo.Lib.Mojen.Meta
                 Begin();
 
                 // Class
-                O("public static readonly {0} Class = _MetaContainer.Data.Get<{0}>(\"{1}\");",
+                O("public static {0} Class = _MetaContainer.Data.Get<{0}>(\"{1}\");",
                     item.GetType().Name, item.MetadataId.ToString());
                 O();
 

@@ -708,44 +708,9 @@ namespace Casimodo.Lib.Mojen
             var exists = File.Exists(outputFilePath);
             if (exists)
             {
-                bool differs = false;
-                var buffer = SharedComparisonBuffer;
-                int totalBytesRead = 0, bytesRead;
-                using (var fs = new FileStream(outputFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var reader = new BinaryReader(fs, MyUT8Encoding))
-                {
-                    while ((bytesRead = reader.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        if (totalBytesRead + bytesRead > outputLength)
-                        {
-                            // Existing file is bigger than the new output.
-                            differs = true;
-                            break;
-                        }
+                //###
 
-                        if (bytesRead < buffer.Length && totalBytesRead + bytesRead != outputLength)
-                        {
-                            // Existing file is smaller than the new output.
-                            differs = true;
-                            break;
-                        }
-
-                        for (int i = 0; i < bytesRead; i++)
-                        {
-                            if (buffer[i] != outputData[totalBytesRead + i])
-                            {
-                                differs = true;
-                                break;
-                            }
-                        }
-
-                        totalBytesRead += bytesRead;
-                    }
-                }
-
-                differs = differs || (totalBytesRead != outputLength);
-
-                if (!differs)
+                if (!FileContentDiffers(outputFilePath, outputLength, outputData))
                 {
                     // The file content has not changed.
                     return;
@@ -765,6 +730,46 @@ namespace Casimodo.Lib.Mojen
             {
                 writer.Write(outputData, 0, outputLength);
             }
+        }
+
+        bool FileContentDiffers(string filePaht, int length, byte[] data)
+        {
+            bool differs = false;
+            var buffer = SharedComparisonBuffer;
+            int totalBytesRead = 0, bytesRead;
+            using (var fs = new FileStream(filePaht, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new BinaryReader(fs, MyUT8Encoding))
+            {
+                while ((bytesRead = reader.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    if (totalBytesRead + bytesRead > length)
+                    {
+                        // Existing file is bigger than the new output.
+                        differs = true;
+                        break;
+                    }
+
+                    if (bytesRead < buffer.Length && totalBytesRead + bytesRead != length)
+                    {
+                        // Existing file is smaller than the new output.
+                        differs = true;
+                        break;
+                    }
+
+                    for (int i = 0; i < bytesRead; i++)
+                    {
+                        if (buffer[i] != data[totalBytesRead + i])
+                        {
+                            differs = true;
+                            break;
+                        }
+                    }
+
+                    totalBytesRead += bytesRead;
+                }
+            }
+
+            return differs || (totalBytesRead != length);
         }
 
         // Copyright (c) 2008-2013 Hafthor Stefansson

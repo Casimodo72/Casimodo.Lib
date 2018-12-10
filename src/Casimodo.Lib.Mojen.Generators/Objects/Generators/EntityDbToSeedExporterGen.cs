@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Mojen
                 if (Options?.IsEnabled == false)
                     continue;
 
-                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.ProductionDataFetchOutputDirPath;
+                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchOutputDirPath;
 
                 var filePath = Path.Combine(outputDirPath, item.TargetType.Name + ".Seed.generated.cs");
 
@@ -68,7 +68,7 @@ namespace Casimodo.Lib.Mojen
                 query += $" order by [{Options.OrderBy}]";
             }
 
-            using (var db = new DbContext(ExportConfig.DbConnectionString))
+            using (var db = new DbContext(ExportConfig.SourceDbConnectionString))
             {
                 foreach (var entity in db.Database.SqlQuery(queryType, query))
                 {

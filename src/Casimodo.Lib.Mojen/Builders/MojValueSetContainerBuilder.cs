@@ -144,6 +144,20 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojValueSetContainerBuilder UseAsync()
+        {
+            Config.IsAsync = true;
+
+            return this;
+        }
+
+        public MojValueSetContainerBuilder MapImportProp(string propName, string importPropName)
+        {
+            Config.MapImportProp(propName, importPropName);
+
+            return this;
+        }
+
         public MojValueSetContainerBuilder UseDefault(string name, object value)
         {
             var item = Defaults.FirstOrDefault(x => x.Name == name);

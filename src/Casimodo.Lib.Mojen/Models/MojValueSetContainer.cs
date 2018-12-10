@@ -6,6 +6,12 @@ using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
+    class MyImportPropMapping
+    {
+        public string PropName { get; set; }
+        public string ImportPropName { get; set; }
+    }
+
     [DataContract(Namespace = MojContract.Ns)]
     public class MojValueSetContainer : MojPartBase
     {
@@ -59,6 +65,10 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsIndexMapping { get; set; }
 
+
+        [DataMember]
+        public bool IsAsync { get; set; }
+
         /// <summary>
         /// Used at built-time only.
         /// </summary>
@@ -90,6 +100,27 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         internal List<string> DefaultPropNames { get; set; } = new List<string>();
 
+        internal List<MyImportPropMapping> ImportPropMappings { get; set; }    
+
+        public string GetImportPropName(string propName)
+        {
+            if (ImportPropMappings == null)
+                return propName;
+
+            var mapping = ImportPropMappings.FirstOrDefault(x => x.PropName == propName);
+            if (mapping != null)
+                return mapping.ImportPropName;
+
+            return propName;
+        }
+
+        public void MapImportProp(string propName, string importPropName)
+        {
+            if (ImportPropMappings == null)
+                ImportPropMappings = new List<MyImportPropMapping>();
+            ImportPropMappings.Add(new MyImportPropMapping { PropName = propName, ImportPropName = importPropName });
+        }
+
         internal void UseProp(string propName)
         {
             if (!AllPropNames.Contains(propName))
@@ -102,6 +133,11 @@ namespace Casimodo.Lib.Mojen
                 DefaultPropNames.Add(propName);
         }
 
+        //public IEnumerable<MojProp> GetProps(bool defaults = true)
+        //{
+
+        //}
+
         public IEnumerable<MojProp> GetProps(bool defaults = true)
         {
             var propNames = new List<string>();
@@ -111,17 +147,8 @@ namespace Casimodo.Lib.Mojen
                 {
                     if (!AllPropNames.Contains(val.Name))
                         throw new MojenException($"Property '{val.Name}' was not registered in the value set container.");
-
-                    //if (!propNames.Contains(val.Name))
-                    //    propNames.Add(val.Name);
                 }
             }
-
-            //foreach (var name in AllPropNames)
-            //{
-            //    if (!propNames.Contains(name))
-            //        propNames.Add(name);
-            //}
 
             propNames = AllPropNames;
 
@@ -129,8 +156,6 @@ namespace Casimodo.Lib.Mojen
                 propNames = propNames.Except(DefaultPropNames).ToList();
 
             return propNames.Select(x => TargetType.GetProp(x)).ToArray();
-
-            //return SeedToType.GetProps().Where(x => propNames.Contains(x.Name)).ToArray();
         }
 
         public object ConvertFromLiteral(string name, object value)

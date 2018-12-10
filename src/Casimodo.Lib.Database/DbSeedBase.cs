@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,12 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
+    public class DbSeedBase<TContext> : DbSeedBase
+        where TContext : DbContext
+    {
+        public TContext Context { get; set; }
+    }
+
     public class DbSeedBase
     {
         public DateTimeOffset SeedTime { get; set; }

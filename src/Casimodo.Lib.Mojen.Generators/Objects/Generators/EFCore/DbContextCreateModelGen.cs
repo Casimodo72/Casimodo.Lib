@@ -66,9 +66,9 @@ namespace Casimodo.Lib.Mojen
 
                 OCommentSection(type.Name);
 
-                O($"var {item} = builder.Entity<{type.ClassName}>();");
+                OB($"builder.Entity<{type.ClassName}>(b => ");
                 // Specify Db table name.
-                O($"{item}.ToTable(\"{type.TableName}\");");
+                O($"b.ToTable(\"{type.TableName}\");");
 
                 // KABU TODO: IMPORTANT: REVISIT: EF Core does not support TPC (yet?.
                 //   Currently only TPH is implemented.
@@ -103,7 +103,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     // Index: entity.HasIndex("TenantId", "MySomeProp", "MyContextProp").HasName("UIX_MyContextProp").IsUnique();
                     var propNames = dbindex.Prop.DbAnno.Index.Participants.Select(x => "\"" + x.Prop.Name + "\"").Join(", ");
-                    Oo($"{item}.HasIndex({propNames}).HasName(\"{dbindex.IndexName}\")");
+                    Oo($"b.HasIndex({propNames}).HasName(\"{dbindex.IndexName}\")");
 
                     if (dbindex.Prop.DbAnno.Index.IsUnique)
                         o(".IsUnique()");
@@ -115,7 +115,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     if (prop.Rules.IsRequired && !prop.IsNavigation)
                     {
-                        O($"{item}.Property(\"{prop.Name}\").IsRequired();");
+                        O($"b.Property(\"{prop.Name}\").IsRequired();");
                     }
 #if (false)
                     var dbAnnotations = type.GetIndexesWhereIsMember(prop).ToArray();
@@ -159,7 +159,6 @@ namespace Casimodo.Lib.Mojen
                 {
                     O();
                     var propName = prop.Name;
-
 #if (false)
                     public class A2B
                     {
@@ -206,7 +205,7 @@ namespace Casimodo.Lib.Mojen
                     }
                     else
                     {
-                        O($"{item}.HasMany(x => x.{prop.Name})");
+                        O($"b.HasMany(x => x.{prop.Name})");
                         Push();
 
                         O($".WithOne()");
@@ -255,6 +254,7 @@ namespace Casimodo.Lib.Mojen
                     }
                 }
 
+                End(");");
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                 O();
@@ -263,7 +263,6 @@ namespace Casimodo.Lib.Mojen
             foreach (var prop in unidirectionalManyToManyProps)
             {
                 var type = GetManyToManyClassName(prop);
-                var ltype = type.FirstLetterToLower();
                 var atype = prop.DeclaringType.Name;
                 var aToBList = "To" + prop.Name;
 
@@ -274,12 +273,13 @@ namespace Casimodo.Lib.Mojen
                 var bid = btype + "Id";
 
                 O($"// Many-to-many: {type}");
-                O($"var {ltype} = builder.Entity<{type}>();");
-                O($"{ltype}.HasKey(\"{aid}\", \"{bid}\");");
-                O($"{ltype}.HasOne(ab => ab.{atype}).WithMany(a => a.{aToBList}).HasForeignKey(ab => ab.{aid});");
-                O($"{ltype}.HasOne(ab => ab.{btype}).WithMany().HasForeignKey(ab => ab.{bid});");
+                OB($"builder.Entity<{type}>(b =>");
+                O($"b.HasKey(\"{aid}\", \"{bid}\");");
+                O($"b.HasOne(ab => ab.{atype}).WithMany(a => a.{aToBList}).HasForeignKey(ab => ab.{aid});");
+                O($"b.HasOne(ab => ab.{btype}).WithMany().HasForeignKey(ab => ab.{bid});");
                 // TODO: This would be for bidirectional many-to-many: 
-                // O($"{ltype}.HasOne(ab => ab.{btype}).WithMany(b => b.{aToList}).HasForeignKey(ab => ab.{bid});");
+                // O($"b.HasOne(ab => ab.{btype}).WithMany(b => b.{aToList}).HasForeignKey(ab => ab.{bid});");
+                End(");");
                 O();
 #if (false)
                 var a2b = builder.Entity<A2B>();

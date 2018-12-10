@@ -65,7 +65,16 @@ namespace Casimodo.Lib.Mojen
             if (!PropConfig.DbAnno.Is)
                 PropConfig.DbAnno = new MojDbPropAnnotation(PropConfig);
 
-            PropConfig.DbAnno.Index = new MojIndexConfig { Is = true };
+            var index = new MojIndexConfig { Is = true }; ;
+
+            PropConfig.DbAnno.Index = index;
+            index.Participants.Add(new MojIndexParticipantConfig
+            {
+                Kind = MojIndexPropKind.IndexMember,
+                Prop = PropConfig
+            });
+
+            TypeBuilder.TypeConfig.Indexes.Add(index);
 
             return This();
         }
@@ -99,7 +108,10 @@ namespace Casimodo.Lib.Mojen
             }
 
             Index();
-            PropConfig.DbAnno.Index.IsUnique = true;
+            var index = PropConfig.DbAnno.Index;
+            index.IsUnique = true;
+            // Clear because we are adding the context prop at the end of the list of participants.
+            index.Participants.Clear();
 
             // KABU TODO: INDEX-PROP-NULLABLE: Currently disabled since in object "Party" we have
             //   two potential index scenarios where only one index is actually active.
@@ -158,7 +170,7 @@ namespace Casimodo.Lib.Mojen
 
                     PropConfig.DbAnno.Unique._parameters.Add(item);
 
-                    PropConfig.DbAnno.Index.Participants.Add(new MojIndexParticipantConfig
+                    index.Participants.Add(new MojIndexParticipantConfig
                     {
                         Kind = kind,
                         Prop = perProp
@@ -168,12 +180,12 @@ namespace Casimodo.Lib.Mojen
                         PropConfig.CascadeFromProps.Add(perProp);
                 }
 
-                PropConfig.DbAnno.Index.Participants.Add(new MojIndexParticipantConfig
+                index.Participants.Add(new MojIndexParticipantConfig
                 {
                     Kind = MojIndexPropKind.IndexMember,
                     Prop = PropConfig
                 });
-            }
+            }          
 
             return This();
         }
