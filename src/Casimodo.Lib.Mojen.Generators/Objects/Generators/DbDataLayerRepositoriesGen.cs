@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class DbDataLayerRepositoriesGen : MojenGenerator
+    public class DbRepositoriesGen : MojenGenerator
     {
-        public DbDataLayerRepositoriesGen()
+        public DbRepositoriesGen()
         {
             Scope = "Context";
         }
@@ -47,10 +47,11 @@ namespace Casimodo.Lib.Mojen
                     type.ClassName,
                     type.Key.Type.Name);
 
-                Begin();
-                O("public {0}() {{ }}", name);
-                O("public {0}({1} db) : base(db) {{ }}", name, db.DbContextName);
-                End();
+                O("{ }");
+                //Begin();
+                //O("public {0}() {{ }}", name);
+                //O("public {0}({1} db) : base(db) {{ }}", name, db.DbContextName);
+                //End();
 
                 O();
             }

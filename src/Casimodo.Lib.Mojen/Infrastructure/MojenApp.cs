@@ -13,10 +13,44 @@ namespace Casimodo.Lib.Mojen
 
     public delegate void MojUsedByEventHandler(object source, MojUsedByEventArgs args);
 
-    public class MojenAppMiddlewareItem
+    public class MojenAppExtensionItem
     {
         public string Name { get; set; }
         public object Options { get; set; }
+    }
+
+    public class DotNetCoreOptions
+    {
+        public Action<MojModelBuilder> ConfigureManyToManyLinkType { get; set; }
+    }
+
+    public static class MojenAppExtensions
+    {
+        const string Name = "IsDotNetCore";
+
+        public static void UseDotNetCore(this MojenApp app, DotNetCoreOptions options = null)
+        {
+            app.Extensions.Add(new MojenAppExtensionItem
+            {
+                Name = Name,
+                Options = options ?? new DotNetCoreOptions()
+            });
+        }
+
+        public static DotNetCoreOptions GetDotNetCoreOptions(this MojenApp app)
+        {
+            return (DotNetCoreOptions)GetExtension(app).Options;
+        }
+
+        static MojenAppExtensionItem GetExtension(MojenApp app)
+        {
+            return app.Extensions.FirstOrDefault(x => x.Name == Name);
+        }
+
+        public static bool IsDotNetCore(this MojenApp app)
+        {
+            return app.Extensions.Any(x => x.Name == Name);
+        }
     }
 
     public class MojenApp
@@ -29,7 +63,7 @@ namespace Casimodo.Lib.Mojen
             Configs = new List<MojenBuildConfig>();
         }
 
-        public List<MojenAppMiddlewareItem> Middlewares { get; private set; } = new List<MojenAppMiddlewareItem>();
+        public List<MojenAppExtensionItem> Extensions { get; private set; } = new List<MojenAppExtensionItem>();
 
         public void LoadConfigs(MojenMetaContainer container)
         {
@@ -37,12 +71,14 @@ namespace Casimodo.Lib.Mojen
             Items.AddRange(items);
         }
 
-        public static void HandleUsingBy(MojUsedByEventArgs args)
-        {
-            UsingBy?.Invoke(null, args);
-        }
+        // KABU TODO: REMOVE? Not used anymore. 
+        //public static void HandleUsingBy(MojUsedByEventArgs args)
+        //{
+        //    UsingBy?.Invoke(null, args);
+        //}
 
-        public static event MojUsedByEventHandler UsingBy;
+        // KABU TODO: REMOVE? Not used anymore. 
+        //public static event MojUsedByEventHandler UsingBy;
 
         public Action<MojenApp> Prepare { get; set; }
 

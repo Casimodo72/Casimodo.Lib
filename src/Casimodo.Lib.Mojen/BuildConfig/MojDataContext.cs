@@ -74,8 +74,6 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string EntityDirPath { get; set; }
 
-
-
         [DataMember]
         public string ComplexTypeDirPath { get; set; }
 
@@ -97,25 +95,20 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string DbRepositoryDirPath { get; set; }
 
-        /// <summary>
-        /// Used for generation of data seed filed. This is currently not used anymore,
-        /// because we moved to generation of migration seed files.
-        /// </summary>
-        [DataMember]
-        [Obsolete]
-        public string DbSeedDirPath { get; set; }
-
         [DataMember]
         public string DbMigrationDirPath { get; set; }
 
         [DataMember]
-        public string DbMigrationSeedDirPath { get; set; }
+        public string DbSeedRegistryDirPath { get; set; }
+
+        [DataMember]
+        public string DbSeedDirPath { get; set; }
 
         /// <summary>
         /// The dir path where binary DB content is put and read by the seeding machinery.
         /// </summary>
         [DataMember]
-        public string DbMigrationSeedFileDirPath { get; set; }
+        public string DbSeedBinariesDirPath { get; set; }
 
         [DataMember]
         public bool NoConstructor { get; set; }

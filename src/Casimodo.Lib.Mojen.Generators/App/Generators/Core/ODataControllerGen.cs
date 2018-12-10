@@ -10,9 +10,9 @@ namespace Casimodo.Lib.Mojen
     /// <summary>
     /// Generates ASP.NET Web API OData controllers.
     /// </summary>
-    public class ODataControllerGen : WebPartGenerator
+    public class CoreODataControllerGen : WebPartGenerator
     {
-        public ODataControllerGen()
+        public CoreODataControllerGen()
         {
             Scope = "App";
         }
@@ -51,6 +51,11 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        string GetWebRepositoryName(MojType type)
+        {
+            return type.PluralName + "Repository";
+        }
+
         void GenerateController()
         {
             Options = Controller.GetGeneratorConfig<ODataControllerOptions>() ?? new ODataControllerOptions();
@@ -65,24 +70,18 @@ namespace Casimodo.Lib.Mojen
                 "System.Collections.Generic",
                 "System.Threading",
                 "System.Threading.Tasks",
-                "System.Net",
-                //"System.Net.Http",
-                "System.Web.Http",
-                "System.Web.Http.Controllers",
+                //"System.Net",
+                //"System.Web.Http",
+                //"System.Web.Http.Controllers",
                 "Microsoft.AspNet.OData",
                 "Microsoft.AspNet.OData.Query",
                 "Microsoft.AspNet.OData.Routing",
-                //"AutoMapper",
-                //"AutoMapper.QueryableExtensions",
                 "System.Data",
-                //"System.Data.Entity",
-                //"System.Data.Entity.Infrastructure",
-                //"System.Web",
-                //"System.Web.Mvc",
                 "Casimodo.Lib",
                 "Casimodo.Lib.Data",
                 "Casimodo.Lib.Web",
                 "Casimodo.Lib.Web.Auth",
+                "Microsoft.AspNetCore.Mvc",
                 GetAllDataNamespaces()
             );
 
@@ -99,27 +98,8 @@ namespace Casimodo.Lib.Mojen
 
             // EF DB repository
             var repoName = GetWebRepositoryName(Type);
-#if (false)
-            
-            // KABU TODO: Should we use this one instead?
-            O("{0} Db", repoName);
-            Begin();
-            O("get {{ return LazyInitializer.EnsureInitialized(ref _db, () => new {0}()); }}", repoName);
-            End();
-#endif
 
             O("{0} _db = new {0}();", repoName);
-
-            O();
-            O("protected override void Initialize(HttpControllerContext controllerContext)");
-            Begin();
-            O("base.Initialize(controllerContext);");
-            O("_db.Request = Request;");
-            O("InitializeExtended();");
-            End();
-
-            O();
-            O("partial void InitializeExtended();");
 
             if (!Options.IsEmpty)
             {
@@ -148,13 +128,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var gen in App.Generators.OfType<IWebApiODataActionInjector>())
                 gen.GenerateWebApiODataActionFor(this, Type);
 
-            // Dispose
-            O();
-            O("protected override void Dispose(bool disposing)");
-            Begin();
-            O("_db.Dispose();");
-            O("base.Dispose(disposing);");
-            End();
+            // NOTE: No Dipose() method because ASP Core controllers do not have those.
 
             O();
             O("const AllowedQueryOptions LookupQueryOptions = AllowedQueryOptions.Expand | AllowedQueryOptions.Select | AllowedQueryOptions.Filter | AllowedQueryOptions.OrderBy | AllowedQueryOptions.Count | AllowedQueryOptions.Skip | AllowedQueryOptions.Top | AllowedQueryOptions.Format;");
@@ -206,7 +180,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(editorView, "Create");
             O("[HttpPost]");
-            O($"public async Task<IHttpActionResult> {action}(ODataActionParameters parameters)");
+            O($"public async Task<IActionResult> {action}(ODataActionParameters parameters)");
             Begin();
             O($"return await CreateCore(parameters?.Values?.FirstOrDefault() as {editorView.TypeConfig.Name});");
             End();
@@ -221,14 +195,14 @@ namespace Casimodo.Lib.Mojen
                 OApiActionAuthAttribute(Type, "Create");
                 O("[HttpPost]");
                 O("[ODataRoute]");
-                O($"public async Task<IHttpActionResult> Post({Type.ClassName} model)");
+                O($"public async Task<IActionResult> Post({Type.ClassName} model)");
                 Begin();
                 O("return await CreateCore(model);");
                 End();
             }
 
             O();
-            O($"async Task<IHttpActionResult> CreateCore({Type.ClassName} model)");
+            O($"async Task<IActionResult> CreateCore({Type.ClassName} model)");
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
@@ -266,9 +240,9 @@ namespace Casimodo.Lib.Mojen
 
         // Read ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        void GenerateRead(MojType type, MojProp key, string keyName)
+        void GenerateRead(MojType type, MojProp keyProp, string key)
         {
-            // GET: odata/ControllerName
+            // GET: odata/Entities
             // ODataQueryOptions: https://aspnet.codeplex.com/SourceControl/latest#Samples/WebApi/OData/v4/ODataQueryableSample/Controllers/OrdersController.cs
             // var settings = new ODataQuerySettings();
             // settings.HandleNullPropagation = HandleNullPropagationOption.Default;
@@ -285,7 +259,7 @@ namespace Casimodo.Lib.Mojen
                 o("PageSize = 20, ");
 #pragma warning restore CS0162
             oO($"AllowedQueryOptions = LookupQueryOptions, MaxExpansionDepth = {Options.MaxExpansionDepth})]");
-            O($"public System.Web.Http.IHttpActionResult {ODataConfig.Query}()");
+            O($"public IActionResult {ODataConfig.Query}()");
             Begin();
             O("return Ok(CustomFilter(_db.Query()));");
             End();
@@ -296,29 +270,19 @@ namespace Casimodo.Lib.Mojen
             O("[HttpGet]");
             O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.QueryDistinct}(on={{on}})\")]");
             O("[EnableQuery]");
-            O($"public System.Web.Http.IHttpActionResult {ODataConfig.QueryDistinct}(string on)");
+            O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();
             O($"return Ok(CustomFilter(_db.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
             End();
 
+            // GET: odata/Entities(x)
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O("[ODataRoute]");
-            O("public async Task<IEnumerable<{0}>> Get(ODataQueryOptions<{0}> query)", type.ClassName);
+            O($"[ODataRoute(\"({{{key}}})\"), EnableQuery]");
+            O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, keyProp.Type.Name, key);
             Begin();
-            O("return await _db.SelectAsync(query);");
-            End();
-
-            // KABU TODO: IMPORTANT: Should this return null if not found? Currently a not found exception is thrown.
-            // GET: odata/ControllerName(x)
-            O();
-            OApiActionAuthAttribute(Type, "View");
-            O("[HttpGet]");
-            O("[ODataRoute(\"({{{0}}})\"), EnableQuery]", keyName);
-            O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, key.Type.Name, keyName);
-            Begin();
-            O("return SingleResult.Create(_db.Get({0}).ToQueryable());", keyName);
+            O($"return SingleResult.Create(_db.QuerySingle({key}));");
             End();
         }
 
@@ -381,7 +345,7 @@ namespace Casimodo.Lib.Mojen
                 O("[HttpPost]");
                 // NOTE: The ID parameter *must* be named "key" by convention.
                 // Otherwise the action won't be found by the OData Web API machinery.
-                O($"public async Task<IHttpActionResult> {action}([FromODataUri] {key.Type.Name} key, ODataActionParameters parameters)");
+                O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} key, ODataActionParameters parameters)");
                 Begin();
                 O($"return await UpdateCore(key, parameters?.Values?.FirstOrDefault() as {Type.ClassName}, {mask}, \"{group}\");");
                 End();
@@ -393,7 +357,7 @@ namespace Casimodo.Lib.Mojen
                 OApiActionAuthAttribute(editorView, "Modify");
                 O("[HttpPut]");
                 O($"[ODataRoute(\"({{{key.VName}}})\")]");
-                O($"public async Task<IHttpActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model)");
+                O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");
                 End();
@@ -405,7 +369,7 @@ namespace Casimodo.Lib.Mojen
             var key = Type.Key;
 
             O();
-            O($"async Task<IHttpActionResult> UpdateCore([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask, string group = null)");
+            O($"async Task<IActionResult> UpdateCore([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask, string group = null)");
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
@@ -446,7 +410,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 O("[AcceptVerbs(\"PATCH\", \"MERGE\")]");
                 O("[ODataRoute(\"({{{0}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]", key.VName);
-                O("public async Task<IHttpActionResult> Patch([FromODataUri] {0} {1}, Delta<{2}> delta, CancellationToken cancellationToken)",
+                O("public async Task<IActionResult> Patch([FromODataUri] {0} {1}, Delta<{2}> delta, CancellationToken cancellationToken)",
                     key.Type.Name, key.VName, Type.ClassName);
                 Begin();
                 O("Validate(delta.GetEntity());");
@@ -470,7 +434,7 @@ namespace Casimodo.Lib.Mojen
             OApiActionAuthAttribute(Type, "Delete");
             O("[HttpDelete]");
             O("[ODataRoute(\"({{{0}}})\")]", key.VName);
-            O("public async Task<IHttpActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
+            O("public async Task<IActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
             O("_db.ReferenceLoading(false);");
             O();
@@ -491,7 +455,8 @@ namespace Casimodo.Lib.Mojen
             O();
             O($"{GetDbContextSaveChangesExpression(repository)};");
             O();
-            O("return StatusCode(HttpStatusCode.NoContent);");
+            // KABU TODO: IMPORTANT: Why can't we return Ok() here? Which JS library produces errors when using Ok()?
+            O("return NoContent();");
             End();
         }
 

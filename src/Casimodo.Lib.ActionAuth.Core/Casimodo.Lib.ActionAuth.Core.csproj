@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Casimodo.Lib.ActionAuth\ActionAuthManager.cs" Link="ActionAuthManager.cs" />
+    <Compile Include="..\Casimodo.Lib.ActionAuth\AuthAction.cs" Link="AuthAction.cs" />
+    <Compile Include="..\Casimodo.Lib.ActionAuth\AuthActionPerm.cs" Link="AuthActionPerm.cs" />
+    <Compile Include="..\Casimodo.Lib.ActionAuth\AuthPart.cs" Link="AuthPart.cs" />
+    <Compile Include="..\Casimodo.Lib.ActionAuth\AuthViewAction.cs" Link="AuthViewAction.cs" />
+    <Compile Include="..\Casimodo.Lib.ActionAuth\CommonAuthVerb.cs" Link="CommonAuthVerb.cs" />
+    <Compile Include="..\Casimodo.Lib.ActionAuth\IdentityExtensions.cs" Link="IdentityExtensions.cs" />
+  </ItemGroup>
+
+</Project>

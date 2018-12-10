@@ -156,6 +156,7 @@
     <Compile Include="App\Generators\Controllers\DefaultMvcControllerGen.cs" />
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
+    <Compile Include="App\Generators\Core\ODataControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
     <Compile Include="App\Generators\OData\WebApiAuthConfigGen.cs" />
     <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />
@@ -205,6 +206,7 @@
     <Compile Include="Objects\Generators\EFCore\DbContextGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.OnSaving.MiscGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.RestoreIsCascadeDeleted.CascadeGen.cs" />
+    <Compile Include="Objects\Generators\EFCore\DbSeedGen.cs" />
     <Compile Include="Objects\Generators\EFCore\EntityGen.cs" />
     <Compile Include="Objects\Generators\JsAnyKeysGen.cs" />
     <Compile Include="Objects\Generators\DbContextCreateMapGen.cs" />
@@ -262,10 +264,6 @@
     <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
       <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
       <Name>Casimodo.Lib.Mojen</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Casimodo.Lib.TypeBuilder\Casimodo.Lib.TypeBuilder.csproj">
-      <Project>{7369e6e2-be36-4e8a-9609-a9ea42fd590b}</Project>
-      <Name>Casimodo.Lib.TypeBuilder</Name>
     </ProjectReference>
     <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
       <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>

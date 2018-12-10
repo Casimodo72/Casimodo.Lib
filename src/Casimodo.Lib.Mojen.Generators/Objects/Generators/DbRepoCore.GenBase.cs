@@ -71,7 +71,7 @@ namespace Casimodo.Lib.Mojen
         public Func<DbRepoCoreGenBase, string> RepositoriesContextGetter { get; set; } =
             (o) => $"var context = new {o.DataConfig.DbRepoContainerName}(({o.DataConfig.DbContextName})db);";
 
-        public bool UseRepositoriesContext { get; set; } = true;        
+        public bool UseRepositoriesContext { get; set; } = true;
 
         public Func<IEnumerable<MojType>, IEnumerable<DbRepoCoreGenItem>> SelectTypes { get; set; } = (types) => Enumerable.Empty<DbRepoCoreGenItem>();
 
@@ -108,13 +108,18 @@ namespace Casimodo.Lib.Mojen
 
         public void OClassStart()
         {
-            OUsing(
-                "System",
+            var ns = new List<string>(new[] {"System",
                 "System.Collections.Generic",
-                "System.Data.Entity",
                 "System.Linq",
                 "Casimodo.Lib",
-                "Casimodo.Lib.Data");
+                "Casimodo.Lib.Data"});
+
+            if (App.IsDotNetCore())
+                ns.Add("Microsoft.EntityFrameworkCore");
+            else
+                ns.Add("System.Data.Entity");
+
+            OUsing(ns.ToArray());
 
             ONamespace(DataConfig.DataNamespace);
 
@@ -131,7 +136,7 @@ namespace Casimodo.Lib.Mojen
         public virtual void OHelpers()
         {
             // NOP
-        }      
+        }
 
         public virtual void OForAllTypes()
         {

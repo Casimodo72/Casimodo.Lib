@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
-    public class DbMigrationSeedBase
+    public class DbSeedBase
     {
         public DateTimeOffset SeedTime { get; set; }
 

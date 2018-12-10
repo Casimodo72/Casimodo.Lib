@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class DbMigrationSeedGen : DataLayerGenerator
+    public class CoreDbSeedGen : DataLayerGenerator
     {
-        public DbMigrationSeedGen()
+        public CoreDbSeedGen()
         {
             Scope = "DataContext";
         }
@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             // Write seed container.
-            PerformWrite(Path.Combine(outputDirPath, "Seed." + DataConfig.DbContextName + ".generated.cs"),
+            PerformWrite(Path.Combine(outputDirPath, "Seed" + DataConfig.DbContextName + ".generated.cs"),
                 () => GenerateSeedContainer(types));
 
             // Generate seed file for each type.
@@ -49,9 +49,9 @@ namespace Casimodo.Lib.Mojen
         {
             OUsing("System", "System.Globalization", "Casimodo.Lib.Data", types.First().Namespace);
 
-            ONamespace(DataConfig.DataNamespace + ".Migrations");
+            ONamespace(DataConfig.DataNamespace + ".Seed");
 
-            O("partial class DbMigrationSeed : DbMigrationSeedBase");
+            O($"partial class Seed{DataConfig.DbContextName} : DbSeedBase");
             Begin();
             O("public {0} Context {{ get; set; }}", DataConfig.DbContextName);
             O();
@@ -60,7 +60,7 @@ namespace Casimodo.Lib.Mojen
             O("if (!IsEnabled) return;");
             O("Context = context;");
             O("SeedTime = DateTimeOffset.Parse(\"{0}\", CultureInfo.InvariantCulture);", App.Now.ToString(CultureInfo.InvariantCulture));
-            O();            
+            O();
             foreach (var type in types)
             {
                 var enabled = type.Seedings.All(x => x.IsEnabled);
@@ -78,13 +78,10 @@ namespace Casimodo.Lib.Mojen
 
             MojType storeType = type.Kind == MojTypeKind.Entity ? type : type.GetNearestStore();
 
-            OUsing("System", "System.Linq",
-                "System.Data.Entity",
-                "System.Data.Entity.Migrations",
-                "Casimodo.Lib.Data",
+            OUsing("System", "System.Linq", "Casimodo.Lib.Data",
                 (DataConfig.DataNamespace != storeType.Namespace ? storeType.Namespace : null));
-            ONamespace(DataConfig.DataNamespace + ".Migrations");
-            O("partial class DbMigrationSeed");
+            ONamespace(DataConfig.DataNamespace + ".Seed");
+            O($"partial class DbSeed{DataConfig.DbContextName}");
             Begin();
             O("void Seed{0}()", type.PluralName);
             Begin();

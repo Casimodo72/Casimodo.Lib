@@ -44,7 +44,7 @@ namespace Casimodo.Lib.Mojen
                 name,
                 context.DbContextName);
 
-            O("    where TEntity : class, IKeyAccessor<TKey>");
+            O("    where TEntity : class, IKeyAccessor<TKey>, new()");
             O("    where TKey : struct, IComparable<TKey>");
             Begin();
             O("public {0}() {{ }}", name);

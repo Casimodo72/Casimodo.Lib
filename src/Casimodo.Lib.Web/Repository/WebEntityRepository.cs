@@ -30,6 +30,7 @@ namespace Casimodo.Lib.Web
         where TEntity : class, IKeyAccessor<TKey>
         where TKey : struct, IComparable<TKey>
     {
+
         // Get: Collection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         /// <summary>
@@ -40,23 +41,8 @@ namespace Casimodo.Lib.Web
         /// </summary>
         public async Task<IEnumerable<TEntity>> SelectAsync(ODataQueryOptions<TEntity> query, ODataQuerySettings settings = null)
         {
+            // KABU TODO: ELIMINATE
             return await SelectCoreAsync(query, settings);
-        }
-
-        // NOTE: Not used anywhere. Keep though.
-        async Task<PageResult<TEntity>> GetPageAsync(ODataQueryOptions<TEntity> query)
-        {
-            var settings = new ODataQuerySettings()
-            {
-                PageSize = 20
-            };
-
-            var items = await SelectCoreAsync(query, settings);
-
-            return new PageResult<TEntity>(
-                items,
-                GetRequest().ODataProperties().NextLink,
-                GetRequest().ODataProperties().TotalCount);
         }
 
         /// <summary>
@@ -67,6 +53,7 @@ namespace Casimodo.Lib.Web
         /// </summary>
         async Task<IEnumerable<TEntity>> SelectCoreAsync(ODataQueryOptions<TEntity> options, ODataQuerySettings settings = null)
         {
+            // KABU TODO: ELIMINATE
             var items = await BuildEffectiveQuery(options, settings)
                 .ToListAsync();
 
@@ -92,6 +79,7 @@ namespace Casimodo.Lib.Web
         /// </summary>
         IQueryable BuildEffectiveQuery(ODataQueryOptions options, ODataQuerySettings settings)
         {
+            // KABU TODO: ELIMINATE
             if (options == null)
                 return Query();
 
@@ -99,6 +87,23 @@ namespace Casimodo.Lib.Web
                 ? options.ApplyTo(Query(), settings)
                 : options.ApplyTo(Query());
         }
+
+        // NOTE: Not used anywhere. Keep though.
+#if (false)
+        async Task<PageResult<TEntity>> GetPageAsync(ODataQueryOptions<TEntity> query)
+        {
+            var settings = new ODataQuerySettings()
+            {
+                PageSize = 20
+            };
+
+            var items = await SelectCoreAsync(query, settings);
+
+            return new PageResult<TEntity>(
+                items,
+                GetRequest().ODataProperties().NextLink,
+                GetRequest().ODataProperties().TotalCount);
+        }            
 
         // NOTE: Not used anywhere. Keep though.
         //public IQueryable GetAny(ODataQueryOptions<TEntity> query = null, ODataQuerySettings settings = null)
@@ -111,8 +116,9 @@ namespace Casimodo.Lib.Web
         //{
         //    return (IQueryable<TEntity>)BuildEffectiveQuery(query, settings);
         //}
+#endif
 
-#if (DEBUG)
+#if (false)
         /// <summary>
         /// KABU TODO: REVISIT: Just an example validation of odata query options.
         /// </summary>

@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Data
     // EF Core: DbQuery<T> docs: https://www.learnentityframeworkcore.com/query-types
 
     public interface IDbRepository<TEntity> : IDbRepository
-        where TEntity: new()
+        where TEntity : new()
     {
         TEntity GetById(object key);
         TEntity Add(TEntity entity);
@@ -216,11 +216,6 @@ namespace Casimodo.Lib.Data
             //Context.Configuration.ProxyCreationEnabled = enabled;
         }
 
-        public async Task<int> SaveChangesAsync()
-        {
-            return await Context.SaveChangesAsync();
-        }
-
         // Get: Single ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         TEntity IDbRepository<TEntity>.GetById(object key)
@@ -320,6 +315,11 @@ namespace Casimodo.Lib.Data
                 .AsQueryable();
         }
 
+        public IQueryable<TEntity> QuerySingle(TKey id, bool includeDeleted = false)
+        {
+            return FilterById(id, Query(includeDeleted: includeDeleted, trackable: false));
+        }
+
         /// <summary>
         /// Returns an IQueryable of TEntity with the following being applied:
         /// 1) Tenant
@@ -345,7 +345,13 @@ namespace Casimodo.Lib.Data
             return Context.SaveChanges();
         }
 
-        protected async Task SaveChangesAsync(TKey key, CancellationToken? cancellationToken = null)
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await Context.SaveChangesAsync();
+        }
+
+        public async Task SaveChangesAsync(TKey key, CancellationToken? cancellationToken = null)
         {
             try
             {
@@ -491,6 +497,11 @@ namespace Casimodo.Lib.Data
             return query.Where(GetIsNotDeleted());
         }
 
+        protected IQueryable<TEntity> FilterById(TKey id, IQueryable<TEntity> query)
+        {
+            return query.Where(GetIsKeyEqual(id));
+        }
+
         public async Task<int> GetNextSequenceValueAsync(string sequenceName)
         {
             return (await SqlQueryValueListAsync<int>("SELECT NEXT VALUE FOR [dbo].[" + sequenceName + "];")).Single();
@@ -535,7 +546,7 @@ namespace Casimodo.Lib.Data
             return rows;
         }
 
-        protected void ApplyTennant(TEntity entity)
+        public void ApplyTennant(TEntity entity)
         {
             if (TenantKeyProp != null && TenantKeyProp.GetValue(entity) == null)
                 TenantKeyProp.SetValue(entity, GetTenantGuid());
@@ -595,20 +606,57 @@ namespace Casimodo.Lib.Data
             EntitySet.Remove(entity);
         }
 
+        // Add ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+
+        // NOTE: Not used anywhere. Keep though.
+        async Task<TEntity> AddAsync(TEntity entity, bool save = false)
+        {
+            entity = Add(entity);
+
+            if (save) await SaveChangesAsync(entity.GetKey());
+
+            return entity;
+        }
+
+        // Update ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        public TEntity Update(TKey key, TEntity entity, MojDataGraphMask mask = null)
+        {
+            CheckEqualKey(entity, key);
+
+            return Update(entity, mask);
+        }
+
+        // NOTE: Not used anywhere. Keep though.
+        async Task<TEntity> UpdateAsync(TKey key, TEntity entity, MojDataGraphMask mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        {
+            CheckEqualKey(entity, key);
+
+            return await UpdateAsync(entity, mask, save, cancellationToken);
+        }
+
+        // NOTE: Not used anywhere. Keep though.
+        async Task<TEntity> UpdateAsync(TEntity entity, MojDataGraphMask mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        {
+            entity = Update(entity, mask);
+
+            if (save) await SaveChangesAsync(GetKey(entity), cancellationToken);
+
+            return entity;
+        }
+
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        protected virtual Exception NotFound()
+        // KABU TODO: Rename to EntityNotFound
+        public DbRepositoryException NotFound()
         {
-            return new DbRepositoryException("Entity not found.");
+            return new DbRepositoryException(DbRepositoryErrorKind.NotFound, "Entity not found.");
         }
 
         public void Dispose()
         {
-            // KABU TODO: REVISIT: If a controller returns an IQueryable then the DbContext
-            //  must be kept alive.
-
-            // if (_db != null) _db.Dispose();
-            // _db = null;
+            // We can't dispose the DbContext because it might be shared.
+            _db = null;
         }
 
         // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -701,6 +749,13 @@ namespace Casimodo.Lib.Data
         protected Expression<Func<TEntity, bool>> GetIsTenantKeyEqual(Guid key)
         {
             return ExpressionHelper.GetEqualityPredicate<TEntity, Guid>(TenantKeyProp, key);
+        }
+
+        public void CheckEqualKey(TEntity entity, TKey key)
+        {
+            if (!KeyEquals(entity, key))
+                throw new DbRepositoryException(DbRepositoryErrorKind.InvalidOperation,
+                    "Changin the entity key property is not allowed.");
         }
     }
 }

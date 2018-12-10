@@ -86,7 +86,7 @@ namespace Casimodo.Lib.Mojen
                         }
                         else if (prop.Type.Type == typeof(string))
                         {
-                            o("\"" + ((string)value).Replace("\"", @"\""") + "\"");
+                            o("@\"" + ((string)value).Replace("\"", "\"\"") + "\"");
                         }
                         else if (prop.Type.TypeNormalized == typeof(Guid))
                         {

@@ -21,20 +21,12 @@ namespace Casimodo.Lib.Mojen
         {
             var use = MojenBuildExtensions.Use<T>(Config.UsingGenerators, args);
 
-            MojenApp.HandleUsingBy(new MojUsedByEventArgs
-            {
-                UsedType = use.Type,
-                UsedByObject = Config
-            });
-
-            // KABU TODO: REMOVE
-            //if (use.Type == typeof(ODataControllerGen))
+            // KABU TODO: REMOVE? Not used anymore. 
+            //MojenApp.HandleUsingBy(new MojUsedByEventArgs
             //{
-            //    // Add implitic OData configuration generator.
-            //    var modelGens = Config.UsingGenerators;
-            //    if (!modelGens.Any(x => x.Type == typeof(ODataConfigGen)))
-            //        modelGens.Add(new MojUsingGeneratorConfig { Type = typeof(ODataConfigGen) });
-            //}
+            //    UsedType = use.Type,
+            //    UsedByObject = Config
+            //});
 
             return this;
         }

@@ -106,11 +106,12 @@ namespace Casimodo.Lib.Mojen
         {
             var use = MojenBuildExtensions.Use<T>(Controller.UsingGenerators, args);
 
-            MojenApp.HandleUsingBy(new MojUsedByEventArgs
-            {
-                UsedType = use.Type,
-                UsedByObject = Controller.TypeConfig
-            });
+            // KABU TODO: REMOVE? Not used anymore. 
+            //MojenApp.HandleUsingBy(new MojUsedByEventArgs
+            //{
+            //    UsedType = use.Type,
+            //    UsedByObject = Controller.TypeConfig
+            //});
 
             return this;
         }

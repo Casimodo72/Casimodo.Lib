@@ -41,7 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DotNetCoreMiddlewareExtensions.cs" />
+    <Compile Include="CrossNetExtensions.cs" />
+    <Compile Include="ODataExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
