@@ -129,7 +129,7 @@ namespace Casimodo.Lib.Mojen
         public string Name { get; set; }
 
         [DataMember]
-        public string Prefix { get; set; }
+        public string TypePrefix { get; set; }
 
         [DataMember]
         public string DbContextName { get; set; }

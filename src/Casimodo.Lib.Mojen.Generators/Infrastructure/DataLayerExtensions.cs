@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         public static string GetTypeKeysClassName(this DataLayerConfig config)
         {
-            return $"{config.Prefix ?? ""}TypeKeys";
+            return $"{config.TypePrefix ?? ""}TypeKeys";
         }
     }
 }

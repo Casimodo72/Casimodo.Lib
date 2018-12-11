@@ -42,6 +42,8 @@ namespace Casimodo.Lib.Mojen
         MojenGeneratorBase _core;
         bool _isChild;
 
+        public string Lang { get; set; } = null;
+
         public TextWriter Writer
         {
             get
@@ -339,15 +341,21 @@ namespace Casimodo.Lib.Mojen
 
             if (!text.StartsWith("<"))
             {
-                // If not XML element, then assume JavaScript and start block.
+                // If no XML element then start block.
 
-                if (string.IsNullOrEmpty(text))
+                if (Lang == "C#")
+                {
+                    Br();
+                    O("{");
+                }
+                else if (string.IsNullOrEmpty(text))
                     o("{");
                 else
                     o(" {");
             }
 
-            Br();
+            if (Lang != "C#")
+                Br();
             PushBlockIndent();
         }
 

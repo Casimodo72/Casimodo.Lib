@@ -6,6 +6,20 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    //public sealed class DbSeedInitiator : MojenGenerator
+    //{
+    //    public DbSeedInitiator()
+    //    {
+    //        Stage = "Prepare";
+    //    }
+
+    //    protected override void GenerateCore()
+    //    {
+    //        foreach (var item in App.GetItems<MojSeedItem>())
+    //            item.Execute();
+    //    }
+    //}
+
     /// <summary>
     /// Reads database data of an entity and transforms that data to a Mojen DB seed definition.
     /// </summary>
@@ -13,13 +27,20 @@ namespace Casimodo.Lib.Mojen
     {
         public override void GenerateExport()
         {
+            ExportConfig = App.Get<MojGlobalDataSeedConfig>(required: false);
+
+            if (ExportConfig == null || !ExportConfig.IsSourceDbDataFetchEnabled ||
+                string.IsNullOrEmpty(ExportConfig.SourceDbDataFetchSeedFileOutputDirPath) ||
+                string.IsNullOrEmpty(ExportConfig.SourceDbConnectionString))
+                return;
+
             foreach (var item in App.GetItems<MojValueSetContainer>().Where(x => x.Uses(this)))
             {
                 Options = item.GetGeneratorConfig<EntityExporterOptions>();
                 if (Options?.IsEnabled == false)
                     continue;
 
-                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchOutputDirPath;
+                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchSeedFileOutputDirPath;
 
                 var filePath = Path.Combine(outputDirPath, item.TargetType.Name + ".Seed.generated.cs");
 
@@ -34,11 +55,11 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace("Casimodo.Lib.Mojen");
 
-            O($"public partial class {storeType.Name}Seed");
+            O($"public partial class {storeType.Name}Seed : MojGeneratedDbSeed");
             Begin();
 
             // Constructor
-            O($"public void Populate(MojValueSetContainerBuilder seed)");
+            O($"public override void PopulateCore(MojValueSetContainerBuilder seed)");
             Begin();
 
             O("seed.ClearSeedProps();");

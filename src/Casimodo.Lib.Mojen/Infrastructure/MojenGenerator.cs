@@ -43,7 +43,6 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojenGenerator> SubGens { get; set; } = new List<MojenGenerator>();
 
-
         protected virtual void GenerateCore()
         {
             // NOP

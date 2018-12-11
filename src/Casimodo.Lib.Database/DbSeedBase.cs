@@ -7,7 +7,23 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
-    public class DbSeedBase<TContext> : DbSeedBase
+    public class DbSeedInfo
+    {
+        public Dictionary<string, Action<DbSeedBase>> Items { get; protected set; } = new Dictionary<string, Action<DbSeedBase>>();
+
+        public bool Contains(string name)
+        {
+            return Items.Keys.Contains(name);
+        }
+    }
+
+    public class DbSeedInfo<TDbSeed>
+        where TDbSeed : DbSeedBase
+    {
+        public Dictionary<string, Action<TDbSeed>> Items { get; protected set; } = new Dictionary<string, Action<TDbSeed>>();
+    }
+
+    public class DbSeed<TContext> : DbSeedBase
         where TContext : DbContext
     {
         public TContext Context { get; set; }

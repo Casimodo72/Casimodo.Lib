@@ -81,13 +81,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojValueSetContainerBuilder SeedEnabled(bool enabled)
+        public MojValueSetContainerBuilder DbSeedEnabled(bool enabled)
         {
-            Config.IsEnabled = enabled;
+            Config.IsDbSeedEnabled = enabled;
             return this;
         }
 
-        public MojValueSetContainerBuilder SeedAll()
+        public MojValueSetContainerBuilder SeedAllProps()
         {
             Config.AllPropNames.Clear();
             return Seed(Config.TargetType

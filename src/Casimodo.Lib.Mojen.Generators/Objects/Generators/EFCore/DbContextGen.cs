@@ -49,7 +49,7 @@ namespace Casimodo.Lib.Mojen
                     End();
 
                     O();
-                    O($"public {config.DbContextName}(DbContextOptions options)");
+                    O($"public {config.DbContextName}(DbContextOptions<{config.DbContextName}> options)");
                     O("    : base(options)");
                     Begin();
                     O("OnCreatingMain();");

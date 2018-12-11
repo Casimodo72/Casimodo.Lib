@@ -25,28 +25,6 @@ namespace Casimodo.Lib.Mojen
         public string Filter { get; set; }
     }
 
-    public class DataSeedSectionConfig
-    {
-        public string Name { get; set; }
-        public bool IsEnabled { get; set; }
-    }
-
-    public class GlobalDataSeedConfig : MojBase
-    {
-        public DataSeedSectionConfig[] Sections { get; set; } = Array.Empty<DataSeedSectionConfig>();
-        public bool IsSeedGeneratorEnabled { get; set; }
-        public bool IsSourceDbDataFetchEnabled { get; set; }
-        public bool IsSpecificSeedEnabled { get; set; }
-        public bool IsInitialSeedEnabled { get; set; }
-        public string SourceDbConnectionString { get; set; }
-        public string SourceDbDataFetchOutputDirPath { get; set; }
-
-        public bool IsSectionEnabled(string name)
-        {
-            return Sections.Any(x => x.Name == name && x.IsEnabled);
-        }
-    }
-
     public abstract class EntityExporterGenBase : DataLayerGenerator
     {
         public EntityExporterGenBase()
@@ -54,15 +32,15 @@ namespace Casimodo.Lib.Mojen
             Scope = "Context";
         }
 
-        public GlobalDataSeedConfig ExportConfig { get; set; }
+        public MojGlobalDataSeedConfig ExportConfig { get; set; }
         public EntityExporterOptions Options { get; set; }
 
         protected override void GenerateCore()
         {
-            ExportConfig = App.Get<GlobalDataSeedConfig>(required: false);
+            ExportConfig = App.Get<MojGlobalDataSeedConfig>(required: false);
 
             if (ExportConfig == null || !ExportConfig.IsSourceDbDataFetchEnabled ||
-                string.IsNullOrEmpty(ExportConfig.SourceDbDataFetchOutputDirPath) ||
+                string.IsNullOrEmpty(ExportConfig.SourceDbDataFetchSeedXmlOutputDirPath) ||
                 string.IsNullOrEmpty(ExportConfig.SourceDbConnectionString))
                 return;
 
@@ -134,7 +112,7 @@ namespace Casimodo.Lib.Mojen
             // Save to file
 
 
-            string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchOutputDirPath;
+            string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchSeedXmlOutputDirPath;
             var filePath = Path.Combine(outputDirPath, "Data." + type.ClassName + ".Xml.generated.cs");
 
             rootElem.Save(filePath);

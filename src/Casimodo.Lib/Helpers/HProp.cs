@@ -136,6 +136,14 @@ namespace Casimodo.Lib
             return SetChangedProp(target, name, GetProp(source, name, defaultValue));
         }
 
+        public static void MapProp(object source, object target, string name)
+        {
+            Guard.ArgNotNull(source, nameof(source));
+            Guard.ArgNotNull(target, nameof(target));
+
+            SetProp(target, name, GetProp(source, name));
+        }
+
         public static T GetProp<T>(object item, string name, T defaultValue = default(T))
         {
             Guard.ArgNotNull(item, nameof(item));
@@ -146,6 +154,14 @@ namespace Casimodo.Lib
                 return defaultValue;
 
             return (T)prop.GetValue(item);
+        }
+
+        public static object GetProp(object item, string name)
+        {
+            Guard.ArgNotNull(item, nameof(item));
+            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+
+            return item.GetTypeProperty(name).GetValue(item);
         }
     }
 }

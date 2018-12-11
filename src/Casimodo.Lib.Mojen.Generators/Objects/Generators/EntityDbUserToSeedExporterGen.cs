@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
 
                 AuthUserOptions = Options as AuthUserEntityExporterOptions;
 
-                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchOutputDirPath;
+                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchSeedXmlOutputDirPath;
 
                 var filePath = Path.Combine(outputDirPath, item.TargetType.Name + ".Seed.generated.cs");
 

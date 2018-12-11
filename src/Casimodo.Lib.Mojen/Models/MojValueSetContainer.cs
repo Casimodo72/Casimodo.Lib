@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         [DataMember]
-        public bool IsEnabled { get; set; } = true;
+        public bool IsDbSeedEnabled { get; set; } = true;
 
         [DataMember]
         public string Name { get; set; }

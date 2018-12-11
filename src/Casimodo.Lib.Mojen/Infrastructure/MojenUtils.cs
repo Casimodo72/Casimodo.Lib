@@ -140,7 +140,7 @@ namespace Casimodo.Lib.Mojen
             if (value == null)
                 return "null";
 
-            return ToCsValue(value, value.GetType(), parse);
+            return ToCsValue(value, value.GetType(), parse: parse, verbatim: verbatim);
         }
 
         public static string ToCsValue(object value, Type type, bool parse = true, bool verbatim = false)
@@ -155,7 +155,11 @@ namespace Casimodo.Lib.Mojen
 
             if (type == typeof(string))
             {
-                return (verbatim ? "@" : "") + "\"" + ((string)value).Replace("\"", @"\""") + "\"";
+                var str = (string)value;
+                if (verbatim)
+                    return $@"@""{str.Replace("\"", "\"\"")}""";
+                else
+                    return $"\"{str.Replace("\"", @"\""")}\"";
             }
             else if (type == typeof(Enum))
                 return value.ToString();

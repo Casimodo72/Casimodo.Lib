@@ -558,6 +558,7 @@ namespace Casimodo.Lib.Data
 
         protected bool SetCascadeDeleted(object item, DbRepoOperationContext ctx)
         {
+            // KABU TODO: Do not create this for every call.
             var setters = new Func<bool>[]
             {
                 () => SetChangedProp(item, CommonDataNames.IsCascadeDeleted, true),
@@ -587,6 +588,7 @@ namespace Casimodo.Lib.Data
             if (!GetProp(ctx.Origin, CommonDataNames.IsRecyclableDeleted, false))
                 return false;
 
+            // KABU TODO: Do not create this for every call.
             var setters = new Func<bool>[]
             {
                 () => SetChangedProp<bool>(item, CommonDataNames.IsRecyclableDeleted, true),

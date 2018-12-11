@@ -63,7 +63,7 @@ namespace Casimodo.Lib.Mojen
             O();            
             foreach (var type in types)
             {
-                var enabled = type.Seedings.All(x => x.IsEnabled);
+                var enabled = type.Seedings.All(x => x.IsDbSeedEnabled);
                 O("{0}Seed{1}();", (enabled ? "" : "// DISABLED: "), type.PluralName);
             }
             End();
