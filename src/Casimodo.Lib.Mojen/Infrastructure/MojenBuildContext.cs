@@ -118,7 +118,7 @@ namespace Casimodo.Lib.Mojen
             var builder = new MojValueSetContainerBuilder(container);
             builder.Namespace(effectiveTargetType.Namespace);
 
-            builder.Config.TargetType = effectiveTargetType;
+            builder.Config.TypeConfig = effectiveTargetType;
 
             // Set value type and key prop name.
             var key = effectiveTargetType.Key;

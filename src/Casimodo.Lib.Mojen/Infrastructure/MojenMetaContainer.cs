@@ -31,7 +31,7 @@ namespace Casimodo.Lib.Mojen
 
                 var values = item as MojValueSetContainer;
                 if (values != null)
-                    item.MetadataId = "ValuesOf:" + values.TargetType.QualifiedClassName;
+                    item.MetadataId = "ValuesOf:" + values.TypeConfig.QualifiedClassName;
             }
 
             if (string.IsNullOrWhiteSpace(item.MetadataId)) throw new InvalidOperationException("No item metadata key.");

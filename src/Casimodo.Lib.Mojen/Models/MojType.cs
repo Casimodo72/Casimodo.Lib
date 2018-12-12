@@ -746,6 +746,15 @@ namespace Casimodo.Lib.Mojen
             return TraverseProps(null, custom: custom, overriden: overriden).Select(c => c.Item2).ToArray();
         }
 
+        public IEnumerable<MojProp> GetDatabaseProps(bool custom = true, bool overriden = false)
+        {
+            return GetProps(custom: custom, overriden: overriden)
+                .Select(x => x.IsEntity() ? x : x.Store)
+                .Where(x => x != null &
+                    !x.IsExcludedFromDb
+                    && (!x.Reference.Is || x.IsForeignKey));
+        }
+
         // KABU TODO: REMOVE? Not used
         //public IEnumerable<Tuple<MojType, MojProp>> GetPropsWithObjects(bool inherited = true, bool custom = false, bool overriden = false, bool hidden = false)
         //{
@@ -753,7 +762,7 @@ namespace Casimodo.Lib.Mojen
         //}
 
         protected IEnumerable<Tuple<MojType, MojProp>> TraverseProps(
-            List<MojProp> descendantProps, bool hidden = true, bool custom = true, bool inherited = true, bool overriden = false)
+        List<MojProp> descendantProps, bool hidden = true, bool custom = true, bool inherited = true, bool overriden = false)
         {
             if (descendantProps == null)
                 descendantProps = new List<MojProp>();

@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
         {
             DataConfig = App.Get<DataLayerConfig>();
 
-            if (!DataConfig.DbContextUseModelBuilder) return;
+            if (!DataConfig.IsDbContextModelEnabled) return;
             if (string.IsNullOrEmpty(DataConfig.DbContextDirPath)) return;
             if (string.IsNullOrEmpty(DataConfig.DbContextName)) return;
 

@@ -138,7 +138,7 @@ namespace Casimodo.Lib.Mojen
         public string MetaName { get; set; }
 
         [DataMember]
-        public bool DbContextUseModelBuilder { get; set; }
+        public bool IsDbContextModelEnabled { get; set; }
 
         [DataMember]
         public bool DbContextUseMapping { get; set; }

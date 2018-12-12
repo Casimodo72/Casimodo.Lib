@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen
@@ -10,6 +11,8 @@ namespace Casimodo.Lib.Mojen
         public MojValueSetContainerBuilder SeedBuilder { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
+        public Action<MojValueSetContainerBuilder> Seed { get; set; }
+        public Action<MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
     }
 
     public class MojSeedItem : MojBase
@@ -23,6 +26,8 @@ namespace Casimodo.Lib.Mojen
             OrderBy = options.OrderBy;
             SeedBuilder = options.SeedBuilder;
             InitialSeed = options.InitialSeed;
+            ConfigureDbImport = options.ConfigureDbImport;
+            Seed = options.Seed;
 
             IsEnabled = SeedConfig.IsSectionEnabled(Section);
             SeedBuilder.DbSeedEnabled(SeedConfig.IsSectionEnabledForDbSeed(Section));
@@ -36,13 +41,23 @@ namespace Casimodo.Lib.Mojen
         public string OrderBy { get; set; }
         public MojValueSetContainerBuilder SeedBuilder { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
-        public Action<MojValueSetContainerBuilder> PopulateSeed { get; set; }
+        public Action<MojValueSetContainerBuilder> Seed { get; set; }
+        public Action<MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
 
         public void Prepare()
         {
             if (!SeedConfig.IsInitialSeedEnabled)
+            {
                 SeedBuilder.SeedAllProps();
+
+                if (SeedConfig.IsDbImportEnabled)
+                {
+                    ConfigureDbImport?.Invoke(SeedBuilder);                   
+                }
+
+                SeedBuilder.Build();
+            }
         }
 
         public void Execute()
@@ -53,18 +68,19 @@ namespace Casimodo.Lib.Mojen
             if (SeedConfig.IsInitialSeedEnabled)
             {
                 InitialSeed?.Invoke(SeedBuilder);
+                SeedBuilder.Build();
+            }
+            else if (SeedConfig.IsDbImportEnabled)
+            {
+                // NOP 
             }
             else
             {
-                SeedBuilder.SeedAllProps();
+                Seed?.Invoke(SeedBuilder);
+                SeedBuilder.Build();
 
-                if (!SeedConfig.IsSourceDbDataFetchEnabled)
-                {
-                    if (Seeder != null)
-                        Seeder.Populate(SeedBuilder);
-
-                    PopulateSeed?.Invoke(SeedBuilder);
-                }
+                if (Seeder != null)
+                    Seeder.Populate(SeedBuilder);
             }
         }
     }
@@ -72,19 +88,26 @@ namespace Casimodo.Lib.Mojen
     public class MojDataSeedSectionConfig
     {
         public string Name { get; set; }
-        public bool IsEnabled { get; set; }
-        public bool IsDbSeedEnabled { get; set; }
+        public bool IsEnabled { get; set; } = true;
+        public bool IsDbSeedEnabled { get; set; } = true;
     }
 
     public class MojGlobalDataSeedConfig : MojBase
     {
-        public MojDataSeedSectionConfig[] Sections { get; set; } = Array.Empty<MojDataSeedSectionConfig>();
-        public bool IsSeedGeneratorEnabled { get; set; }
-        public bool IsSourceDbDataFetchEnabled { get; set; }
+        public List<MojDataSeedSectionConfig> Sections { get; set; } = new List<MojDataSeedSectionConfig>();
+        public bool IsDbSeedGeneratorEnabled { get; set; }
+        public bool IsDbImportEnabled { get; set; }
         public bool IsInitialSeedEnabled { get; set; }
-        public string SourceDbConnectionString { get; set; }
-        public string SourceDbDataFetchSeedXmlOutputDirPath { get; set; }
-        public string SourceDbDataFetchSeedFileOutputDirPath { get; set; }
+        public string DbImportConnectionString { get; set; }
+        public string DbImportOutputXmlDirPath { get; set; }
+        public string DbImportOutputSeedDirPath { get; set; }
+
+        public MojGlobalDataSeedConfig AddSection(string name, bool dbseed = true)
+        {
+            Sections.Add(new MojDataSeedSectionConfig { Name = name, IsDbSeedEnabled = dbseed });
+
+            return this;
+        }
 
         public bool IsSectionEnabled(string name)
         {

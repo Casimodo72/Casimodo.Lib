@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             var config = App.Get<MojGlobalDataSeedConfig>();
-            if (!config.IsSeedGeneratorEnabled)
+            if (!config.IsDbSeedGeneratorEnabled)
                 return;
 
             DataConfig = App.Get<DataLayerConfig>();
@@ -71,7 +71,7 @@ namespace Casimodo.Lib.Mojen
             End();
             O();
 
-            // Seed class
+            // Seed class with main seed method calling all other seed methods.
             OB($"public partial class {className} : DbSeed<{DataConfig.DbContextName}>");
 
             var isasync = types.SelectMany(x => x.Seedings).Any(x => x.IsAsync);
@@ -84,8 +84,8 @@ namespace Casimodo.Lib.Mojen
             {
                 var enabled = type.Seedings.All(x => x.IsDbSeedEnabled);
                 O("{0}{1}Seed{2}();",
-                    GetAsyncAwait(type.Seedings.Any(x => x.IsAsync)),
                     (enabled ? "" : "// DISABLED: "),
+                    GetAsyncAwait(type.Seedings.Any(x => x.IsAsync)),
                     type.PluralName);
             }
             End();
@@ -123,90 +123,98 @@ namespace Casimodo.Lib.Mojen
             OUsing("System", "System.Linq", "System.Threading.Tasks", "Casimodo.Lib.Data",
                 (DataConfig.DataNamespace != storeType.Namespace ? storeType.Namespace : null));
             ONamespace(DataConfig.DataNamespace + ".Seed");
+
+            // Seed class
             O($"partial class {DataConfig.TypePrefix}DbSeed");
             Begin();
+
+            // Seed method for this MojType.
             O($"internal {GetAsyncMethod(type.Seedings.Any(x => x.IsAsync))} Seed{type.PluralName}()");
             Begin();
 
-            var assignments = new List<string>();
-            foreach (MojValueSetContainer valueSetContainer in type.Seedings)
+            var enabled = type.Seedings.All(x => x.IsDbSeedEnabled);
+            if (enabled)
             {
-                var userNameProp = type.FindStoreProp("UserName");
-                if (valueSetContainer.ClearExistingData)
+                var assignments = new List<string>();
+                foreach (MojValueSetContainer valueSetContainer in type.Seedings)
                 {
-                    O($"Context.Database.ExecuteSqlCommand(\"delete from [{type.TableName}]\");");
-                    O();
-                }
-
-                foreach (MojValueSet valueSet in valueSetContainer.Items)
-                {
-                    assignments.Clear();
-                    Oo($"{GetAsyncAwait(valueSetContainer)}Add(new {storeType.ClassName} {{ ");
-
-                    foreach (MojValueSetProp val in valueSet.Values)
+                    var userNameProp = type.FindStoreProp("UserName");
+                    if (valueSetContainer.ClearExistingData)
                     {
-                        var prop = type.FindProp(val.Name);
-                        if (prop == null)
-                        {
-                            // KABU TODO: REMOVE
-                            //if (valueSetContainer.IgnoredSeedMappings.Contains(val.Name))
-                            //    continue;
-
-                            throw new MojenException(
-                                string.Format("Value -> property mapping not found for '{0}'.", val.Name));
-                        }
-
-                        // If seeding a model with an underlying store, then map to the underlying
-                        // store's property.
-                        prop = type.FindStoreProp(prop.Name);
-                        if (prop == null)
-                            throw new MojenException(
-                                string.Format("Value -> store property mapping not found for '{0}'.", val.Name));
-
-                        if (val.Kind == "FileName")
-                        {
-                            // Read and set file content.
-                            var filePath = DataConfig.DbSeedBinariesDirPath.Substring(DataConfig.DbDirPath.Length + 1);
-                            filePath += "\\" + val.Value;
-                            assignments.Add(string.Format("{0} = ReadFileContent(@\"{1}\")",
-                                prop.Name,
-                                filePath));
-                        }
-                        else
-                        {
-                            assignments.Add(string.Format("{0} = {1}{2}",
-                                prop.Name,
-                                MojenUtils.GetCsCast(prop),
-                                MojenUtils.ToCsValue(val.Value, parse: true, verbatim: true)));
-                        }
+                        O($"Context.Database.ExecuteSqlCommand(\"delete from [{type.TableName}]\");");
+                        O();
                     }
 
-                    // Property value assignments
-                    if (assignments.Any())
-                        o(assignments.Join(", "));
-
-                    o(" }");
-
-                    // Roles
-                    if (valueSet.AuthRoles.Any())
-                        o($", roles: \"{valueSet.AuthRoles.Join(", ")}\"");
-
-                    // Pw
-                    if (valueSet.Pw != null)
-                        o($", pw: \"{valueSet.Pw}\"");
-
-                    o(");");
-
-                    if (userNameProp != null)
+                    foreach (MojValueSet valueSet in valueSetContainer.Items)
                     {
-                        var userNameVal = valueSet.Values.FirstOrDefault(x => x.Name == "UserName");
-                        if (userNameVal != null)
-                        {
-                            o(" // " + userNameVal.ValueToString());
-                        }
-                    }
+                        assignments.Clear();
+                        Oo($"{GetAsyncAwait(valueSetContainer)}Add(new {storeType.ClassName} {{ ");
 
-                    Br();
+                        foreach (MojValueSetProp val in valueSet.Values)
+                        {
+                            var prop = type.FindProp(val.Name);
+                            if (prop == null)
+                            {
+                                // KABU TODO: REMOVE
+                                //if (valueSetContainer.IgnoredSeedMappings.Contains(val.Name))
+                                //    continue;
+
+                                throw new MojenException(
+                                    string.Format("Value -> property mapping not found for '{0}'.", val.Name));
+                            }
+
+                            // If seeding a model with an underlying store, then map to the underlying
+                            // store's property.
+                            prop = type.FindStoreProp(prop.Name);
+                            if (prop == null)
+                                throw new MojenException(
+                                    string.Format("Value -> store property mapping not found for '{0}'.", val.Name));
+
+                            if (val.Kind == "FileName")
+                            {
+                                // Read and set file content.
+                                var filePath = DataConfig.DbSeedBinariesDirPath.Substring(DataConfig.DbDirPath.Length + 1);
+                                filePath += "\\" + val.Value;
+                                assignments.Add(string.Format("{0} = ReadFileContent(@\"{1}\")",
+                                    prop.Name,
+                                    filePath));
+                            }
+                            else
+                            {
+                                assignments.Add(string.Format("{0} = {1}{2}",
+                                    prop.Name,
+                                    MojenUtils.GetCsCast(prop),
+                                    MojenUtils.ToCsValue(val.Value, parse: true, verbatim: true)));
+                            }
+                        }
+
+                        // Property value assignments
+                        if (assignments.Any())
+                            o(assignments.Join(", "));
+
+                        o(" }");
+
+                        // Roles
+                        if (valueSet.AuthRoles.Any())
+                            o($", roles: \"{valueSet.AuthRoles.Join(", ")}\"");
+
+                        // Pw
+                        if (valueSet.Pw != null)
+                            o($", pw: \"{valueSet.Pw}\"");
+
+                        o(");");
+
+                        if (userNameProp != null)
+                        {
+                            var userNameVal = valueSet.Values.FirstOrDefault(x => x.Name == "UserName");
+                            if (userNameVal != null)
+                            {
+                                o(" // " + userNameVal.ValueToString());
+                            }
+                        }
+
+                        Br();
+                    }
                 }
             }
             End();

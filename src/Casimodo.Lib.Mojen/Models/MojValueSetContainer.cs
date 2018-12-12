@@ -69,10 +69,7 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsAsync { get; set; }
 
-        /// <summary>
-        /// Used at built-time only.
-        /// </summary>
-        public MojType TargetType { get; set; }
+        public MojType TypeConfig { get; set; }
 
         /// <summary>
         /// Used at build-time only.
@@ -100,7 +97,7 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         internal List<string> DefaultPropNames { get; set; } = new List<string>();
 
-        internal List<MyImportPropMapping> ImportPropMappings { get; set; }    
+        internal List<MyImportPropMapping> ImportPropMappings { get; set; }
 
         public string GetImportPropName(string propName)
         {
@@ -138,6 +135,14 @@ namespace Casimodo.Lib.Mojen
 
         //}
 
+        public IEnumerable<MojProp> GetSeedableProps()
+        {
+            var databasePropNames = TypeConfig.GetDatabaseProps().Select(x => x.Name).ToList();
+
+            return GetProps(defaults: false)
+                .Where(x => databasePropNames.Contains(x.Name));
+        }
+
         public IEnumerable<MojProp> GetProps(bool defaults = true)
         {
             var propNames = new List<string>();
@@ -155,18 +160,18 @@ namespace Casimodo.Lib.Mojen
             if (!defaults)
                 propNames = propNames.Except(DefaultPropNames).ToList();
 
-            return propNames.Select(x => TargetType.GetProp(x)).ToArray();
+            return propNames.Select(x => TypeConfig.GetProp(x)).ToArray();
         }
 
         public object ConvertFromLiteral(string name, object value)
         {
-            if (value == null || TargetType == null)
+            if (value == null || TypeConfig == null)
                 return value;
 
-            var targetProp = TargetType.FindProp(name);
+            var targetProp = TypeConfig.FindProp(name);
 
             if (targetProp == null)
-                throw new MojenException($"Seed error (prop '{name}'): Property not found on target type '{TargetType.ClassName}'.");
+                throw new MojenException($"Seed error (prop '{name}'): Property not found on target type '{TypeConfig.ClassName}'.");
 
             if (targetProp.IsNavigation)
                 throw new MojenException($"Seed error (prop '{name}'): Seeding of navigation properties is not supported.");

@@ -6,43 +6,29 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    //public sealed class DbSeedInitiator : MojenGenerator
-    //{
-    //    public DbSeedInitiator()
-    //    {
-    //        Stage = "Prepare";
-    //    }
-
-    //    protected override void GenerateCore()
-    //    {
-    //        foreach (var item in App.GetItems<MojSeedItem>())
-    //            item.Execute();
-    //    }
-    //}
-
     /// <summary>
-    /// Reads database data of an entity and transforms that data to a Mojen DB seed definition.
+    /// Reads DB data of an entity and transforms it to a Mojen seed definition.
     /// </summary>
-    public class EntityDbToSeedExporterGen : EntityExporterGenBase
+    public class EntityFromDbToSeedGen : EntityFromDbTransformationGenBase
     {
         public override void GenerateExport()
         {
-            ExportConfig = App.Get<MojGlobalDataSeedConfig>(required: false);
+            MainSeedConfig = App.Get<MojGlobalDataSeedConfig>(required: false);
 
-            if (ExportConfig == null || !ExportConfig.IsSourceDbDataFetchEnabled ||
-                string.IsNullOrEmpty(ExportConfig.SourceDbDataFetchSeedFileOutputDirPath) ||
-                string.IsNullOrEmpty(ExportConfig.SourceDbConnectionString))
+            if (MainSeedConfig == null || !MainSeedConfig.IsDbImportEnabled ||
+                string.IsNullOrEmpty(MainSeedConfig.DbImportOutputSeedDirPath) ||
+                string.IsNullOrEmpty(MainSeedConfig.DbImportConnectionString))
                 return;
 
             foreach (var item in App.GetItems<MojValueSetContainer>().Where(x => x.Uses(this)))
             {
-                Options = item.GetGeneratorConfig<EntityExporterOptions>();
+                Options = item.GetGeneratorConfig<EntityFromDbTransformationOptions>();
                 if (Options?.IsEnabled == false)
                     continue;
 
-                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchSeedFileOutputDirPath;
+                string outputDirPath = Options?.OutputDirPath ?? MainSeedConfig.DbImportOutputSeedDirPath;
 
-                var filePath = Path.Combine(outputDirPath, item.TargetType.Name + ".Seed.generated.cs");
+                var filePath = Path.Combine(outputDirPath, item.TypeConfig.Name + ".Seed.generated.cs");
 
                 PerformWrite(filePath, () => GenerateExport(item));
             }
@@ -50,7 +36,7 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateExport(MojValueSetContainer container)
         {
-            var seedType = container.TargetType;
+            var seedType = container.TypeConfig;
             var storeType = seedType.GetNearestStore();
 
             ONamespace("Casimodo.Lib.Mojen");
@@ -64,39 +50,33 @@ namespace Casimodo.Lib.Mojen
 
             O("seed.ClearSeedProps();");
 
-            var props = container.GetProps(defaults: false)
-                //.Where(x => x.Type.Type != null)
-                .Select(x => seedType.FindStoreProp(x.Name))
-                .Where(x => !x.Reference.Is || !x.Reference.IsToMany)
-                .ToArray();
+            var dbprops = container.GetSeedableProps().Select(x => x.StoreOrSelf).ToArray();
 
-            if (props.Any(x => x.Type.Type == null))
+            var nonst = dbprops.FirstOrDefault(x => x.Type.Type == null);
+            if (nonst != null)
                 throw new MojenException("Seed definition must not contain non simple type properties.");
 
-            O("seed.Seed(" + props.Select(x => "\"" + x.Name + "\"").Join(", ") + ");");
+            O("seed.Seed(" + dbprops.Select(x => "\"" + x.Name + "\"").Join(", ") + ");");
 
-            var fields = props.Select(x => "[" + x.Name + "]").Join(", ");
+            var fields = dbprops.Select(x => "[" + container.GetImportPropName(x.Name) + "]").Join(", ");
 
             var table = storeType.TableName;
 
-            Type queryType = MojenUtils.CreateType(storeType, props);
+            Type queryType = MojenUtils.CreateType(storeType, dbprops);
 
             var query = $"select {fields} from [{table}]";
 
             // Sort
-            if (!string.IsNullOrWhiteSpace(Options.OrderBy))
-            {
-                query += $" order by [{Options.OrderBy}]";
-            }
+            query = AddOrderBy(query);
 
-            using (var db = new DbContext(ExportConfig.SourceDbConnectionString))
+            using (var db = new DbContext(MainSeedConfig.DbImportConnectionString))
             {
                 foreach (var entity in db.Database.SqlQuery(queryType, query))
                 {
                     Oo("seed.Add(");
 
                     int i = 0;
-                    foreach (var prop in props)
+                    foreach (var prop in dbprops)
                     {
                         var value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, prop.Name, required: true)
                             .GetValue(entity);
@@ -123,7 +103,7 @@ namespace Casimodo.Lib.Mojen
                             o(MojenUtils.ToCsValue(value, parse: false));
                         }
 
-                        if (++i < props.Length)
+                        if (++i < dbprops.Length)
                             o(", ");
                     }
 

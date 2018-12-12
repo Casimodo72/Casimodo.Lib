@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
         {
             ContainerBuilder = containerBuilder;
             Container = ContainerBuilder.Config;
-            TypeProps.AddRange(Container.TargetType.GetProps().Select(x => x.Name));
+            TypeProps.AddRange(Container.TypeConfig.GetProps().Select(x => x.Name));
         }
 
         public MojValueSetContainerBuilder ContainerBuilder { get; set; }
@@ -191,7 +191,7 @@ namespace Casimodo.Lib.Mojen
         MojValueSetProp SetCore(string name, object value)
         {
             if (!TypeProps.Contains(name))
-                throw new MojenException($"Property '{name}' not found in type '{Container.TargetType.ClassName}'.");
+                throw new MojenException($"Property '{name}' not found in type '{Container.TypeConfig.ClassName}'.");
 
             MojValueSetProp prop = Config.Get(name, create: true);
 
@@ -210,7 +210,7 @@ namespace Casimodo.Lib.Mojen
         public MojValueSetBuilder SetSeedFileName(string name, string fileName)
         {
             var item = Config.Get(name, create: true);
-            var targetProp = Container.TargetType.GetProp(name);
+            var targetProp = Container.TypeConfig.GetProp(name);
             // Check valid type.
             if (!targetProp.Type.IsByteArray)
                 throw new MojenException($"Property '{targetProp.Name}' of type '{targetProp.Type.NameNormalized}' cannot hold binary data.");

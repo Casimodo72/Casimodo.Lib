@@ -1,0 +1,77 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Xml;
+
+namespace Casimodo.Lib.Mojen
+{
+
+    /// <summary>
+    ///  Reads DB data of an entity and transforms it to XML.
+    /// </summary>
+    public class EntityFromDbToXmlGen : EntityFromDbTransformationGenBase
+    {
+        public EntityFromDbToXmlGen()
+        {
+            Scope = "Context";
+        }
+
+        public override void GenerateExport()
+        {
+            foreach (var type in App.GetTopTypes().Where(x => x.Uses(this)))
+            {
+                GenerateExport(type);
+            }
+        }
+
+        public void GenerateExport(MojType origType)
+        {
+            Options = origType.GetGeneratorConfig<EntityFromDbTransformationOptions>();
+            if (Options?.IsEnabled == false)
+                return;
+
+            var type = origType.GetNearestStore();
+
+            var rootElem = XEl("Items", XA("EntityType", type.ClassName));
+
+            var dbprops = type.GetDatabaseProps().ToArray();
+
+            var fields = dbprops.Select(x => "[" + x.Name + "]").Join(", ");
+
+            var table = type.TableName;
+
+            Type queryType = MojenUtils.CreateType(type, dbprops);
+
+            using (var db = new DbContext(MainSeedConfig.DbImportConnectionString))
+            {
+                foreach (var entity in db.Database.SqlQuery(queryType, $"select {fields} from {table}"))
+                {
+                    var itemElem = XEl("Item");
+                    rootElem.Add(itemElem);
+
+                    foreach (var prop in dbprops)
+                    {
+                        var value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, prop.Name, required: true)
+                            .GetValue(entity);
+
+                        if (value == null)
+                            // NULL values are expressed by leaving out the property.
+                            continue;
+
+                        itemElem.Add(XEl("Prop", XA("Name", prop.Name), MojenUtils.ToXmlValue(value)));
+                    }
+                }
+            }
+
+            // Save to file
+
+
+            string outputDirPath = Options?.OutputDirPath ?? MainSeedConfig.DbImportOutputXmlDirPath;
+            var filePath = Path.Combine(outputDirPath, "Data." + type.ClassName + ".Xml.generated.cs");
+
+            rootElem.Save(filePath);
+        }
+    }
+}

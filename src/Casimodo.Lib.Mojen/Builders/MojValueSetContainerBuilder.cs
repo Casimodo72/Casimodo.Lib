@@ -50,10 +50,10 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetContainerBuilder To(MojType type)
         {
-            Config.TargetType = type;
+            Config.TypeConfig = type;
 
             // Set value type and key prop name.
-            var key = Config.TargetType.Key;
+            var key = Config.TypeConfig.Key;
             Config.ValueType = key.Type.TypeNormalized;
             Config.ValuePropName = key.Name;
 
@@ -90,10 +90,8 @@ namespace Casimodo.Lib.Mojen
         public MojValueSetContainerBuilder SeedAllProps()
         {
             Config.AllPropNames.Clear();
-            return Seed(Config.TargetType
-                .GetProps().Reverse()
-                // Only primitive prop types
-                .Where(x => x.Type.Type != null)
+            return Seed(Config.TypeConfig.GetDatabaseProps()
+                .Reverse()               
                 .Select(x => x.Name)
                 .ToArray());
         }
@@ -125,10 +123,10 @@ namespace Casimodo.Lib.Mojen
 
             Config.UseProp(valueName);
 
-            if (Config.TargetType != null)
+            if (Config.TypeConfig != null)
             {
                 // Set value type of key.
-                var prop = Config.TargetType.GetProp(valueName);
+                var prop = Config.TypeConfig.GetProp(valueName);
                 Config.ValueType = prop.Type.TypeNormalized;
             }
 
@@ -328,7 +326,6 @@ namespace Casimodo.Lib.Mojen
                     var valueNameDupls = Config.Items.GroupBy(x => x.Get(Config.NamePropName).Value).Where(g => g.Count() > 1).Select(y => y.Key).ToList();
                     if (valueNameDupls.Count != 0) throw new MojenException("Duplicate value names.");
                 }
-
 
                 if (Config.ValuePropName != null && Config.Items.First().Has(Config.ValuePropName))
                 {

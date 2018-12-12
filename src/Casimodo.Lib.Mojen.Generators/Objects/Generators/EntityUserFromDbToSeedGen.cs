@@ -11,26 +11,26 @@ namespace Casimodo.Lib.Mojen
     /// <summary>
     /// Reads database data of an entity and transforms that data to a Mojen DB seed definition.
     /// </summary>
-    public class EntityDbUserToSeedExporterGen : EntityExporterGenBase
+    public class EntityUserFromDbToSeedGen : EntityFromDbTransformationGenBase
     {
-        public AuthUserEntityExporterOptions AuthUserOptions { get; set; }
+        public EntityUserFromDbToSeedOptions UserOptions { get; set; }
 
         public override void GenerateExport()
         {
             foreach (var item in App.GetItems<MojValueSetContainer>().Where(x => x.Uses(this)))
             {
-                if (item.TargetType.Name != "User")
+                if (item.TypeConfig.Name != "User")
                     throw new MojenException("This generator is intended for types of name 'User' only.");
 
-                Options = item.GetGeneratorConfig<EntityExporterOptions>();
+                Options = item.GetGeneratorConfig<EntityFromDbTransformationOptions>();
                 if (Options?.IsEnabled == false)
                     continue;
 
-                AuthUserOptions = Options as AuthUserEntityExporterOptions;
+                UserOptions = Options as EntityUserFromDbToSeedOptions ?? new EntityUserFromDbToSeedOptions();
 
-                string outputDirPath = Options?.OutputDirPath ?? ExportConfig.SourceDbDataFetchSeedXmlOutputDirPath;
+                string outputDirPath = Options?.OutputDirPath ?? MainSeedConfig.DbImportOutputSeedDirPath;
 
-                var filePath = Path.Combine(outputDirPath, item.TargetType.Name + ".Seed.generated.cs");
+                var filePath = Path.Combine(outputDirPath, item.TypeConfig.Name + ".Seed.generated.cs");
 
                 PerformWrite(filePath, () => GenerateExport(item));
             }
@@ -60,10 +60,10 @@ namespace Casimodo.Lib.Mojen
         {
             var items = new List<UserInfoItem>();
 
-            if (AuthUserOptions == null || string.IsNullOrWhiteSpace(AuthUserOptions.PwSourceFilePath))
+            if (string.IsNullOrWhiteSpace(UserOptions.PwSourceFilePath))
                 return items;
 
-            var doc = XDocument.Load(AuthUserOptions.PwSourceFilePath);
+            var doc = XDocument.Load(UserOptions.PwSourceFilePath);
             foreach (var userElem in doc.Element("Users").Elements("User"))
             {
                 items.Add(new UserInfoItem
@@ -95,43 +95,37 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateExport(MojValueSetContainer container)
         {
-            var seedType = container.TargetType;
+            var seedType = container.TypeConfig;
             var storeType = seedType.GetNearestStore();
 
             var pwsource = ReadPwSource();
 
             ONamespace("Casimodo.Lib.Mojen");
 
-            O($"public partial class {storeType.Name}Seed");
+            O($"public partial class {storeType.Name}Seed : MojGeneratedDbSeed");
             Begin();
 
             // Constructor
-            O($"public void Populate(MojValueSetContainerBuilder seed)");
+            O($"public override void PopulateCore(MojValueSetContainerBuilder seed)");
             Begin();
 
-            var props = container.GetProps(defaults: false)
-                //.Where(x => x.Type.Type != null)
-                .Select(x => seedType.FindStoreProp(x.Name))
-                .ToArray();
+            var dbprops = container.GetSeedableProps().Select(x => x.StoreOrSelf).ToArray();
 
-            if (props.Any(x => x.Type.Type == null))
+            if (dbprops.Any(x => x.Type.Type == null))
                 throw new MojenException("Deed definition must not contain non simple type properties.");
 
-            var dbFields = props.Select(x => "[" + container.GetImportPropName(x.Name) + "]").Join(", ");
+            var dbFields = dbprops.Select(x => "[" + container.GetImportPropName(x.Name) + "]").Join(", ");
 
             var dbTable = storeType.TableName;
 
             var query = $"select {dbFields} from [{dbTable}]";
 
             // Sort
-            if (!string.IsNullOrWhiteSpace(Options.OrderBy))
-            {
-                query += $" order by [{Options.OrderBy}]";
-            }
+            query = AddOrderBy(query);
 
-            Type queryType = MojenUtils.CreateType(storeType, props);
+            Type queryType = MojenUtils.CreateType(storeType, dbprops);
 
-            using (var db = new DbContext(ExportConfig.SourceDbConnectionString))
+            using (var db = new DbContext(MainSeedConfig.DbImportConnectionString))
             {
                 var allUserToRole = db.Database.SqlQuery(typeof(AuthUserRole), "select UserId, RoleId from AuthUserRoles").Cast<AuthUserRole>().ToArray();
                 var allRoles = db.Database.SqlQuery(typeof(AuthRole), "select Id, Name from AuthRoles").Cast<AuthRole>().ToArray();
@@ -146,7 +140,7 @@ namespace Casimodo.Lib.Mojen
 
                     int i = 0;
                     string userName = "";
-                    foreach (var prop in props)
+                    foreach (var prop in dbprops)
                     {
                         object value = null;
 
@@ -181,7 +175,7 @@ namespace Casimodo.Lib.Mojen
                             o(MojenUtils.ToCsValue(value, parse: false));
                         }
 
-                        if (++i < props.Length)
+                        if (++i < dbprops.Length)
                             o(", ");
                     }
 

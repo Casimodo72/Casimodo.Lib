@@ -9,9 +9,9 @@ namespace Casimodo.Lib.Mojen
     // EF Core data annotations:
     //   See https://www.learnentityframeworkcore.com/configuration/data-annotation-attributes
 
-    public class CoreDbContextCreateModelGen : MojenGenerator
+    public class CoreDbContextModelGen : MojenGenerator
     {
-        public CoreDbContextCreateModelGen()
+        public CoreDbContextModelGen()
         {
             Scope = "DataContext";
         }
@@ -22,12 +22,11 @@ namespace Casimodo.Lib.Mojen
         {
             DataConfig = App.Get<DataLayerConfig>();
 
-            if (!DataConfig.DbContextUseModelBuilder) return;
+            if (!DataConfig.IsDbContextModelEnabled) return;
             if (string.IsNullOrEmpty(DataConfig.DbContextDirPath)) return;
             if (string.IsNullOrEmpty(DataConfig.DbContextName)) return;
 
-
-            PerformWrite(Path.Combine(DataConfig.DbContextDirPath, DataConfig.DbContextName + ".CreateModel.generated.cs"),
+            PerformWrite(Path.Combine(DataConfig.DbContextDirPath, DataConfig.DbContextName + ".Model.generated.cs"),
                 GenerateDbContextModel);
         }
 
@@ -45,17 +44,14 @@ namespace Casimodo.Lib.Mojen
         {
             var types = App.AllConcreteEntities.ToArray();
 
-            OUsing(
-                "System",
-                //"System.Linq",
-                //"System.Collections.Generic",
-                //"System.ComponentModel.DataAnnotations.Schema",
-                "Microsoft.EntityFrameworkCore");
+            OUsing("System", "Microsoft.EntityFrameworkCore");
 
             ONamespace(DataConfig.DataNamespace);
 
+            // DbContext class
             OB($"public partial class {DataConfig.DbContextName}");
 
+            // Build model with ModelBuilder
             OB($"void CreateModel(ModelBuilder builder)");
 
             var unidirectionalManyToManyProps = new List<MojProp>();

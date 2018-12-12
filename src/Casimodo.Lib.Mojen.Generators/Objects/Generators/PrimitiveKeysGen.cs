@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 
-            var type = config.TargetType;
+            var type = config.TypeConfig;
             foreach (var mapping in config.Mappings)
             {
                 GenerateMapping(config, mapping);
@@ -100,7 +100,7 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateMapping(MojValueSetContainer config, MojValueSetMapping mapping)
         {
-            var type = config.TargetType;
+            var type = config.TypeConfig;
 
             if (config.Items.Count == 0)
                 return;
@@ -174,7 +174,7 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateMapping2(MojValueSetContainer config, MojValueSetMapping mapping)
         {
-            var type = config.TargetType;
+            var type = config.TypeConfig;
 
             var first = config.Items.First();
 
