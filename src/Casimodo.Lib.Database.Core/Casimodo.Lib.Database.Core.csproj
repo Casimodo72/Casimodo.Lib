@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <Compile Include="..\Casimodo.Lib.Database\DbRepositoryException.cs" Link="DbRepositoryException.cs" />
-    <Compile Include="..\Casimodo.Lib.Database\DbSeedBase.cs" Link="DbSeedBase.cs" />
     <Compile Include="..\Casimodo.Lib.Database\Helpers\CommonDataNames.cs" Link="Helpers\CommonDataNames.cs" />
     <Compile Include="..\Casimodo.Lib.Database\ICurrentTenantProvider.cs" Link="ICurrentTenantProvider.cs" />
     <Compile Include="..\Casimodo.Lib.Database\IDbFileInfo.cs" Link="IDbFileInfo.cs" />

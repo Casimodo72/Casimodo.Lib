@@ -93,6 +93,7 @@ namespace Casimodo.Lib
             return sb.ToString().Trim();
         }
 
+#if (!NET_CORE)
         public static string[] Split(this string text, string separator, StringSplitOptions options = StringSplitOptions.None)
         {
             if (string.IsNullOrEmpty(text))
@@ -102,6 +103,7 @@ namespace Casimodo.Lib
 
             return text.Split(new[] { separator }, options);
         }
+#endif
 
         public static string NullIfEmpty(this string text)
         {

@@ -75,7 +75,7 @@ namespace Casimodo.Lib.Auth
             RoleInheritance.Add("CoAdmin", 99);
             RoleInheritance.Add("Manager", 90);
             RoleInheritance.Add("Employee", 80);
-            RoleInheritance.Add("ExternalEmployee", 10);
+            RoleInheritance.Add("ExternEmployee", 10);
         }
 
         public List<AuthPart> Parts { get; private set; } = new List<AuthPart>();
@@ -117,7 +117,7 @@ namespace Casimodo.Lib.Auth
                 if (!minRole)
                     throw new Exception("Must not use 'AnyEmployee' role alias with non-min authorization.");
 
-                role = "ExternalEmployee";
+                role = "ExternEmployee";
             }
 
             var parts = Parts.Where(x =>
@@ -197,6 +197,9 @@ namespace Casimodo.Lib.Auth
 
         string[] ExpandVerbsCore(AuthPart part, string expression, string[] exclude)
         {
+            if (string.IsNullOrEmpty(expression))
+                return Array.Empty<string>();
+
             var items = expression.Split(",");
 
             List<string> result = null;
@@ -357,7 +360,7 @@ namespace Casimodo.Lib.Auth
 
             if (part == null)
                 throw new Exception($"Part '{item}' not found.");
-   
+
             CurrentPart = part;
 
             return this;
