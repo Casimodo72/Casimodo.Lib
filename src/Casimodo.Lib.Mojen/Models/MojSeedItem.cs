@@ -8,11 +8,15 @@ namespace Casimodo.Lib.Mojen
     {
         public string Section { get; set; }
         public string OrderBy { get; set; }
+        public bool IsDbImportEnabled { get; set; } = true;
+       
         public MojValueSetContainerBuilder SeedBuilder { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
+        public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
         public Action<MojValueSetContainerBuilder> Seed { get; set; }
         public Action<MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
+        public Action<MojValueSetContainerBuilder> ConfigureSeeder { get; set; }
     }
 
     public class MojSeedItem : MojBase
@@ -25,63 +29,72 @@ namespace Casimodo.Lib.Mojen
             Section = options.Section;
             OrderBy = options.OrderBy;
             SeedBuilder = options.SeedBuilder;
+            TypeConfig = SeedBuilder.Config.TypeConfig;
+            AlwaysSeed = options.AlwaysSeed;
             InitialSeed = options.InitialSeed;
             ConfigureDbImport = options.ConfigureDbImport;
+            ConfigureSeeder = options.ConfigureSeeder;
             Seed = options.Seed;
 
             IsEnabled = SeedConfig.IsSectionEnabled(Section);
             SeedBuilder.DbSeedEnabled(SeedConfig.IsSectionEnabledForDbSeed(Section));
+            IsDbImportEnabled = AlwaysSeed == null && options.IsDbImportEnabled;
             Seeder = options.Seeder;
         }
 
         public MojenApp App { get; set; }
         public MojGlobalDataSeedConfig SeedConfig { get; set; }
+        public MojType TypeConfig { get; set; }
         public string Section { get; set; }
         public bool IsEnabled { get; set; }
         public string OrderBy { get; set; }
+        public bool IsDbImportEnabled { get; set; } = true;
         public MojValueSetContainerBuilder SeedBuilder { get; set; }
+        public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
         public Action<MojValueSetContainerBuilder> Seed { get; set; }
         public Action<MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
+        public Action<MojValueSetContainerBuilder> ConfigureSeeder { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
 
-        public void Prepare()
-        {
-            if (!SeedConfig.IsInitialSeedEnabled)
-            {
-                SeedBuilder.SeedAllProps();
-
-                if (SeedConfig.IsDbImportEnabled)
-                {
-                    ConfigureDbImport?.Invoke(SeedBuilder);                   
-                }
-
-                SeedBuilder.Build();
-            }
-        }
-
-        public void Execute()
+        public void Build()
         {
             if (!IsEnabled)
                 return;
 
             if (SeedConfig.IsInitialSeedEnabled)
             {
-                InitialSeed?.Invoke(SeedBuilder);
+                if (InitialSeed != null)
+                    InitialSeed(SeedBuilder);
+                else
+                    AlwaysSeed?.Invoke(SeedBuilder);
                 SeedBuilder.Build();
             }
             else if (SeedConfig.IsDbImportEnabled)
             {
-                // NOP 
+                SeedBuilder.SeedAllProps();
+                ConfigureDbImport?.Invoke(SeedBuilder);
             }
             else
             {
-                Seed?.Invoke(SeedBuilder);
-                SeedBuilder.Build();
+                if (Seeder != null)
+                {
+                    SeedBuilder.SeedAllProps();
+                    ConfigureSeeder?.Invoke(SeedBuilder);
+                }
+
+                if (Seed != null)
+                    Seed(SeedBuilder);
+                else
+                    AlwaysSeed?.Invoke(SeedBuilder);
 
                 if (Seeder != null)
                     Seeder.Populate(SeedBuilder);
+
+                SeedBuilder.Build();
             }
+
+            SeedBuilder = null;
         }
     }
 
@@ -102,9 +115,9 @@ namespace Casimodo.Lib.Mojen
         public string DbImportOutputXmlDirPath { get; set; }
         public string DbImportOutputSeedDirPath { get; set; }
 
-        public MojGlobalDataSeedConfig AddSection(string name, bool dbseed = true)
+        public MojGlobalDataSeedConfig AddSection(string name, bool enabled = true, bool dbseed = true)
         {
-            Sections.Add(new MojDataSeedSectionConfig { Name = name, IsDbSeedEnabled = dbseed });
+            Sections.Add(new MojDataSeedSectionConfig { Name = name, IsEnabled = enabled, IsDbSeedEnabled = dbseed });
 
             return this;
         }
@@ -124,7 +137,6 @@ namespace Casimodo.Lib.Mojen
     {
         public void Populate(MojValueSetContainerBuilder seed)
         {
-            seed.ClearSeedProps();
             PopulateCore(seed);
         }
 

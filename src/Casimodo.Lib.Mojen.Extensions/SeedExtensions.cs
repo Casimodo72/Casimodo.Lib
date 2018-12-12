@@ -8,34 +8,68 @@ namespace Casimodo.Lib.Mojen
 {
     public static class SeedExtensions
     {
-        public static MojSeedItem AddSeed(this MojenApp app, MojSeedItemOptions options)
+        public static void Seed(this MojenApp app, MojSeedItemOptions options)
         {
-            var seed = new MojSeedItem(app, options);
-            seed.SeedBuilder.Use<EntityFromDbToSeedGen>(new EntityFromDbTransformationOptions
-            {
-                OrderBy = seed.OrderBy
-            });
-
-            seed.Prepare();
-
-            app.Add(seed);
-
-            return seed;
+            SeedCore<EntityFromDbToSeedGen>(app, options);
         }
 
-        public static MojSeedItem AddAuthUserSeed(this MojenApp app, MojSeedItemOptions options)
+        public static void SeedAuthUser(this MojenApp app, MojSeedItemOptions options)
+        {
+            SeedCore<EntityUserFromDbToSeedGen>(app, options);
+        }
+
+        public static void SeedEnumEntity(this MojenDataLayerPackageBuildContext context, MojType type,
+            Action<MojValueSetContainerBuilder> build)
+        {
+            var builder = context.Parent.AddItemsOfType(type)
+                .UsePrimitiveKeys().Name("Name").Value("Id");
+
+            context.App.Seed(new MojSeedItemOptions
+            {
+                Section = "StaticData",
+                SeedBuilder = builder,
+                AlwaysSeed = (seed) =>
+                {
+                    seed
+                        .UseIndex()
+                        .Seed("Name", "DisplayName", "Id");
+
+                    build(builder);
+                }
+            });
+        }
+
+        public static MojValueSetContainerBuilder UsePrimitiveKeys(this MojValueSetContainerBuilder builder)
+        {
+            return builder
+                .Use<PrimitiveKeysGen>()
+                .Use<TsPrimitiveKeysGen>();
+        }
+
+        static void SeedCore<TTransformation>(MojenApp app, MojSeedItemOptions options)
+            where TTransformation : EntityFromDbTransformationGenBase
         {
             var seed = new MojSeedItem(app, options);
-            seed.SeedBuilder.Use<EntityUserFromDbToSeedGen>(new EntityFromDbTransformationOptions
-            {
-                OrderBy = seed.OrderBy
-            });
+            if (!seed.IsEnabled)
+                return;
 
-            seed.Prepare();
+            if (seed.SeedConfig.IsDbImportEnabled)
+            {
+                if (!seed.IsDbImportEnabled)
+                    return;
+
+                // Remove all other generators when importing data from DB.
+                seed.SeedBuilder.Config.UsingGenerators.Clear();
+                // Add DB to seed transformation.
+                seed.SeedBuilder.Use<TTransformation>(new EntityFromDbTransformationOptions
+                {
+                    OrderBy = seed.OrderBy
+                });
+            }
+
+            seed.Build();
 
             app.Add(seed);
-
-            return seed;
         }
     }
 }

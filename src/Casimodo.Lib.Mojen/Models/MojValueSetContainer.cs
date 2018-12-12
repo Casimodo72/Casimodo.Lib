@@ -139,20 +139,20 @@ namespace Casimodo.Lib.Mojen
         {
             var databasePropNames = TypeConfig.GetDatabaseProps().Select(x => x.Name).ToList();
 
-            return GetProps(defaults: false)
+            return GetProps(defaults: true)
                 .Where(x => databasePropNames.Contains(x.Name));
         }
 
         public IEnumerable<MojProp> GetProps(bool defaults = true)
         {
             var propNames = new List<string>();
+            // KABU TODO: Do we need this validation here? Should go into Build() -> Validate().
+            // Validate: Check that all exiting props of all rows were registered.
             foreach (var item in Items)
             {
                 foreach (var val in item.Values)
-                {
                     if (!AllPropNames.Contains(val.Name))
                         throw new MojenException($"Property '{val.Name}' was not registered in the value set container.");
-                }
             }
 
             propNames = AllPropNames;

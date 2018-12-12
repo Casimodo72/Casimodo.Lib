@@ -101,17 +101,6 @@ namespace Casimodo.Lib.Mojen
             return Parent.AddItemsOfType(type);
         }
 
-        public MojValueSetContainerBuilder SeedEnumEntity(MojType type)
-        {
-            var seed = Parent.AddItemsOfType(type);
-            seed.UseIndex().Name("Name").Value("Id")
-                .Use<PrimitiveKeysGen>()
-                .Use<TsPrimitiveKeysGen>()
-                .Seed("Name", "DisplayName", "Id");
-
-            return seed;
-        }
-
         public MojModelPropBuilder PropTenantReference(MojModelBuilder builder)
         {
             return Parent.PropToTenant(builder);

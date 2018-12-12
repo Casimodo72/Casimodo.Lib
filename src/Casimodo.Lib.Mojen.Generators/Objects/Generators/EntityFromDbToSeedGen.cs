@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
             O($"public override void PopulateCore(MojValueSetContainerBuilder seed)");
             Begin();
 
-            O("seed.ClearSeedProps();");
+            // TODO: REMOVE: O("seed.ClearSeedProps();");
 
             var dbprops = container.GetSeedableProps().Select(x => x.StoreOrSelf).ToArray();
 

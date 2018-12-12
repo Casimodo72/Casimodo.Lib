@@ -89,7 +89,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetContainerBuilder SeedAllProps()
         {
-            Config.AllPropNames.Clear();
+            ClearSeedProps();
+            //Config.AllPropNames.Clear();
             return Seed(Config.TypeConfig.GetDatabaseProps()
                 .Reverse()               
                 .Select(x => x.Name)
@@ -156,6 +157,14 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojValueSetContainerBuilder RemoveProp(string propName)
+        {
+            Config.AllPropNames.Remove(propName);
+            Config.SeedMappings.Remove(propName);
+
+            return this;
+        }
+
         public MojValueSetContainerBuilder UseDefault(string name, object value)
         {
             var item = Defaults.FirstOrDefault(x => x.Name == name);
@@ -187,21 +196,26 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        /// <summary>
+        /// NOTE: Clears also default values.
+        /// </summary>
+        /// <returns></returns>
         public MojValueSetContainerBuilder ClearSeedProps()
         {
-            foreach (var prop in Config.AllPropNames.ToArray())
-            {
-                if (prop == IndexName ||
-                    prop == Config.NamePropName ||
-                    prop == Config.ValuePropName)
-                    continue;
+            //foreach (var prop in Config.AllPropNames.ToArray())
+            //{
+                //if (prop == IndexName ||
+                //    prop == Config.NamePropName ||
+                //    prop == Config.ValuePropName)
+                //    continue;
 
-                if (Config.DefaultPropNames.Contains(prop))
-                    continue;
+                //if (Config.DefaultPropNames.Contains(prop))
+                //    continue;
 
-                Config.AllPropNames.Remove(prop);
-            }
-
+                //Config.AllPropNames.Remove(prop);
+            //}
+            Config.AllPropNames.Clear();
+            Config.DefaultPropNames.Clear();
             Config.SeedMappings.Clear();
 
             return this;

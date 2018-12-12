@@ -9,9 +9,20 @@ namespace Casimodo.Lib.Data
 {
     public class DbSeedInfo
     {
-        public Dictionary<string, Action<DbSeedBase>> Items { get; protected set; } = new Dictionary<string, Action<DbSeedBase>>();
+        public readonly Dictionary<string, string[]> Sections = new Dictionary<string, string[]>();
+        public readonly Dictionary<string, Action<DbSeedBase>> Items = new Dictionary<string, Action<DbSeedBase>>();
 
-        public bool Contains(string name)
+        public void AddSection(string name, string[] items)
+        {
+            Sections.Add(name, items);
+        }
+
+        public bool ContainsSection(string name)
+        {
+            return Sections.Keys.Contains(name);
+        }
+
+        public bool ContainsItem(string name)
         {
             return Items.Keys.Contains(name);
         }

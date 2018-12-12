@@ -60,8 +60,18 @@ namespace Casimodo.Lib.Mojen
 
             // Seed info class
             var infoClassName = DataConfig.TypePrefix + "DbSeedInfo";
+            var seedItems = App.GetItems<MojSeedItem>().ToList();
             OB($"public class {infoClassName} : DbSeedInfo");
             OB($"public {infoClassName}()");
+
+            foreach (var section in seedItems.GroupBy(x => x.Section))
+            {
+                OB($@"AddSection(""{section.Key}"", new string[]");
+                foreach (var seedItem in section)
+                    O($@"""{seedItem.TypeConfig.PluralName}"",");
+                End(");");
+            }
+
             foreach (var type in types)
             {
                 var isseedAsync = type.Seedings.Any(x => x.IsAsync);
