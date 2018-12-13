@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -7,7 +9,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             foreach (var controller in App.GetItems<MojControllerConfig>().Where(x => x.Uses(this)))
-                PerformWrite(controller, GenerateControllerCore);
+                WriteToMvc(controller, GenerateControllerCore);
         }
 
         void GenerateControllerCore(MojControllerConfig controller)
@@ -41,6 +43,16 @@ namespace Casimodo.Lib.Mojen
         public virtual void GenerateController(MojControllerConfig controller)
         {
             // Stub
+        }
+
+        public void WriteToMvc(MojControllerConfig controller, Action<MojControllerConfig> callback)
+        {
+            string outputFilePath =
+                Path.Combine(
+                    App.Get<WebAppBuildConfig>().WebMvcControllersOutputDirPath,
+                    controller.ClassName + ".generated.cs");
+
+            PerformWrite(outputFilePath, () => callback(controller));
         }
     }
 }

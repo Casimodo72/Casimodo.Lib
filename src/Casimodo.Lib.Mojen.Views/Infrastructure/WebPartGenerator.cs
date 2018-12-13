@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Casimodo.Lib;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -194,17 +195,7 @@ namespace Casimodo.Lib.Mojen
         public string GetWebRepositoryName(MojType type)
         {
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "WebRepository";
-        }
-
-        public void PerformWrite(MojControllerConfig controller, Action<MojControllerConfig> callback)
-        {
-            string outputFilePath =
-                Path.Combine(
-                    App.Get<WebAppBuildConfig>().WebControllersOutputDirPath,
-                    controller.ClassName + ".generated.cs");
-
-            PerformWrite(outputFilePath, () => callback(controller));
-        }
+        }       
 
         public void OScriptReference(string path, bool async = false)
         {
@@ -399,7 +390,7 @@ namespace Casimodo.Lib.Mojen
 
         public string GetViewDirPath(MojViewConfig view)
         {
-            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsDirPath, view.TypeConfig.PluralName);
+            return Path.Combine(App.Get<WebAppBuildConfig>().WebMvcViewsDirPath, view.TypeConfig.PluralName);
         }
 
         public string BuildTsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)

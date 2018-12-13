@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             var filePath = Path.Combine(
-                App.Get<WebAppBuildConfig>().WebAuthDirPath,
+                App.Get<WebAppBuildConfig>().WebAuthConfigurationDirPath,
                 "WebApiAuthConfig.generated.cs");
 
             var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>()).ToArray();

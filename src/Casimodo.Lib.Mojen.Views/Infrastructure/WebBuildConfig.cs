@@ -30,8 +30,6 @@ namespace Casimodo.Lib.Mojen
 
         public string WebAppConfigNamespace { get; set; }
 
-        public string WebStartupDirPath { get; set; }
-
         // Web repositories
         public string WebRepositoriesDirPath { get; set; }
 
@@ -39,20 +37,20 @@ namespace Casimodo.Lib.Mojen
 
         public string WebConfigurationDirPath { get; set; }
 
-        public string WebAuthDirPath { get; set; }
+        public string WebAuthConfigurationDirPath { get; set; }
         public string WebAuthNamespace { get; set; }
 
         public WebOutputCacheConfig OutputCache { get; private set; } = new WebOutputCacheConfig();
 
         // Web MVC controllers
-        public string WebControllersOutputDirPath { get; set; }
+        public string WebMvcControllersOutputDirPath { get; set; }
 
         public string WebControllersNamespace { get; set; }
 
         public string WebDataViewModelsNamespace { get; set; }
 
         // Web views
-        public string WebViewsDirPath { get; set; }
+        public string WebMvcViewsDirPath { get; set; }
 
         public string WebRegistryTypeScriptDirPath { get; set; }
         public string WebViewsTypeScriptDirPath { get; set; }

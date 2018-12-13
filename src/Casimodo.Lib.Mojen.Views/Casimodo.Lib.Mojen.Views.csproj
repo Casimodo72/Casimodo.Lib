@@ -112,10 +112,6 @@
       <Project>{14682976-50a0-4ec3-adc2-f99b191fe432}</Project>
       <Name>Casimodo.Lib.Data</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
-      <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
-      <Name>Casimodo.Lib.Mojen</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
       <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
       <Name>Casimodo.Lib</Name>
