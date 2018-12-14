@@ -319,16 +319,14 @@ namespace Casimodo.Lib.Mojen
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.
         /// </summary>
-        public MojenGeneratorBase OBegin(string text, Action action)
+        public void OBegin(string text, Action content = null, string end = null)
         {
             OB(text);
-            action();
-            return this;
-        }
-
-        public void OBegin(string text, params object[] args)
-        {
-            OB(text, args);
+            if (content != null)
+            {
+                content();
+                End(end);
+            }
         }
 
         /// <summary>
@@ -605,7 +603,7 @@ namespace Casimodo.Lib.Mojen
 
             O("/// <summary>");
             foreach (var t in text)
-                O("/// " + MojenUtils.CollapseWhitespace(t));
+                O("/// " + Moj.CollapseWhitespace(t));
             O("/// </summary>");
         }
 
@@ -621,14 +619,14 @@ namespace Casimodo.Lib.Mojen
                 {
                     O("/// <summary>");
                     foreach (var txt in summary.Descriptions)
-                        O("/// " + MojenUtils.CollapseWhitespace(txt));
+                        O("/// " + Moj.CollapseWhitespace(txt));
                     O("/// </summary>");
                 }
                 if (summary.Remarks.Any())
                 {
                     O("/// <remarks>");
                     foreach (var txt in summary.Remarks)
-                        O("/// " + MojenUtils.CollapseWhitespace(txt));
+                        O("/// " + Moj.CollapseWhitespace(txt));
                     O("/// </remarks>");
                 }
             }

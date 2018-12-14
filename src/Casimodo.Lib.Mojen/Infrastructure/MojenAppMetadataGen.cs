@@ -191,7 +191,7 @@ namespace Casimodo.Lib.Mojen.Meta
 
                 // Type/property accessor class ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-                O($"public class {formedTypeName} : MojFormedType");
+                O($"public partial class {formedTypeName} : MojFormedType");
                 Begin();
                 // Constructor
                 O($"public {formedTypeName}()");
@@ -210,7 +210,7 @@ namespace Casimodo.Lib.Mojen.Meta
 
                 // Static type/property accessor class ~~~~~~~~~~~~~~~~~~~~~~~~
 
-                O($"public static class {staticFormedType}");
+                O($"public static partial class {staticFormedType}");
                 Begin();
 
                 // Container

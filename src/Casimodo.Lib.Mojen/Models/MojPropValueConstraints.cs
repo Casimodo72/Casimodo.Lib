@@ -34,6 +34,9 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsRequired { get; set; }
 
+        [DataMember]
+        public string Regex { get; set; }
+
         /// <summary>
         /// If true then the property was explicitely defined to be not required.
         /// This is needed for child collection back-references which

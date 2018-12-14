@@ -208,7 +208,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public bool IsAnyTime
         {
-            get { return MojenUtils.IsDateTimeOrOffset(TypeNormalized); }
+            get { return Moj.IsDateTimeOrOffset(TypeNormalized); }
         }
 
         public bool IsTimeSpan
@@ -379,8 +379,8 @@ namespace Casimodo.Lib.Mojen
             var isDictionary = normalizedType.GetInterface("IDictionary") != null;
             IsCollection = !isDictionary && normalizedType.GetInterface("ICollection") != null;
 
-            Name = MojenUtils.ToCsType(normalizedType, nullable);
-            NameNormalized = MojenUtils.ToCsType(normalizedType);
+            Name = Moj.ToCsType(normalizedType, nullable);
+            NameNormalized = Moj.ToCsType(normalizedType);
 
             if (normalizedType.IsGenericType)
             {
@@ -389,7 +389,7 @@ namespace Casimodo.Lib.Mojen
                     GenericTypeArguments.Add(MojPropType.Create(argType));
             }
 
-            if (MojenUtils.IsDateTimeOrOffset(normalizedType))
+            if (Moj.IsDateTimeOrOffset(normalizedType))
             {
                 DateTimeInfo = new MojDateTimeInfo();
                 DateTimeInfo.IsDate = true;

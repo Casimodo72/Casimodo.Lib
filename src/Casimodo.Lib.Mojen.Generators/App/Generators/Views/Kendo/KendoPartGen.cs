@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Mojen
                     extend: () =>
                     {
                         // OData read query URL
-                        O($"readQuery: {MojenUtils.ToJsValue(transport.ODataSelectUrl)},");
+                        O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
 
                         OB("transport: (e) =>");
                         OB("return");
@@ -63,7 +63,7 @@ namespace Casimodo.Lib.Mojen
                     extend: () =>
                     {
                         // OData read query URL
-                        O($"readQuery: {MojenUtils.ToJsValue(transport.ODataSelectUrl)},");
+                        O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
 
                         OB("transport: (e) =>");
                         OB("return");
@@ -106,7 +106,7 @@ namespace Casimodo.Lib.Mojen
                 Oeo(",");
             }
             else
-                o(" {0},", MojenUtils.ToJsValue(options, quote: false));
+                o(" {0},", Moj.JS(options, quote: false));
 
             ob(" function (result)");
             OB("if (result.isOk)");
@@ -126,7 +126,7 @@ namespace Casimodo.Lib.Mojen
                 Oeo(",");
             }
             else
-                o(" {0},", MojenUtils.ToJsValue(options, quote: false));
+                o(" {0},", Moj.JS(options, quote: false));
 
             ob(" function (result)");
             OB("if (result.isOk)");
@@ -241,6 +241,14 @@ namespace Casimodo.Lib.Mojen
             OJsObjectLiteral(options.Elem, trailingNewline: false, trailingComma: false);
         }
 
+        public void OODataSourceReadOptions(WebViewGenContext context, string query)
+        {
+            ODataSourceOptions(context, new KendoDataSourceConfig
+            {
+                ReadQuery = query
+            });
+        }
+
         KendoDataSourceConfig GetDataSourceSingleConfig(WebViewGenContext context, MojHttpRequestConfig transport,
             bool create = false, bool modify = false, bool delete = false)
         {
@@ -264,7 +272,7 @@ namespace Casimodo.Lib.Mojen
         public string BuildBaseFiltersArrayLiteral(WebViewGenContext context)
         {
             if (!context.View.HasFilters)
-                return MojenUtils.ToJsValue(null);
+                return Moj.JS(null);
 
             var filters = new List<string>();
             var sb = new StringBuilder();
@@ -317,24 +325,24 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(title))
                 title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
 
-            O("title: {0},", MojenUtils.ToJsValue(title));
-            O("id: {0},", MojenUtils.ToJsValue(view.Id));
-            O("part: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
-            O("group: {0},", MojenUtils.ToJsValue(view.Group));
-            O("role: {0},", MojenUtils.ToJsValue(view.MainRoleName));
+            O("title: {0},", Moj.JS(title));
+            O("id: {0},", Moj.JS(view.Id));
+            O("part: {0},", Moj.JS(view.TypeConfig.Name));
+            O("group: {0},", Moj.JS(view.Group));
+            O("role: {0},", Moj.JS(view.MainRoleName));
             if (dataType)
             {
-                O("dataTypeName: {0},", MojenUtils.ToJsValue(view.TypeConfig.Name));
-                O("dataTypeId: {0},", MojenUtils.ToJsValue(view.TypeConfig.Id));
+                O("dataTypeName: {0},", Moj.JS(view.TypeConfig.Name));
+                O("dataTypeId: {0},", Moj.JS(view.TypeConfig.Id));
             }
-            O("isLookup: {0},", MojenUtils.ToJsValue(view.Lookup.Is));
-            O("isDialog: {0},", MojenUtils.ToJsValue(view.IsDialog));
-            O("isAuthRequired: {0},", MojenUtils.ToJsValue(view.IsAuthEnabled));
-            O("isCustomSave: {0},", MojenUtils.ToJsValue(view.IsCustomSave));
+            O("isLookup: {0},", Moj.JS(view.Lookup.Is));
+            O("isDialog: {0},", Moj.JS(view.IsDialog));
+            O("isAuthRequired: {0},", Moj.JS(view.IsAuthEnabled));
+            O("isCustomSave: {0},", Moj.JS(view.IsCustomSave));
 
             // Company filters
-            O("isCompanyFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsCompanyFilterEnabled));
-            O("isGlobalCompanyFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsGlobalCompanyFilterEnabled == true));
+            O("isCompanyFilterEnabled: {0},", Moj.JS(view.IsCompanyFilterEnabled));
+            O("isGlobalCompanyFilterEnabled: {0},", Moj.JS(view.IsGlobalCompanyFilterEnabled == true));
 
             if (isList)
             {
@@ -342,11 +350,11 @@ namespace Casimodo.Lib.Mojen
                 if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                     O("selectionMode: 'multiple',");
 
-                O("hasRowContextMenu: {0},", MojenUtils.ToJsValue(context.View.HasListItemContextMenu));
+                O("hasRowContextMenu: {0},", Moj.JS(context.View.HasListItemContextMenu));
                 // Tags
-                O("isTaggable: {0},", MojenUtils.ToJsValue(view.IsTaggable));
-                O("isTagsFilterEnabled: {0},", MojenUtils.ToJsValue(view.IsTagsFilterEnabled));
-                O("tagsEditorId: {0},", MojenUtils.ToJsValue(view.TagsEditorView?.Id));
+                O("isTaggable: {0},", Moj.JS(view.IsTaggable));
+                O("isTagsFilterEnabled: {0},", Moj.JS(view.IsTagsFilterEnabled));
+                O("tagsEditorId: {0},", Moj.JS(view.TagsEditorView?.Id));
             }
 
             // KABU TODO: REMOVE? OViewDimensionOptions(view);          
@@ -356,8 +364,8 @@ namespace Casimodo.Lib.Mojen
             if (view.EditorView != null)
             {
                 OB("editor:");
-                O("id: {0},", MojenUtils.ToJsValue(view.EditorView.Id));
-                O("url: {0},", MojenUtils.ToJsValue(view.EditorView.Url, nullIfEmptyString: true));
+                O("id: {0},", Moj.JS(view.EditorView.Id));
+                O("url: {0},", Moj.JS(view.EditorView.Url, nullIfEmptyString: true));
                 // OViewDimensionOptions(view.EditorView);
                 End(",");
             }

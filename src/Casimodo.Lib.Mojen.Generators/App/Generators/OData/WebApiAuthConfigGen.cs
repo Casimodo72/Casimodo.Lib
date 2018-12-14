@@ -16,9 +16,13 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
+            // KABU TODO: IMPORTANT: Rename from WebApiAuthConfig to WebODataControllerAuthConfig
+            //   in order to reflect that those auth rules are coming from the
+            //   *Controller* configuration and that this is meant for *OData*.
+
             var filePath = Path.Combine(
                 App.Get<WebAppBuildConfig>().WebAuthConfigurationDirPath,
-                "WebApiAuthConfig.generated.cs");
+                    "WebApiAuthConfig.generated.cs");
 
             var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>()).ToArray();
 
@@ -26,6 +30,7 @@ namespace Casimodo.Lib.Mojen
             {
                 OUsing("Casimodo.Lib.Auth");
                 ONamespace(App.Get<WebAppBuildConfig>().WebAuthNamespace);
+
                 O("public static class WebApiAuthConfig");
                 Begin();
                 OB("public static void Configure(ActionAuthBuilder builder)");

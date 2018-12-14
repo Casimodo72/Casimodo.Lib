@@ -42,7 +42,7 @@ namespace Casimodo.Lib.Mojen
 
             var table = type.TableName;
 
-            Type queryType = MojenUtils.CreateType(type, dbprops);
+            Type queryType = Moj.CreateType(type, dbprops);
 
             using (var db = new DbContext(MainSeedConfig.DbImportConnectionString))
             {
@@ -60,7 +60,7 @@ namespace Casimodo.Lib.Mojen
                             // NULL values are expressed by leaving out the property.
                             continue;
 
-                        itemElem.Add(XEl("Prop", XA("Name", prop.Name), MojenUtils.ToXmlValue(value)));
+                        itemElem.Add(XEl("Prop", XA("Name", prop.Name), Moj.XmlValue(value)));
                     }
                 }
             }

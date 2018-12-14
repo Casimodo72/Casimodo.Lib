@@ -92,7 +92,7 @@ namespace Casimodo.Lib.Mojen
             ClearSeedProps();
             //Config.AllPropNames.Clear();
             return Seed(Config.TypeConfig.GetDatabaseProps()
-                .Reverse()               
+                .Reverse()
                 .Select(x => x.Name)
                 .ToArray());
         }
@@ -204,15 +204,15 @@ namespace Casimodo.Lib.Mojen
         {
             //foreach (var prop in Config.AllPropNames.ToArray())
             //{
-                //if (prop == IndexName ||
-                //    prop == Config.NamePropName ||
-                //    prop == Config.ValuePropName)
-                //    continue;
+            //if (prop == IndexName ||
+            //    prop == Config.NamePropName ||
+            //    prop == Config.ValuePropName)
+            //    continue;
 
-                //if (Config.DefaultPropNames.Contains(prop))
-                //    continue;
+            //if (Config.DefaultPropNames.Contains(prop))
+            //    continue;
 
-                //Config.AllPropNames.Remove(prop);
+            //Config.AllPropNames.Remove(prop);
             //}
             Config.AllPropNames.Clear();
             Config.DefaultPropNames.Clear();
@@ -312,8 +312,12 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetContainer Build()
         {
-            if (Config.Items.Any() && Config.Items.First().Has("Name"))
+            if (Config.Items.Any() &&
+                Config.Items.First().Has("Name") &&
+                Config.Items.All(x => x.Get("Name").Value != null))
+            {
                 Aggregate("All", Config.Items.Select(x => x.Get("Name").Value.ToString()).ToArray());
+            }
 
             Validate();
 

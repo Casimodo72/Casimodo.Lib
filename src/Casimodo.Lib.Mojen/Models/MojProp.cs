@@ -52,6 +52,16 @@ namespace Casimodo.Lib.Mojen
     }
 
     [DataContract(Namespace = MojContract.Ns)]
+    public class MojPropRules : MojBase
+    {
+        [DataMember]
+        public int? MinLength { get; set; }
+
+        [DataMember]
+        public int? MaxLength { get; set; }
+    }
+
+    [DataContract(Namespace = MojContract.Ns)]
     public class MojProp : MojBase
     {
         public const int DefaultMillisecondDigits = 3;
@@ -226,7 +236,7 @@ namespace Casimodo.Lib.Mojen
             Name = name;
             Alias = name;
             if (!string.IsNullOrWhiteSpace(name))
-                FieldName = "_" + MojenUtils.FirstCharToLower(name);
+                FieldName = "_" + Moj.FirstCharToLower(name);
         }
 
         [MapFromModel]
@@ -257,7 +267,7 @@ namespace Casimodo.Lib.Mojen
             set
             {
                 _name = value;
-                _vName = MojenUtils.FirstCharToLower(value);
+                _vName = Moj.FirstCharToLower(value);
             }
         }
         internal string _name;
@@ -420,6 +430,13 @@ namespace Casimodo.Lib.Mojen
         [MapFromModel]
         [DataMember]
         public int RowCount { get; set; }
+
+        /// <summary>
+        /// For multiline text: number of editor cols.
+        /// </summary>
+        [MapFromModel]
+        [DataMember]
+        public int ColCount { get; set; }
 
         [DataMember]
         [MapFromModel]

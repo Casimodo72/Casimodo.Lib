@@ -51,7 +51,7 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(DataConfig.DataNamespace + ".Migrations");
 
-            O("partial class DbMigrationSeed : DbMigrationSeedBase");
+            O("partial class DbMigrationSeed : DbSeedBase");
             Begin();
             O("public {0} Context {{ get; set; }}", DataConfig.DbContextName);
             O();
@@ -137,8 +137,8 @@ namespace Casimodo.Lib.Mojen
                         {
                             assignments.Add(string.Format("{0} = {1}{2}",
                                 prop.Name,
-                                MojenUtils.GetCsCast(prop),
-                                MojenUtils.ToCsValue(val.Value, parse: true)));
+                                Moj.GetCsCast(prop),
+                                Moj.CS(val.Value, parse: true, verbatim: true)));
                         }
                     }
 

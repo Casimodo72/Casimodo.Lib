@@ -203,23 +203,10 @@ namespace Casimodo.Lib.Mojen
             {
                 // Editor label
                 if (info.Prop.Type.IsBoolean)
-                    // Labels of check-boxes are display right hand singe of the check-box.
+                    // Labels of check-boxes are display right hand side of the check-box.
                     return;
 
                 base.OPropLabel(context);
-
-                // KABU TODO: REMOVE
-                //Oo($"@Html.LabelFor(m => m.{info.PropPath}");
-
-                //// Show customized text if explicitely defined on the view property.
-                //if (info.CustomDisplayLabel != null)
-                //    o($", \"{info.CustomDisplayLabel}\"");
-
-                //if (!string.IsNullOrEmpty(LabelClass))
-                //    ElemClass(LabelClass);
-                //OMvcAttrs(false);
-
-                //oO(")");
             }
             else
             {
@@ -301,7 +288,7 @@ namespace Casimodo.Lib.Mojen
 
         public void oAttr(string name, object value)
         {
-            o($" {name}='{MojenUtils.ToJsXAttrValue(value)}'");
+            o($" {name}='{Moj.ToJsXAttrValue(value)}'");
         }
 
         public void OPropEditableCore(WebViewGenContext context)
@@ -309,10 +296,11 @@ namespace Casimodo.Lib.Mojen
             var type = context.View.TypeConfig;
             var vinfo = context.PropInfo;
             var vprop = vinfo.ViewProp;
-            var propPath = vinfo.PropPath;
+            var ppath = vinfo.PropPath;
             var dprop = vinfo.TargetDisplayProp;
             var vpropType = vinfo.TargetDisplayProp.Type;
 
+            // MVC jQuery validation : see https://www.blinkingcaret.com/2016/03/23/manually-use-mvc-client-side-validation/
             bool validationBox = true;
 
             CustomElemStyle(context);
@@ -324,237 +312,72 @@ namespace Casimodo.Lib.Mojen
                 ElemClass("form-control");
             }
 
+            // Enable MVC's unobtrusive jQuery validation.
+            ElemAttr("data-val", true);
+
             if (vprop.CustomEditorViewName != null)
             {
-                O($"@Html.Partial(\"{vprop.CustomEditorViewName}\")");
+                O($@"@Html.Partial(""{vprop.CustomEditorViewName}"")");
             }
             // NOTE: Enums are also numbers here, so ensure the enum handler comes first.
             else if (vpropType.IsEnum)
             {
-                // .Name(\"{0}\")
-                O($"@(Html.Kendo().DropDownListFor(m => m.{propPath}).DataValueField(\"Value\").DataTextField(\"Text\").ValuePrimitive(true)");
-                Push();
-
-                // KABU TODO: IMPORTANT: REMOVE? What's the point of having no NULL value in the UI?
-                //if (!prop.IsRequiredOnEdit)
-                O(".OptionLabel(\" \")");
-
-                O(".BindTo(PickItemsHelper.ToSelectList<{0}>(nullable: {1}, names: true))",
-                    vpropType.NameNormalized,
-                    MojenUtils.ToCsValue(dprop.IsRequiredOnEdit));
-
-                OMvcAttrs(context, kendo: true);
-
-                Pop();
-                O(")");
+                throw new MojenException("Enums are not supported.");
             }
             else if (vpropType.IsNumber)
             {
-                ONumericInput(vprop, dprop, propPath);
+                OKendoNumericInput(context);
                 validationBox = false;
             }
             // Uploadable image property
-            else if (dprop.FileRef.Is &&
-#pragma warning disable CS0618 // Type or member is obsolete
-                dprop.FileRef.IsUploadable &&
-#pragma warning restore CS0618 // Type or member is obsolete
-                dprop.FileRef.IsImage)
+            else if (dprop.FileRef.Is && dprop.FileRef.IsImage &&
+#pragma warning disable CS0618 // Type or member is deprecated
+                dprop.FileRef.IsUploadable)
+#pragma warning restore CS0618 // Type or member is deprecated
             {
-                string name = context.View.TypeConfig.ClassName + dprop.Alias;
-                string alias = dprop.Alias;
-                string uploadTemplateId = name + "Template";
-
-                // KABU TODO: IMPL currently disabled
-                return;
-#if (false)
-
-                O("@Html.HiddenFor(m => m.{0})", propPath);
-                // KABU TODO: This probably won't work with nested type properties.
-                foreach (var relatedProp in prop.AutoRelatedProps) O("@Html.HiddenFor(m => m.{0})", relatedProp.Name);
-
-                if (prop.FileRef.IsImage)
-                {
-                    // Image-thumbnail
-                    XB("<div class='edit-image-thumbnail'>");
-                    Oo($"<img id='{alias}ImageThumbnail' alt=''");
-                    // KABU TODO: REMOVE: We don't have an URI property anymore.
-                    //o($"data-bind='attr: {{ src: {alias}Uri }}'");
-                    oO(" />");
-                    OE("</div>");
-                }
-
-                // Kendo upload template.
-                O();
-                XB("<script id='{0}' type='text/x-kendo-template'>", uploadTemplateId);
-                XB("<div class='file-wrapper'>");
-                O("<div style='font-size: 0.9em; text-align:left'>#=name#</div>");
-                OE("</div>");
-                O("<span class='k-progress' style='height: 10px;'></span>");
-                OE("</script>");
-
-                // Kendo upload widget.
-                O();
-                O("@(Html.Kendo().Upload().Name(\"{0}\")", name);
-                Push();
-                O(".Multiple(false)");
-                O(".Async(a => a.SaveUrl(\"api/UploadFile/{0}\").AutoUpload(true))", name);
-                O(".ShowFileList(false)");
-                O(".Messages(m => m.StatusUploaded(\" \").HeaderStatusUploaded(\" \").HeaderStatusUploading(\" \").StatusUploading(\" \"))");
-                O(".Events(e => e.Success(\"kmodo.onPhotoUploaded\").Error(\"kmodo.onFileUploadFailed\").Remove(\"kmodo.onFileUploadRemoving\"))");
-                // Add the Kendo upload template defined above.
-                O(".TemplateId(\"{0}\")", uploadTemplateId);
-
-                // Accepted file types (by file extension).
-                if (prop.FileRef.IsImage)
-                    AddAttr("accept", ".png,.jpg");
-                AddAttr("data-file-prop", alias);
-                AddAttr("max-width", "100px");
-                OMvcAttrs(true);
-
-                oO(")");
-                Pop();
-#endif
+                // NOTE: File upload is not supported.
+                OFileUpload(context);
             }
             else if (dprop.FileRef.Is)
             {
-                throw new MojenException($"Unsupported file reference property.");
+                throw new MojenException("Unsupported file reference property.");
             }
             else if (dprop.Reference.Is)
             {
-                throw new MojenException($"Unsupported reference property.");
+                throw new MojenException("Unsupported reference property.");
             }
             else if (dprop.IsColor)
             {
-                Oo("@(Html.Kendo().ColorPickerFor(m => m.{0}).Opacity({1})",
-                    propPath,
-                    MojenUtils.ToCsValue(dprop.IsColorWithOpacity));
-                oO(")");
+                O($@"@(Html.Kendo().ColorPickerFor(m => m.{ppath}).Opacity({Moj.CS(dprop.IsColorWithOpacity)})");
             }
             else if (vpropType.IsAnyTime)
             {
-                ODateTimeInput(context.PropInfo);
-
-                // KABU TODO: REMOVE
-                //var time = vprop.DisplayDateTime ?? vpropType.DateTimeInfo;
-
-                //string kind;
-                //if (time.IsDateAndTime)
-                //    kind = "DateTime";
-                //else if (time.IsDate)
-                //    kind = "Date";
-                //else
-                //    kind = "Time";
-
-                //// KABU TODO: REMOVE: We changed the descriptive web data view model to have
-                ////   DateTime props instead of DateTimeOffset props.
-                //// KABU TODO: REVISIT: Kendo does not support DateTimeOffset pickers (yet?), only DateTime.                
-                //if (false && vpropType.TypeNormalized == typeof(DateTimeOffset))
-                //{
-                //    // Fallback to generic editor.
-                //    Oo($"@(Html.EditorFor(m => m.{propPath}");
-                //    OMvcAttrs(context, kendo: false);
-                //    oO("))");
-                //}
-                //else
-                //{
-                //    O($"@(Html.Kendo().{kind}PickerFor(m => m.{propPath})");
-                //    OMvcAttrs(context, kendo: true);
-                //    oO(")");
-                //}
+                OKendoDateTimeEditor(context);
             }
             else if (vpropType.IsTimeSpan)
             {
-                OTimeSpanInput(vprop, dprop, propPath);
+                OKendoTimeSpanEditor(context);
             }
             else if (vpropType.IsString)
             {
-                OStringEditor(context);
+                OKendoStringEditor(context);
+            }
+            else if (vpropType.IsBoolean)
+            {
+                OBooleanEditor(context);
             }
             else
             {
                 // Fallback to generic editor.
-                Oo($"@(Html.EditorFor(m => m.{propPath}");
+                Oo($"@(Html.EditorFor(m => m.{ppath}");
                 OMvcAttrs(context, kendo: false);
                 oO("))");
             }
 
             // Validation message
             if (validationBox)
-                O($"@Html.ValidationMessageFor(m => m.{propPath})");
+                OValidationMessageElem(ppath);
         }
-
-        public void OStringEditor(WebViewGenContext context)
-        {
-            var vprop = context.PropInfo.ViewProp;
-            var dprop = context.PropInfo.Prop;
-            var propPath = context.PropInfo.PropPath;
-
-            if (!dprop.IsSpellCheck)
-                ElemAttr("spellcheck", false);
-
-            if (dprop.Type.IsMultilineString)
-            {
-                Oo($"@(Html.TextAreaFor(m => m.{propPath}");
-                ElemClass("form-control");
-
-                if (dprop.RowCount != 0)
-                    ElemAttr("rows", dprop.RowCount);
-
-                if (vprop.UseCodeRenderer != null)
-                    ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
-
-                OMvcAttrs(context, kendo: false);
-                oO("))");
-            }
-            else
-            {
-                var inputType = GetTextInputType(dprop.Type.AnnotationDataType);
-                if (inputType != null)
-                    ElemAttr("type", inputType);
-
-                O("@(Html.Kendo().TextBoxFor(m => m.{0})", propPath);
-                OMvcAttrs(context, kendo: true);
-                oO(")");
-            }
-        }
-
-        string GetTextInputType(System.ComponentModel.DataAnnotations.DataType? type)
-        {
-            if (type == null)
-                return null;
-
-            // HTML input types:
-            // color
-            // date
-            // datetime
-            // datetime - local
-            // email
-            // month
-            // number
-            // range
-            // search
-            // tel
-            // time
-            // url
-            // week
-            string result;
-            if (_textInputTypeByDataType.TryGetValue(type.Value, out result))
-                return result;
-
-            return null;
-        }
-
-        static readonly Dictionary<System.ComponentModel.DataAnnotations.DataType, string> _textInputTypeByDataType =
-            new Dictionary<System.ComponentModel.DataAnnotations.DataType, string>
-            {
-                [DataType.EmailAddress] = "email",
-                [DataType.PhoneNumber] = "tel",
-                [DataType.Url] = "url",
-                [DataType.DateTime] = "datetime",
-                [DataType.Date] = "date",
-                [DataType.Time] = "time",
-                [DataType.Currency] = "number"
-            };
 
         // Selectors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -894,8 +717,8 @@ namespace Casimodo.Lib.Mojen
                         // Notify
                         // KABU TODO: LOCALIZE
                         O($"kmodo.openInstructionDialog(\"" +
-                            $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
-                            $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
+                        $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
+                        $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                         // Exit
                         O("return;");
                         End();
@@ -904,16 +727,16 @@ namespace Casimodo.Lib.Mojen
                         var isDeactivatable = cascadeFromInfo.Config.IsDeactivatable;
                         // Filter by the cascade-from field & value.
                         O($"options.filters.push({{ field: '{reference.ForeignKey.Name}', " +
-                            "value: cascadeFromVal, operator: 'eq', " +
-                            $"targetType: '{targetType.Name}', " +
-                            $"targetTypeId: '{targetType.Id}', " +
-                            $"deactivatable: {MojenUtils.ToJsValue(isDeactivatable)} }});");
+                        "value: cascadeFromVal, operator: 'eq', " +
+                        $"targetType: '{targetType.Name}', " +
+                        $"targetTypeId: '{targetType.Id}', " +
+                        $"deactivatable: {Moj.JS(isDeactivatable)} }});");
 
                         if (cascadeFromInfo.Config.IsDeactivatable)
                         {
                             O($"options.filterCommands.push({{ field: '{reference.ForeignKey.Name}', " +
                                 $"value: cascadeFromVal, " +
-                                $"deactivatable: {MojenUtils.ToJsValue(isDeactivatable)}, " +
+                                $"deactivatable: {Moj.JS(isDeactivatable)}, " +
                                 $"title: '{cascadeFromInfo.Config.Title}'}});");
                         }
                         O();
@@ -944,8 +767,8 @@ namespace Casimodo.Lib.Mojen
                     // Notify
                     // KABU TODO: LOCALIZE
                     O($"kmodo.openInstructionDialog(\"" +
-                        $"Zuerst muss '{sourceProp.DisplayLabel}' gesetzt werden, " +
-                        $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
+                    $"Zuerst muss '{sourceProp.DisplayLabel}' gesetzt werden, " +
+                    $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                     // Exit
                     O("return;");
                     End();
@@ -953,7 +776,7 @@ namespace Casimodo.Lib.Mojen
                     O($"var filter = {{ field: '{targetPath}', " +
                         "value: cascadeFromVal, operator: 'eq', " +
                         $"targetType: '{targetType}', targetTypeId: '{targetType.Id}', " +
-                        $"deactivatable: {MojenUtils.ToJsValue(false)} }};");
+                        $"deactivatable: {Moj.JS(false)} }};");
 
                     O($"options.filters.push(filter);");
                 }
@@ -969,6 +792,22 @@ namespace Casimodo.Lib.Mojen
         }
 
         // Drop down selector ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        void OHtmlDataBindValue(WebViewGenContext context, string binding = null)
+        {
+            if (context.View.UseMVVM)
+                o($@" data-bind='{binding ?? "value"}:{GetBinding(context)}");
+        }
+
+        void OHtmlRequiredttrs(WebViewGenContext context, MojProp prop)
+        {
+            if (prop.IsRequiredOnEdit)
+            {
+                o(" required");
+                // KABU TODO: LOCALIZE
+                o($@" data-val-required='{GetDisplayNameFor(context)}' ist erforderlich.'");
+            }
+        }
 
         public bool OPropDropDownSelector(WebViewGenContext context)
         {
@@ -987,140 +826,156 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.Lookup.Is) return false;
 
-            // DropDown list            
+            // DropDown list    
 
-            bool cascade = vprop.CascadeFrom.Is;
-            string cascadeParentForeignKeyName = null;
-            string cascadeParentComponentId = null;
-            string cascadeQueryParameterFunc = null;
+            O($"<!-- Drop down selector for {propPath} -->");
 
             var targetType = prop.Reference.ToType;
             string key = "Value";
             string display = "Text";
+            string odataQuery = null;
 
-            // TODO: REMOVE: -> NOTE: We now perform client queries data sets greater than extra small.
-            // NOTE: We now always perform client queries.
-            bool clientQuery = cascade || true || targetType.DataSetSize != MojDataSetSizeKind.ExtraSmall;
-            string clientQueryUrl = null;
-
-            O($"<!-- Drop down selector for {propPath} -->");
-
-            if (clientQuery)
-            {
-                // Key property to be selected from the target objects.
-                key = prop.Reference.ToTypeKey.Name;
-
-                var sortProps = targetType.GetODataOrderBy();
-
-                // Display property to be selected from the target objects.
-                if (targetDisplayProp != null)
-                    display = targetDisplayProp.Name;
-                else
-                {
-                    var pick = targetType.FindPick();
-                    if (pick == null)
-                        throw new MojenException($"No pick display property defined for reference property '{prop.Name}'.");
-
-                    display = pick.DisplayProp;
-                }
-
-                sortProps = sortProps != null ? sortProps : display;
-
-                // Build OData URL
-                clientQueryUrl = $"{this.GetODataQueryFunc(prop.Reference.ToType)}()?$select={key},{display}&$orderby={sortProps}";
-            }
-
+            // Cascade NOT-SUPPORTED
+            bool cascade = vprop.CascadeFrom.Is;
+            string cascadeParentForeignKeyName = null;
+            string cascadeParentComponentId = null;
+            string cascadeQueryParameterFunc = null;
             if (cascade)
             {
-                throw new NotImplementedException("Cascade-from not implmemented yet.");
+                // KABU TODO: Kendo's drop down list seems to cascade only form other drop down lists.
+                // This is useless for us because we use custom lookup components which are not drop down lists.
+                throw new NotImplementedException("Cascade-from not implmemented yet for drop down lists.");
 
 #pragma warning disable CS0162 // Unreachable code detected
                 // Compute cascade information.
-                //var cascadeFrom = ComputeCascadeFromInfos(info);
-                //cascadeParentForeignKeyName = cascadeFrom.ForeignKey.Name;
-                //cascadeParentComponentId = cascadeParentForeignKeyName;
+                // var cascadeFrom = ComputeCascadeFromInfos(info);
+                // cascadeParentForeignKeyName = cascadeFrom.ForeignKey.Name;
+                // cascadeParentComponentId = cascadeParentForeignKeyName;
 
                 O($"// Cascading from {cascadeParentForeignKeyName}");
+
+                if (cascadeQueryParameterFunc != null)
+                {
+                    // JS function that will query the lookup values based on the
+                    //   currently selected cascade-from source value.
+
+                    XB("<script>");
+                    O($"function {cascadeQueryParameterFunc}() {{");
+                    O("    return {");
+                    O($"     '$select': '{key},{display}'");
+                    O("    }");
+                    O("}");
+                    XE("</script>");
+                }
 #pragma warning restore CS0162
             }
 
-            if (cascade && cascadeQueryParameterFunc != null)
-            {
-                // JS function that will query the lookup values based on the
-                //   currently selected cascade-from source value.
+            // Key property to be selected from the target objects.
+            key = prop.Reference.ToTypeKey.Name;
 
-                XB("<script>");
-                O($"function {cascadeQueryParameterFunc}() {{");
-                O("    return {");
-                O($"     '$select': '{key},{display}'");
-                O("    }");
-                O("}");
-                XE("</script>");
+            // Display property to be selected from the target objects.
+            if (targetDisplayProp != null)
+                display = targetDisplayProp.Name;
+            else
+            {
+                var pick = targetType.FindPick();
+                if (pick == null)
+                    throw new MojenException($"No pick display property defined for reference property '{prop.Name}'.");
+
+                display = pick.DisplayProp;
             }
 
-            // DropDown list
+            // OData order by
+            var odataOrderBy = targetType.GetODataOrderBy();
+            odataOrderBy = odataOrderBy != null ? odataOrderBy : display;
+
+            // Build OData query
+            odataQuery = $"{this.GetODataQueryFunc(prop.Reference.ToType)}()?$select={key},{display}&$orderby={odataOrderBy}";
+
+            // Drop down list component
             // See http://demos.telerik.com/aspnet-mvc/dropdownlist/index
+#if (true)
+            var displayName = GetDisplayNameFor(context);
+            Oo($@"<input id='{propPath}' name='{propPath}' type='text'");
+            o($@" class='form-control' data-display-name='{displayName}'");
+            OHtmlDataBindValue(context);
+            OHtmlRequiredttrs(context, prop);
+            OHtmlElemAttrs();
+            oO(" />");
+
+            OJsScript(() =>
+            {
+                var enable = true;
+                var autoBind = true;
+                if (cascade)
+                {
+                    enable = false;
+                    autoBind = false;
+                }
+                var valuePrimitive = true;
+                var optionLabel = " ";
+                OJQueryOnDocReady(() =>
+                {
+                    OBegin($@"$('#{propPath}').kendoDropDownList(", () =>
+                    {
+                        // Options
+                        Oo($@"autoBind: {Moj.JS(autoBind)},");
+                        o($@"enable: {Moj.JS(enable)},");
+                        o($@"valuePrimitive: { Moj.JS(valuePrimitive)},");
+                        o($@"dataValueField: ""{key}"", dataTextField: ""{display}"",");
+                        o($@"optionLabel: ""{optionLabel}"",");
+                        if (cascade)
+                        {
+                            // ID of the parent drop down list.
+                            o($@"cascadeFrom: ""{cascadeParentComponentId}"",");
+                            o($@"cascadeFromField: ""{cascadeParentForeignKeyName}"",");
+                        }
+                        OBegin("dataSource:", () => KendoGen.OODataSourceReadOptions(context, odataQuery), ",");
+                    }, ");");
+                });
+            });
+
+            OValidationMessageElem(propPath);
+#else
             O($"@(Html.Kendo().DropDownListFor(m => m.{propPath})");
             Push();
 
-            O($".ValuePrimitive(true)");
+            O($".ValuePrimitive(true)"); // DONE
 
-            O($".DataValueField(\"{key}\").DataTextField(\"{display}\")");
+            O($".DataValueField(\"{key}\").DataTextField(\"{display}\")"); // DONE
 
             // KABU TODO: IMPORTANT: REMOVE? What's the point of having no NULL value in the UI?
-            //if (!prop.IsRequiredOnEdit)
-            O(".OptionLabel(\" \")");
+            O(".OptionLabel(\" \")"); // DONE
 
             if (cascade)
             {
-                O(".AutoBind(false)");
-                O(".Enable(false)");
-                O($".CascadeFrom(\"{cascadeParentComponentId}\")");
-                O($".CascadeFromField(\"{cascadeParentForeignKeyName}\")");
+                O(".AutoBind(false)");// DONE
+                O(".Enable(false)");// DONE
+                O($".CascadeFrom(\"{cascadeParentComponentId}\")");// DONE
+                O($".CascadeFromField(\"{cascadeParentForeignKeyName}\")");// DONE
             }
 
-            if (clientQuery)
-            {
-                // Client data binding.
-                // Generate Kendo data-source.
-                KendoGen.OMvcReadOnlyDataSource(clientQueryUrl, cascadeQueryParameterFunc);
-            }
-            else
-            {
-                // KABU TODO: REMOVE? Not used anymore.
+            // Set Kendo data-source.
+            KendoGen.OMvcReadOnlyDataSource(odataQuery, cascadeQueryParameterFunc); // DONE
 
-                // Server side data binding.
-                // Example:
-                // .BindTo(PickItemsContainer.GetCompanies("Name", nullable: true))
-                var repository = targetType.PluralName;
-                Oo($".BindTo(PickItemsContainer.Get{repository}(");
-
-                // If applicable, display the specified target property.
-                if (targetDisplayProp != null) o($"\"{targetDisplayProp.Name}\", ");
-
-                // Nullable
-                o($"nullable: {MojenUtils.ToCsValue(!prop.IsRequiredOnEdit)})");
-
-                oO(")");
-            }
-
-            if (prop.IsRequiredOnEdit)
+            if (prop.IsRequiredOnEdit)//DONE
                 ElemFlag("required");
 
             // KABU TODO: REMOVE: AddClassAttr("kendo-force-validation");
-            ElemClass("form-control");
+            ElemClass("form-control"); //DONE
             // KABU TODO: REVISIT: Kendo's MVC DropDownList wrapper does not output
             //   the attribute "data-display-name" which is needed for the validation error message.
             //   Why? Other Kendo MVC wrappers do output that attribute.
             //   We have to add it manually.
-            ElemAttr("data-display-name", GetDisplayNameFor(context));
-            OMvcAttrs(context, kendo: true);
+            ElemAttr("data-display-name", GetDisplayNameFor(context));//DONE
+            OMvcAttrs(context, kendo: true); // DONE
 
             Pop();
             oO(")"); // DropDownList
 
             // Validation message
-            O($"@Html.ValidationMessageFor(m => m.{propPath})");
+            O($"@Html.ValidationMessageFor(m => m.{propPath})");//DONE
+#endif
 
             return true;
         }
@@ -1146,7 +1001,7 @@ namespace Casimodo.Lib.Mojen
             ElemClass("form-control");
             ElemClass("with-selector");
             CustomElemStyle(context);
-            OStringEditor(context);
+            OKendoStringEditor(context);
 
             // Button for popping up the lookup dialog.            
             OSelectorControlButton(context);
@@ -1170,7 +1025,7 @@ namespace Casimodo.Lib.Mojen
                         {
                             OB("params:");
                             foreach (var p in snippetsEditorView.Parameters)
-                                O("{0}: {1},", p.VName, MojenUtils.ToJsValue(vprop.Snippets.Args[p.Name]));
+                                O("{0}: {1},", p.VName, Moj.JS(vprop.Snippets.Args[p.Name]));
                             End();
                         }
                     }),
@@ -1199,9 +1054,6 @@ namespace Casimodo.Lib.Mojen
 
         void OMvcAttrs(WebViewGenContext context, bool kendo)
         {
-            var info = context.PropInfo;
-            var prop = info.Prop;
-
             if (!kendo)
                 ElemDataBindAttr(context);
 

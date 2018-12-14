@@ -208,7 +208,7 @@ namespace Casimodo.Lib.Mojen
                         O($"baseFilters: {KendoGen.BuildBaseFiltersArrayLiteral(context)},");
 
                         // OData read query URL
-                        O($"readQuery: {MojenUtils.ToJsValue(TransportConfig.ODataSelectUrl)},");
+                        O($"readQuery: {Moj.JS(TransportConfig.ODataSelectUrl)},");
 
                         OB("dataSourceOptions: (e) =>");
                         OB("return");
@@ -264,18 +264,18 @@ namespace Casimodo.Lib.Mojen
             if (Options.IsPagerVisible)
             {
                 OXP("pageable",
-                    $"refresh: {MojenUtils.ToJsValue(Options.Pager.UseRefresh)}",
-                    $"input: {MojenUtils.ToJsValue(Options.Pager.UseInput)}",
-                    $"pageSizes: {MojenUtils.ToJsValue(Options.Pager.UsePageSizes)}"
+                    $"refresh: {Moj.JS(Options.Pager.UseRefresh)}",
+                    $"input: {Moj.JS(Options.Pager.UseInput)}",
+                    $"pageSizes: {Moj.JS(Options.Pager.UsePageSizes)}"
                 );
             }
 
             if (Options.Height != null)
             {
-                O($"height: {MojenUtils.ToJsValue(Options.Height)},");
+                O($"height: {Moj.JS(Options.Height)},");
             }
 
-            O($"scrollable: {MojenUtils.ToJsValue(Options.IsScrollable)},");
+            O($"scrollable: {Moj.JS(Options.IsScrollable)},");
 
             // Row selection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             if (view.ItemSelection.IsEnabled && !view.ItemSelection.UseCheckBox)
@@ -761,16 +761,7 @@ namespace Casimodo.Lib.Mojen
 
                 if (vprop.Type.IsEnum)
                 {
-                    // KABU TODO: ELIMINATE: Razor helpers are not allowed in component JS anymore.
-                    throw new MojenException("Razor helpers are not allowed in component JS anymore.");
-                    // Enums will be looked up based on static values.
-                    filterDataSourceData = $"@(PickItemsHelper.ToJsArray<{vprop.Type.NameNormalized}>(names: true))";
-
-                    // DropDownList template
-                    var nullable = vprop.Type.CanBeNull;
-                    filterCellTemplate = $"kmodo.gridEnumFilterColTemplate{(nullable ? "Nullable" : "")}";
-
-                    filterDataSourceTextField = "text";
+                    throw new MojenException("Enums are not supported.");
                 }
                 else if (vprop.Reference.Is)
                 {
@@ -787,7 +778,7 @@ namespace Casimodo.Lib.Mojen
                             O("kmodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
                                 filterDataSourceTextField,
                                 filterDataSourceTextField,
-                                MojenUtils.ToJsValue(nullable));
+                                Moj.JS(nullable));
                             End(",");
                         });
 

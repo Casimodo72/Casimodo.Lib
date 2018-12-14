@@ -62,7 +62,7 @@ namespace Casimodo.Lib.Mojen
 
             var table = storeType.TableName;
 
-            Type queryType = MojenUtils.CreateType(storeType, dbprops);
+            Type queryType = Moj.CreateType(storeType, dbprops);
 
             var query = $"select {fields} from [{table}]";
 
@@ -96,11 +96,11 @@ namespace Casimodo.Lib.Mojen
                         else if (prop.Type.IsEnum)
                         {
                             // KABU TODO: IMPORTANT: Handle enums.
-                            o(MojenUtils.ToCsValue(value, parse: false));
+                            o(Moj.CS(value, parse: false));
                         }
                         else
                         {
-                            o(MojenUtils.ToCsValue(value, parse: false));
+                            o(Moj.CS(value, parse: false));
                         }
 
                         if (++i < dbprops.Length)

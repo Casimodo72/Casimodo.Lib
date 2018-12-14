@@ -368,6 +368,11 @@ namespace Casimodo.Lib.Mojen
 
         public TPropBuilder MinMaxLengthCore(string name, int length, string error = null)
         {
+            if (name == "MaxLength")
+                PropConfig.UseRules().Max = length;
+            else
+                PropConfig.UseRules().Min = length;
+
             if (PropConfig.Type.IsString)
             {
                 var attr = PropConfig.Attrs.FindOrCreate("StringLength", 5);

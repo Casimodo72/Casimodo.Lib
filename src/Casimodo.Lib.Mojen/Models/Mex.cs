@@ -121,7 +121,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (item is MexValue)
             {
-                o(MojenUtils.ToCsValue(((MexValue)item).Value, parse: true));
+                o(Moj.CS(((MexValue)item).Value, parse: true));
             }
             else throw new MojenException($"Unexpected Mex item '{item.GetType().Name}'.");
         }

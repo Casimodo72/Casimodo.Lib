@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
 
         public void ORazorModel(string className)
         {
-            O($"@model {App.Get<WebAppBuildConfig>().WebDataViewModelsNamespace}.{className}");
+            O($"@model {App.Get<WebAppBuildConfig>().WebDataViewModelNamespace}.{className}");
         }
 
         public void ORazorModel(MojType type)
@@ -73,13 +73,16 @@ namespace Casimodo.Lib.Mojen
             return result;
         }
 
-        public void OElemAttrs()
+        public void OHtmlElemAttrs()
         {
             if (Attributes.Any())
             {
                 o(" ");
                 o(Attributes.Select(x => $"{x.Name.LocalName}='{x.Value}'").Join(" "));
                 o(" ");
+
+                // KABU TODO: IMPORTANT: Shouldn't this be cleared here?
+                Attributes.Clear();
             }
         }
 

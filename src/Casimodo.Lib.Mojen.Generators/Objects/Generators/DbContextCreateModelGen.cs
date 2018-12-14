@@ -86,7 +86,7 @@ namespace Casimodo.Lib.Mojen
                         if (dbAnnotations.Length == 1)
                         {
                             var anno = dbAnnotations.First();
-                            O($"{item}.Property(x => x.{prop.Name}).Index(\"{anno.GetIndexName()}\", {anno.GetIndexMemberIndex(prop)}, {MojenUtils.ToCsValue(anno.Unique.Is)});");
+                            O($"{item}.Property(x => x.{prop.Name}).Index(\"{anno.GetIndexName()}\", {anno.GetIndexMemberIndex(prop)}, {Moj.CS(anno.Unique.Is)});");
                         }
                         else
                         {
@@ -95,7 +95,7 @@ namespace Casimodo.Lib.Mojen
                             int i = 0;
                             foreach (var anno in dbAnnotations)
                             {
-                                Oo($"new IndexAttribute(\"{anno.GetIndexName()}\", {anno.GetIndexMemberIndex(prop)}) {{ IsUnique = {MojenUtils.ToCsValue(anno.Unique.Is)} }}");
+                                Oo($"new IndexAttribute(\"{anno.GetIndexName()}\", {anno.GetIndexMemberIndex(prop)}) {{ IsUnique = {Moj.CS(anno.Unique.Is)} }}");
                                 if (++i < dbAnnotations.Length)
                                     oO(",");
                                 else

@@ -19,5 +19,15 @@ namespace Casimodo.Lib.Mojen
 
             return builder;
         }
+
+        public static MojControllerBuilder UseODataMvcController(this MojControllerBuilder builder)
+        {
+            if (builder.App.IsDotNetCore())
+                builder.Use<CoreMvcODataControllerGen>();
+            else
+                builder.Use<MvcODataControllerGen>();
+
+            return builder;
+        }
     }
 }

@@ -193,8 +193,8 @@ namespace Casimodo.Lib.Mojen
                             {
                                 assignments.Add(string.Format("{0} = {1}{2}",
                                     prop.Name,
-                                    MojenUtils.GetCsCast(prop),
-                                    MojenUtils.ToCsValue(val.Value, parse: true, verbatim: true)));
+                                    Moj.GetCsCast(prop),
+                                    Moj.CS(val.Value, parse: true, verbatim: true)));
                             }
                         }
 

@@ -44,7 +44,7 @@ namespace Casimodo.Lib.Mojen
                 Type = controller.TypeConfig.RequiredStore;
 
                 string controllerFilePath = Path.Combine(
-                    ODataConfig.WebODataControllersDirPath,
+                    ODataConfig.WebODataControllerDirPath,
                     this.GetODataControllerName(controller.TypeConfig) + ".generated.cs");
 
                 PerformWrite(controllerFilePath, () => GenerateController());
@@ -86,7 +86,7 @@ namespace Casimodo.Lib.Mojen
                 GetAllDataNamespaces()
             );
 
-            ONamespace(ODataConfig.WebODataServicesNamespace);
+            ONamespace(ODataConfig.WebODataControllerNamespace);
 
             foreach (var attr in Controller.Attrs)
             {
@@ -516,7 +516,7 @@ namespace Casimodo.Lib.Mojen
         {
             O("[ApiActionAuth(Part = \"{0}\", Group = {1}, Action = \"{2}\")]",
                 view.TypeConfig.Name,
-                MojenUtils.ToCsValue(view.Group),
+                Moj.CS(view.Group),
                 action);
         }
 

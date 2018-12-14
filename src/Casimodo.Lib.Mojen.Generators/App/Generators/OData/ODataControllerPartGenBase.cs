@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
         {
             ODataConfig = App.Get<WebODataBuildConfig>();
 
-            string path = Path.Combine(ODataConfig.WebODataControllersDirPath, "ODataControllerPart." + Name + ".generated.cs");
+            string path = Path.Combine(ODataConfig.WebODataControllerDirPath, "ODataControllerPart." + Name + ".generated.cs");
 
             PerformWrite(path, () => OForAllTypes());
         }
@@ -62,7 +62,7 @@ namespace Casimodo.Lib.Mojen
                 GetAllDataNamespaces()
             );
 
-            ONamespace(ODataConfig.WebODataServicesNamespace);
+            ONamespace(ODataConfig.WebODataControllerNamespace);
 
             foreach (var controller in GetControllers())
             {

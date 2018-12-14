@@ -55,6 +55,56 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TPropBuilder _UnidirManyToManyCollectionOf(MojType itemType, string linkTypeGuid, Action<MojModelBuilder> buildLinkType)
+        {
+            if (true)
+            {
+                var prop = PropConfig;
+
+                var type = prop.DeclaringType.PluralName + "2" + itemType.PluralName;
+
+                var atype = prop.DeclaringType; // e.g. Project
+                var aprop = prop.DeclaringType.Name; // e.g. Project
+                var aid = aprop + "Id"; // e.g. ProjectId
+
+                var btype = itemType; // e.g. MoTag
+                var bprop = prop.Name; // e.g. Tag
+                var btypePlural = itemType.PluralName; // e.g. MoTags
+                var bid = bprop + "Id"; // e.g. TagId
+
+                // Add many-to-many link type.
+                var m = App.CurrentBuildContext.AddModel(type)
+                    .Id(linkTypeGuid);
+
+                buildLinkType(m);
+
+                m.Store();
+
+                m.Key();
+                m.Prop(aprop).Type(atype, required: true);
+                m.Prop(bprop).Type(btype, required: true);
+                m.PropIndex().Store();
+                m.Store(eb =>
+                {
+                    eb.Index(true, aprop, bprop);
+                });
+
+                var linkType = m.Build();
+
+                prop.Name = "To" + prop.Name;
+
+                ChildCollectionOf(linkType, backrefNew: false);
+            }
+            else
+            {
+#pragma warning disable CS0162 // Unreachable code detected
+                IndependenCollectionOf(itemType);
+#pragma warning restore CS0162 // Unreachable code detected
+            }
+
+            return This();
+        }
+
         public TPropBuilder ChildCollectionOf(MojType type, bool nested = false,
             bool hidden = false,
             string backrefPropName = null,
@@ -394,6 +444,11 @@ namespace Casimodo.Lib.Mojen
         {
             MaxLength(256);
             return Type(DataType.Url);
+        }
+
+        public TPropBuilder Password()
+        {
+            return Type(DataType.Password);
         }
 
         public TPropBuilder OnChangeRaise(string prop)

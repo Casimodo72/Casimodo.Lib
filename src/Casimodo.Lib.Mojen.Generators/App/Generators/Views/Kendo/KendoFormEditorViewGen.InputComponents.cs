@@ -1,101 +1,46 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Casimodo.Lib.Mojen
 {
     public partial class KendoFormEditorViewGen : KendoTypeViewGenBase
     {
-        // DateTime ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        void ODateTimeInput(MojViewPropInfo vinfo)
+        void OKendoNumericInput(WebViewGenContext context, string ppath = null, int? min = null, int? max = null,
+            bool validationElem = true)
         {
-            var vprop = vinfo.ViewProp;
-            var dprop = vinfo.TargetDisplayProp;
-            var propPath = vinfo.PropPath;
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.TargetDisplayProp;
+            ppath = ppath ?? context.PropInfo.PropPath;
 
-            var time = vprop.DisplayDateTime ?? dprop.Type.DateTimeInfo;
-
-            string role;
-            if (time.IsDateAndTime)
-                role = "datetimepicker";
-            else if (time.IsDate)
-                role = "datepicker";
-            else
-                role = "timepicker";
+            min = min ?? dprop.Rules.Min;
+            max = max ?? dprop.Rules.Max;
 
             Oo("<input");
-
-            oAttr("data-role", role);
-            //oAttr("type", "text");
-            oAttr("id", vinfo.PropPath);
-            oAttr("name", vinfo.PropPath);
-            //oAttr("type", "number");
-            //oAttr("data-type", "number");
-            oAttr("data-display-name", vprop.DisplayLabel);
-            // data-bind="value: CheckNumber"
-            oAttr("data-bind", $"value: {vinfo.PropPath}");
-
-            if (dprop.IsRequiredOnEdit)
-                oAttr("required", "");
-
-            OElemAttrs();
-
-            oO("/>");
-
-            /*
-             
-            <input class="form-control k-input" 
-                data-val="true" 
-                data-val-date="The field Datum must be a date." 
-                data-val-required="Das Feld &quot;Datum&quot; ist erforderlich." 
-                id="Date" 
-                name="Date" 
-                type="text" 
-                data-role="datepicker" 
-                role="combobox" 
-                aria-expanded="false" 
-                aria-owns="Date_dateview" 
-                aria-disabled="false" 
-                aria-readonly="false" 
-                data-bind="value:Date" 
-                style="width: 100%;">
-
-            */
-        }
-
-        // NumericInput ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        void ONumericInputElemCore(MojViewProp vprop, MojProp prop, string propPath, int? min = null, int? max = null)
-        {
-            min = min ?? prop.Rules.Min;
-            max = max ?? prop.Rules.Max;
-
-            Oo("<input");
-
             oAttr("data-role", "numerictextbox");
-            //oAttr("type", "text");
-            oAttr("id", propPath);
-            oAttr("name", propPath);
+            oAttr("id", ppath);
+            oAttr("name", ppath);
             oAttr("type", "number");
             oAttr("data-type", "number");
             oAttr("data-display-name", vprop.DisplayLabel);
-            // data-bind="value: CheckNumber"
-            oAttr("data-bind", $"value: {propPath}");
+            OHtmlDataBindValue(context, ppath);
 
             string format = "";
             int? decimals = 0;
             bool spinners = false;
-            if (prop.Type.AnnotationDataType == DataType.Currency)
+            if (dprop.Type.AnnotationDataType == DataType.Currency)
             {
                 format = "#.##";
                 decimals = 2;
+                oAttr("step", "0.01");
             }
-            else if (prop.Type.IsDecimal)
+            else if (dprop.Type.IsDecimal)
             {
 
                 // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
                 // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
                 format = "#.##"; // "{0:#.##}";
-                decimals = prop.Attrs.Find<MojPrecisionAttr>()?.Scale ?? 2;
+                decimals = dprop.Attrs.Find<MojPrecisionAttr>()?.Scale ?? 2;
+                oAttr("step", "any");
             }
             else
             {
@@ -112,9 +57,13 @@ namespace Casimodo.Lib.Mojen
             //   See https://www.telerik.com/forums/restrictdecimals-option-not-working
             oAttr("data-restrict-decimals", "true");
             oAttr("data-format", format);
-            oAttr("data-spinners", MojenUtils.ToJsValue(spinners));
+            oAttr("data-spinners", Moj.JS(spinners));
+            OHtmlElemAttrs();
+            // KABU TODO: IMPORTANT: Do we need a required validation error message?
+            if (dprop.IsRequiredOnEdit)
+                oAttr("required", "");
 
-            // KABU TODO: VERY IMPORTANT: We can't use min/max because our kendo version
+            // KABU TODO: VERY IMPORTANT: KENDO-VERSION-ISSUE: We can't use min/max because our kendo version
             //   will not display an error but just set the value automatically to the
             //   next value in range - which is unacceptable.
 #if (false)
@@ -133,112 +82,281 @@ namespace Casimodo.Lib.Mojen
                 oAttr("aria-valmax", max);
             }
 #endif
-
-            if (prop.IsRequiredOnEdit)
-                oAttr("required", "");
-
-            OElemAttrs();
-
             oO("/>");
 
-            /*
-            <input id="CheckNumber"
-                data-display-name="Kennung"
-                data-role="numerictextbox"
-                data-format="#"
-                data-decimals="0"
-                data-min="1"
-                data-max="9999"
-                data-bind="value: CheckNumber"
-                required="" /> 
-            */
+            if (validationElem)
+                OValidationMessageElem(context.PropInfo.PropPath);
         }
 
-        void ONumericInputElem(MojViewProp vprop, MojProp prop, string propPath)
+        void OKendoDateTimeEditor(WebViewGenContext context)
         {
-            ONumericInputElemCore(vprop, prop, propPath);
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.TargetDisplayProp;
+            var ppath = context.PropInfo.PropPath;
+
+            var time = vprop.DisplayDateTime ?? dprop.Type.DateTimeInfo;
+
+            string role;
+            if (time.IsDateAndTime)
+                role = "datetimepicker";
+            else if (time.IsDate)
+                role = "datepicker";
+            else
+                role = "timepicker";
+
+            Oo("<input");
+            oAttr("data-role", role);
+            oAttr("id", ppath);
+            oAttr("name", ppath);
+            oAttr("data-display-name", vprop.DisplayLabel);
+            OHtmlElemAttrs();
+            // KABU TODO: IMPORTANT: Do we need a require dvalidation error message?
+            if (dprop.IsRequiredOnEdit)
+                oAttr("required", "");
+            OHtmlDataBindValue(context, ppath);
+            oO("/>");
         }
 
-        //void ONumericInputScriptCore(string propPath, string format, int? decimals)
-        //{
-        //    Oo($@"jQuery(function(){{ jQuery('#{propPath}').kendoNumericTextBox({{");
-
-        //    // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
-        //    // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
-        //    o($"'format':'{format}'");
-
-        //    // Decimals                
-        //    if (decimals != null)
-        //        o($",'decimals':{decimals}");
-
-        //    oO("});});");
-        //}
-
-        //void ONumericInputScript(MojProp prop, string propPath)
-        //{
-        //    // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
-        //    // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
-        //    var format = prop.Type.IsInteger ? "#" : "#.##"; // "{0:#.##}";
-
-        //    // Decimals
-        //    int? decimals = prop.Type.IsInteger ? 0 : (int?)null;
-
-        //    ONumericInputScriptCore(propPath, format, decimals);
-        //}
-
-        void ONumericInput(MojViewProp vprop, MojProp prop, string propPath)
+        void OKendoTimeSpanEditor(WebViewGenContext context)
         {
-            ONumericInputElem(vprop, prop, propPath);
-
-            //OScriptBegin();
-            //ONumericInputScript(prop, propPath);
-            //OScriptEnd();
-
-            OValidationMessageElem(prop, propPath);
-
-            /* Original MVC wrapper output:
-            <input data-val="true" 
-                    data-val-number="The field Anzahl der Mitarbeiter must be a number." 
-                    data-val-range="Das Feld &quot;Anzahl der Mitarbeiter&quot; muss zwischen 1 und 99 liegen." 
-                    data-val-range-max="99" 
-                    data-val-range-min="1" 
-                    data-val-required="Das Feld &quot;Anzahl der Mitarbeiter&quot; ist erforderlich." 
-                    id="WorkersCount" 
-                    max="99" 
-                    min="1" 
-                    name="WorkersCount" 
-                    type="text" />
-            <script>
-	        jQuery(function(){jQuery("\#WorkersCount").kendoNumericTextBox({"format":"\#","decimals":0});});
-            <\/script>
-            <span class="field-validation-valid" data-valmsg-for="WorkersCount" data-valmsg-replace="true"></span>                        
-            */
-        }
-
-        void OTimeSpanInput(MojViewProp vprop, MojProp prop, string propPath)
-        {
-            Oo("<div"); OElemAttrs(); oO(">");
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.TargetDisplayProp;
+            var ppath = context.PropInfo.PropPath;
+            Oo("<div"); OHtmlElemAttrs(); oO(">");
             Push();
-            ONumericInputElemCore(vprop, prop, propPath + ".Hours", min: 0, max: 23);
-            ONumericInputElemCore(vprop, prop, propPath + ".Minutes", min: 0, max: 59);
+            OKendoNumericInput(context, ppath: ppath + ".Hours", min: 0, max: 23, validationElem: false);
+            OKendoNumericInput(context, ppath: ppath + ".Minutes", min: 0, max: 59, validationElem: false);
             Pop();
             O("</div>");
-
-            //OScriptBegin();
-            //ONumericInputScriptCore(vprop, prop, propPath + ".Hours", format: "#", decimals: 0);
-            //ONumericInputScriptCore(propPath + ".Minutes", format: "#", decimals: 0);
-            //OScriptEnd();
-
-            OValidationMessageElem(prop, propPath + ".Hours");
-            OValidationMessageElem(prop, propPath + ".Minutes");
+            OValidationMessageElem(ppath + ".Hours");
+            OValidationMessageElem(ppath + ".Minutes");
         }
 
-        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        void OValidationMessageElem(MojProp prop, string propPath)
+        public void OKendoStringEditor(WebViewGenContext context)
         {
-            // Validation error message.
-            O($"<span class='field-validation-valid' data-valmsg-for='{propPath}' data-valmsg-replace='true'></span>");
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.Prop;
+            var ppath = context.PropInfo.PropPath;
+
+            if (!dprop.IsSpellCheck)
+                ElemAttr("spellcheck", false);
+
+            if (dprop.Type.IsMultilineString)
+            {
+                Oo($@"<textarea id='{ppath}' name='{ppath}'");
+
+                if (dprop.RowCount != 0) ElemAttr("rows", dprop.RowCount);
+                if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
+                // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+                OHtmlElemAttrs();
+                OHtmlRequiredttrs(context, dprop);
+                OHtmlDataBindValue(context);
+                if (vprop.UseCodeRenderer != null)
+                    ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
+                oO("/>");
+                /*
+
+     <textarea class="form-control form-control" cols="20" data-val="true" data-val-length="Das Feld &quot;Notizen&quot; muss eine Zeichenfolge mit einer maximalen Länge von 4096 sein." data-val-length-max="4096" id="Notes" name="Notes" rows="6" spellcheck="false">
+</textarea>
+                */
+            }
+            else
+            {
+                var inputType = GetTextInputType(dprop.Type.AnnotationDataType);
+                if (inputType != null)
+                    ElemAttr("type", inputType);
+                else
+                    ElemAttr("type", "text");
+
+                ElemClass("k-textbox");
+
+                Oo($@"<input id='{ppath}' name='{ppath}'");
+                //  spellcheck='false'
+                // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+                OHtmlElemAttrs();
+                OHtmlRequiredttrs(context, dprop);
+                OHtmlDataBindValue(context);
+
+                // Postal code
+                if (dprop.Type.AnnotationDataType == DataType.PostalCode)
+                {
+                    o(@" data-val-length-min='5' data-val-length-max='5' data-val-length='Die Postleitzahl muss fünfstellig sein.'");
+                    o(@" data-val-regex='Die Postleitzahl muss eine fünfstellige Zahl sein.' data-val-regex-pattern='^\d{5}$'");
+                }
+                // Min/max length
+                else
+                    oLengthValidationAttrs(context);
+
+                oO("/>");
+            }
         }
+
+        void oLengthValidationAttrs(WebViewGenContext context)
+        {
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.Prop;
+            var ppath = context.PropInfo.PropPath;
+
+            var min = dprop.Rules.Min ?? vprop.Rules.Min;
+            var max = dprop.Rules.Max ?? vprop.Rules.Max;
+
+            if (min == null && max == null)
+                return;
+
+            if (min != null)
+                o($@" data-val-length-min='{min}'");
+            if (max != null)
+                o($@" data-val-length-max='{max}'");
+
+            // Validation error text.
+            o($@" data-val-length='Feld “{GetDisplayNameFor(context)}” ");
+            if (min != null)
+                o($@"muss mindestens {min} Zeichen");
+            if (max != null)
+            {
+                if (min != null)
+                    o(@" und ");
+                o($@"darf maximal {max} Zeichen");
+            }
+            o(@" lang sein.'");
+        }
+
+        public void OBooleanEditor(WebViewGenContext context)
+        {
+            var ppath = context.PropInfo.PropPath;
+
+            Oo($@"<input id='{ppath}' name='{ppath}' type='checkbox'");
+            ElemClass("k-checkbox");
+            OHtmlElemAttrs();
+            OHtmlDataBindValue(context, "checked");
+            oO("/>");
+            // Checkbox label
+            O($@"<label class='k-checkbox-label' for='{ppath}'>{GetDisplayNameFor(context)}</label>");
+        }
+
+        string GetTextInputType(System.ComponentModel.DataAnnotations.DataType? type)
+        {
+            if (type == null)
+                return null;
+
+            // HTML input types:
+            // color
+            // date
+            // datetime
+            // datetime - local
+            // email
+            // month
+            // number
+            // range
+            // search
+            // tel
+            // time
+            // url
+            // week
+            string result;
+            if (_textInputTypeByDataType.TryGetValue(type.Value, out result))
+                return result;
+
+            return null;
+        }
+
+        static readonly Dictionary<System.ComponentModel.DataAnnotations.DataType, string> _textInputTypeByDataType =
+            new Dictionary<System.ComponentModel.DataAnnotations.DataType, string>
+            {
+                [DataType.EmailAddress] = "email",
+                [DataType.PhoneNumber] = "tel",
+                [DataType.Url] = "url",
+                [DataType.DateTime] = "datetime",
+                [DataType.Date] = "date",
+                [DataType.Time] = "time",
+                [DataType.Currency] = "number",
+                [DataType.Password] = "password"
+            };
+
+        void OFileUpload(WebViewGenContext context)
+        {
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.Prop;
+            var ppath = context.PropInfo.PropPath;
+
+            string name = context.View.TypeConfig.ClassName + dprop.Alias;
+            string alias = dprop.Alias;
+            string uploadTemplateId = name + "Template";
+
+            // KABU TODO: IMPL currently disabled
+            throw new MojenException("File upload is not supported currently.");
+#if (false)
+
+            O("@Html.HiddenFor(m => m.{0})", ppath);
+            // KABU TODO: This probably won't work with nested type properties.
+            foreach (var relatedProp in prop.AutoRelatedProps) O("@Html.HiddenFor(m => m.{0})", relatedProp.Name);
+
+            if (prop.FileRef.IsImage)
+            {
+                // Image-thumbnail
+                XB("<div class='edit-image-thumbnail'>");
+                Oo($"<img id='{alias}ImageThumbnail' alt=''");
+                // KABU TODO: REMOVE: We don't have an URI property anymore.
+                //o($"data-bind='attr: {{ src: {alias}Uri }}'");
+                oO(" />");
+                OE("</div>");
+            }
+
+            // Kendo upload template.
+            O();
+            XB("<script id='{0}' type='text/x-kendo-template'>", uploadTemplateId);
+            XB("<div class='file-wrapper'>");
+            O("<div style='font-size: 0.9em; text-align:left'>#=name#</div>");
+            OE("</div>");
+            O("<span class='k-progress' style='height: 10px;'></span>");
+            OE("</script>");
+
+            // Kendo upload widget.
+            O();
+            O("@(Html.Kendo().Upload().Name(\"{0}\")", name);
+            Push();
+            O(".Multiple(false)");
+            O(".Async(a => a.SaveUrl(\"api/UploadFile/{0}\").AutoUpload(true))", name);
+            O(".ShowFileList(false)");
+            O(".Messages(m => m.StatusUploaded(\" \").HeaderStatusUploaded(\" \").HeaderStatusUploading(\" \").StatusUploading(\" \"))");
+            O(".Events(e => e.Success(\"kmodo.onPhotoUploaded\").Error(\"kmodo.onFileUploadFailed\").Remove(\"kmodo.onFileUploadRemoving\"))");
+            // Add the Kendo upload template defined above.
+            O(".TemplateId(\"{0}\")", uploadTemplateId);
+
+            // Accepted file types (by file extension).
+            if (prop.FileRef.IsImage)
+                AddAttr("accept", ".png,.jpg");
+            AddAttr("data-file-prop", alias);
+            AddAttr("max-width", "100px");
+            OMvcAttrs(true);
+
+            oO(")");
+            Pop();
+#endif
+        }
+
+#if (false)
+        void ONumericInputScriptCore(string ppath, string format, int? decimals)
+        {
+            Oo($@"jQuery(function(){{ jQuery('#{ppath}').kendoNumericTextBox({{");
+            // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+            // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+            o($"'format':'{format}'");
+            // Decimals                
+            if (decimals != null)
+                o($",'decimals':{decimals}");
+            oO("});});");
+        }
+
+        void ONumericInputScript(MojProp prop, string ppath)
+        {
+            // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
+            // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
+            var format = prop.Type.IsInteger ? "#" : "#.##"; // "{0:#.##}";
+            // Decimals
+            int? decimals = prop.Type.IsInteger ? 0 : (int?)null;
+            ONumericInputScriptCore(ppath, format, decimals);
+        }
+#endif
     }
 }

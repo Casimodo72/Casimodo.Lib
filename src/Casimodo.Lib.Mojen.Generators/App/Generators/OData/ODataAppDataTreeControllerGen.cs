@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Mojen
         {
             OData = App.Get<WebODataBuildConfig>();
 
-            PerformWrite(Path.Combine(OData.WebODataControllersDirPath, "AppDataTreeController.generated.cs"),
+            PerformWrite(Path.Combine(OData.WebODataControllerDirPath, "AppDataTreeController.generated.cs"),
                 () => GenerateController());
         }
 
@@ -57,7 +57,7 @@ namespace Casimodo.Lib.Mojen
                 GetAllDataNamespaces()
             );
 
-            ONamespace(OData.WebODataServicesNamespace);
+            ONamespace(OData.WebODataControllerNamespace);
 
             O($"public partial class {name}Controller : {OData.WebODataControllerBaseClass}");
             Begin();
@@ -186,7 +186,7 @@ namespace Casimodo.Lib.Mojen
 
         string BuildNode(TypeItem itype, string expression, string propDisplay, string valueProp = null)
         {
-            return $"CreateNode({expression}, {MojenUtils.ToCsValue(itype.IsContainer)}, {(propDisplay != null ? $"\"{propDisplay}\"" : "null")}{(valueProp != null ? $", \"{valueProp}\"" : "")})";
+            return $"CreateNode({expression}, {Moj.CS(itype.IsContainer)}, {(propDisplay != null ? $"\"{propDisplay}\"" : "null")}{(valueProp != null ? $", \"{valueProp}\"" : "")})";
         }
     }
 }

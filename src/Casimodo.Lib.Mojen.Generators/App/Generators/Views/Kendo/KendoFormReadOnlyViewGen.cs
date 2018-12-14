@@ -139,53 +139,9 @@ namespace Casimodo.Lib.Mojen
 
             CustomElemStyle(context);
 
-            if (prop.FileRef.Is)
+            if (prop.Reference.Is || prop.FileRef.Is || prop.Type.IsEnum)
             {
-                // Image thumbnail.
-                if (prop.FileRef.IsImage)
-                {
-                    // Image-thumbnail
-                    O($"<img alt='' data-bind='attr:{{src:{GetBinding(context, alias: true)}Uri}}{GetElemAttrs()}'/>");
-                }
-            }
-            else if (prop.Reference.IsToOne)
-            {
-                // KABU TODO: IMPORTANT: How to use the DropDownList in MVVM scenarios?
-
-                string key = "Value", display = "Text";
-                string nullable = MojenUtils.ToCsValue(prop.Type.IsNullableValueType);
-                // DropDownList
-                // See http://demos.telerik.com/aspnet-mvc/dropdownlist/index
-                // KABU TODO: REMOVE: Oo($"@(Html.Kendo().DropDownListFor{GetGenericPropArgs(context)}(m => m.{propPath})" +
-                Oo($"@(Html.Kendo().DropDownListFor(m => m.{propPath})" +
-                    $".Name(\"{propPath}\")" +
-                    $".DataValueField(\"{key}\")" +
-                    $".DataTextField(\"{display}\")" +
-                    $".ValuePrimitive(true)" +
-                    $".BindTo(PickItemsContainer.Get{prop.Reference.ToType.PluralName}(nullable: {nullable}))");
-
-                OMvcAttrs(context, true);
-                oO(")");
-            }
-            else if (prop.Type.IsEnum)
-            {
-                // KABU TODO: IMPORTANT: How to use the DropDownList in MVVM scenarios?
-
-                string key = "Value", display = "Text";
-                string nullable = MojenUtils.ToCsValue(prop.Type.IsNullableValueType);
-
-                // DropDownList
-                // See http://demos.telerik.com/aspnet-mvc/dropdownlist/index
-                // KABU TODO: REMOVE: Oo($"@(Html.Kendo().DropDownListFor{GetGenericPropArgs(context)}(m => m.{propPath})" +
-                Oo($"@(Html.Kendo().DropDownListFor(m => m.{propPath})" +
-                    $".Name(\"{propPath}\")" +
-                    $".DataValueField(\"{key}\")" +
-                    $".DataTextField(\"{display}\")" +
-                    $".ValuePrimitive(true)" +
-                    $".BindTo(PickItemsHelper.ToSelectList<{prop.Type.NameNormalized}>(nullable: {nullable}, names: true))");
-
-                OMvcAttrs(context, true);
-                oO(")");
+                throw new MojenException("No references and enums allowed in read-only views.");
             }
             else
             {

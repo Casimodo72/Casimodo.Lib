@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var prop in props)
             {
                 if (i++ > 0) result += ", ";
-                result += $"{MojenUtils.ToCsType(prop.Type.TypeNormalized)} {prop.VName}";
+                result += $"{Moj.ToCsType(prop.Type.TypeNormalized)} {prop.VName}";
             }
 
             return result;

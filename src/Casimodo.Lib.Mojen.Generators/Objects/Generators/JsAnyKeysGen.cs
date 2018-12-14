@@ -38,7 +38,7 @@ namespace Casimodo.Lib.Mojen
             content: () =>
             {
                 foreach (var item in config.Items)
-                    O($"public static {item.Key} = {MojenUtils.ToJsValue(item.Value)};");
+                    O($"public static {item.Key} = {Moj.JS(item.Value)};");
             });
             O();
         }

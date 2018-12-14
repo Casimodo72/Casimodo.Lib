@@ -35,8 +35,6 @@ namespace Casimodo.Lib.Mojen
             get { return Views.SelectMany(x => x.Props); }
         }
 
-        public string Namespace { get; set; }
-
         //public string Name { get; set; }
         public string PluralName { get; set; }
 

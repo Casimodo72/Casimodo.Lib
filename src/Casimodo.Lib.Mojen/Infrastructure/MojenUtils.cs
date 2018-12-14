@@ -11,7 +11,7 @@ using System.Xml.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public static class MojenUtils
+    public static class Moj
     {
         public static bool AreSame(MojProp prop, MojProp prop2)
         {
@@ -104,7 +104,12 @@ namespace Casimodo.Lib.Mojen
             return "";
         }
 
-        public static string ToXmlValue(object value)
+        public static string Html(string value)
+        {
+            return System.Text.Encodings.Web.HtmlEncoder.Default.Encode(value);
+        }
+
+        public static string XmlValue(object value)
         {
             if (value == null)
                 return null;
@@ -135,15 +140,15 @@ namespace Casimodo.Lib.Mojen
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
         }
 
-        public static string ToCsValue(object value, bool parse = true, bool verbatim = false)
+        public static string CS(object value, bool parse = true, bool verbatim = false)
         {
             if (value == null)
                 return "null";
 
-            return ToCsValue(value, value.GetType(), parse: parse, verbatim: verbatim);
+            return CS(value, value.GetType(), parse: parse, verbatim: verbatim);
         }
 
-        public static string ToCsValue(object value, Type type, bool parse = true, bool verbatim = false)
+        public static string CS(object value, Type type, bool parse = true, bool verbatim = false)
         {
             if (value == null)
                 return "null";
@@ -192,7 +197,7 @@ namespace Casimodo.Lib.Mojen
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
         }
 
-        public static string ToJsValue(object value, bool parse = true, bool verbatim = false, bool quote = true, bool nullIfEmptyString = false)
+        public static string JS(object value, bool parse = true, bool verbatim = false, bool quote = true, bool nullIfEmptyString = false)
         {
             if (value == null)
                 return "null";
@@ -200,7 +205,7 @@ namespace Casimodo.Lib.Mojen
             if (nullIfEmptyString && value is string && string.IsNullOrEmpty((string)value))
                 return "null";
 
-            return ToJsValue(value, value.GetType(), parse: parse, quote: quote);
+            return JS(value, value.GetType(), parse: parse, quote: quote);
         }
 
         public static string ToJsXAttrValue(object value)
@@ -211,7 +216,7 @@ namespace Casimodo.Lib.Mojen
             return ToJsValueCore(value, value.GetType(), parse: false, verbatim: false, quote: false);
         }
 
-        public static string ToJsValue(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
+        public static string JS(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
         {
             return ToJsValueCore(value, type, parse, verbatim, quote: quote);
         }

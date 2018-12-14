@@ -163,7 +163,7 @@ namespace Casimodo.Lib.Mojen
             set
             {
                 _name = value;
-                _vName = MojenUtils.FirstCharToLower(value);
+                _vName = Moj.FirstCharToLower(value);
             }
         }
         string _name;
@@ -191,7 +191,7 @@ namespace Casimodo.Lib.Mojen
 
         public string VClassName
         {
-            get { return MojenUtils.FirstCharToLower(ClassName); }
+            get { return Moj.FirstCharToLower(ClassName); }
         }
 
         public string QualifiedClassName

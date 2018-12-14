@@ -48,13 +48,13 @@ namespace Casimodo.Lib.Mojen
                         "Group = {1}, Role = {2}, Actions = {3}, " +
                         "Title = {4}, Url = {5}, " +
                         "Id = {6} }})",
-                        MojenUtils.ToCsValue(item.View.GetPartName()),
-                        MojenUtils.ToCsValue(item.View.Group),
-                        MojenUtils.ToCsValue(item.View.MainRoleName),
-                        MojenUtils.ToCsValue(BuildActions(item.View)),
-                        MojenUtils.ToCsValue(item.View.GetDefaultTitle()),
-                        MojenUtils.ToCsValue(BuildUrl(item.View.Url)),
-                        MojenUtils.ToCsValue(item.View.Id));
+                        Moj.CS(item.View.GetPartName()),
+                        Moj.CS(item.View.Group),
+                        Moj.CS(item.View.MainRoleName),
+                        Moj.CS(BuildActions(item.View)),
+                        Moj.CS(item.View.GetDefaultTitle()),
+                        Moj.CS(BuildUrl(item.View.Url)),
+                        Moj.CS(item.View.Id));
 
                     if (item.View.AuthPermissions.Any())
                     {
@@ -63,9 +63,9 @@ namespace Casimodo.Lib.Mojen
                         foreach (var perm in item.View.AuthPermissions)
                         {
                             O(".SetRole({0}, {1}, {2})",
-                                MojenUtils.ToCsValue(perm.Role),
-                                MojenUtils.ToCsValue(perm.Permit),
-                                MojenUtils.ToCsValue(perm.Deny));
+                                Moj.CS(perm.Role),
+                                Moj.CS(perm.Permit),
+                                Moj.CS(perm.Deny));
                         }
                         O(";");
                         Pop();

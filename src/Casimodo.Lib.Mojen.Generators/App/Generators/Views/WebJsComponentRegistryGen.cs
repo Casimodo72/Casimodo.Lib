@@ -30,7 +30,7 @@ namespace Casimodo.Lib.Mojen
                         extends: "cmodo.ComponentRegistry",
                         constructor: () =>
                         {
-                            O("this.ns = {0};", MojenUtils.ToJsValue(WebConfig.ScriptUINamespace));
+                            O("this.ns = {0};", Moj.JS(WebConfig.ScriptUINamespace));
                         },
                         content: () =>
                         {
@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
                                     item.View.GetPartName(),
                                     item.View.MainRoleName,
                                     (item.View.Group != null ? "_" + item.View.Group : ""),
-                                    MojenUtils.ToJsValue(item.View.Id));
+                                    Moj.JS(item.View.Id));
                             }
                         });
 
@@ -52,17 +52,17 @@ namespace Casimodo.Lib.Mojen
                     foreach (var item in components)
                     {
                         O("reg.add({{ part: {0}, group: {1}, role: {2}, url: {3}, id: {4}, minWidth: {5}, maxWidth: {6}, minHeight: {7}, maxHeight: {8}, maximize: {9}, editorId: {10} }});",
-                            MojenUtils.ToJsValue(item.View.TypeConfig.Name),
-                            MojenUtils.ToJsValue(item.View.Group),
-                            MojenUtils.ToJsValue(item.View.MainRoleName),
-                            MojenUtils.ToJsValue(item.View.Url),
-                            MojenUtils.ToJsValue(item.View.Id),
-                            MojenUtils.ToJsValue(item.View.MinWidth),
-                            MojenUtils.ToJsValue(item.View.MaxWidth),
-                            MojenUtils.ToJsValue(item.View.MinHeight),
-                            MojenUtils.ToJsValue(item.View.MaxHeight),
-                            MojenUtils.ToJsValue(item.View.IsMaximized),
-                            MojenUtils.ToJsValue(item.View.EditorView?.Id));
+                            Moj.JS(item.View.TypeConfig.Name),
+                            Moj.JS(item.View.Group),
+                            Moj.JS(item.View.MainRoleName),
+                            Moj.JS(item.View.Url),
+                            Moj.JS(item.View.Id),
+                            Moj.JS(item.View.MinWidth),
+                            Moj.JS(item.View.MaxWidth),
+                            Moj.JS(item.View.MinHeight),
+                            Moj.JS(item.View.MaxHeight),
+                            Moj.JS(item.View.IsMaximized),
+                            Moj.JS(item.View.EditorView?.Id));
                     }
                 });
             });

@@ -20,7 +20,7 @@ namespace Casimodo.Lib.Mojen
 
         protected override string ToValue(MexItem item)
         {
-            return MojenUtils.ToJsValue(((MexValue)item).Value, parse: true);
+            return Moj.JS(((MexValue)item).Value, parse: true);
         }
 
         protected override string ToPropPath(MexItem item)

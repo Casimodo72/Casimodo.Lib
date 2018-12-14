@@ -82,7 +82,7 @@ namespace Casimodo.Lib.Mojen
                     // Public static member
                     var name = item.Get(config.NamePropName);
                     var val = item.Get(config.ValuePropName);
-                    O("public static {0} = {1};", name.Value, MojenUtils.ToJsValue(val.Value));
+                    O("public static {0} = {1};", name.Value, Moj.JS(val.Value));
                 }
             }
 
@@ -134,13 +134,13 @@ namespace Casimodo.Lib.Mojen
             {
                 key = string.Format(keyTemplate,
                     mapping.From.Select(x =>
-                        MojenUtils.ToJsValue(item.Get(x).Value, parse: true))
+                        Moj.JS(item.Get(x).Value, parse: true))
                    .ToArray());
 
                 if (isToNamedValue)
                     value = config.KeysContainerName + "." + item.Get(config.NamePropName).Value;
                 else
-                    value = MojenUtils.ToJsValue(item.Get(toPropName).Value, parse: true);
+                    value = Moj.JS(item.Get(toPropName).Value, parse: true);
 
                 O($"{key}: {value},");
             }

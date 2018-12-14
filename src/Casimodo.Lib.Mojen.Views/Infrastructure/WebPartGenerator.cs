@@ -94,7 +94,7 @@ namespace Casimodo.Lib.Mojen
             {
                 gen.O("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
                     view.GetPartName(),
-                    MojenUtils.ToCsValue(view.Group),
+                    Moj.CS(view.Group),
                     view.MainRoleName);
             }
         }
@@ -103,9 +103,19 @@ namespace Casimodo.Lib.Mojen
         {
             if (gen.WebConfig.OutputCache.IsEnabled)
             {
-                gen.O("[CustomOutputCache(CacheProfile = \"{0}\"{1})]",
-                    gen.WebConfig.OutputCache.CacheProfile,
-                    gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
+                // This attribute is located in Casimodo.Lib.Web
+                if (gen.App.IsDotNetCore())
+                {
+                    gen.O("[CustomResponseCache(CacheProfileName = \"{0}\"{1})]",
+                        gen.WebConfig.OutputCache.CacheProfile,
+                        gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
+                }
+                else
+                {
+                    gen.O("[CustomOutputCache(CacheProfile = \"{0}\"{1})]",
+                        gen.WebConfig.OutputCache.CacheProfile,
+                        gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
+                }
             }
         }
     }
@@ -195,7 +205,7 @@ namespace Casimodo.Lib.Mojen
         public string GetWebRepositoryName(MojType type)
         {
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "WebRepository";
-        }       
+        }
 
         public void OScriptReference(string path, bool async = false)
         {
@@ -373,6 +383,18 @@ namespace Casimodo.Lib.Mojen
             End($")({args});");
         }
 
+        public void OImmediateInvoked(Action content)
+        {
+            OB($"(function ()");
+            content();
+            End(")();");
+        }
+
+        public void OJQueryOnDocReady(Action content)
+        {
+            OBegin($@"$(function ()", content, ");");
+        }
+
         // KABU TODO: Find a ways to share JS methods with DataLayerGenerator.
         // KABU TODO: REMOVE? Not used.
         //public void OJsClass(string name, bool isstatic = false, string extends = null,
@@ -381,8 +403,6 @@ namespace Casimodo.Lib.Mojen
         //    OJsClass(App.Get<DataLayerConfig>().ScriptNamespace, name, isstatic, extends, args, content);
         //}
 
-
-
         public string BuildJSGetOrCreate(string name, string constructor)
         {
             return $"{name} || ({name} = {constructor})";
@@ -390,7 +410,7 @@ namespace Casimodo.Lib.Mojen
 
         public string GetViewDirPath(MojViewConfig view)
         {
-            return Path.Combine(App.Get<WebAppBuildConfig>().WebMvcViewsDirPath, view.TypeConfig.PluralName);
+            return Path.Combine(App.Get<WebAppBuildConfig>().WebMvcViewDirPath, view.TypeConfig.PluralName);
         }
 
         public string BuildTsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)

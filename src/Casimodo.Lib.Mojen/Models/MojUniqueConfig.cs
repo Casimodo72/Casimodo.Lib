@@ -65,11 +65,11 @@ namespace Casimodo.Lib.Mojen
 
         public int GetIndexMemberIndex(MojProp prop)
         {
-            var index = Unique.GetMembers().ToList().FindIndex(per => MojenUtils.AreSame(per.Prop, prop));
+            var index = Unique.GetMembers().ToList().FindIndex(per => Moj.AreSame(per.Prop, prop));
             if (index == -1)
             {
                 // The actual target property always comes last.
-                if (MojenUtils.AreSame(Prop, prop))
+                if (Moj.AreSame(Prop, prop))
                     return Unique.GetMembers().Count();
             }
 
@@ -146,7 +146,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsMember(MojProp prop)
         {
             prop = prop.StoreOrSelf;
-            return GetMembers().Any(per => MojenUtils.AreSame(per.Prop, prop));
+            return GetMembers().Any(per => Moj.AreSame(per.Prop, prop));
         }
 
         public MojUniqueConfig Clone()

@@ -43,14 +43,14 @@ namespace Casimodo.Lib.Mojen
         public WebOutputCacheConfig OutputCache { get; private set; } = new WebOutputCacheConfig();
 
         // Web MVC controllers
-        public string WebMvcControllersOutputDirPath { get; set; }
+        public string WebMvcControllerOutputDirPath { get; set; }
 
-        public string WebControllersNamespace { get; set; }
+        public string WebMvcControllerNamespace { get; set; }
 
-        public string WebDataViewModelsNamespace { get; set; }
+        public string WebDataViewModelNamespace { get; set; }
 
         // Web views
-        public string WebMvcViewsDirPath { get; set; }
+        public string WebMvcViewDirPath { get; set; }
 
         public string WebRegistryTypeScriptDirPath { get; set; }
         public string WebViewsTypeScriptDirPath { get; set; }

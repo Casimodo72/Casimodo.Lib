@@ -82,7 +82,7 @@ namespace Casimodo.Lib.Mojen
                 }
                 else
                 {
-                    return MojenUtils.ToJsValue(@default.Value);
+                    return Moj.JS(@default.Value);
                 }
             }
 

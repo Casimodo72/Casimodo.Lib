@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Mojen
                 Begin();
                 foreach (var prop in type.GetCreateOnInitProps())
                 {
-                    O("{0} = new {1};", prop.Name, MojenUtils.GetDefaultConstructor(prop.Type));
+                    O("{0} = new {1};", prop.Name, Moj.GetDefaultConstructor(prop.Type));
                 }
                 End();
             }

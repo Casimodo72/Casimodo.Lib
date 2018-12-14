@@ -16,6 +16,7 @@ namespace Casimodo.Lib.Mojen
         public MojHttpRequestConfig TransportConfig { get; set; }
         public MojViewProp[] InitialSortProps { get; set; }
         public string DataModelFactory { get; set; }
+        public string ReadQuery { get; set; }
         public string ReadQueryFactory { get; set; }
         public bool CanCreate { get; set; }
         public bool CanModify { get; set; }
@@ -30,7 +31,7 @@ namespace Casimodo.Lib.Mojen
         {
             var func = "create" + prop.FirstLetterToUpper();
             OB($"{func}()");
-            O($"return this.{prop} || (this.{prop} = {MojenUtils.ToJsValue(value)});");
+            O($"return this.{prop} || (this.{prop} = {Moj.JS(value)});");
             End();
         }
 
@@ -46,20 +47,19 @@ namespace Casimodo.Lib.Mojen
             End();
         }
 
-        public void ODataSourceOptionsFactory(WebViewGenContext context, Action options)
-        {
-            OOptionsFactory("dataSourceOptions", options);
-        }
-
         public void ODataSourceTransportOptions(WebViewGenContext context, KendoDataSourceConfig config)
         {
             // Fixup filter parameters
             // http://www.telerik.com/forums/guids-in-filters
-            var mode = config.UseODataActions ? "'Action'" : "null";
-            O($"parameterMap: function (data, type) {{ return kmodo.parameterMapForOData(data, type, {mode}); }},");
+            if (config.UseODataActions)
+                O(@"parameterMap: function (data, type) {{ return kmodo.parameterMapForOData(data, type, 'Action'); }},");
+            else
+                O(@"parameterMap: kmodo.parameterMapForOData,");
 
             // Read
-            var readUrl = config.ReadQueryFactory ?? $"'{config.TransportConfig.ODataSelectUrl}'";
+            var readUrl = config.ReadQuery != null
+                ? $"'{config.ReadQuery}'"
+                : config.ReadQueryFactory ?? $"'{config.TransportConfig.ODataSelectUrl}'";
             O($"read: {{ url: {readUrl} }},");
 
             // Create
@@ -88,25 +88,30 @@ namespace Casimodo.Lib.Mojen
 
             O($"type: '{config.TransportType}',");
 
-            ODataSourceOrderBy(config);
+            // Sort
+            if (config.InitialSortProps != null &&
+                config.InitialSortProps.Length != 0)
+                ODataSourceOrderBy(config);
 
             // Data schema
-            OB("schema:");
-
-            // Data model            
-            O($"model: {config.DataModelFactory}");
-
-            End(","); // Schema
+            if (!string.IsNullOrEmpty(config.DataModelFactory))
+            {
+                OB("schema:");
+                // Data model (using factory method).
+                O($"model: {config.DataModelFactory}");
+                End(","); // Schema
+            }
 
             // Data transport
             OB("transport:");
             ODataSourceTransportOptions(context, config);
             End(","); // Transport
 
-            O($"pageSize: {config.PageSize},");
-            O($"serverPaging: {MojenUtils.ToJsValue(config.IsServerPaging)}, ");
-            O("serverSorting: true,");
-            O("serverFiltering: true,");
+            if (config.PageSize != 0)
+                O($@"pageSize: {config.PageSize},");
+            O($@"serverPaging: {Moj.JS(config.IsServerPaging)}, ");
+            O(@"serverSorting: true,");
+            O(@"serverFiltering: true,");
         }
 
         void ODataSourceOrderBy(KendoDataSourceConfig config)
@@ -171,7 +176,7 @@ namespace Casimodo.Lib.Mojen
                 // Property type
                 // Doc: {number | string | boolean | date}
                 // Default is string
-                string type = MojenUtils.ToJsType(prop.Type);
+                string type = Moj.ToJsType(prop.Type);
                 if (type != "string")
                     O($"type: '{type}',");
 
@@ -216,7 +221,7 @@ namespace Casimodo.Lib.Mojen
                         }
                         else
                         {
-                            O($"defaultValue: {MojenUtils.ToJsValue(@default.Value)},");
+                            O($"defaultValue: {Moj.JS(@default.Value)},");
                         }
                     }
                     else if (prop.IsGuidKey && !prop.Type.CanBeNull)
@@ -230,7 +235,7 @@ namespace Casimodo.Lib.Mojen
                     }
                     else if (!prop.Type.CanBeNull && prop.IsEditable)
                     {
-                        O("defaultValue: {0},", MojenUtils.ToJsValue(prop.Type.GetPrimitiveDefaultValue()));
+                        O("defaultValue: {0},", Moj.JS(prop.Type.GetPrimitiveDefaultValue()));
                         // TODO: REMOVE: throw new MojenException($"Property '{prop.Name}' cannot be null and has no default value defined.");
                     }
                 }
@@ -279,7 +284,7 @@ namespace Casimodo.Lib.Mojen
         public void oOKendoJsLookupDataSource(string url, string valueProp, string displayProp, bool async = true) //, string parametersFunc = null)
         {
             // OData data source
-            oO($"kmodo.oDataLookupValueAndDisplay('{url}', '{valueProp}', '{displayProp}', {MojenUtils.ToJsValue(async)});");
+            oO($"kmodo.oDataLookupValueAndDisplay('{url}', '{valueProp}', '{displayProp}', {Moj.JS(async)});");
         }
 
         public void ODataFunction(string path, string func, string args, Action then)

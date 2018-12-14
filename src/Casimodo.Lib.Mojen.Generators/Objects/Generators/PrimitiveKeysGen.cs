@@ -67,9 +67,9 @@ namespace Casimodo.Lib.Mojen
 
                     O(string.Format("public {0} {1} {2} = {3};",
                         GetValueTypeModifier(config.ValueType),
-                        MojenUtils.ToCsType(config.ValueType),
+                        Moj.ToCsType(config.ValueType),
                         name.Value,
-                        MojenUtils.ToCsValue(val.Value, parse: true)
+                        Moj.CS(val.Value, parse: true)
                     ));
                 }
 
@@ -77,7 +77,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     OSummary(agg.Description);
                     Oo(string.Format("public static readonly {0}[] {1} = new {0}[] {{ ",
-                        MojenUtils.ToCsType(config.ValueType),
+                        Moj.ToCsType(config.ValueType),
                         agg.Name
                     ));
 
@@ -159,13 +159,13 @@ namespace Casimodo.Lib.Mojen
                 else
                     key = string.Format(keyTemplate,
                         mapping.From.Select(x =>
-                            MojenUtils.ToCsValue(item.Get(x).Value, parse: true))
+                            Moj.CS(item.Get(x).Value, parse: true))
                        .ToArray());
 
                 if (isToNamedValue)
                     value = (string)item.Get(config.NamePropName).Value;
                 else
-                    value = MojenUtils.ToCsValue(item.Get(toPropName).Value, parse: true);
+                    value = Moj.CS(item.Get(toPropName).Value, parse: true);
 
                 O($"[{key}] = {value},");
             }
@@ -202,8 +202,8 @@ namespace Casimodo.Lib.Mojen
                 var toVal = item.Get(mapping.To);
 
                 O("[{0}] = {1},",
-                    MojenUtils.ToCsValue(fromVal.Value, parse: true),
-                    MojenUtils.ToCsValue(toVal.Value, parse: true));
+                    Moj.CS(fromVal.Value, parse: true),
+                    Moj.CS(toVal.Value, parse: true));
             }
             End(";");
         }

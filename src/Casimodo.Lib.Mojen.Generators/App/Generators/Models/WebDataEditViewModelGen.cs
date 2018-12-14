@@ -86,7 +86,7 @@ namespace Casimodo.Lib.Mojen
             OUsing(Namespaces,
                 "System.ComponentModel.DataAnnotations.Schema",
                 type.Namespace);
-            ONamespace(App.Get<WebAppBuildConfig>().WebDataViewModelsNamespace);
+            ONamespace(App.Get<WebAppBuildConfig>().WebDataViewModelNamespace);
 
             viewGroup = viewGroup ?? "";
 

@@ -62,6 +62,10 @@
       <Project>{e7b30b2d-e791-4032-80e2-1b4db4be4f02}</Project>
       <Name>Casimodo.Lib.Mojen.Views</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
+      <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
+      <Name>Casimodo.Lib.Mojen</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
       <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
       <Name>Casimodo.Lib</Name>

@@ -123,7 +123,7 @@ namespace Casimodo.Lib.Mojen
             // Sort
             query = AddOrderBy(query);
 
-            Type queryType = MojenUtils.CreateType(storeType, dbprops);
+            Type queryType = Moj.CreateType(storeType, dbprops);
 
             using (var db = new DbContext(MainSeedConfig.DbImportConnectionString))
             {
@@ -168,11 +168,11 @@ namespace Casimodo.Lib.Mojen
                         else if (prop.Type.IsEnum)
                         {
                             // KABU TODO: IMPORTANT: Handle enums.
-                            o(MojenUtils.ToCsValue(value, parse: false));
+                            o(Moj.CS(value, parse: false));
                         }
                         else
                         {
-                            o(MojenUtils.ToCsValue(value, parse: false));
+                            o(Moj.CS(value, parse: false));
                         }
 
                         if (++i < dbprops.Length)

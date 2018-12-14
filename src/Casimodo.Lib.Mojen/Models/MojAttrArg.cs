@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Mojen
     {
         public static string ToCodeString(this MojAttrArg arg, bool parse = true)
         {
-            return MojenUtils.ToCsValue(arg.Value, arg.ValueType, parse, verbatim: arg.IsVerbatim);
+            return Moj.CS(arg.Value, arg.ValueType, parse, verbatim: arg.IsVerbatim);
         }
     }
 
@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
     {
         public static string ToJsCodeString(this MojAttrArg arg)
         {
-            return MojenUtils.ToJsValue(arg.Value, arg.ValueType, parse: false, verbatim: arg.IsVerbatim);
+            return Moj.JS(arg.Value, arg.ValueType, parse: false, verbatim: arg.IsVerbatim);
         }
     }
 

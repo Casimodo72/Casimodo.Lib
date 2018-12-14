@@ -63,5 +63,13 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(view.Id))
                 throw new MojenException($"The view for '{view.TypeConfig.Name}' has no ID.");
         }
+
+        public void OJsScript(Action content)
+        {
+            XB("<script>");
+            OUseStrict();
+            content();
+            XE("</script>");
+        }
     }
 }

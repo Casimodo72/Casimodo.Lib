@@ -10,16 +10,11 @@
         public string QueryDistinct { get; set; } = "QueryDistinct";
 
         // Web OData controllers
-        public string WebODataControllersDirPath { get; set; }
+        public string WebODataControllerDirPath { get; set; }
 
         public string WebODataControllerBaseClass { get; set; }
 
-        public string WebODataServicesNamespace { get; set; }
-
-        // Web OData lookup controllers
-        public string WebODataLookupControllersDirPath { get; set; }
-
-        public string WebODataLookupServicesNamespace { get; set; }
+        public string WebODataControllerNamespace { get; set; }
 
         /// <summary>
         /// Will generate physical entity delete operations instead of soft deletes.

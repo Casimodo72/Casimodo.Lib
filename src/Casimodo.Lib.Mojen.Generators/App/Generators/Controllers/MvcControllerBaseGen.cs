@@ -12,15 +12,29 @@ namespace Casimodo.Lib.Mojen
                 WriteToMvc(controller, GenerateControllerCore);
         }
 
+        protected virtual string[] GetNamespaces(MojControllerConfig controller)
+        {
+            return new string[]
+            {
+                "System", "System.Collections.Generic", 
+                    "System.Data", "System.Data.Entity",
+                    "System.Linq", "System.Web", "System.Web.Mvc",
+                    "Casimodo.Lib", "Casimodo.Lib.Web", "Casimodo.Lib.Web.Auth",
+                    "System.Web.UI", // For OutputCacheLocation
+                    controller.TypeConfig.Namespace
+            };
+        }
+
+        protected virtual void OControllerAttrs(MojControllerConfig controller)
+        {
+            O("[RoutePrefix(\"{0}\")]", controller.PluralName);
+            O("[Route(\"{action}/{id}\")]");
+        }
+
         void GenerateControllerCore(MojControllerConfig controller)
         {
-            ONamespace(controller.Namespace);
-            OUsing("System", "System.Collections.Generic", "System.Data", "System.Data.Entity",
-                "System.Linq", "System.Web", "System.Web.Mvc",
-                "Casimodo.Lib", "Casimodo.Lib.Web", "Casimodo.Lib.Web.Auth",
-                "System.Web.UI", // For OutputCacheLocation
-                controller.TypeConfig.Namespace
-            );
+            ONamespace(WebConfig.WebMvcControllerNamespace);
+            OUsing(GetNamespaces(controller));
 
             O("[Authorize]");
 
@@ -29,9 +43,8 @@ namespace Casimodo.Lib.Mojen
                 O(BuildAttr(attr));
             }
 
-            O("[RoutePrefix(\"{0}\")]", controller.PluralName);
-            O("[Route(\"{action}/{id}\")]");
-            O("public partial class {0} : Casimodo.Lib.Web.ControllerBase", controller.ClassName);
+            OControllerAttrs(controller);
+            O("public partial class {0} : Casimodo.Lib.Web.MvcControllerBase", controller.ClassName);
             Begin();
 
             GenerateController(controller);
@@ -49,7 +62,7 @@ namespace Casimodo.Lib.Mojen
         {
             string outputFilePath =
                 Path.Combine(
-                    App.Get<WebAppBuildConfig>().WebMvcControllersOutputDirPath,
+                    App.Get<WebAppBuildConfig>().WebMvcControllerOutputDirPath,
                     controller.ClassName + ".generated.cs");
 
             PerformWrite(outputFilePath, () => callback(controller));
