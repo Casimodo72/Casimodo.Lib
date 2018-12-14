@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
         {
             var result = App.GetItems<DataLayerConfig>().Select(x => x.DataNamespace).ToArray();
             return result;
-        }        
+        }
 
         public string LinqOrderBy(MojViewConfig view)
         {
@@ -38,6 +38,6 @@ namespace Casimodo.Lib.Mojen
             }
 
             return result;
-        }        
-    }    
+        }
+    }
 }

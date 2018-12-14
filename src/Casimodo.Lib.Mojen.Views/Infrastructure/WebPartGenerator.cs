@@ -202,7 +202,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         // KABU TODO: ELIMINATE
-        public string GetWebRepositoryName(MojType type)
+        public virtual string GetWebRepositoryName(MojType type)
         {
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "WebRepository";
         }

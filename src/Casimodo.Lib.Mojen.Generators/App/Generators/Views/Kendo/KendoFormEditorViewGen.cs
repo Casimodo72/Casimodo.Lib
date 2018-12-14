@@ -348,11 +348,11 @@ namespace Casimodo.Lib.Mojen
             }
             else if (dprop.IsColor)
             {
-                O($@"@(Html.Kendo().ColorPickerFor(m => m.{ppath}).Opacity({Moj.CS(dprop.IsColorWithOpacity)})");
+                OKendoColorPicker(context);             
             }
             else if (vpropType.IsAnyTime)
             {
-                OKendoDateTimeEditor(context);
+                OKendoDateTimePicker(context);
             }
             else if (vpropType.IsTimeSpan)
             {
@@ -360,11 +360,11 @@ namespace Casimodo.Lib.Mojen
             }
             else if (vpropType.IsString)
             {
-                OKendoStringEditor(context);
+                OKendoTextInput(context);
             }
             else if (vpropType.IsBoolean)
             {
-                OBooleanEditor(context);
+                OKendoCheckbox(context);
             }
             else
             {
@@ -1001,7 +1001,7 @@ namespace Casimodo.Lib.Mojen
             ElemClass("form-control");
             ElemClass("with-selector");
             CustomElemStyle(context);
-            OKendoStringEditor(context);
+            OKendoTextInput(context);
 
             // Button for popping up the lookup dialog.            
             OSelectorControlButton(context);

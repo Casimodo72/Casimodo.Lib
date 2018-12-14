@@ -51,7 +51,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        string GetWebRepositoryName(MojType type)
+        public override string GetWebRepositoryName(MojType type)
         {
             return type.PluralName + "Repository";
         }
@@ -70,9 +70,6 @@ namespace Casimodo.Lib.Mojen
                 "System.Collections.Generic",
                 "System.Threading",
                 "System.Threading.Tasks",
-                //"System.Net",
-                //"System.Web.Http",
-                //"System.Web.Http.Controllers",
                 "Microsoft.AspNet.OData",
                 "Microsoft.AspNet.OData.Query",
                 "Microsoft.AspNet.OData.Routing",

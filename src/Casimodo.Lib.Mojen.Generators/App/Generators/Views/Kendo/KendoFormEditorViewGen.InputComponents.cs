@@ -88,7 +88,25 @@ namespace Casimodo.Lib.Mojen
                 OValidationMessageElem(context.PropInfo.PropPath);
         }
 
-        void OKendoDateTimeEditor(WebViewGenContext context)
+        void OKendoColorPicker(WebViewGenContext context)
+        {
+            var vprop = context.PropInfo.ViewProp;
+            var dprop = context.PropInfo.TargetDisplayProp;
+            var ppath = context.PropInfo.PropPath;
+            //ElemClass("k-input");
+            Oo($@"<input id='{ppath}', name='{ppath}' data-role='colorpicker'");
+            oAttr("data-opacity", Moj.JS(dprop.IsColorWithOpacity));
+            OHtmlElemAttrs();
+            OHtmlDataBindValue(context, ppath);
+            oO("/>");
+#if (false)
+            <input class="k-input" id="Color" name="Color" /><script>
+            jQuery(function(){jQuery("#Color").kendoColorPicker({"opacity":false});});
+#endif
+        }
+
+
+        void OKendoDateTimePicker(WebViewGenContext context)
         {
             var vprop = context.PropInfo.ViewProp;
             var dprop = context.PropInfo.TargetDisplayProp;
@@ -132,7 +150,7 @@ namespace Casimodo.Lib.Mojen
             OValidationMessageElem(ppath + ".Minutes");
         }
 
-        public void OKendoStringEditor(WebViewGenContext context)
+        public void OKendoTextInput(WebViewGenContext context)
         {
             var vprop = context.PropInfo.ViewProp;
             var dprop = context.PropInfo.Prop;
@@ -157,7 +175,7 @@ namespace Casimodo.Lib.Mojen
                 /*
 
      <textarea class="form-control form-control" cols="20" data-val="true" data-val-length="Das Feld &quot;Notizen&quot; muss eine Zeichenfolge mit einer maximalen Länge von 4096 sein." data-val-length-max="4096" id="Notes" name="Notes" rows="6" spellcheck="false">
-</textarea>
+</textarea>
                 */
             }
             else
@@ -189,6 +207,19 @@ namespace Casimodo.Lib.Mojen
 
                 oO("/>");
             }
+        }      
+
+        public void OKendoCheckbox(WebViewGenContext context)
+        {
+            var ppath = context.PropInfo.PropPath;
+
+            Oo($@"<input id='{ppath}' name='{ppath}' type='checkbox'");
+            ElemClass("k-checkbox");
+            OHtmlElemAttrs();
+            OHtmlDataBindValue(context, "checked");
+            oO("/>");
+            // Checkbox label
+            O($@"<label class='k-checkbox-label' for='{ppath}'>{GetDisplayNameFor(context)}</label>");
         }
 
         void oLengthValidationAttrs(WebViewGenContext context)
@@ -219,19 +250,6 @@ namespace Casimodo.Lib.Mojen
                 o($@"darf maximal {max} Zeichen");
             }
             o(@" lang sein.'");
-        }
-
-        public void OBooleanEditor(WebViewGenContext context)
-        {
-            var ppath = context.PropInfo.PropPath;
-
-            Oo($@"<input id='{ppath}' name='{ppath}' type='checkbox'");
-            ElemClass("k-checkbox");
-            OHtmlElemAttrs();
-            OHtmlDataBindValue(context, "checked");
-            oO("/>");
-            // Checkbox label
-            O($@"<label class='k-checkbox-label' for='{ppath}'>{GetDisplayNameFor(context)}</label>");
         }
 
         string GetTextInputType(System.ComponentModel.DataAnnotations.DataType? type)
