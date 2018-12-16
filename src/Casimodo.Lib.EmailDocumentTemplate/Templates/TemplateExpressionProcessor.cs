@@ -1,8 +1,11 @@
-﻿using Nito.AsyncEx;
+﻿#if (!NET_CORE)
+using Nito.AsyncEx;
+#endif
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
@@ -90,7 +93,13 @@ namespace Casimodo.Lib.Templates
 
             if (context.Ast is CSharpScriptAstNode scriptNode)
             {
-                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer));             
+                // KABU TODO: VERY VERY IMPORTANT: We have to make all template stuff async
+                //   in order for the CS script compilation to work in a sane manner.
+#if (NET_CORE)
+                var value = Task.Run(() => scriptNode.Script.RunAsync(context.DataContainer)).Result;
+#else
+                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer)); 
+#endif
 
                 context.SetReturnValue(ToEnumerable(value));
             }

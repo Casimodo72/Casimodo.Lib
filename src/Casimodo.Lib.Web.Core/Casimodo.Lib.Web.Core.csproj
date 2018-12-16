@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Casimodo.Lib.Web\Auth\AuthQuery.cs" Link="Auth\AuthQuery.cs" />
+    <Compile Include="..\Casimodo.Lib.Web\Helpers\UserExtensions.cs" Link="Auth\UserExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="7.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.1.1" />
   </ItemGroup>

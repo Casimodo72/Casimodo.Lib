@@ -8,48 +8,46 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Casimodo.Lib.Web
 {
+    [Serializable]
+    public class ServerException : Exception
+    {
+        public ServerException() { }
+        public ServerException(HttpStatusCode code, string message)
+            : base(message)
+        {
+            StatusCode = code;
+        }
+        public ServerException(HttpStatusCode code, string message, Exception inner)
+            : base(message, inner)
+        {
+            StatusCode = code;
+        }
+        protected ServerException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+
+        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.InternalServerError;
+    }
+
     [Authorize]
     //[TenantScopeApiFilter] // KABU TODO: Tenant filter on OData
     public class ODataControllerBase : ODataController
     {
         protected Guid GetTenantId()
-        {                 
+        {
             return ServiceLocator.Current.GetInstance<ICurrentTenantProvider>().GetTenantId(required: true).Value;
         }
 
-        // KABU TODO: REVISIT: Since we want to use extension methods, but
-        //   most of the methods of ApiController are protected (for whatever reason),
-        //   we need to expose anything we need in extension methods.
-        //public new OkNegotiatedContentResult<T> Ok<T>(T content)
-        //{
-        //    return base.Ok(content);
-        //}
+        [System.Diagnostics.DebuggerHidden]
+        public void ThrowNotFound(string message = null)
+        {
+            new ServerException(HttpStatusCode.BadRequest, message);
+        }
 
-        //public System.Web.Http.Results.StatusCodeResult NoContent()
-        //{
-        //    return StatusCode(System.Net.HttpStatusCode.NoContent);
-        //}
-
-        // KABU TODO: REMOVE
-        //[System.Diagnostics.DebuggerHidden]
-        //public void ThrowBadRequest(string content = null, string reasonPhrase = null)
-        //{
-        //    var respMessage = new HttpResponseMessage(HttpStatusCode.NotFound);
-        //    if (!string.IsNullOrEmpty(content))
-        //        respMessage.Content = new StringContent(content);
-        //    if (!string.IsNullOrEmpty(reasonPhrase))
-        //        respMessage.ReasonPhrase = reasonPhrase;
-        //    throw new HttpResponseException(respMessage);
-        //}
-
-        // KABU TODO: REMOVE
-        //[System.Diagnostics.DebuggerHidden]
-        //public void ThrowNotFound(string content = null)
-        //{            
-        //    var respMessage = new HttpResponseMessage(HttpStatusCode.NotFound);
-        //    if (!string.IsNullOrEmpty(content))
-        //        respMessage.Content = new StringContent(content);
-        //    throw Exception(respMessage);
-        //}
+        [System.Diagnostics.DebuggerHidden]
+        public void ThrowBadRequest(string message = null)
+        {
+            new ServerException(HttpStatusCode.BadRequest, message);
+        }
     }
 }
