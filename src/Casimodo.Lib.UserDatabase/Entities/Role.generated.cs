@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Identity
         public int Index { get; set; }
 
         [StringLength(maximumLength: 64)]
-        [Display(Name = "Bezeichnung (deutsch)")]
+        [Display(Name = "Name (Deutsch)")]
         public string DisplayName { get; set; }
 
         Guid IKeyAccessor<Guid>.GetKey()

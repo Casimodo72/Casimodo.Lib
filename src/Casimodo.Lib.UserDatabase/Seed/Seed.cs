@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Identity.Migrations
     sealed partial class DbMigrationSeed
     {
         public AppUserStore UserStore;
-        public UserManager<User, Guid> UserManager;    
+        public UserManager<User, Guid> UserManager;       
 
         public DbMigrationSeed()
         {
@@ -19,7 +19,7 @@ namespace Casimodo.Lib.Identity.Migrations
         {
             UserStore.TenantId = user.TenantId;
 
-            var newRoles = GetRoles(roles).ToList();           
+            var newRoles = GetRoles(roles).ToList();
 
             IdentityResult result;
             var prev = UserManager.FindById(user.Id);

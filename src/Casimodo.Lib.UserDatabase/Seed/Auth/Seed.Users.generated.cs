@@ -11,6 +11,5 @@ namespace Casimodo.Lib.Identity.Migrations
         void SeedUsers()
         {
         }
-
     }
 }
