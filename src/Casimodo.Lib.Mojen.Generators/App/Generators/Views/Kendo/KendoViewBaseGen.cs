@@ -34,13 +34,6 @@ namespace Casimodo.Lib.Mojen
             Writer.Write(text);
         }
 
-        public void OMvcPartialView(string virtualPath, bool kendoEscape = false)
-        {
-            O("@Html.Partial(\"{0}\"){1}",
-                virtualPath,
-                kendoEscape ? ".ToKendoTemplate()" : "");
-        }
-
         public virtual string GetViewCssStyle(WebViewGenContext context)
         {
             var view = context.View;

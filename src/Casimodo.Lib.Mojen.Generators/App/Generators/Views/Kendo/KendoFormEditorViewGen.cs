@@ -317,7 +317,7 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.CustomEditorViewName != null)
             {
-                O($@"@Html.Partial(""{vprop.CustomEditorViewName}"")");
+                OMvcPartialView(vprop.CustomEditorViewName);
             }
             // NOTE: Enums are also numbers here, so ensure the enum handler comes first.
             else if (vpropType.IsEnum)

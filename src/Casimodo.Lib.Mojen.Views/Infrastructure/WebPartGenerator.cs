@@ -509,6 +509,21 @@ namespace Casimodo.Lib.Mojen
             return $"~/Views/{view.TypeConfig.PluralName}/{view.BuildFileName(pathOrName: name, partial: partial)}";
         }
 
-
+        public void OMvcPartialView(string virtualPath, bool kendoEscape = false)
+        {
+            if (App.IsDotNetCore())
+            {
+                if (kendoEscape)
+                    O($@"@(await @Html.PartialAsync(""{virtualPath}"")).ToKendoTemplate()");
+                else
+                    O($@"<partial name=""{virtualPath}""/>");
+            }
+            else
+            {
+                O("@Html.Partial(\"{0}\"){1}",
+                    virtualPath,
+                    kendoEscape ? ".ToKendoTemplate()" : "");
+            }
+        }
     }
 }

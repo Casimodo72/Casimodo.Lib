@@ -321,7 +321,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     if (!context.IsElementHidden(cur.HideModes))
                     {
-                        O($"@Html.Partial(\"_{cur.Name}\")");
+                        OMvcPartialView(cur.Name);
                     }
                     continue;
                 }
