@@ -1,12 +1,6 @@
-﻿using System.Linq;
+﻿using System;
 using System.ComponentModel.Composition;
-using Casimodo.Lib.Presentation;
-using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using Casimodo.Lib.ComponentModel;
 using System.Windows;
-using System.ComponentModel.Composition;
 
 namespace Casimodo.Lib.Presentation
 {

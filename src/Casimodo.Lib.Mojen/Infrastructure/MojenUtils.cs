@@ -264,8 +264,11 @@ namespace Casimodo.Lib.Mojen
             {
                 throw new NotSupportedException("Conversion of DateTime to JS is not supported yet.");
                 // KABU TODO: IMPORTANT: How to convert DateTime exactly?
+#pragma warning disable
                 var time = (DateTime)value;
                 return $"new Date({time.Year}, {time.Month}, {time.Day}, {time.Hour}, {time.Minute}, {time.Second}, {time.Millisecond})";
+                // KABU TODO: IMPORTANT: How to convert DateTime exactly?
+#pragma warning restore
             }
             else if (type == typeof(Guid))
             {

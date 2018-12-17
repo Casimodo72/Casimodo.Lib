@@ -474,9 +474,11 @@ namespace Casimodo.Lib.Mojen
                 O($"var item = $container.find('input').first().prop('kendoBindingTarget').source;");
 
                 throw new MojenException("modo.addEntityToObservableArray does not exist yet.");
+#pragma warning disable
                 KendoGen.OOpenDialogView(context, dialog,
                     // Set value and fire the "change" event for the binding to pick up the new value.
                     ok: () => O($"kmodo.addEntityToObservableArray(item.{propPath}, result.item, '{targetType.Key.Name}');"));
+#pragma warning restore
             });
             OMvcScriptEnd();
 

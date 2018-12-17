@@ -91,8 +91,9 @@ namespace Casimodo.Lib.Presentation.Controls
                 _isCollapsing = false;
             }
         }
-
+#pragma warning disable
         bool _isCollapsing;
+#pragma warning restore
         double _origHeight;
 
         //protected override void OnChildDesiredSizeChanged(UIElement child)
