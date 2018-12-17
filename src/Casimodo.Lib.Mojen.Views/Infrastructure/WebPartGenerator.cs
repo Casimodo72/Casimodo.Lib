@@ -418,10 +418,10 @@ namespace Casimodo.Lib.Mojen
             return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsTypeScriptDirPath, BuildTsScriptFileName(view, name, part: part, suffix: suffix));
         }
 
-        public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
-        {
-            return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, part: part, suffix: suffix));
-        }
+        //public string BuildJsScriptFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
+        //{
+        //    return Path.Combine(App.Get<WebAppBuildConfig>().WebViewsJavaScriptDirPath, BuildJsScriptFileName(view, name, part: part, suffix: suffix));
+        //}
 
         // KABU TODO: REMOVE? Not used
         public string BuildJsScriptVirtualFilePath(MojViewConfig view, string name = null, string part = null, string suffix = null)
