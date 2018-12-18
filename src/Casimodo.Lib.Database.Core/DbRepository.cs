@@ -99,7 +99,6 @@ namespace Casimodo.Lib.Data
         protected readonly static PropertyInfo TenantKeyProp;
         protected readonly static PropertyInfo IsDeletedProp;
 
-        TContext _db;
         DbRepositoryCore _core;
         Guid? _tenantGuid;
         object _lock = new object();
@@ -116,39 +115,28 @@ namespace Casimodo.Lib.Data
         public DbRepository()
         { }
 
-        public DbRepository(DbContext db)
+        public DbRepository(TContext db)
         {
-            _db = (TContext)db;
+            Guard.ArgNotNull(db, nameof(db));
+
+            Context = db;
         }
 
-        public TContext Context
-        {
-            get
-            {
-                if (_db != null) return _db;
-
-                lock (_lock)
-                {
-                    if (_db != null) return _db;
-                    _db = new TContext();
-
-                    return _db;
-                }
-            }
-        }
+        public TContext Context { get; private set; }
 
         DbContext IDbRepository.Context
         {
             get { return Context; }
-            set { _db = (TContext)value; }
+            set
+            {
+                Guard.ArgNotNull(value, nameof(value));
+                Context = (TContext)value;
+            }
         }
 
         void IDbRepository.Use(DbContext context)
         {
-            lock (_lock)
-            {
-                _db = (TContext)context;
-            }
+            Context = (TContext)context;
         }
 
         public DbRepositoryCore Core()
@@ -377,7 +365,7 @@ namespace Casimodo.Lib.Data
 
         public TEntity Add(TEntity entity)
         {
-            return Add(Core().CreateOperationContext(entity, DbRepoOp.Add, _db));
+            return Add(Core().CreateOperationContext(entity, DbRepoOp.Add, Context));
         }
 
         public TEntity Add(DbRepoOperationContext ctx)
@@ -401,12 +389,12 @@ namespace Casimodo.Lib.Data
 
         public TEntity Update(TEntity entity, MojDataGraphMask mask = null)
         {
-            return Update(Core().CreateOperationContext(entity, DbRepoOp.Update, _db, mask));
+            return Update(Core().CreateOperationContext(entity, DbRepoOp.Update, Context, mask));
         }
 
         public TEntity MoveToRecycleBin(TEntity entity)
         {
-            return Update(Core().CreateOperationContext(entity, DbRepoOp.UpdateMoveToRecycleBin, _db));
+            return Update(Core().CreateOperationContext(entity, DbRepoOp.UpdateMoveToRecycleBin, Context));
         }
 
         public TEntity Update(DbRepoOperationContext ctx)
@@ -440,7 +428,7 @@ namespace Casimodo.Lib.Data
         public TEntity RestoreSelfDeleted(TKey key)
         {
             var entity = Find(key, required: true);
-            Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, _db));
+            Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, Context));
 
             return entity;
         }
@@ -656,7 +644,7 @@ namespace Casimodo.Lib.Data
         public void Dispose()
         {
             // We can't dispose the DbContext because it might be shared.
-            _db = null;
+            Context = null;
         }
 
         // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -9,6 +9,7 @@ namespace Casimodo.Lib.Mojen
         public DbRepositoriesGen()
         {
             Scope = "Context";
+            Lang = "C#";
         }
 
         protected override void GenerateCore()
@@ -34,24 +35,24 @@ namespace Casimodo.Lib.Mojen
                 "Casimodo.Lib.Data");
 
             ONamespace(App.Get<DataLayerConfig>().DataNamespace);
-            
+
             string accessModifier = "public ";
 
             foreach (var type in types)
             {
                 var db = App.GetDataLayerConfig(type.DataContextName);
                 var name = GetRepositoryName(type);
-                O(accessModifier + "class {0} : {1}<{2}, {3}>",
+                OB(accessModifier + "class {0} : {1}<{2}, {3}>",
                     name,
                     context.DbRepositoryName,
                     type.ClassName,
                     type.Key.Type.Name);
 
-                O("{ }");
-                //Begin();
-                //O("public {0}() {{ }}", name);
-                //O("public {0}({1} db) : base(db) {{ }}", name, db.DbContextName);
-                //End();
+
+                O($"public {name}() {{ }}");
+                O($"public {name}({db.DbContextName} db) : base(db) {{ }}");
+
+                End();
 
                 O();
             }

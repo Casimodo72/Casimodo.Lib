@@ -6,12 +6,12 @@
 
   <ItemGroup>
     <Compile Include="..\Casimodo.Lib.Web\Auth\AuthQuery.cs" Link="Auth\AuthQuery.cs" />
-    <Compile Include="..\Casimodo.Lib.Web\Helpers\UserExtensions.cs" Link="Auth\UserExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="7.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +19,10 @@
     <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
     <ProjectReference Include="..\Casimodo.Lib.Data.Core\Casimodo.Lib.Data.Core.csproj" />
     <ProjectReference Include="..\Casimodo.Lib.Database.Core\Casimodo.Lib.Database.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Helpers\" />
   </ItemGroup>
 
 </Project>

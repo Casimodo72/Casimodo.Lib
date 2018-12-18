@@ -63,6 +63,7 @@ namespace Casimodo.Lib.Mojen
             var key = Type.Key;
 
             var dataContext = App.GetDataLayerConfig(Type.DataContextName);
+            var dbContextName = dataContext.DbContextName;
 
             OUsing(
                 "System",
@@ -89,14 +90,26 @@ namespace Casimodo.Lib.Mojen
                 O(BuildAttr(attr));
             }
 
-            O($"[ODataRoutePrefix(\"{Type.PluralName}\")]");
-            O($"public partial class {this.GetODataControllerName(Type)} : {ODataConfig.WebODataControllerBaseClass}");
-            Begin();
+            var controllerName = this.GetODataControllerName(Type);
 
-            // EF DB repository
+            // Generic entity repository
             var repoName = GetWebRepositoryName(Type);
 
-            O("{0} _db = new {0}();", repoName);
+            O($@"[ODataRoutePrefix(""{Type.PluralName}"")]");
+            O($"public partial class {controllerName} : {ODataConfig.WebODataControllerBaseClass}");
+            Begin();
+
+            // Generic entity repository
+            O($"{repoName} _db;");
+            O();
+
+            // Constructor
+            OB($@"public {controllerName}({dbContextName} dbcontext)");
+            O($@"_db = new {repoName}(dbcontext);");
+            O("InitializeExtended();");
+            End();
+
+            O("partial void InitializeExtended();");
 
             if (!Options.IsEmpty)
             {
