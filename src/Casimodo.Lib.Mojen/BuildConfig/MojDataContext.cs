@@ -49,13 +49,13 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string JavaScriptDataDirPath { get; set; }
 
-        [DataMember]
-        public string AngularDataStorageDirPath { get; set; }
+        // KABU TODO: REMOVE: Not used anymore
+        //[DataMember]
+        //public string AngularDataStorageDirPath { get; set; }
 
-        [DataMember]
-        public string AngularModuleName { get; set; }
-
-        
+        // KABU TODO: REMOVE: Not used anymore
+        //[DataMember]
+        //public string AngularModuleName { get; set; }
 
         [DataMember]
         public string ScriptNamespace { get; set; }

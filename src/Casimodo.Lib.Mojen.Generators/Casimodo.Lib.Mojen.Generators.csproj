@@ -207,6 +207,7 @@
     <Compile Include="Objects\Generators\DbRepoCore.RestoreIsCascadeDeleted.CascadeGen.cs" />
     <Compile Include="Objects\Generators\EFCore\DbSeedGen.cs" />
     <Compile Include="Objects\Generators\EFCore\EntityGen.cs" />
+    <Compile Include="Objects\Generators\TsObjectInitializerGen.cs" />
     <Compile Include="Objects\Infrastructure\EntityUserFromDbToSeedOptions.cs" />
     <Compile Include="Objects\Infrastructure\EntityToDbTransformationOptions.cs" />
     <Compile Include="Objects\Infrastructure\EntityFromDbTransformationGenBase.cs" />
@@ -217,7 +218,7 @@
     <Compile Include="Objects\Generators\DbContextCreateModelGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCoreOperationContextGen.cs" />
     <Compile Include="Objects\Generators\EntityUserFromDbToSeedGen.cs" />
-    <Compile Include="Objects\Generators\JsTypeKeysGen.cs" />
+    <Compile Include="Objects\Generators\TsTypeKeysGen.cs" />
     <Compile Include="Objects\Generators\AnyKeysGen.cs" />
     <Compile Include="Objects\Infrastructure\EntityFromDbTransformationOptions.cs" />
     <Compile Include="Objects\Generators\TypeKeysGen.cs" />
@@ -247,7 +248,7 @@
     <Compile Include="Objects\Generators\JsObjectGen.cs" />
     <Compile Include="Objects\Generators\EntityGen.cs" />
     <Compile Include="Objects\Generators\EnumGen.cs" />
-    <Compile Include="Objects\Generators\JsPrimitiveKeysGen.cs" />
+    <Compile Include="Objects\Generators\TsPrimitiveKeysGen.cs" />
     <Compile Include="Objects\Infrastructure\DataLayerBuildContext.cs" />
     <Compile Include="Objects\Infrastructure\DataLayerGenerator.cs" />
     <Compile Include="Objects\Generators\LegacyGfaImportMapGen.cs" />

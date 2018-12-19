@@ -14,6 +14,14 @@ namespace Casimodo.Lib.Mojen
             Scope = "App";
         }
 
+        IEnumerable<MojControllerConfig> GetControllers()
+        {
+            if (App.IsDotNetCore())
+                return App.GetItems<MojControllerConfig>().Where(x => x.Uses<CoreODataControllerGen>());
+            else
+                return App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>());
+        }
+
         protected override void GenerateCore()
         {
             // KABU TODO: IMPORTANT: Rename from WebApiAuthConfig to WebODataControllerAuthConfig
@@ -24,7 +32,7 @@ namespace Casimodo.Lib.Mojen
                 App.Get<WebAppBuildConfig>().WebAuthConfigurationDirPath,
                     "WebApiAuthConfig.generated.cs");
 
-            var controllers = App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>()).ToArray();
+            var controllers = GetControllers().ToArray();
 
             PerformWrite(filePath, () =>
             {

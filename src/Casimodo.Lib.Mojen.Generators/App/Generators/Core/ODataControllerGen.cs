@@ -205,7 +205,7 @@ namespace Casimodo.Lib.Mojen
                 OApiActionAuthAttribute(Type, "Create");
                 O("[HttpPost]");
                 O("[ODataRoute]");
-                O($"public async Task<IActionResult> Post({Type.ClassName} model)");
+                O($"public async Task<IActionResult> Post([FromBody] {Type.ClassName} model)");
                 Begin();
                 O("return await CreateCore(model);");
                 End();
@@ -367,7 +367,7 @@ namespace Casimodo.Lib.Mojen
                 OApiActionAuthAttribute(editorView, "Modify");
                 O("[HttpPut]");
                 O($"[ODataRoute(\"({{{key.VName}}})\")]");
-                O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model)");
+                O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");
                 End();
@@ -379,7 +379,7 @@ namespace Casimodo.Lib.Mojen
             var key = Type.Key;
 
             O();
-            O($"async Task<IActionResult> UpdateCore([FromODataUri] {key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask, string group = null)");
+            O($"async Task<IActionResult> UpdateCore({key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask, string group = null)");
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");

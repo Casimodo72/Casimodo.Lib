@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
 
                 OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
                 {
-                    ClassGen.OTsClass(ns: nscontext.Current, name: "ComponentRegistry",
+                    ClassGen.OTsClass(name: "ComponentRegistry",
                         export: true,
                         extends: "cmodo.ComponentRegistry",
                         constructor: () =>

@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
         {
             var className = "TypeKeys";
 
-            OTsClass(ns: null, name: className, hasconstructor: false,
+            OTsClass(name: className, hasconstructor: false,
                 content: () =>
             {
                 var types = new List<MojType>();

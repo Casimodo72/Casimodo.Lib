@@ -34,7 +34,7 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateAnyKeys(MojAnyKeysConfig config)
         {
-            OTsClass(ns: null, name: config.ClassName, hasconstructor: false,
+            OTsClass(name: config.ClassName, hasconstructor: false,
             content: () =>
             {
                 foreach (var item in config.Items)

@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
                     foreach (var item in items)
                     {
                         O();
-                        OTsClass(null, name: item.KeysContainerName, export: true,
+                        OTsClass(name: item.KeysContainerName, export: true,
                             hasconstructor: false,
                             content: () => GeneratePrimitiveDefinition(moduleName, item));
                     }

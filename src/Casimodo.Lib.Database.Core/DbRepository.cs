@@ -199,7 +199,7 @@ namespace Casimodo.Lib.Data
 
         public void ReferenceLoading(bool enabled)
         {
-            // KABU TODO: 
+            // KABU TODO: IMPORTANT: EF Core: disabled by default.
             //Context.Configuration.LazyLoadingEnabled = enabled;
             //Context.Configuration.ProxyCreationEnabled = enabled;
         }

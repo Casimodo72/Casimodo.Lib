@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class JsClassGen : MojenGenerator
     {
-        public void OTsClass(string ns, string name, string extends = null,
+        public void OTsClass(string name, string extends = null,
                bool isstatic = false, bool export = true,
                bool hasconstructor = true,
                string constructorOptions = null,
@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
             End(); // End of class
 
             if (isstatic)
-                O("{0}.{1} = new {1}();", ns, name);
+                O($"export let {name.FirstLetterToLower()} = new {name}();");
         }
 
         public void OJsClass(string ns, string name, string extends = null,
