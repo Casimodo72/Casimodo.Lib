@@ -3,7 +3,10 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class CoreMvcODataControllerGen : MvcControllerBaseGen
+    // Routing to controller actions in ASP.NET Core:
+    //   https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing?view=aspnetcore-2.1
+
+    public class CoreODataMvcControllerGen : MvcControllerBaseGen
     {
         protected override string[] GetNamespaces(MojControllerConfig controller)
         {
@@ -19,7 +22,7 @@ namespace Casimodo.Lib.Mojen
 
         protected override void OControllerAttrs(MojControllerConfig controller)
         {
-            O($@"[Route(""[controller]/[action]"")]");
+            O($@"[Route(""{controller.TypeConfig.PluralName}"")]");
         }
 
         string GetActionResult()
@@ -27,14 +30,27 @@ namespace Casimodo.Lib.Mojen
             return "IActionResult"; // return "async Task<IActionResult>";
         }
 
-        public override void GenerateController(MojControllerConfig controller)
+        void OControllerActionAttrs(MojControllerConfig controller, MojViewConfig view)
+        {
+            var name = view.ControllerActionName;
+
+            // Routing to controller actions: https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing?view=aspnetcore-2.1
+            if (name == "Index")
+                O($@"[Route(""""), Route(""{name}"")]");
+            else
+                O($@"[Route(""{name}"")]");
+
+            this.OMvcActionAuthAttribute(view);
+            this.OOutputCacheAttribute();
+        }
+
+        public override void GenerateControllerContent(MojControllerConfig controller)
         {
             foreach (var view in controller.GetPageViews())
             {
                 // Index
                 O();
-                this.OMvcActionAuthAttribute(view);
-                this.OOutputCacheAttribute();
+                OControllerActionAttrs(controller, view);
                 O($"public {GetActionResult()} {view.ControllerActionName}()");
                 Begin();
 
@@ -54,8 +70,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Lookup.Is))
             {
                 O();
-                this.OMvcActionAuthAttribute(view);
-                this.OOutputCacheAttribute();
+                OControllerActionAttrs(controller, view);
                 O($"public {GetActionResult()} {view.ControllerActionName}({view.Lookup.Parameters.ToMethodArguments()})");
                 Begin();
 
@@ -75,8 +90,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var view in controller.Views.Where(x => x.Standalone.Is))
             {
                 O();
-                this.OMvcActionAuthAttribute(view);
-                this.OOutputCacheAttribute();
+                OControllerActionAttrs(controller, view);
                 O($"public {GetActionResult()} {view.ControllerActionName}()");
                 Begin();
 

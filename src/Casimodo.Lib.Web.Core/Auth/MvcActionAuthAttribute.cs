@@ -3,6 +3,8 @@ using Casimodo.Lib.Auth;
 
 namespace Casimodo.Lib.Web.Auth
 {
+    // KABU TODO: REFACT: This is an action auth attribute but
+    //   we use it like a view auth thingy.
     public class MvcActionAuthAttribute :
         Microsoft.AspNetCore.Authorization.AuthorizeAttribute,
          Microsoft.AspNetCore.Mvc.Filters.IAuthorizationFilter

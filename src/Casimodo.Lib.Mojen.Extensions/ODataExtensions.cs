@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Mojen
         public static MojControllerBuilder UseODataMvcController(this MojControllerBuilder builder)
         {
             if (builder.App.IsDotNetCore())
-                builder.Use<CoreMvcODataControllerGen>();
+                builder.Use<CoreODataMvcControllerGen>();
             else
                 builder.Use<MvcODataControllerGen>();
 

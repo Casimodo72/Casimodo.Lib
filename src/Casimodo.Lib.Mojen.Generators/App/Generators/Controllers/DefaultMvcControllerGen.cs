@@ -5,7 +5,7 @@ namespace Casimodo.Lib.Mojen
     // NOTE: Not used anywhere. Keep though.
     public class DefaultMvcControllerGen : MvcControllerBaseGen
     {
-        public override void GenerateController(MojControllerConfig controller)
+        public override void GenerateControllerContent(MojControllerConfig controller)
         {
             // EF DB context
             O("{0} _db = new {0}();", App.Get<DataLayerConfig>().DbContextName);

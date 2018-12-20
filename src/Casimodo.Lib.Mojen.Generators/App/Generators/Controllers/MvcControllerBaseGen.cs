@@ -4,6 +4,8 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+   
+
     public class MvcControllerBaseGen : WebPartGenerator
     {
         protected override void GenerateCore()
@@ -16,7 +18,7 @@ namespace Casimodo.Lib.Mojen
         {
             return new string[]
             {
-                "System", "System.Collections.Generic", 
+                "System", "System.Collections.Generic",
                     "System.Data", "System.Data.Entity",
                     "System.Linq", "System.Web", "System.Web.Mvc",
                     "Casimodo.Lib", "Casimodo.Lib.Web", "Casimodo.Lib.Web.Auth",
@@ -47,13 +49,13 @@ namespace Casimodo.Lib.Mojen
             O("public partial class {0} : Casimodo.Lib.Web.MvcControllerBase", controller.ClassName);
             Begin();
 
-            GenerateController(controller);
+            GenerateControllerContent(controller);
 
             End(); // Controller
             End(); // Namespace
         }
 
-        public virtual void GenerateController(MojControllerConfig controller)
+        public virtual void GenerateControllerContent(MojControllerConfig controller)
         {
             // Stub
         }
@@ -62,7 +64,7 @@ namespace Casimodo.Lib.Mojen
         {
             string outputFilePath =
                 Path.Combine(
-                    App.Get<WebAppBuildConfig>().WebMvcControllerOutputDirPath,
+                    App.Get<WebAppBuildConfig>().WebMvcControllerDirPath,
                     controller.ClassName + ".generated.cs");
 
             PerformWrite(outputFilePath, () => callback(controller));

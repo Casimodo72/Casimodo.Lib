@@ -149,12 +149,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App\Generators\Core\MvcODataControllerGen.cs" />
+    <Compile Include="App\Generators\Core\CoreODataMvcControllerGen.cs" />
     <Compile Include="App\Generators\OData\MvcODataControllerGen.cs" />
     <Compile Include="App\Generators\Controllers\DefaultMvcControllerGen.cs" />
     <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
     <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
-    <Compile Include="App\Generators\Core\ODataControllerGen.cs" />
+    <Compile Include="App\Generators\Core\CoreODataControllerGen.cs" />
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
     <Compile Include="App\Generators\OData\WebApiAuthConfigGen.cs" />
     <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />

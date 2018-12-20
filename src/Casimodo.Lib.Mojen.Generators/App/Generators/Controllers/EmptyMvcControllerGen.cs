@@ -4,7 +4,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class EmptyMvcControllerGen : MvcControllerBaseGen
     {
-        public override void GenerateController(MojControllerConfig controller)
+        public override void GenerateControllerContent(MojControllerConfig controller)
         {
             // Index
             var view = controller.GetPageViews().FirstOrDefault();

@@ -16,10 +16,12 @@ namespace Casimodo.Lib.Mojen
 
         IEnumerable<MojControllerConfig> GetControllers()
         {
-            if (App.IsDotNetCore())
-                return App.GetItems<MojControllerConfig>().Where(x => x.Uses<CoreODataControllerGen>());
-            else
-                return App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>());
+            return App.GetItems<MojControllerConfig>();
+            // KABU TODO: REMOVE
+            //if (App.IsDotNetCore())
+            //    return App.GetItems<MojControllerConfig>().Where(x => x.Uses<CoreODataControllerGen>());
+            //else
+            //    return App.GetItems<MojControllerConfig>().Where(x => x.Uses<ODataControllerGen>());
         }
 
         protected override void GenerateCore()

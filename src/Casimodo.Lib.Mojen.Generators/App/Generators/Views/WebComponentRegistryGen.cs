@@ -6,19 +6,19 @@ using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
-    public sealed class WebComponentRegistryGen : AppPartGenerator
+    public sealed class WebComponentAuthConfigGen : AppPartGenerator
     {
         protected override void GenerateCore()
         {
             var filePath = Path.Combine(
-                App.Get<WebAppBuildConfig>().WebConfigurationDirPath,
-                "WebComponentRegistry.generated.cs");
+                App.Get<WebAppBuildConfig>().WebAuthConfigurationDirPath,
+                "WebComponentAuthConfig.generated.cs");
 
             PerformWrite(filePath, () =>
             {
                 OUsing("System", "Casimodo.Lib.Auth", "Casimodo.Lib.Web.Auth");
                 ONamespace("Ga.Web");
-                O("public partial class {0}WebComponentRegistry : WebComponentRegistry",
+                O("public partial class {0}WebComponentAuthConfig : WebComponentRegistry",
                     App.Get<AppBuildConfig>().AppNamePrefix);
                 Begin();
 
