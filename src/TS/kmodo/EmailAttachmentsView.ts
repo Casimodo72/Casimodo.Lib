@@ -4,7 +4,7 @@ namespace kmodo {
 
     export interface EmailAttachmentsViewOptions {
         $area: JQuery;
-        owners?: () => MoFileTreeOwner[] | MoFileTreeOwner[];
+        owners?: () => MoFileTreeOwnerDefinition[] | MoFileTreeOwnerDefinition[];
         isFileSystemTemplateEnabled: boolean;
         areFileSelectorsVisible: boolean;
         isRecycleBinEnabled: boolean;

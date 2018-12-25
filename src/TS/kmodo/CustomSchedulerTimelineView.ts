@@ -18,7 +18,7 @@
     let CustomTimelineView = (kendo.ui as any).TimelineWeekView.extend({
 
         init: function (element, options) {
-            var that = this;
+            let that = this;
 
             (kendo.ui as any).TimelineWeekView.fn.init.call(that, element, options);
         },
@@ -32,7 +32,7 @@
         },
 
         _templates: function () {
-            var options = this.options,
+            let options = this.options,
                 settings = extend({}, (kendo as any).Template, options.templateSettings);
 
             this.eventTemplate = this._eventTmpl(options.eventTemplate, EVENT_WRAPPER_STRING);
@@ -44,40 +44,40 @@
 
         _positionEvent: function (eventObject) {
 
-            var snap = true; // was: false
+            let snap = true; // was: false
 
-            var isSmallWeekendEnabled: boolean = (cmodo.run as any).schedulerOptions.isSmallWeekendEnabled;
+            let isSmallWeekendEnabled: boolean = (cmodo.run as any).schedulerOptions.isSmallWeekendEnabled;
 
-            var isWeekend = false;
+            let isWeekend = false;
             if (isSmallWeekendEnabled) {
                 // Strange: The eventObject.start is not a Date anymore in my new laptop environment.
-                var start = typeof eventObject.start === "number" ? new Date(eventObject.start) : eventObject.start;
+                let start = typeof eventObject.start === "number" ? new Date(eventObject.start) : eventObject.start;
 
-                var dayIndex = start.getDay();
+                let dayIndex = start.getDay();
                 isWeekend = dayIndex === 6 || dayIndex === 7;
 
                 // KABU TOOD: REMOVE: Not needed.
                 //if (isWeekend) {
-                //    var endSlot = eventObject.slotRange.end;
+                //    let endSlot = eventObject.slotRange.end;
                 //    endSlot.clientWidth = 60;
                 //    endSlot.offsetWidth = 60;
                 //}  
             }
 
-            var rect = eventObject.slotRange.innerRect(eventObject.start, eventObject.end, snap);
+            let rect = eventObject.slotRange.innerRect(eventObject.start, eventObject.end, snap);
 
-            var left = this._adjustLeftPosition(rect.left);
+            let left = this._adjustLeftPosition(rect.left);
 
-            var width = rect.right - rect.left - 2;
+            let width = rect.right - rect.left - 2;
 
             if (width < 0) {
                 width = 0;
             }
 
             if ((!isSmallWeekendEnabled || !isWeekend) && width < this.options.eventMinWidth) {
-                var slotsCollection = eventObject.slotRange.collection;
-                var lastSlot = slotsCollection._slots[slotsCollection._slots.length - 1];
-                var offsetRight = lastSlot.offsetLeft + lastSlot.offsetWidth;
+                let slotsCollection = eventObject.slotRange.collection;
+                let lastSlot = slotsCollection._slots[slotsCollection._slots.length - 1];
+                let offsetRight = lastSlot.offsetLeft + lastSlot.offsetWidth;
 
                 width = this.options.eventMinWidth;
 
@@ -86,7 +86,7 @@
                 }
             }
 
-            var eventHeight = this.options.eventHeight + 1;
+            let eventHeight = this.options.eventHeight + 1;
 
             eventObject.element.css({
                 //borderWidth: "1px", borderStyle: "solid", borderColor: "red",
@@ -101,29 +101,29 @@
         },
 
         _setRowsHeight: function (eventGroups, groupsCount, maxRowCount) {
-            var eventHeight = this.options.eventHeight + 2;
-            var eventBottomOffset = this._getBottomRowOffset();
-            var isVerticallyGrouped = this._isVerticallyGrouped();
+            let eventHeight = this.options.eventHeight + 2;
+            let eventBottomOffset = this._getBottomRowOffset();
+            let isVerticallyGrouped = this._isVerticallyGrouped();
 
             groupsCount = isVerticallyGrouped ? groupsCount : 1;
 
-            for (var groupIndex = 0; groupIndex < groupsCount; groupIndex++) {
-                var eventGroup = eventGroups[groupIndex];
-                //var eventsCount = eventGroup.maxRowCount;
-                var rowsCount = isVerticallyGrouped ? eventGroup.maxRowCount : maxRowCount;
+            for (let groupIndex = 0; groupIndex < groupsCount; groupIndex++) {
+                let eventGroup = eventGroups[groupIndex];
+                //let eventsCount = eventGroup.maxRowCount;
+                let rowsCount = isVerticallyGrouped ? eventGroup.maxRowCount : maxRowCount;
 
                 //rowsCount = rowsCount ? rowsCount : 1;
 
                 // If there are not events in this group, then don't set the height.
                 if (rowsCount) {
-                    var rowHeight = ((eventHeight) * rowsCount) + eventBottomOffset;
+                    let rowHeight = ((eventHeight) * rowsCount) + eventBottomOffset;
 
                     if (!extendedOptions.hideTimesHeader) {
-                        var timesRow = $(this.times.find("tr")[groupIndex]);
+                        let timesRow = $(this.times.find("tr")[groupIndex]);
                         timesRow.height(rowHeight);
                     }
 
-                    var row = $(this.content.find("tr")[groupIndex]);
+                    let row = $(this.content.find("tr")[groupIndex]);
                     row.height(rowHeight);
                 }
             }

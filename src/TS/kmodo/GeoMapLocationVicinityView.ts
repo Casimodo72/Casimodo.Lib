@@ -345,7 +345,7 @@ namespace kmodo {
             kmodo.progress(true, self.$view);
 
             return this._callGeoMapDocumentGeneratorServiceAsync(
-                "/api/GenerateGeoMapProjectHealthInVicinityDocument")
+                "/api/FlexEmailDocument/GenerateGeoMapProjectHealthInVicinityDocument")
                 .then(function () {
                     cmodo.showInfo("Das Dokument wurde erstellt und gespeichert.");
                 })
@@ -363,7 +363,7 @@ namespace kmodo {
             kmodo.progress(true, self.$view);
 
             return this._callGeoMapDocumentGeneratorServiceAsync(
-                "/api/GetGeoMapProjectHealthInVicinityHtmlPreview",
+                "/api/FlexEmailDocument/GetGeoMapProjectHealthInVicinityHtmlPreview",
                 { resultDataType: "html" })
                 .then(function (html) {
                     var win = window.open("", "_blank");

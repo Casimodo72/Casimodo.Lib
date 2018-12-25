@@ -101,7 +101,7 @@
 
                 kmodo.progress(true, self.$view);
 
-                cmodo.webApiPost("/api/SaveImageDataToFolder",
+                cmodo.webApiPost("/api/Mos/SaveImageDataToFolder",
                     {
                         FileName: self.getModel().fileName,
                         Data: self.args.item.imageDataUrl,

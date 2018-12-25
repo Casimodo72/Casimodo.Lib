@@ -141,7 +141,7 @@ namespace cmodo {
     }
 
     export function executeODataRequestCore(httpMethod: string, url: string, data: any): Promise<any> {
-        
+
         return new Promise((resolve, reject) => {
 
             var headers = { "Content-Type": "application/json", Accept: "application/json" };
@@ -197,7 +197,7 @@ namespace cmodo {
         return oDataCRUD("POST", "use-model", opts);
     }
 
-    export function oDataDelete(opts: ODataCreateOptions): Promise<any> {
+    export function oDataDelete(opts: ODataDeleteOptions): Promise<any> {
 
         return oDataCRUD("DELETE", null, opts);
     }
@@ -384,5 +384,32 @@ namespace cmodo {
         message = message.replace(_rexODataMessageFix1, "").replace(_rexODataMessageFix2, "");
 
         return message;
+    }
+
+    export class UrlBuilder {
+        path: string;
+        params: string;
+        constructor(path: string) {
+            this.path = path || "";
+            this.params = "";
+        }
+
+        param(name: string, value: string) {
+            if (value != null) {
+                if (this.params)
+                    this.params += "&";
+                this.params += name + "=" + value;
+            }
+
+            return this;
+        }
+
+        get(): string {
+            let result = this.path;
+            if (this.path && this.params)
+                result += "?" + this.params;
+
+            return result;
+        }
     }
 }

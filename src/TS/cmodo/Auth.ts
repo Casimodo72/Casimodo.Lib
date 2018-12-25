@@ -2,7 +2,7 @@
 namespace cmodo {
 
     export function getActionAuth(queryItems: any[]): Promise<AuthActionManager> {
-        return cmodo.webApiPost("/api/GetActionAuth", queryItems, { isDataFixupDisabled: true })
+        return cmodo.webApiPost("/api/Auth/GetActionAuth", queryItems, { isDataFixupDisabled: true })
             .then(function (response) {
                 return new AuthActionManager(response.result);
             });
