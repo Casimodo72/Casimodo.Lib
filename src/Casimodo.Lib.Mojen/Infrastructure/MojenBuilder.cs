@@ -43,6 +43,8 @@ namespace Casimodo.Lib.Mojen
 
     public class MojenBuilder
     {
+        public MojenApp App { get; set; }
+
         internal protected virtual List<MojUsingGeneratorConfig> UsingGenerators
         {
             get { return null; }

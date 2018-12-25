@@ -20,17 +20,19 @@ namespace Casimodo.Lib.Mojen
                 string.IsNullOrEmpty(MainSeedConfig.DbImportConnectionString))
                 return;
 
-            foreach (var item in App.GetItems<MojValueSetContainer>().Where(x => x.Uses(this)))
+            var containers = App.GetItems<MojValueSetContainer>().Where(x => x.Uses(this)).ToArray();
+
+            foreach (var container in containers)
             {
-                Options = item.GetGeneratorConfig<EntityFromDbTransformationOptions>();
+                Options = container.GetGeneratorConfig<EntityFromDbTransformationOptions>();
                 if (Options?.IsEnabled == false)
                     continue;
 
                 string outputDirPath = Options?.OutputDirPath ?? MainSeedConfig.DbImportOutputSeedDirPath;
 
-                var filePath = Path.Combine(outputDirPath, item.TypeConfig.Name + ".Seed.generated.cs");
+                var filePath = Path.Combine(outputDirPath, container.TypeConfig.Name + ".Seed.generated.cs");
 
-                PerformWrite(filePath, () => GenerateExport(item));
+                PerformWrite(filePath, () => GenerateExport(container));
             }
         }
 

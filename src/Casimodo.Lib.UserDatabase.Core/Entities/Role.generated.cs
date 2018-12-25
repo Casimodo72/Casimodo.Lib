@@ -1,8 +1,6 @@
-﻿using System;
-using System.ComponentModel;
+﻿using Casimodo.Lib.Data;
+using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Identity
 {

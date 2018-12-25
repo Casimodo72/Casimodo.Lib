@@ -15,10 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="AppUserStoreBase.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="Primitives\" />
   </ItemGroup>
 

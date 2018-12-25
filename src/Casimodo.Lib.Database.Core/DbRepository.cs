@@ -186,6 +186,7 @@ namespace Casimodo.Lib.Data
             }
         }
 
+        // KABU TODO: REMOVE? Tenant mechanism has changed.
         protected Guid GetTenantGuid()
         {
             if (_tenantGuid == null)

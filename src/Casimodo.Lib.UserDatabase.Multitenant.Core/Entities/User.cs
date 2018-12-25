@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Identity
 {
@@ -10,6 +14,15 @@ namespace Casimodo.Lib.Identity
     {
         public User()
         { }
+
+        //public User(string userName)
+        //{
+        //    UserName = userName;
+        //}
+
+        public Guid? TenantId { get; set; }
+
+        //public string FullName { get; set; }
 
         public bool IsDeleted { get; set; }
 

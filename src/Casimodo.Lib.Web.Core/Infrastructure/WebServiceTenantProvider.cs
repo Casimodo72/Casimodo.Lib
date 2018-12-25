@@ -4,6 +4,7 @@ using System;
 
 namespace Casimodo.Lib.Web
 {
+    // KABU TODO: REMOVE? Tenant mechanism has changed.
     public class WebServiceTenantProvider : ICurrentTenantProvider
     {
         public Guid? TennantId { get; set; }

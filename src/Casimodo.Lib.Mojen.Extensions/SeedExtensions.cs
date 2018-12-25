@@ -49,6 +49,9 @@ namespace Casimodo.Lib.Mojen
         static void SeedCore<TTransformation>(MojenApp app, MojSeedItemOptions options)
             where TTransformation : EntityFromDbTransformationGenBase
         {
+            if (!options.IsEnabled)
+                return;
+
             var seed = new MojSeedItem(app, options);
             if (!seed.IsEnabled)
                 return;

@@ -42,20 +42,20 @@ namespace Casimodo.Lib.UserDatabase.Migrations
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasName("UIX_NormalizedName")
+                        .HasName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AuthRoles");
 
                     b.HasData(
-                        new { Id = new Guid("14eea27c-697f-4494-9413-bcdd47611c20"), ConcurrencyStamp = "ce7293f7-e970-4c6e-8be4-4942a9e61fa9", DisplayName = "Administrator", Index = 1, Name = "Admin", NormalizedName = "ADMIN" },
-                        new { Id = new Guid("d40c9767-596e-44da-9698-56b177ec17d6"), ConcurrencyStamp = "6acd91a6-9a2f-458d-8e57-3eb03a056d70", DisplayName = "Co-Administrator", Index = 2, Name = "CoAdmin", NormalizedName = "COADMIN" },
-                        new { Id = new Guid("b8c9137f-9cff-4a2e-a2fc-ef82d0f837c5"), ConcurrencyStamp = "d3ea534b-7424-4009-bab5-e424ecd6b371", DisplayName = "Manager", Index = 2, Name = "Manager", NormalizedName = "MANAGER" },
-                        new { Id = new Guid("09a0692b-126e-4a2e-bbad-ee0081dd3d47"), ConcurrencyStamp = "b4473b77-dc38-4827-a070-24f67457b136", DisplayName = "Mitarbeiter (eigener/externer/fremder)", Index = 100, Name = "AnyEmployee", NormalizedName = "ANYEMPLOYEE" },
-                        new { Id = new Guid("77bd192e-db17-4a6c-ab4e-29ed53b72c7a"), ConcurrencyStamp = "c17eaad4-6cb0-4dc1-99f8-06816d2db847", DisplayName = "Mitarbeiter (eigener)", Index = 3, Name = "Employee", NormalizedName = "EMPLOYEE" },
-                        new { Id = new Guid("9b9a7457-0239-437e-b5c3-03065894d329"), ConcurrencyStamp = "1c747e8a-6e51-4620-9a1a-0b8a7d265adf", DisplayName = "Mitarbeiter (externer)", Index = 4, Name = "ExternEmployee", NormalizedName = "EXTERNEMPLOYEE" },
-                        new { Id = new Guid("5179808a-afb5-479c-b482-b3663277cbd0"), ConcurrencyStamp = "99d0a80d-ed8a-46b2-9777-654c5eaa774e", DisplayName = "Mitarbeiter (fremder)", Index = 5, Name = "ForeignEmployee", NormalizedName = "FOREIGNEMPLOYEE" },
-                        new { Id = new Guid("ac26cbf0-473e-453f-8c65-e3e5fe26f0d6"), ConcurrencyStamp = "c01876ea-31b4-416b-a6a3-e4814e04ee99", DisplayName = "Kunde", Index = 6, Name = "Customer", NormalizedName = "CUSTOMER" }
+                        new { Id = new Guid("14eea27c-697f-4494-9413-bcdd47611c20"), ConcurrencyStamp = "4469db95-6db4-4f66-b214-277dbf7adcb6", DisplayName = "Administrator", Index = 1, Name = "Admin", NormalizedName = "ADMIN" },
+                        new { Id = new Guid("d40c9767-596e-44da-9698-56b177ec17d6"), ConcurrencyStamp = "ee8b0da3-09d0-480b-b3e3-2bd6e4cc5a75", DisplayName = "Co-Administrator", Index = 2, Name = "CoAdmin", NormalizedName = "COADMIN" },
+                        new { Id = new Guid("b8c9137f-9cff-4a2e-a2fc-ef82d0f837c5"), ConcurrencyStamp = "618a2fcd-d601-48b9-b0ed-d80be340bc5b", DisplayName = "Manager", Index = 2, Name = "Manager", NormalizedName = "MANAGER" },
+                        new { Id = new Guid("09a0692b-126e-4a2e-bbad-ee0081dd3d47"), ConcurrencyStamp = "44583ab9-ad4c-4cb7-a594-cc93b3b916d9", DisplayName = "Mitarbeiter (eigener/externer/fremder)", Index = 100, Name = "AnyEmployee", NormalizedName = "ANYEMPLOYEE" },
+                        new { Id = new Guid("77bd192e-db17-4a6c-ab4e-29ed53b72c7a"), ConcurrencyStamp = "ea82d5c2-24d4-43e4-9f4a-397ee9852396", DisplayName = "Mitarbeiter (eigener)", Index = 3, Name = "Employee", NormalizedName = "EMPLOYEE" },
+                        new { Id = new Guid("9b9a7457-0239-437e-b5c3-03065894d329"), ConcurrencyStamp = "517cd0e5-468c-46c4-bb7d-1e33933ae669", DisplayName = "Mitarbeiter (externer)", Index = 4, Name = "ExternEmployee", NormalizedName = "EXTERNEMPLOYEE" },
+                        new { Id = new Guid("5179808a-afb5-479c-b482-b3663277cbd0"), ConcurrencyStamp = "72361ecf-6fcc-4a75-9d53-8cb22ae9684e", DisplayName = "Mitarbeiter (fremder)", Index = 5, Name = "ForeignEmployee", NormalizedName = "FOREIGNEMPLOYEE" },
+                        new { Id = new Guid("ac26cbf0-473e-453f-8c65-e3e5fe26f0d6"), ConcurrencyStamp = "1ba859ac-b081-4c34-8920-e07ffd67f174", DisplayName = "Kunde", Index = 6, Name = "Customer", NormalizedName = "CUSTOMER" }
                     );
                 });
 
@@ -105,7 +105,6 @@ namespace Casimodo.Lib.UserDatabase.Migrations
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedUserName")
-                        .IsRequired()
                         .HasMaxLength(256);
 
                     b.Property<string>("PasswordHash");
@@ -116,25 +115,20 @@ namespace Casimodo.Lib.UserDatabase.Migrations
 
                     b.Property<string>("SecurityStamp");
 
-                    b.Property<Guid?>("TenantId")
-                        .IsRequired();
-
                     b.Property<bool>("TwoFactorEnabled");
 
                     b.Property<string>("UserName")
-                        .IsRequired()
                         .HasMaxLength(256);
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId", "NormalizedEmail")
-                        .IsUnique()
-                        .HasName("UIX_NormalizedEmail")
-                        .HasFilter("[TenantId] IS NOT NULL AND [NormalizedEmail] IS NOT NULL");
+                    b.HasIndex("NormalizedEmail")
+                        .HasName("EmailIndex");
 
-                    b.HasIndex("TenantId", "NormalizedUserName")
+                    b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasName("UIX_NormalizedUserName");
+                        .HasName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AuthUsers");
                 });
@@ -160,8 +154,6 @@ namespace Casimodo.Lib.UserDatabase.Migrations
 
             modelBuilder.Entity("Casimodo.Lib.Identity.UserLogin", b =>
                 {
-                    b.Property<Guid?>("TenantId");
-
                     b.Property<string>("LoginProvider");
 
                     b.Property<string>("ProviderKey");
@@ -170,7 +162,7 @@ namespace Casimodo.Lib.UserDatabase.Migrations
 
                     b.Property<Guid>("UserId");
 
-                    b.HasKey("TenantId", "LoginProvider", "ProviderKey");
+                    b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
 
@@ -198,13 +190,9 @@ namespace Casimodo.Lib.UserDatabase.Migrations
 
                     b.Property<string>("Name");
 
-                    b.Property<Guid>("Id");
-
                     b.Property<string>("Value");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
-
-                    b.HasAlternateKey("Id");
 
                     b.ToTable("AuthUserTokens");
                 });

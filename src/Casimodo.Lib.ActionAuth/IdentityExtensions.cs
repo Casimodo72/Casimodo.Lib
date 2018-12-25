@@ -14,7 +14,6 @@ namespace Casimodo.Lib.Auth
                 .Select(c => c.Value);
         }
 
-#if (!NET_CORE)
         public static bool IsInAnyRole(this IPrincipal user, params string[] roles)
         {
             if (roles == null || roles.Length == 0)
@@ -40,6 +39,5 @@ namespace Casimodo.Lib.Auth
             return false;
 #endif
         }
-#endif
     }
 }

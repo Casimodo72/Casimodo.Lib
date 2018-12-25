@@ -350,6 +350,7 @@ namespace Casimodo.Lib.Data
             return ((IKeyAccessor)entity).GetKeyObject();
         }
 
+        // KABU TODO: REMOVE? Tenant mechanism has changed.
         protected void ApplyTenantKey(object entity)
         {
             var multitenant = entity as IMultitenant;

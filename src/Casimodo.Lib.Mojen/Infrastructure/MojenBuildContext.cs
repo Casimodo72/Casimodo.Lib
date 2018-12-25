@@ -115,7 +115,7 @@ namespace Casimodo.Lib.Mojen
             container.DataContextName = context.Name;
             Items.Add(container);
 
-            var builder = new MojValueSetContainerBuilder(container);
+            var builder = new MojValueSetContainerBuilder(App, container);
             builder.Namespace(effectiveTargetType.Namespace);
 
             builder.Config.TypeConfig = effectiveTargetType;

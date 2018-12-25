@@ -128,16 +128,15 @@ namespace Casimodo.Lib.Mojen
             {
                 var uniqueMembers = new List<object>(per);
 
-                // Ensure the tenant key is always the first member of the unique expression.
-
+                // If tenant is defined: Ensure the tenant key is always the first member of the unique expression.
                 var tenantType = App.CurrentBuildContext.Get<DataLayerConfig>().Tenant;
-                if (tenantType == null)
-                    throw new MojenException("Failed to acquire the tenant type.");
+                if (tenantType != null)
+                {
+                    if (uniqueMembers.Contains(tenantType))
+                        throw new MojenException("The tenant must not be specified explicitely.");
 
-                if (uniqueMembers.Contains(tenantType))
-                    throw new MojenException("The tenant must not be specified explicitely.");
-
-                uniqueMembers.Insert(0, tenantType);
+                    uniqueMembers.Insert(0, tenantType);
+                }
 
                 var type = PropConfig.DeclaringType;
                 MojType perType;
@@ -151,7 +150,7 @@ namespace Casimodo.Lib.Mojen
                     if (perType != null)
                     {
                         // Tenant
-                        if (perType == tenantType)
+                        if (tenantType != null && perType == tenantType)
                             kind = MojIndexPropKind.TenantIndexMember;
 
                         perProp = type.FindReferenceWithForeignKey(to: perType, required: true)
@@ -185,7 +184,7 @@ namespace Casimodo.Lib.Mojen
                     Kind = MojIndexPropKind.IndexMember,
                     Prop = PropConfig
                 });
-            }          
+            }
 
             return This();
         }

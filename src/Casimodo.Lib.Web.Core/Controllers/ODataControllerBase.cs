@@ -33,6 +33,7 @@ namespace Casimodo.Lib.Web
     //[TenantScopeApiFilter] // KABU TODO: Tenant filter on OData
     public class ODataControllerBase : ODataController
     {
+        // KABU TODO: REMOVE? Tenant mechanism has changed.
         protected Guid GetTenantId()
         {
             return ServiceLocator.Current.GetInstance<ICurrentTenantProvider>().GetTenantId(required: true).Value;

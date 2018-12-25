@@ -8,14 +8,22 @@ namespace Casimodo.Lib.Mojen
         public MojType Tenant { get; set; }
         public MojType EnumEntity { get; set; }
 
-        public MojModelPropBuilder PropToTenant(MojModelBuilder builder)
+        public void PropToTenant(MojModelBuilder builder, Action<MojModelPropBuilder> build = null)
         {
-            return builder.Prop("Tenant").ToTenant(Tenant);
+            if (Tenant != null)
+            {
+                var pbuilder = builder.Prop("Tenant").ToTenant(Tenant);
+                build?.Invoke(pbuilder);
+            }
         }
 
-        public MojEntityPropBuilder PropToTenant(MojEntityBuilder builder)
+        public void PropToTenant(MojEntityBuilder builder, Action<MojEntityPropBuilder> build = null)
         {
-            return builder.Prop("Tenant").ToTenant(Tenant);
+            if (Tenant != null)
+            {
+                var pbuilder = builder.Prop("Tenant").ToTenant(Tenant);
+                build?.Invoke(pbuilder);
+            }
         }
     }
 
@@ -101,9 +109,9 @@ namespace Casimodo.Lib.Mojen
             return Parent.AddItemsOfType(type);
         }
 
-        public MojModelPropBuilder PropTenantReference(MojModelBuilder builder)
+        public void PropTenantReference(MojModelBuilder builder, Action<MojModelPropBuilder> build = null)
         {
-            return Parent.PropToTenant(builder);
+            Parent.PropToTenant(builder, build);
         }
 
         public MojModelPropBuilder PropDescription(MojModelBuilder builder)
@@ -151,9 +159,9 @@ namespace Casimodo.Lib.Mojen
                 .Display("Notizen");
         }
 
-        public MojEntityPropBuilder PropTenantReference(MojEntityBuilder builder)
+        public void PropTenantReference(MojEntityBuilder builder, Action<MojEntityPropBuilder> build = null)
         {
-            return Parent.PropToTenant(builder);
+            Parent.PropToTenant(builder, build);
         }
 
         List<Action> _referenceResolutionActions = new List<Action>();

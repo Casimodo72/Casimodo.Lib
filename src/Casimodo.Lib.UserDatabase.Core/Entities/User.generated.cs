@@ -8,11 +8,9 @@ namespace Casimodo.Lib.Identity
 {
     [TypeIdentity("7387b6ff-9681-4f0c-8801-99c3990a2a50")]
     [KeyInfo(PropName = "Id")]
-    [TenantKeyInfo(PropName = "TenantId")]
     public partial class User
-        : IKeyAccessor<Guid>, IKeyAccessor, IGuidGenerateable, IMultitenant
+        : IKeyAccessor<Guid>, IKeyAccessor, IGuidGenerateable
     {
-
         /// <summary>
         /// Indicates whether this is a non-human system user. E.g. a mail-sending machinery, etc.
         /// </summary>
@@ -37,16 +35,6 @@ namespace Casimodo.Lib.Identity
         void IGuidGenerateable.GenerateGuid()
         {
             if (Id == Guid.Empty) Id = Guid.NewGuid();
-        }
-
-        object IMultitenant.GetTenantKey()
-        {
-            return TenantId;
-        }
-
-        void IMultitenant.SetTenantKey(object tenantKey)
-        {
-            TenantId = (Guid?)tenantKey;
         }
     }
 }

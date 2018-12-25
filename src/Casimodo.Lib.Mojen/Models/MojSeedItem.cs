@@ -6,6 +6,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class MojSeedItemOptions
     {
+        public bool IsEnabled { get; set; } = true;
         public string Section { get; set; }
         public string OrderBy { get; set; }
         public bool IsDbImportEnabled { get; set; } = true;

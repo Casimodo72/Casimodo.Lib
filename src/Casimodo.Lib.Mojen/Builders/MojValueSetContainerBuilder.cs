@@ -6,10 +6,12 @@ namespace Casimodo.Lib.Mojen
 {
     public class MojValueSetContainerBuilder : MojenBuilder<MojValueSetContainerBuilder>
     {
-        public MojValueSetContainerBuilder(MojValueSetContainer config)
+        public MojValueSetContainerBuilder(MojenApp app, MojValueSetContainer config)
         {
+            Guard.ArgNotNull(app, nameof(app));
             Guard.ArgNotNull(config, nameof(config));
 
+            App = app;
             Config = config;
         }
 
