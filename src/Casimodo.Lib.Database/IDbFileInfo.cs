@@ -10,8 +10,6 @@ namespace Casimodo.Lib.Data
     {
         Guid Id { get; }
 
-        string KindName { get; }
-
         string OriginalFileName { get; }
 
         string FileName { get; }
