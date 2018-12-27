@@ -161,7 +161,7 @@ namespace Casimodo.Lib.Mojen
                     throw new MojenException($"The child type '{type.Name}' has no back-reference to parent type '{TypeConfig.ClassName}'.");
 
                 // KABU TODO: VERY IMPORTANT: Currently disabled, evaluate if we really need this
-                //   because it currently breaks the Project->JobDefinitions and JobDefinition->Project scenario.
+                //   because it currently breaks the Project->Jobs and Job->Project scenario.
                 //if (childToParentReferenceProp.Reference.ChildToParentReferenceCount != 0)
                 //    throw new MojenException($"The property '{type.Name}.{childToParentReferenceProp.Name}' " +
                 //        "is already a back-reference to an other property.");
