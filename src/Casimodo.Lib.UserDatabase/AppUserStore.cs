@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
-using Microsoft.Practices.ServiceLocation;
 using Casimodo.Lib.Data;
+using Microsoft.Practices.ServiceLocation;
 
 namespace Casimodo.Lib.Identity
 {

@@ -19,9 +19,13 @@ namespace Casimodo.Lib.Mojen
                 (customQueryBase != null ? customQueryBase : type.PluralName);
         }
 
-        public static string GetODataFunc(this AppPartGenerator gen, string function)
+        public static string NamespaceQualifyODataFunc(this AppPartGenerator gen, string function)
         {
-            return gen.App.Get<WebODataBuildConfig>().Ns + "." + function;
+            var config = gen.App.Get<WebODataBuildConfig>();
+            if (config.IsMethodNamespaceQualified)
+                return config.Namespace + "." + function;
+            else
+                return function;
         }
 
         public static string GetODataQueryFunc(this AppPartGenerator gen, MojType type)
@@ -57,7 +61,7 @@ namespace Casimodo.Lib.Mojen
                 func += "()";
             }
 
-            return gen.GetODataFunc(func);
+            return gen.NamespaceQualifyODataFunc(func);
         }
 
         public static string GetODataCreateUrl(this MojViewConfig view, string baseUrl)

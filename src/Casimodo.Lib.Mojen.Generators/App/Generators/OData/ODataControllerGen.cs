@@ -278,7 +278,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.Query}()\")]");
+            O($"[ODataRoute(\"{ODataConfig.Namespace}.{ODataConfig.Query}()\")]");
             Oo("[EnableQuery(");
             if (false)
 #pragma warning disable CS0162
@@ -294,7 +294,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.QueryDistinct}(on={{on}})\")]");
+            O($"[ODataRoute(\"{ODataConfig.Namespace}.{ODataConfig.QueryDistinct}(on={{on}})\")]");
             O("[EnableQuery]");
             O($"public System.Web.Http.IHttpActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();

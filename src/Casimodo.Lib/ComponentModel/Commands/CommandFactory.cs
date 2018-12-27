@@ -1,5 +1,5 @@
 ﻿//#define RelayCommand
-using CommonServiceLocator;
+using Microsoft.Practices.ServiceLocation;
 using System;
 
 namespace Casimodo.Lib.ComponentModel

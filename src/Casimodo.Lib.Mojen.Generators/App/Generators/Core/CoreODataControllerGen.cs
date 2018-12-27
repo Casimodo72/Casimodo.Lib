@@ -250,6 +250,14 @@ namespace Casimodo.Lib.Mojen
 
         // Read ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        string GetMethodNs()
+        {
+            if (ODataConfig.IsMethodNamespaceQualified)
+                return ODataConfig.Namespace + ".";
+            else
+                return "";
+        }
+
         void GenerateRead(MojType type, MojProp keyProp, string key)
         {
             // GET: odata/Entities
@@ -262,7 +270,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.Query}()\")]");
+            O($"[ODataRoute(\"{GetMethodNs()}{ODataConfig.Query}()\")]");
             Oo("[EnableQuery(");
             if (false)
 #pragma warning disable CS0162
@@ -278,7 +286,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{ODataConfig.Ns}.{ODataConfig.QueryDistinct}(on={{on}})\")]");
+            O($"[ODataRoute(\"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})\")]");
             O("[EnableQuery]");
             O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();

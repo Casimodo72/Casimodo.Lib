@@ -4,7 +4,9 @@
     {
         public string Path { get; set; }
 
-        public string Ns { get; set; }
+        public string Namespace { get; set; }
+
+        public bool IsMethodNamespaceQualified { get; set; }
 
         public string Query { get; set; } = "Query";
         public string QueryDistinct { get; set; } = "QueryDistinct";

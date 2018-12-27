@@ -569,7 +569,7 @@ namespace Casimodo.Lib.Mojen
 
                 KendoGen.ODataFunction(
                     path: this.GetODataPath(type),
-                    func: this.GetODataFunc(sprop.GetNextSequenceValueMethodName()),
+                    func: this.NamespaceQualifyODataFunc(sprop.GetNextSequenceValueMethodName()),
                     args: "args",
                     then: () =>
                     {
