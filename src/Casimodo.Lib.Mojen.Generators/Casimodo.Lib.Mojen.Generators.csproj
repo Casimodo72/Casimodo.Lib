@@ -201,7 +201,7 @@
     <Compile Include="Infrastructure\JsExtensions.cs" />
     <Compile Include="Infrastructure\ODataExtensions.cs" />
     <Compile Include="Objects\Generators\EFCore\DbSeedItemRunner.cs" />
-    <Compile Include="Objects\Generators\EFCore\DbContextModelGen.cs" />
+    <Compile Include="Objects\Generators\EFCore\CoreDbContextModelGen.cs" />
     <Compile Include="Objects\Generators\EFCore\DbContextGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.OnSaving.MiscGen.cs" />
     <Compile Include="Objects\Generators\DbRepoCore.RestoreIsCascadeDeleted.CascadeGen.cs" />

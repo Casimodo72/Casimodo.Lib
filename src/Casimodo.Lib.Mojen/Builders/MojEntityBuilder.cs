@@ -19,6 +19,11 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public MojEntityBuilder UniqueIndex(params string[] props)
+        {
+            return Index(true, props);
+        }
+
         public MojEntityBuilder Index(bool unique, params string[] props)
         {
             Guard.ArgNotEmpty(props, nameof(props));

@@ -482,6 +482,42 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        public MojProp RequiredNavigation
+        {
+            get
+            {
+                var p = NavigationOrSelf;
+                if (p.IsNavigation)
+                    return p;
+
+                if (!Reference.Is)
+                    throw new MojenException($"Property '{Name}' is not a reference property.");
+
+                throw new MojenException($"Navigation property not found for context property '{Name}'.");
+            }
+        }
+
+        /// <summary>
+        /// Returns the navigation property of this reference property or, if none exists, the property itself.
+        /// </summary>
+        public MojProp Navigation
+        {
+            get
+            {
+                if (!Reference.Is || IsNavigation)
+                    return this;
+
+                if (Reference.NavigationProp != null)
+                    return Reference.NavigationProp;
+
+                foreach (var p in AutoRelatedProps)
+                    if (p.IsNavigation)
+                        return p;
+
+                return null;
+            }
+        }
+
         /// <summary>
         /// Returns the navigation property of this reference property or, if none exists, the property itself.
         /// </summary>

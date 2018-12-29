@@ -136,7 +136,7 @@ namespace Casimodo.Lib.Mojen
                     }
                     else
                     {
-                        var itemToContainerBackProp = prop.Reference.ItemToCollectionProp;
+                        var itemToContainerBackProp = prop.Reference.ForeignItemToCollectionProp;
                         var backrefCount = prop.Reference.ToType.GetOwnedByRefProps().Count();
 
                         if (prop.Reference.ToType.HasManyParents == true && itemToContainerBackProp?.Rules.IsRequired == true)
@@ -168,7 +168,7 @@ namespace Casimodo.Lib.Mojen
                             O($".WithRequired()");
 
                         // Specify the back reference property.
-                        O($".HasForeignKey(y => y.{prop.Reference.ItemToCollectionProp.ForeignKey.Name})");
+                        O($".HasForeignKey(y => y.{prop.Reference.ForeignItemToCollectionProp.ForeignKey.Name})");
 
                         // KABU TODO: REMOVE? This was intended for polymorphic associations, which do not work the way we want them anyway.
                         //else O($".HasForeignKey(y => y.{prop.Reference.ChildToParentReferenceProp.Name})");

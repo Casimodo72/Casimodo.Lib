@@ -486,6 +486,7 @@ namespace Casimodo.Lib.Mojen
                 store.DataSetSize = TypeConfig.DataSetSize;
                 store.SoftReferences.AddRange(TypeConfig.SoftReferences.Select(x => x.CloneToEntity()));
                 store.AssignFromConfig = TypeConfig.AssignFromConfig;
+                store.IsManyToManyLink = TypeConfig.IsManyToManyLink;
 
                 if (TypeConfig.BaseClass != null && TypeConfig.BaseClass.Store != null)
                 {

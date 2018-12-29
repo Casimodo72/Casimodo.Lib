@@ -76,24 +76,31 @@ namespace Casimodo.Lib.Mojen
                 var m = App.CurrentBuildContext.AddModel(type)
                     .Id(linkTypeGuid);
 
+                m.TypeConfig.IsManyToManyLink = true;
+
                 buildLinkType(m);
 
                 m.Store();
 
                 m.Key();
-                m.Prop(aprop).Type(atype, required: true);
-                m.Prop(bprop).Type(btype, required: true);
+                // KABU TODO: When atype is deleted then the link entry must also be deleted.
+                //m.Prop(aprop).ToParent(atype, nullable: false).AsChildCollection();
+                // KABU TODO: When btype is deleted then the link entry must also be deleted.
+                m.Prop(bprop).ToParent(btype, nullable: false).AsChildCollection(hidden: true);
                 m.PropIndex().Store();
-                m.Store(eb =>
-                {
-                    eb.Index(true, aprop, bprop);
-                });
 
                 var linkType = m.Build();
 
                 prop.Name = "To" + prop.Name;
 
-                ChildCollectionOf(linkType, backrefNew: false);
+                ChildCollectionOf(linkType, backrefNew: true, backrefPropName: aprop, backrefNavigation: true, backrefRequired: true);
+
+                m.Store(eb =>
+                {
+                    eb.UniqueIndex(aprop, bprop);
+                });
+                m.Build();
+
             }
             else
             {
@@ -110,6 +117,7 @@ namespace Casimodo.Lib.Mojen
             string backrefPropName = null,
             bool? backrefNew = null,
             bool? backrefRequired = null,
+            bool? backrefNavigation = null,
             bool isSoftDeleteCascadeDisabled = false)
         {
             return CollectionOf2(type, owned: true, nested: nested,
@@ -117,6 +125,7 @@ namespace Casimodo.Lib.Mojen
                 hidden: hidden,
                 backrefPropName: backrefPropName,
                 backrefNew: backrefNew,
+                backrefNavigation: backrefNavigation,
                 backrefRequired: backrefRequired,
                 isSoftDeleteCascadeDisabled: isSoftDeleteCascadeDisabled);
         }
@@ -138,7 +147,8 @@ namespace Casimodo.Lib.Mojen
             // @backrefExplicit defaults to true, but is nullable because we need to know whether specified.
             bool? backrefExplicit = null,
             bool? backrefRequired = null,
-            string backrefPropName = null)
+            string backrefPropName = null,
+            bool? backrefNavigation = null)
         {
             if (backrefPropName != null && backrefNew == null)
                 throw new MojenException("If the backref name is specified, then backrefNew must also be specified.");
@@ -212,7 +222,8 @@ namespace Casimodo.Lib.Mojen
                 backrefProp: backrefProp,
                 backrefExplicit: backrefExplicit,
                 backrefRequired: backrefRequired,
-                backrefPropName: backrefPropName);
+                backrefPropName: backrefPropName,
+                backrefNavigation: backrefNavigation);
         }
 
         internal TPropBuilder CollectionOfCore(MojType childType,
@@ -225,7 +236,8 @@ namespace Casimodo.Lib.Mojen
             bool? backrefExplicit = null,
             bool? backrefRequired = null,
             MojProp backrefProp = null,
-            string backrefPropName = null)
+            string backrefPropName = null,
+            bool? backrefNavigation = null)
         {
             if (axis == MojReferenceAxis.ToChild && !owned)
                 throw new MojenException("Child axis mismatch.");
@@ -244,6 +256,8 @@ namespace Casimodo.Lib.Mojen
             PropConfig.SetName(MojType.Pluralize(PropConfig.Name));
 
             PropConfig.Type.IsCollection = true;
+
+            bool isBackrefNavigationApplied = false;
 
             if (TypeConfig.CanNavigateReferences &&
                 childType.CanNavigateReferences)
@@ -286,7 +300,8 @@ namespace Casimodo.Lib.Mojen
                         //   Currently the back-reference will *not* be a navigation property.
                         // KABU TODO: REVISIT: Evaluate scenarios where we would want
                         //   a navigational back-reference property.
-                        var isBackNavigation = false;
+                        var isBackNavigation = backrefNavigation ?? false;
+                        isBackrefNavigationApplied = true;
 
                         string effectiveBackrefPropName;
                         if (backrefPropName != null)
@@ -344,7 +359,7 @@ namespace Casimodo.Lib.Mojen
                         }
                     }
 
-                    PropConfig.Reference.ItemToCollectionProp = backrefProp;
+                    PropConfig.Reference.ForeignItemToCollectionProp = backrefProp;
                 }
             }
             else
@@ -356,9 +371,15 @@ namespace Casimodo.Lib.Mojen
                 PropConfig.Type.CollectionTypeName = "Collection";
             }
 
+            if (!isBackrefNavigationApplied && backrefNavigation == true)
+                throw new MojenException($"A navigation backref property could not be created in this scenario.");
+
             if (owned && backrefProp != null && backrefProp.Reference.OwnedByProp != null &&
                 backrefProp.Reference.OwnedByProp != PropConfig)
                 throw new MojenException($"This type defines already an owner via property '{backrefProp.Name}'.");
+
+            if (backrefProp != null)
+                backrefProp.NavigationOrSelf.Reference.ForeignCollectionProp = PropConfig;
 
             PropConfig.Type.GenericTypeArguments.Add(MojPropType.Create(childType, nullable: false));
 
@@ -537,12 +558,13 @@ namespace Casimodo.Lib.Mojen
         //    return AsChildSingleOrCollection(hidden, MojMultiplicity.OneOrZero);
         //}
 
-        public TPropBuilder AsChildCollection(bool hidden = false)
+        public TPropBuilder AsChildCollection(bool hidden = false, string collectionPropName = null)
         {
-            return AsChildSingleOrCollection(hidden, MojMultiplicity.Many);
+            return AsChildSingleOrCollection(hidden, MojMultiplicity.Many,
+                collectionPropName: collectionPropName);
         }
 
-        TPropBuilder AsChildSingleOrCollection(bool hidden, MojMultiplicity multiplicity)
+        TPropBuilder AsChildSingleOrCollection(bool hidden, MojMultiplicity multiplicity, string collectionPropName = null)
         {
             if (!PropConfig.Reference.IsChildToParent)
                 throw new MojenException($"The property '{PropConfig.Name}' is not a child reference to a parent type.");
@@ -558,12 +580,13 @@ namespace Casimodo.Lib.Mojen
 
             if (multiplicity.HasFlag(MojMultiplicity.Many))
             {
+                collectionPropName = collectionPropName ?? prop.DeclaringType.Name;
                 // Create parent's collection property.
-
+                MojPropBuilder pbuilder = null;
                 if (parentType.Kind == MojTypeKind.Model)
                 {
-                    MojTypeBuilder.Create<MojModelBuilder>(App, parentType)
-                        .Prop(prop.DeclaringType.Name)
+                    pbuilder = MojTypeBuilder.Create<MojModelBuilder>(App, parentType)
+                        .Prop(collectionPropName)
                             .CollectionOfCore(childType,
                                 owned: true,
                                 nested: false,
@@ -574,8 +597,8 @@ namespace Casimodo.Lib.Mojen
                 }
                 else if (parentType.Kind == MojTypeKind.Entity)
                 {
-                    MojTypeBuilder.Create<MojEntityBuilder>(App, parentType)
-                        .Prop(prop.DeclaringType.Name)
+                    pbuilder = MojTypeBuilder.Create<MojEntityBuilder>(App, parentType)
+                        .Prop(collectionPropName)
                             .CollectionOfCore(childType,
                                 owned: true,
                                 nested: false,
@@ -585,6 +608,8 @@ namespace Casimodo.Lib.Mojen
                                 backrefProp: prop);
                 }
                 else throw new MojenException($"Unexpected type kind: '{parentType.Kind}'");
+
+                prop.Reference.ForeignCollectionProp = pbuilder.PropConfig;
             }
             else if (multiplicity.HasFlag(MojMultiplicity.One))
             {
@@ -777,7 +802,7 @@ namespace Casimodo.Lib.Mojen
                 ToTypeKey = toKeyProp,
                 // KABU TODO: REMOVE
                 //ChildToParentReferenceCount = child ? 1 : 0,
-                ItemToCollectionProp = null,
+                ForeignItemToCollectionProp = null,
                 OwnedByProp = ownedByProp
             };
 

@@ -151,7 +151,13 @@ namespace Casimodo.Lib.Mojen
         /// Only used if this reference is a collection.
         /// </summary>
         [DataMember]
-        public MojProp ItemToCollectionProp { get; set; }
+        public MojProp ForeignItemToCollectionProp { get; set; }
+
+        /// <summary>
+        /// The navigation collection property if this is a one-to-many backref property.
+        /// </summary>
+        [DataMember]
+        public MojProp ForeignCollectionProp { get; set; }
 
         public MojReference Clone()
         {
@@ -165,7 +171,7 @@ namespace Casimodo.Lib.Mojen
                 ToTypeKey.IsModel() ||
                 ForeignKey.IsModel() ||
                 NavigationProp.IsModel() ||
-                ItemToCollectionProp.IsModel();
+                ForeignItemToCollectionProp.IsModel();
         }
 
         public MojReference CloneToEntity(MojProp source, MojProp entity)
@@ -201,8 +207,11 @@ namespace Casimodo.Lib.Mojen
                     clone.NavigationProp = NavigationProp.RequiredStore;
             }
 
-            if (ItemToCollectionProp.IsModel())
-                clone.ItemToCollectionProp = ItemToCollectionProp.RequiredStore;
+            if (ForeignItemToCollectionProp.IsModel())
+                clone.ForeignItemToCollectionProp = ForeignItemToCollectionProp.RequiredStore;
+
+            if (ForeignCollectionProp.IsModel())
+                clone.ForeignCollectionProp = ForeignCollectionProp.RequiredStore;
 
             return clone;
         }

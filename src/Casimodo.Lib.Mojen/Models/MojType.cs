@@ -253,6 +253,9 @@ namespace Casimodo.Lib.Mojen
         public bool? HasManyParents { get; set; }
 
         [DataMember]
+        public bool IsManyToManyLink { get; set; }
+
+        [DataMember]
         public bool ExistsAlready { get; set; }
 
         [DataMember]
