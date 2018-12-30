@@ -61,17 +61,9 @@ namespace Casimodo.Lib.Mojen
                 OCommentSection(type.Name);
 
                 OB($"builder.Entity<{type.ClassName}>(b => ");
-                // Specify Db table name.
-                O($"b.ToTable(\"{type.TableName}\");");
 
-                // KABU TODO: IMPORTANT: REVISIT: EF Core does not support TPC (yet?.
-                //   Currently only TPH is implemented.
-#if (false)
-                OB($"{item}.Map(m =>");
-                // Using EF inheritance strategy: TPC (table per concrete type)
-                O("m.MapInheritedProperties();");
-                End(");");
-#endif
+                // DB table name.
+                O($"b.ToTable(\"{type.TableName}\");");
 
                 var properties = type.GetProps()
                     // Exclude hidden collection props.
@@ -91,7 +83,6 @@ namespace Casimodo.Lib.Mojen
 
                 if (indexes.HasDuplicates(x => x.IndexName))
                     throw new MojenException("Duplicate index names.");
-
 
                 foreach (var dbindex in indexes)
                 {
@@ -135,18 +126,51 @@ namespace Casimodo.Lib.Mojen
                 }
                 else
                 {
-                    // ToMany ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    // One to one ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-                    // ToMany navigation properties.
-                    var props = properties
+                    // https://docs.microsoft.com/en-us/ef/core/modeling/relationships
+                    var toOneNavigationProps = properties
                         .Where(x =>
                             x.IsNavigation &&
                             x.Reference.ToType.IsEntity() &&
-                            x.Reference.IsToMany &&
-                            // Ignore many-to-many because those will be modelled elsewhere.
-                            !x.Reference.ToType.IsManyToManyLink);
+                            x.Reference.IsToOne);
 
-                    foreach (var prop in props)
+                    foreach (var prop in toOneNavigationProps)
+                    {
+
+                        O();
+                        var propName = prop.Name;
+                        var itemType = prop.Reference.ToType;
+                        var backrefProp = prop.Reference.ForeignBackrefToCollectionProp;
+
+                        //if (prop.Reference.Binding.HasFlag(MojReferenceBinding.Owned))
+                        O($"b.HasOne(x => x.{prop.Name})");
+                        Push();
+
+                        if (backrefProp.Navigation != null)
+                            O($".WithOne(x => x.{backrefProp.Navigation.Name})");
+                        else
+                            O($".WithOne()");
+                        O($".HasForeignKey<{type.Name}>(x => x.{prop.Name})");
+                        O($".HasForeignKey<{prop.Reference.ToType.Name}>(x => x.{backrefProp.ForeignKey.Name});");
+
+                        //  KABU TODO: REVISIT: Currently we will hande cascading deletion ourselves, so turn it off.
+                        O(".OnDelete(DeleteBehavior.Restrict);");
+                        Pop();
+                    }
+
+                    // ToMany ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                    // ToMany navigation properties.
+                    var toManyNavigationProps = properties
+                    .Where(x =>
+                        x.IsNavigation &&
+                        x.Reference.ToType.IsEntity() &&
+                        x.Reference.IsToMany &&
+                        // Ignore many-to-many because those will be modelled elsewhere.
+                        !x.Reference.ToType.IsManyToManyLink);
+
+                    foreach (var prop in toManyNavigationProps)
                     {
                         O();
                         var propName = prop.Name;
@@ -159,41 +183,50 @@ namespace Casimodo.Lib.Mojen
                         }
                         else
                         {
-                            var itemToContainerBackProp = prop.Reference.ForeignItemToCollectionProp;
-                            var backrefCount = prop.Reference.ToType.GetOwnedByRefProps().Count();
+                            var itemType = prop.Reference.ToType;
+                            var backrefProp = prop.Reference.ForeignBackrefToCollectionProp;
+                            var backrefCount = itemType.GetOwnedByRefProps().Count();
 
-                            if (prop.Reference.ToType.HasManyParents == true && itemToContainerBackProp?.Rules.IsRequired == true)
-                                throw new MojenException("Required child to parent reference mismatch.");
-
-                            if (backrefCount > 1 && itemToContainerBackProp?.Rules.IsRequired == true)
-                                throw new MojenException("Required child to parent reference mismatch.");
+                            // TODO: Move to dedicated model validation.
+                            if (backrefProp?.Rules.IsRequired == true)
+                            {
+                                // If the collection item type expects to have (or if there effectively are)
+                                //   many parents then none of its back-references must be required.
+                                // I.e. if the collection item type has multiple back-reference foreign keys then
+                                //   those foreign keys must be optional, because only
+                                //   one of those foreign keys is effective (at least in our limited set of
+                                //   supported scenarios).
+                                if (itemType.HasManyParents == true || backrefCount > 1)
+                                    throw new MojenException("Backref mismatch: the type will have multiple parents " +
+                                        "but at least one back-reference is incorrectly configured to be required.");
+                            }
 
                             O($"b.HasMany(x => x.{prop.Name})");
                             Push();
 
                             Oo($".WithOne(");
                             // Specify navigation backref prop if it exists.
-                            var itemToContainerNaviBackProp = itemToContainerBackProp?.Navigation;
-                            if (itemToContainerNaviBackProp != null)
-                                o($@"x => x.{itemToContainerNaviBackProp.Name}");
+                            var backrefNaviProp = backrefProp?.Navigation;
+                            if (backrefNaviProp != null)
+                                o($@"x => x.{backrefNaviProp.Name}");
                             oO(")");
 
-                            if (itemToContainerBackProp?.Rules.IsRequired != true &&
-
-                            (itemToContainerBackProp?.Rules.IsNotRequired == true ||
-                             prop.Reference.ToType.HasManyParents == true ||
-                             // Case 1:
-                             backrefCount > 1 ||
-                             (backrefCount == 1 && prop.Reference.ToType.GetOwnedByRefProps().First().Rules.IsNotRequired)))
+                            if (backrefProp?.Rules.IsRequired != true &&
+                                (backrefProp?.Rules.IsNotRequired == true ||
+                                 itemType.HasManyParents == true ||
+                                 // Case 1:
+                                 backrefCount > 1 ||
+                                 (backrefCount == 1 && itemType.GetOwnedByRefProps().First().Rules.IsNotRequired)))
                             {
-                                // Case 1: If the target type has multiple back reference foreign keys then
-                                //   those foreign keys must be optional, because mostly only
-                                //   one of those foreign keys applies and is set.
-                                //   E.g. Job has many WorkTimes and BreakTimes.
-                                //     The target JobTimeRange has *two* back references - foreign keys - back to Job:
-                                //     JobTimeRange.WorkTimeOfJobId and JobTimeRange.BreakTimeOfJobId
-                                //     Only one of those foreign keys can be set. Either the JobTimeRange
-                                //     represents the work-time of a Job or the break-time of a Job.
+                                // I.e. if the collection item type has multiple back-reference foreign keys then
+                                //   those foreign keys must be optional, because only
+                                //   one of those foreign keys is effective (at least in our limited set of
+                                //   supported scenarios).
+                                // E.g. Job has many WorkTimes and BreakTimes.
+                                //   The target JobTimeRange has *two* back-references - foreign keys - back to Job:
+                                //   JobTimeRange.WorkTimeOfJobId and JobTimeRange.BreakTimeOfJobId
+                                //   Only one of those foreign keys can be set. Either the JobTimeRange
+                                //   represents the work-time of a Job or the break-time of a Job.
 
                                 O($".IsRequired(false)");
                             }
@@ -201,7 +234,7 @@ namespace Casimodo.Lib.Mojen
                                 O($".IsRequired()");
 
                             // Specify the back reference property.
-                            O($".HasForeignKey(y => y.{prop.Reference.ForeignItemToCollectionProp.ForeignKey.Name})");
+                            O($".HasForeignKey(y => y.{backrefProp.ForeignKey.Name})");
 
                             // KABU TODO: REMOVE? This was intended for polymorphic associations, which do not work the way we want them anyway.
                             //else O($".HasForeignKey(y => y.{prop.Reference.ChildToParentReferenceProp.Name})");

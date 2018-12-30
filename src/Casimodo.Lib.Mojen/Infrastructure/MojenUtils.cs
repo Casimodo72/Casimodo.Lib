@@ -37,14 +37,17 @@ namespace Casimodo.Lib.Mojen
             return false;
         }
 
-        public static Type CreateType(MojType type, MojProp[] props)
+        public static Type CreateType(MojType type, MojProp[] props, Func<string, string> propNameResolver = null)
         {
             // Build type dynamically for e.g. entity framework queries.
             // See http://stackoverflow.com/questions/26749429/anonymous-type-result-from-sql-query-execution-entity-framework
             var builder = TypeBuilderHelper.CreateTypeBuilder("DynAssembly", "DynModule", type.ClassName);
 
             foreach (var prop in props)
-                TypeBuilderHelper.CreateAutoImplementedProperty(builder, prop.Name, prop.Type.Type);
+            {
+                var propName = propNameResolver?.Invoke(prop.Name) ?? prop.Name;
+                TypeBuilderHelper.CreateAutoImplementedProperty(builder, propName, prop.Type.Type);
+            }
 
             Type entityType = builder.CreateType();
 

@@ -66,7 +66,7 @@ namespace Casimodo.Lib.Mojen
                 // Add DB to seed transformation.
                 seed.SeedBuilder.Use<TTransformation>(new EntityFromDbTransformationOptions
                 {
-                    OrderBy = seed.OrderBy
+                    OrderBy = seed.ImportOrderBy
                 });
             }
 

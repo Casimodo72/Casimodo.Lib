@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
         public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
         public Action<MojValueSetContainerBuilder> Seed { get; set; }
-        public Action<MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
+        public Action<MojSeedItem, MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
         public Action<MojValueSetContainerBuilder> ConfigureSeeder { get; set; }
     }
 
@@ -28,7 +28,7 @@ namespace Casimodo.Lib.Mojen
             SeedConfig = app.Get<MojGlobalDataSeedConfig>();
 
             Section = options.Section;
-            OrderBy = options.OrderBy;
+            ImportOrderBy = options.OrderBy;
             SeedBuilder = options.SeedBuilder;
             TypeConfig = SeedBuilder.Config.TypeConfig;
             AlwaysSeed = options.AlwaysSeed;
@@ -48,13 +48,14 @@ namespace Casimodo.Lib.Mojen
         public MojType TypeConfig { get; set; }
         public string Section { get; set; }
         public bool IsEnabled { get; set; }
-        public string OrderBy { get; set; }
+        public string ImportOrderBy { get; set; }
+        public string ImportFilter { get; set; }
         public bool IsDbImportEnabled { get; set; } = true;
         public MojValueSetContainerBuilder SeedBuilder { get; set; }
         public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
         public Action<MojValueSetContainerBuilder> Seed { get; set; }
-        public Action<MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
+        public Action<MojSeedItem, MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
         public Action<MojValueSetContainerBuilder> ConfigureSeeder { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
 
@@ -74,7 +75,7 @@ namespace Casimodo.Lib.Mojen
             else if (SeedConfig.IsDbImportEnabled)
             {
                 SeedBuilder.SeedAllProps();
-                ConfigureDbImport?.Invoke(SeedBuilder);
+                ConfigureDbImport?.Invoke(this, SeedBuilder);
             }
             else
             {

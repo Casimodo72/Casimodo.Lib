@@ -97,7 +97,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Reference.IsToMany)
             {
-                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => x.{prop.Reference.ForeignItemToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
+                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => x.{prop.Reference.ForeignBackrefToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    if (IsCascadeDeletedByOrigin({target}, ctx))");
                 O($"        RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation({target}));");
 

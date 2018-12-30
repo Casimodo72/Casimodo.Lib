@@ -300,7 +300,6 @@ namespace Casimodo.Lib.Mojen
                         //   Currently the back-reference will *not* be a navigation property.
                         // KABU TODO: REVISIT: Evaluate scenarios where we would want
                         //   a navigational back-reference property.
-                        var isBackNavigation = backrefNavigation ?? false;
                         isBackrefNavigationApplied = true;
 
                         string effectiveBackrefPropName;
@@ -328,7 +327,7 @@ namespace Casimodo.Lib.Mojen
                                         .ReferenceCore(to: TypeBuilder.TypeConfig,
                                             axis: backrefAxis,
                                             required: backrefRequired,
-                                            navigation: isBackNavigation,
+                                            navigation: backrefNavigation == true,
                                             ownedByProp: backrefOwnedByProp);
 
                         }
@@ -340,7 +339,7 @@ namespace Casimodo.Lib.Mojen
                                         .ReferenceCore(to: TypeBuilder.TypeConfig,
                                             axis: backrefAxis,
                                             required: backrefRequired,
-                                            navigation: isBackNavigation,
+                                            navigation: backrefNavigation == true,
                                             ownedByProp: backrefOwnedByProp);
                         }
                         else throw new MojenException($"Invalid child type kind '{childType.Kind}' for this operation.");
@@ -359,7 +358,7 @@ namespace Casimodo.Lib.Mojen
                         }
                     }
 
-                    PropConfig.Reference.ForeignItemToCollectionProp = backrefProp;
+                    PropConfig.Reference.ForeignBackrefToCollectionProp = backrefProp;
                 }
             }
             else
@@ -371,7 +370,7 @@ namespace Casimodo.Lib.Mojen
                 PropConfig.Type.CollectionTypeName = "Collection";
             }
 
-            if (!isBackrefNavigationApplied && backrefNavigation == true)
+            if (!isBackrefNavigationApplied && backrefNavigation != null)
                 throw new MojenException($"A navigation backref property could not be created in this scenario.");
 
             if (owned && backrefProp != null && backrefProp.Reference.OwnedByProp != null &&
@@ -687,7 +686,7 @@ namespace Casimodo.Lib.Mojen
             if (!PropConfig.Reference.Is)
                 throw new MojenException($"The option '{nameof(OptimizeDeletion)}' is available for reference properties only.");
 
-            PropConfig.Reference.IsDeletionOptimized = true;
+            PropConfig.Reference.IsOptimizedDeletion = true;
             return This();
         }
 
@@ -785,9 +784,6 @@ namespace Casimodo.Lib.Mojen
             else
                 binding = binding | MojReferenceBinding.Associated;
 
-            // KABU TODO: REMOVE
-            //if (child != (axis == MojReferenceAxis.ToParent)) throw new MojenException("Child axis reference mismatch.");
-
             // Reference
             referenceProp.IsForeignKey = true;
             referenceProp.Reference = new MojReference
@@ -796,13 +792,10 @@ namespace Casimodo.Lib.Mojen
                 Binding = binding,
                 ForeignKey = referenceProp,
                 Multiplicity = nullable ? MojMultiplicity.OneOrZero : MojMultiplicity.One,
-                // KABU TODO: IMPORTANT: Add validation: nested and owned must not have any other axis that "ToChild".
+                // TODO: Add validation: nested and owned must not have any other axis that "ToChild".
                 Axis = axis,
                 ToType = to,
                 ToTypeKey = toKeyProp,
-                // KABU TODO: REMOVE
-                //ChildToParentReferenceCount = child ? 1 : 0,
-                ForeignItemToCollectionProp = null,
                 OwnedByProp = ownedByProp
             };
 
@@ -844,9 +837,6 @@ namespace Casimodo.Lib.Mojen
                 //   because I'm not sure we keep those two in sync. Very dangerous.
                 // TODO: REMOVE: prop.Reference = referenceProp.Reference.Clone();
                 prop.Reference = referenceProp.Reference;
-                // TODO: REMOVE: prop.Reference.ForeignKey = referenceProp;
-                // TODO: REMOVE: prop.Reference.IsForeignKey = false;
-                // TODO: REMOVE: prop.Reference.IsNavigation = true;
                 prop.IsNavigation = true;
 
                 // KABU TODO: IMPORTANT: I think we don't need the IsHiddenOneToManyNavigationProp
@@ -874,7 +864,7 @@ namespace Casimodo.Lib.Mojen
                     builder.ForeignKeyAttr(foreignKeyPropName);
                 }
 
-                // Add to related properties.
+                // Add navigation prop to related properties of the foreign key prop.
                 referenceProp.AutoRelatedProps.Add(prop);
 
                 if (navigation && referenceProp.IsModel())

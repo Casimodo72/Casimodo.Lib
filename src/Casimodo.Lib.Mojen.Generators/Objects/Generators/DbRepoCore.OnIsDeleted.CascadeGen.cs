@@ -99,7 +99,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Reference.IsToMany)
             {
-                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(x => x.{prop.Reference.ForeignItemToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
+                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(x => x.{prop.Reference.ForeignBackrefToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    if (ProcessCascadeItem({target}, ctx))");
                 O($"        ctx.Repos.{targetRepo}.Update(ctx.CreateSubUpdateOperation({target}));");
 

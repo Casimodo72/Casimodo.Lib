@@ -64,12 +64,14 @@ namespace Casimodo.Lib.Mojen
 
             var table = storeType.TableName;
 
-            Type queryType = Moj.CreateType(storeType, dbprops);
+            Type queryType = Moj.CreateType(storeType, dbprops, container.GetImportPropName);
 
             var query = $"select {fields} from [{table}]";
 
             // Sort
             query = AddOrderBy(query);
+
+            bool validate = true;
 
             using (var db = new DbContext(MainSeedConfig.DbImportConnectionString))
             {
@@ -80,11 +82,14 @@ namespace Casimodo.Lib.Mojen
                     int i = 0;
                     foreach (var prop in dbprops)
                     {
-                        var value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, prop.Name, required: true)
+                        var sourcePropName = container.GetImportPropName(prop.Name);
+                        var value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, sourcePropName, required: true)
                             .GetValue(entity);
 
                         if (value == null)
                         {
+                            if (!prop.Type.CanBeNull || prop.Rules.IsRequired)
+                                throw new MojenException($"Prop '{prop.Name}' is null in import DB, but must not be null in target DB.");
                             o("null");
                         }
                         else if (prop.Type.Type == typeof(string))

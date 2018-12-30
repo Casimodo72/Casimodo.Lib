@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
                 O($"if ({item}.{prop.Name} != null)");
                 Begin();
 
-                if (prop.Reference.IsDeletionOptimized)
+                if (prop.Reference.IsOptimizedDeletion)
                 {
                     OComment("Optimized deletion");
                     // var blob = new Blob { Id = parent.DataId.Value };
@@ -61,7 +61,7 @@ namespace Casimodo.Lib.Mojen
             else if (prop.Reference.IsToMany)
             {
                 O($"foreach (var {target} in context.{targetType.PluralName}.Query()" +
-                    $".Where(x => x.{prop.Reference.ForeignItemToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
+                    $".Where(x => x.{prop.Reference.ForeignBackrefToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    context.{targetType.PluralName}.Delete({target});");
                 O();
             }

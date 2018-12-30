@@ -143,18 +143,18 @@ namespace Casimodo.Lib.Mojen
         /// into memory when deleting that entity.
         /// </summary>
         [DataMember]
-        public bool IsDeletionOptimized { get; set; }
+        public bool IsOptimizedDeletion { get; set; }
 
         /// <summary>
-        /// Used for container references. This is the back-reference property of the
-        /// contained item to this container.
         /// Only used if this reference is a collection.
+        /// This is the foreign back-reference property of the
+        /// contained item to this container.
         /// </summary>
         [DataMember]
-        public MojProp ForeignItemToCollectionProp { get; set; }
+        public MojProp ForeignBackrefToCollectionProp { get; set; }
 
         /// <summary>
-        /// The navigation collection property if this is a one-to-many backref property.
+        /// The foreign navigation collection property if this is a one-to-many backref property.
         /// </summary>
         [DataMember]
         public MojProp ForeignCollectionProp { get; set; }
@@ -171,7 +171,7 @@ namespace Casimodo.Lib.Mojen
                 ToTypeKey.IsModel() ||
                 ForeignKey.IsModel() ||
                 NavigationProp.IsModel() ||
-                ForeignItemToCollectionProp.IsModel();
+                ForeignBackrefToCollectionProp.IsModel();
         }
 
         public MojReference CloneToEntity(MojProp source, MojProp entity)
@@ -207,8 +207,8 @@ namespace Casimodo.Lib.Mojen
                     clone.NavigationProp = NavigationProp.RequiredStore;
             }
 
-            if (ForeignItemToCollectionProp.IsModel())
-                clone.ForeignItemToCollectionProp = ForeignItemToCollectionProp.RequiredStore;
+            if (ForeignBackrefToCollectionProp.IsModel())
+                clone.ForeignBackrefToCollectionProp = ForeignBackrefToCollectionProp.RequiredStore;
 
             if (ForeignCollectionProp.IsModel())
                 clone.ForeignCollectionProp = ForeignCollectionProp.RequiredStore;

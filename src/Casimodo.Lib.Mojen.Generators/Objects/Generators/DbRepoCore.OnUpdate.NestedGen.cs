@@ -70,7 +70,7 @@ namespace Casimodo.Lib.Mojen
 
                 Oo($"    UpdateNestedCollection<{targetType.ClassName}, {targetType.Key.Type.NameNormalized}>(");
                 o($"{item}.{prop.Name}, ");
-                o($"(x) => x.{prop.Reference.ForeignItemToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}, ");
+                o($"(x) => x.{prop.Reference.ForeignBackrefToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}, ");
                 o($"(x) => x.{targetType.Key.Name}, ");
                 oO($"{targetRepo}, ctx);");
             }
