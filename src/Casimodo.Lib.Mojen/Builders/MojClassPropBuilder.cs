@@ -12,6 +12,23 @@ namespace Casimodo.Lib.Mojen
         IMojClassPropBuilder Required();
         IMojClassPropBuilder NotRequired();
         MojProp PropConfig { get; }
+
+        IMojClassPropBuilder ReferenceCore(MojType to,
+            MojReferenceAxis axis = MojReferenceAxis.None,
+            bool navigation = false,
+            bool? navigationOnModel = null,
+            bool nullable = true,
+            bool? required = null,
+            bool nested = false,
+            bool owned = false,
+            Action<MexConditionBuilder> condition = null,
+            bool storename = false,
+            string suffix = "Id",
+            bool hiddenNavigation = false,
+            MojProp ownedByProp = null,
+            bool backref = false,
+            IMojClassPropBuilder backrefProp = null,
+            string backrefPropName = null);
     }
 
     public class MojClassPropBuilder<TClassBuilder, TPropBuilder> :
@@ -264,10 +281,8 @@ namespace Casimodo.Lib.Mojen
             {
                 MojProp backrefOwnedByProp = owned ? PropConfig : null;
 
-                // EF navigational collection property.
+                // EF navigation collection property.
                 PropConfig.Type.CollectionTypeName = "ICollection";
-                // KABU TODO: REMOVE
-                //CustomType(string.Format("ICollection<{0}>", type.ClassName));
 
                 // Reference binding
                 // KABU TODO: IMPORTANT: IMPL nested reference binding.
@@ -284,7 +299,6 @@ namespace Casimodo.Lib.Mojen
                 PropConfig.IsNavigation = true;
                 PropConfig.Reference = new MojReference
                 {
-                    Is = true,
                     Binding = binding,
                     IsSoftDeleteCascadeDisabled = isSoftDeleteCascadeDisabled,
                     Multiplicity = MojMultiplicity.Many,
@@ -314,7 +328,14 @@ namespace Casimodo.Lib.Mojen
                         if (axis == MojReferenceAxis.ToChild)
                             backrefAxis = MojReferenceAxis.ToParent;
                         else if (axis == MojReferenceAxis.ToCollectionItem)
+                        {
+                            // TODO: Never hit in our scenarios.
+                            // TODO: CLARIFY: Hmm, isn't that actually ToParent just with the parent having to one but many children?
+                            //   Maybe not, because in the case of independent collections this is not true.
+                            //   But will EF Core ever support independent collections and do we want to use them anyway?
                             backrefAxis = MojReferenceAxis.ToCollection;
+                        }
+
                         else throw new MojenException("Unexpected axis");
 
                         MojPropBuilder pbuilder = null;
@@ -353,12 +374,13 @@ namespace Casimodo.Lib.Mojen
                     {
                         if (backrefOwnedByProp != null)
                         {
+                            // TODO: Assign only once because both reference objects are the same.
                             backrefProp.NavigationOrSelf.Reference.OwnedByProp = backrefOwnedByProp;
                             backrefProp.ForeignKeyOrSelf.Reference.OwnedByProp = backrefOwnedByProp;
                         }
                     }
 
-                    PropConfig.Reference.ForeignBackrefToCollectionProp = backrefProp;
+                    PropConfig.Reference.ForeignBackrefProp = backrefProp;
                 }
             }
             else
@@ -551,11 +573,10 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        // KABU TOOD: REMOVE?
-        //public TPropBuilder AsChild(bool hidden = false)
-        //{
-        //    return AsChildSingleOrCollection(hidden, MojMultiplicity.OneOrZero);
-        //}
+        public TPropBuilder ToParentAsChildCollection(MojType parent, bool required = true, string collectionPropName = null)
+        {
+            return ToParent(parent, required: required).AsChildCollection(collectionPropName: collectionPropName);
+        }
 
         public TPropBuilder AsChildCollection(bool hidden = false, string collectionPropName = null)
         {
@@ -690,6 +711,20 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TPropBuilder ToChildNew(MojType to,
+            bool required = true,
+            bool nested = false,
+            string backrefName = null)
+        {
+            return ReferenceCore(to, MojReferenceAxis.ToChild,
+                owned: true, // Owned because this is a ToChild reference.
+                nested: nested,
+                required: required,
+                navigation: true,
+                backref: true,
+                backrefPropName: backrefName);
+        }
+
         /// <summary>
         /// A non-nested child can have multiple parents.
         /// A parent to child relationship means that the child will be
@@ -698,15 +733,53 @@ namespace Casimodo.Lib.Mojen
         public TPropBuilder ToChild(MojType to,
             bool navigation = true,
             bool? required = null,
-            bool nested = false)
+            bool nested = false,
+            bool backref = false,
+            IMojClassPropBuilder childBackrefProp = null)
         {
             return ReferenceCore(to, MojReferenceAxis.ToChild, owned: true, nested: nested,
-                required: required, navigation: navigation);
+                required: required, navigation: navigation,
+                backrefProp: childBackrefProp,
+                backref: backref);
         }
 
-        public TPropBuilder ToAncestor(MojType to, bool navigation = true, bool? required = null)
+        public TPropBuilder ToAncestor(MojType to, bool navigation = true, bool required = true)
         {
             return ReferenceCore(to, MojReferenceAxis.ToAncestor, navigation: navigation, required: required);
+        }
+
+        IMojClassPropBuilder IMojClassPropBuilder.ReferenceCore(MojType to,
+            MojReferenceAxis axis = MojReferenceAxis.None,
+            bool navigation = false,
+            bool? navigationOnModel = null,
+            bool nullable = true,
+            bool? required = null,
+            bool nested = false,
+            bool owned = false,
+            Action<MexConditionBuilder> condition = null,
+            bool storename = false,
+            string suffix = "Id",
+            bool hiddenNavigation = false,
+            MojProp ownedByProp = null,
+            bool backref = false,
+            IMojClassPropBuilder backrefProp = null,
+            string backrefPropName = null)
+        {
+            return ReferenceCore(to, axis,
+                 navigation: navigation,
+                 navigationOnModel: navigationOnModel,
+                 nullable: nullable,
+                 required: required,
+                 nested: nested,
+                 owned: owned,
+                 condition: condition,
+                 storename: storename,
+                 suffix: suffix,
+                 hiddenNavigation: hiddenNavigation,
+                 ownedByProp: ownedByProp,
+                 backref: backref,
+                 backrefProp: backrefProp,
+                 backrefPropName: backrefPropName);
         }
 
         /// <summary>
@@ -724,23 +797,32 @@ namespace Casimodo.Lib.Mojen
         /// <param name="condition"></param>
         /// <returns></returns>  
         internal TPropBuilder ReferenceCore(MojType to,
-            MojReferenceAxis axis = MojReferenceAxis.None,
-            bool navigation = false,
-            bool? navigationOnModel = null,
-            bool nullable = true,
-            bool? required = null,
-            bool nested = false,
-            bool owned = false,
-            Action<MexConditionBuilder> condition = null,
-            bool storename = false,
-            string suffix = "Id",
-            bool hiddenNavigation = false,
-            MojProp ownedByProp = null)
+        MojReferenceAxis axis = MojReferenceAxis.None,
+        bool navigation = false,
+        bool? navigationOnModel = null,
+        bool nullable = true,
+        bool? required = null,
+        bool nested = false,
+        bool owned = false,
+        Action<MexConditionBuilder> condition = null,
+        bool storename = false,
+        string suffix = "Id",
+        bool hiddenNavigation = false,
+        MojProp ownedByProp = null,
+        bool backref = false,
+        IMojClassPropBuilder backrefProp = null,
+        string backrefPropName = null)
         {
             if (to == null) throw new ArgumentNullException("to");
 
             if (axis == MojReferenceAxis.None)
                 throw new ArgumentException("The reference direction is missing.", nameof(axis));
+
+            if (backrefProp != null && !backref)
+                throw new ArgumentException("Back-reference property was provided but the backref argument is false.");
+
+            if (backrefProp != null && backrefPropName != null)
+                throw new ArgumentException("Back-reference property was provided and the backrefProoName argument is not null.");
 
             var referenceProp = PropConfig;
 
@@ -761,7 +843,7 @@ namespace Casimodo.Lib.Mojen
 
             // Foreign key property.
 
-            // Clear bogus annotation data type.            
+            // TODO: ? Clear bogus annotation data type.            
 
             var foreignKeyPropName = origName + suffix;
             referenceProp.SetName(foreignKeyPropName);
@@ -786,9 +868,8 @@ namespace Casimodo.Lib.Mojen
 
             // Reference
             referenceProp.IsForeignKey = true;
-            referenceProp.Reference = new MojReference
+            var reference = referenceProp.Reference = new MojReference
             {
-                Is = true,
                 Binding = binding,
                 ForeignKey = referenceProp,
                 Multiplicity = nullable ? MojMultiplicity.OneOrZero : MojMultiplicity.One,
@@ -822,6 +903,9 @@ namespace Casimodo.Lib.Mojen
 
             TPropBuilder builder;
 
+            //if (!navigation)
+            //    throw new MojenException("All reference must have a navigation property now.");
+
             // Add navigation property.
             if (navigation || navigationOnModel == true)
             {
@@ -832,10 +916,6 @@ namespace Casimodo.Lib.Mojen
 
                 // Set as navigation prop on the reference.
                 referenceProp.Reference.NavigationProp = prop;
-                // Clone reference and set IsNavigation flag.
-                // KABU TODO: VERY IMPORTANT: Compare the clone at final stage
-                //   because I'm not sure we keep those two in sync. Very dangerous.
-                // TODO: REMOVE: prop.Reference = referenceProp.Reference.Clone();
                 prop.Reference = referenceProp.Reference;
                 prop.IsNavigation = true;
 
@@ -885,6 +965,48 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 
+            // Create back-reference navigation prop (and back-reference "foreign key", which actually won't be
+            //   a foreign key in the DB due to EF Core limitation).
+            if (backref && axis == MojReferenceAxis.ToChild)
+            {
+                if (backrefProp == null)
+                {
+                    var effectiveBackrefNaviPropName = backrefPropName ?? TypeBuilder.TypeConfig.Name;
+
+                    if (to.Kind == MojTypeKind.Entity)
+                    {
+                        backrefProp = MojTypeBuilder.Create<MojEntityBuilder>(App, to).Prop(effectiveBackrefNaviPropName);
+                    }
+                    else if (to.Kind == MojTypeKind.Model)
+                    {
+                        backrefProp = MojTypeBuilder.Create<MojModelBuilder>(App, to).Prop(effectiveBackrefNaviPropName);
+
+                    }
+                    else throw new MojenException($"Invalid child type kind '{to.Kind}' for this operation.");
+                }
+                backrefProp.ReferenceCore(TypeConfig, MojReferenceAxis.ToParent, navigation: true, required: true, backref: false);
+
+                reference.ForeignBackrefProp = backrefProp.PropConfig.ForeignKeyOrSelf;
+            }
+
+            return This();
+        }
+
+        public TPropBuilder AsChildOfNew(MojType parent, bool childRequired, string parentProp = null)
+        {
+            var parentPropName = parentProp ?? TypeBuilder.TypeConfig.Name;
+            if (TypeConfig.Kind == MojTypeKind.Entity)
+            {
+                var pbuilder = MojTypeBuilder.Create<MojEntityBuilder>(App, parent).Prop(parentPropName);
+                pbuilder.ToChild(TypeConfig, required: childRequired, childBackrefProp: this, backref: true);
+            }
+            else if (TypeConfig.Kind == MojTypeKind.Model)
+            {
+                var pbuilder = MojTypeBuilder.Create<MojModelBuilder>(App, parent).Prop(parentPropName);
+                pbuilder.ToChild(TypeConfig, required: childRequired, childBackrefProp: this, backref: true);
+            }
+            else throw new MojenException($"Invalid type kind '{TypeConfig.Kind}' for this operation.");
+
             return This();
         }
 
@@ -898,9 +1020,9 @@ namespace Casimodo.Lib.Mojen
             return conditionBuilder.Expression;
         }
 
-        public TPropBuilder OwnedChildImage(MojType to, bool nullable = true, bool navigation = false)
+        public TPropBuilder OwnedChildImage(MojType to, bool nullable = true)
         {
-            return OwnedFile(to, MojReferenceAxis.ToChild, nullable, navigation: navigation, image: true);
+            return OwnedFile(to, MojReferenceAxis.ToChild, nullable, navigation: true, image: true);
         }
 
         /// <summary>

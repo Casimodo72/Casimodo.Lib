@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Mojen
         ToCollectionItem,
         ToChild,
         ToAncestor,
-        ToDescendant
+        // TODO: REMOVE? ToDescendant
     }
 
     [DataContract(Namespace = MojContract.Ns)]
@@ -35,13 +35,20 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojReference : MojBase
     {
-        public static readonly MojReference None = new MojReference();
+        public static readonly MojReference None = new MojReference(false);
+
+        MojReference(bool @is)
+        {
+            Is = @is;
+        }
 
         public MojReference()
-        { }
+        {
+            Is = true;
+        }
 
         [DataMember]
-        public bool Is { get; set; }
+        public bool Is { get; private set; }
 
         [DataMember]
         public MojReferenceBinding Binding { get; set; }
@@ -151,7 +158,7 @@ namespace Casimodo.Lib.Mojen
         /// contained item to this container.
         /// </summary>
         [DataMember]
-        public MojProp ForeignBackrefToCollectionProp { get; set; }
+        public MojProp ForeignBackrefProp { get; set; }
 
         /// <summary>
         /// The foreign navigation collection property if this is a one-to-many backref property.
@@ -171,7 +178,8 @@ namespace Casimodo.Lib.Mojen
                 ToTypeKey.IsModel() ||
                 ForeignKey.IsModel() ||
                 NavigationProp.IsModel() ||
-                ForeignBackrefToCollectionProp.IsModel();
+                ForeignCollectionProp.IsModel() ||
+                ForeignBackrefProp.IsModel();
         }
 
         public MojReference CloneToEntity(MojProp source, MojProp entity)
@@ -207,8 +215,8 @@ namespace Casimodo.Lib.Mojen
                     clone.NavigationProp = NavigationProp.RequiredStore;
             }
 
-            if (ForeignBackrefToCollectionProp.IsModel())
-                clone.ForeignBackrefToCollectionProp = ForeignBackrefToCollectionProp.RequiredStore;
+            if (ForeignBackrefProp.IsModel())
+                clone.ForeignBackrefProp = ForeignBackrefProp.RequiredStore;
 
             if (ForeignCollectionProp.IsModel())
                 clone.ForeignCollectionProp = ForeignCollectionProp.RequiredStore;

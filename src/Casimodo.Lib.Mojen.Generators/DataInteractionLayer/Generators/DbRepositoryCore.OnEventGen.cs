@@ -239,10 +239,10 @@ namespace Casimodo.Lib.Mojen
             {
                 if (to != null)
                 {
-                    if (to.Reference.ForeignBackrefToCollectionProp == null)
+                    if (to.Reference.ForeignBackrefProp == null)
                         throw new MojenException($"The expected back-reference property is missing.");
 
-                    O($"foreach (var {target} in {repository}.Query(true).Where(x => x.{to.Reference.ForeignBackrefToCollectionProp.ForeignKey.Name} == {item}.{type.Key.Name}).ToArray())");
+                    O($"foreach (var {target} in {repository}.Query(true).Where(x => x.{to.Reference.ForeignBackrefProp.ForeignKey.Name} == {item}.{type.Key.Name}).ToArray())");
                 }
                 else
                     O($"foreach (var {target} in {repository}.Query(true).Where(x => x.{from.Reference.ForeignKey.Name} == {item}.{type.Key.Name}).ToArray())");

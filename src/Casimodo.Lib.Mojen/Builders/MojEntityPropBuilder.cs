@@ -68,7 +68,7 @@ namespace Casimodo.Lib.Mojen
             var index = new MojIndexConfig { Is = true }; ;
 
             PropConfig.DbAnno.Index = index;
-            index.Participants.Add(new MojIndexParticipantConfig
+            index.Members.Add(new MojIndexMemberConfig
             {
                 Kind = MojIndexPropKind.IndexMember,
                 Prop = PropConfig
@@ -111,7 +111,7 @@ namespace Casimodo.Lib.Mojen
             var index = PropConfig.DbAnno.Index;
             index.IsUnique = true;
             // Clear because we are adding the context prop at the end of the list of participants.
-            index.Participants.Clear();
+            index.Members.Clear();
 
             // KABU TODO: INDEX-PROP-NULLABLE: Currently disabled since in object "Party" we have
             //   two potential index scenarios where only one index is actually active.
@@ -169,7 +169,7 @@ namespace Casimodo.Lib.Mojen
 
                     PropConfig.DbAnno.Unique._parameters.Add(item);
 
-                    index.Participants.Add(new MojIndexParticipantConfig
+                    index.Members.Add(new MojIndexMemberConfig
                     {
                         Kind = kind,
                         Prop = perProp
@@ -179,7 +179,7 @@ namespace Casimodo.Lib.Mojen
                         PropConfig.CascadeFromProps.Add(perProp);
                 }
 
-                index.Participants.Add(new MojIndexParticipantConfig
+                index.Members.Add(new MojIndexMemberConfig
                 {
                     Kind = MojIndexPropKind.IndexMember,
                     Prop = PropConfig

@@ -183,39 +183,7 @@ namespace Casimodo.Lib.Mojen
             return builder;
         }
 
-        // KABU TODO: REMOVE? Not used
-        //public TPropBuilder PropReferenceTo(MojType to,
-        //    bool navigation = false,
-        //    bool nullable = true,
-        //    bool required = false,
-        //    bool nested = false,
-        //    bool owned = false,
-        //    bool storename = false,
-        //    bool uri = false,
-        //    string key = null,
-        //    string display = null,
-
-        //    Action<MexConditionBuilder> conditionBuilder = null)
-        //{
-        //    return base.Prop(to.Name)
-        //        .Reference(to,
-        //            navigation: navigation,
-        //            nullable: nullable,
-        //            required: required,
-        //            nested: nested,
-        //            owned: owned,
-        //            storename: storename,
-        //            //uri: uri,
-        //            key: key, display: display);
-        //}
-
-        //public TPropBuilder PropReferenceToParent(MojType to, bool navigation)
-        //{
-        //    return base.Prop(to.Name)
-        //        .ReferenceToParent(to, navigation: navigation);
-        //}
-
-        public TPropBuilder Prop()
+        internal TPropBuilder Prop()
         {
             return base.Prop("", typeof(string));
         }
@@ -287,6 +255,7 @@ namespace Casimodo.Lib.Mojen
 
             bool owned = true;
 
+            // TODO: ELIMINATE need for such special cases.
             if (TypeConfig.IsEntity() && parentType.IsModel())
                 parentType = parentType.RequiredStore;
 
@@ -296,7 +265,6 @@ namespace Casimodo.Lib.Mojen
 
             var reference = new MojSoftReference
             {
-                Is = true,
                 Binding = MojReferenceBinding.Loose | (owned ? MojReferenceBinding.Owned : MojReferenceBinding.Associated),
                 Multiplicity = MojMultiplicity.OneOrZero,
                 Axis = MojReferenceAxis.ToParent,
@@ -372,7 +340,6 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-
         public TClassBuilder NamedAssignFrom(string name, params string[] props)
         {
             if (!TypeConfig.AssignFromConfig.Is)
@@ -398,8 +365,6 @@ namespace Casimodo.Lib.Mojen
         /// <returns></returns>
         public override MojType Build()
         {
-            base.Build();
-
             if (TypeConfig.LocalPick != null &&
                 TypeConfig.LocalPick.KeyProp == null)
             {
@@ -484,6 +449,7 @@ namespace Casimodo.Lib.Mojen
                 store.VerMap = MojVersionMapping.CloneFrom(TypeConfig.VerMap);
                 store.LocalPick = TypeConfig.LocalPick;
                 store.DataSetSize = TypeConfig.DataSetSize;
+                store.SoftReferences.Clear();
                 store.SoftReferences.AddRange(TypeConfig.SoftReferences.Select(x => x.CloneToEntity()));
                 store.AssignFromConfig = TypeConfig.AssignFromConfig;
                 store.IsManyToManyLink = TypeConfig.IsManyToManyLink;
@@ -512,6 +478,16 @@ namespace Casimodo.Lib.Mojen
 
                 // Build the store type.
                 MojTypeBuilder.Create<MojEntityBuilder>(App, store).Build();
+            }
+
+            // Check: All unique index member properties must be required.
+            foreach (var prop in TypeConfig.LocalProps)
+            {
+                // KABU TODO: INDEX-PROP-NULLABLE: Currently disabled since in object "Party" we have
+                //   two potential index scenarios where only one index is actually active.
+                //foreach (var p in prop.DbAnno.Unique.GetParams(includeTenant: true))
+                //    if (p.Prop.Type.CanBeNull && !p.Prop.Rules.IsRequired)
+                //        throw new MojenException("All unique index member properties must be required or non-nullable.");
             }
 
             return TypeConfig;

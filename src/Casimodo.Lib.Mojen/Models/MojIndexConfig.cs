@@ -5,7 +5,7 @@ using Casimodo.Lib.Data;
 namespace Casimodo.Lib.Mojen
 {
     [DataContract(Namespace = MojContract.Ns)]
-    public class MojIndexParticipantConfig : MojBase
+    public class MojIndexMemberConfig : MojBase
     {
         [DataMember]
         public MojIndexPropKind Kind { get; set; }
@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsUnique { get; set; }
 
         [DataMember]
-        public readonly List<MojIndexParticipantConfig> Participants = new List<MojIndexParticipantConfig>();
+        public readonly List<MojIndexMemberConfig> Members = new List<MojIndexMemberConfig>();
 
         //public MojIndexConfig Clone()
         //{

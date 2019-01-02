@@ -438,7 +438,7 @@ namespace Casimodo.Lib.Mojen.Meta
             if (prop.Reference.NavigationProp?.IsModel() == true)
                 ThrowModelInEntityGraph();
 
-            if (prop.Reference.ForeignBackrefToCollectionProp?.DeclaringType?.IsModel() == true)
+            if (prop.Reference.ForeignBackrefProp?.DeclaringType?.IsModel() == true)
                 ThrowModelInEntityGraph();
 
             foreach (var aprop in prop.AutoRelatedProps)

@@ -87,7 +87,7 @@ namespace Casimodo.Lib.Mojen
                 foreach (var dbindex in indexes)
                 {
                     // Index: entity.HasIndex("TenantId", "MySomeProp", "MyContextProp").HasName("UIX_MyContextProp").IsUnique();
-                    var propNames = dbindex.Prop.DbAnno.Index.Participants.Select(x => "\"" + x.Prop.Name + "\"").Join(", ");
+                    var propNames = dbindex.Prop.DbAnno.Index.Members.Select(x => "\"" + x.Prop.Name + "\"").Join(", ");
                     Oo($"b.HasIndex({propNames}).HasName(\"{dbindex.IndexName}\")");
 
                     if (dbindex.Prop.DbAnno.Index.IsUnique)
@@ -104,7 +104,7 @@ namespace Casimodo.Lib.Mojen
                     //    a non-nullable DB field (obviously)).
                     if (prop.Rules.IsRequired && !prop.IsNavigation)
                     {
-                        O($"b.Property(\"{prop.Name}\").IsRequired();");
+                        O($"b.Property(x => x.{prop.Name}).IsRequired();");
                     }
                 }
 
@@ -131,31 +131,52 @@ namespace Casimodo.Lib.Mojen
                     // https://docs.microsoft.com/en-us/ef/core/modeling/relationships
                     var toOneNavigationProps = properties
                         .Where(x =>
-                            x.IsNavigation &&
+                            x.IsForeignKey &&
+                            x.Reference.IsToOne &&
                             x.Reference.ToType.IsEntity() &&
-                            x.Reference.IsToOne);
+                            // Exclude ToParent because those will be modelled via the ToChild side.
+                            x.Reference.Axis != MojReferenceAxis.ToParent);
 
                     foreach (var prop in toOneNavigationProps)
                     {
 
                         O();
-                        var propName = prop.Name;
-                        var itemType = prop.Reference.ToType;
-                        var backrefProp = prop.Reference.ForeignBackrefToCollectionProp;
 
-                        //if (prop.Reference.Binding.HasFlag(MojReferenceBinding.Owned))
-                        O($"b.HasOne(x => x.{prop.Name})");
+                        if (prop.Navigation != null)
+                            O($"b.HasOne(x => x.{prop.Navigation.Name})");
+                        else
+                            O($"b.HasOne<{prop.Reference.ToType.Name}>()");
+
                         Push();
 
-                        if (backrefProp.Navigation != null)
-                            O($".WithOne(x => x.{backrefProp.Navigation.Name})");
-                        else
-                            O($".WithOne()");
-                        O($".HasForeignKey<{type.Name}>(x => x.{prop.Name})");
-                        O($".HasForeignKey<{prop.Reference.ToType.Name}>(x => x.{backrefProp.ForeignKey.Name});");
+                        if (prop.Reference.Axis == MojReferenceAxis.ToChild)
+                        {
+                            var backrefProp = prop.Reference.ForeignBackrefProp;
+                            if (backrefProp?.Navigation != null)
+                                O($".WithOne(x => x.{backrefProp.Navigation.Name})");
+                            else
+                                O($".WithOne()");
 
-                        //  KABU TODO: REVISIT: Currently we will hande cascading deletion ourselves, so turn it off.
+                            if (prop.Reference.ForeignKey != null)
+                                O($".HasForeignKey<{type.Name}>(x => x.{prop.Reference.ForeignKey.Name})");
+                        }
+                        else
+                        {
+                            // ToAncestor, Value, etc.
+                            O(".WithMany()");
+
+                            if (prop.Reference.ForeignKey == null)
+                                throw new MojenException("Missing foreign key");
+
+                            O($".HasForeignKey(x => x.{prop.Reference.ForeignKey.Name})");
+                        }
+
+                        // TODO: Can't make the other side to have a foreign key with EF Core :-(
+                        //if (backrefProp?.ForeignKey != null)
+                        //    O($".HasForeignKey<{prop.Reference.ToType.Name}>(x => x.{backrefProp.ForeignKey.Name});");
+
                         O(".OnDelete(DeleteBehavior.Restrict);");
+
                         Pop();
                     }
 
@@ -165,8 +186,8 @@ namespace Casimodo.Lib.Mojen
                     var toManyNavigationProps = properties
                     .Where(x =>
                         x.IsNavigation &&
-                        x.Reference.ToType.IsEntity() &&
                         x.Reference.IsToMany &&
+                        x.Reference.ToType.IsEntity() &&
                         // Ignore many-to-many because those will be modelled elsewhere.
                         !x.Reference.ToType.IsManyToManyLink);
 
@@ -184,7 +205,7 @@ namespace Casimodo.Lib.Mojen
                         else
                         {
                             var itemType = prop.Reference.ToType;
-                            var backrefProp = prop.Reference.ForeignBackrefToCollectionProp;
+                            var backrefProp = prop.Reference.ForeignBackrefProp;
                             var backrefCount = itemType.GetOwnedByRefProps().Count();
 
                             // TODO: Move to dedicated model validation.

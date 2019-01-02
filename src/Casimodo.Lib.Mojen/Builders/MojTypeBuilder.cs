@@ -105,6 +105,9 @@ namespace Casimodo.Lib.Mojen
 
         public TTypeBuilder Namespace(string ns)
         {
+            if (TypeConfig.Namespace != null && TypeConfig.Namespace != ns)
+                throw new MojenException("Type namespace must not be changed.");
+
             TypeConfig.Namespace = ns;
 
             return This();
