@@ -219,7 +219,7 @@ namespace Casimodo.Lib.Mojen
             O("_db.ReferenceLoading(false);");
             O();
 
-            O("OnCreatingExtended(model);");
+            O("await OnCreatingExtended?.Invoke(model);");
 
             // KABU TODO: IMPORTANT: MOVE to repository core layer.
             // Apply DB sequences.
@@ -237,7 +237,7 @@ namespace Casimodo.Lib.Mojen
             End();
 
             O();
-            O($"partial void OnCreatingExtended({Type.ClassName} model);");
+            O($"Func<{Type.ClassName}, Task> OnCreatingExtended = null;");
         }
 
         // Filters
@@ -395,12 +395,10 @@ namespace Casimodo.Lib.Mojen
             // Disable loading of referenced entities.
             O("_db.ReferenceLoading(false);");
 
-            // TODO: REMOVE: O("OnUpdatingExtended(model, group);");
-
             // Update the item.
             O($"var item = _db.Update({key.VName}, model, mask);");
 
-            O("OnUpdatedExtended(item, group);");
+            O("await OnUpdatedExtended?.Invoke(item, group);");
 
             // Save to DB
             O($"{GetDbContextSaveChangesExpression("_db")};");
@@ -409,8 +407,7 @@ namespace Casimodo.Lib.Mojen
             End();
 
             O();
-            // TODO: REMOVE: O($"partial void OnUpdatingExtended({Type.ClassName} model, string group);");
-            O($"partial void OnUpdatedExtended({Type.ClassName} model, string group);");
+            O($"Func<{Type.ClassName}, string, Task> OnUpdatedExtended = null;");
         }
 
         // Patch ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -45,11 +45,6 @@ namespace Casimodo.Lib.Data
             return model;
         }
 
-        public new TModel Get(TKey key)
-        {
-            return Find(key, required: true);
-        }
-
         // Get: Queryable ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         /// <summary>

@@ -24,6 +24,7 @@ namespace Casimodo.Lib.Data
         IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true);
         int SaveChanges();
+        Task<int> SaveChangesAsync();
     }
 
     public interface IDbRepository
@@ -41,28 +42,46 @@ namespace Casimodo.Lib.Data
         DbRepositoryCore Core();
     }
 
+    public class DbTransactionContext<TDbContext> : DbTransactionContext
+        where TDbContext : DbContext
+    {
+        public DbTransactionContext(TDbContext db, IDbContextTransaction trans)
+            : base(db, trans)
+        { }
+
+        public TDbContext Context
+        {
+            get { return (TDbContext)_db; }
+        }
+    }
+
     public class DbTransactionContext
     {
+        protected DbContext _db;
+
         public DbTransactionContext(DbContext db, IDbContextTransaction trans)
         {
             Guard.ArgNotNull(db, nameof(db));
             Guard.ArgNotNull(trans, nameof(trans));
 
-            Context = db;
+            _db = db;
             Transaction = trans;
         }
 
         public IDbContextTransaction Transaction { get; private set; }
 
-        public DbContext Context { get; set; }
-
-        public TDbContext CreateDbContext<TDbContext>()
-            where TDbContext : CustomDbContext, new()
+        public DbContext GetContext()
         {
-            var db = (TDbContext)Activator.CreateInstance(typeof(TDbContext), new object[] { Context.Database.GetDbConnection() });
-            db.Database.UseTransaction(Transaction.GetDbTransaction());
-            return db;
+            return _db;
         }
+
+        //public TDbContext CreateDbContext<TDbContext>()
+        //    where TDbContext : CustomDbContext, new()
+        //{
+        //    var db = (TDbContext)Activator.CreateInstance(typeof(TDbContext), new object[] { GetContext().Database.GetDbConnection() });
+        //    db.Database.UseTransaction(Transaction.GetDbTransaction());
+        //    return db;
+        //}
     }
 
     public static class DbRepositoryExtensions
@@ -150,13 +169,13 @@ namespace Casimodo.Lib.Data
             }
         }
 
-        public void PerformTransaction(Action<DbTransactionContext> action)
+        public void PerformTransaction(Action<DbTransactionContext<TContext>> action)
         {
             using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 try
                 {
-                    action(new DbTransactionContext(Context, trans));
+                    action(new DbTransactionContext<TContext>(Context, trans));
 
                     trans.Commit();
                 }
@@ -168,13 +187,13 @@ namespace Casimodo.Lib.Data
             }
         }
 
-        public async Task PerformTransactionAsync(Func<DbTransactionContext, Task> action)
+        public async Task PerformTransactionAsync(Func<DbTransactionContext<TContext>, Task> action)
         {
             using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
             {
                 try
                 {
-                    await action(new DbTransactionContext(Context, trans));
+                    await action(new DbTransactionContext<TContext>(Context, trans));
 
                     trans.Commit();
                 }
@@ -209,13 +228,26 @@ namespace Casimodo.Lib.Data
 
         TEntity IDbRepository<TEntity>.GetById(object key)
         {
-            return Find((TKey?)key, required: true);
+            return Get((TKey?)key, required: true);
+        }
+
+        object IDbRepository.FindEntity(object key)
+        {
+            return Get((TKey)key, required: false);
         }
 
         /// <summary>
         /// NOTE: Returns also IsDeleted entities.
         /// </summary>
         public TEntity Find(TKey? key, bool required = false)
+        {
+            return Get(key, required: required);
+        }
+
+        /// <summary>
+        /// KABU TODO: Not tenant safe.
+        /// </summary> 
+        public TEntity Get(TKey? key, bool required = true)
         {
             TEntity entity = null;
             if (key != null)
@@ -230,39 +262,16 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        object IDbRepository.FindEntity(object key)
-        {
-            return Find((TKey)key);
-        }
-
         /// <summary>
-        /// KABU TODO: Not tenant safe.
-        /// </summary>        
-        public async Task<TEntity> FindAsync(TKey key, bool required = false)
+        /// NOTE: Not tenant safe. Returns also IsDeleted entities.
+        /// </summary> 
+        public async Task<TEntity> GetAsync(TKey key, bool required = true)
         {
             // KABU TODO: Not tenant safe.
             var entity = await EntitySet.FindAsync(key);
             if (entity == null && required)
                 throw NotFound();
 
-            OnLoaded(entity);
-
-            return entity;
-        }
-
-        public TEntity Get(TKey key)
-        {
-            return Find(key, required: true);
-        }
-
-        public async Task<TEntity> GetAsync(TKey key)
-        {
-            return await FindAsync(key, required: true);
-        }
-
-        public TEntity Get(IQueryable<TEntity> query)
-        {
-            var entity = query.First();
             OnLoaded(entity);
 
             return entity;
@@ -276,7 +285,13 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        // Get: Query ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        public TEntity Get(IQueryable<TEntity> query)
+        {
+            var entity = query.First();
+            OnLoaded(entity);
+
+            return entity;
+        }
 
         public IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> predicate)
         {
@@ -428,7 +443,7 @@ namespace Casimodo.Lib.Data
 
         public TEntity RestoreSelfDeleted(TKey key)
         {
-            var entity = Find(key, required: true);
+            var entity = Get(key, required: true);
             Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, Context));
 
             return entity;
