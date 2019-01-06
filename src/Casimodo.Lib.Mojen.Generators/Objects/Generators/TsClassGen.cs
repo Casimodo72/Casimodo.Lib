@@ -12,10 +12,12 @@ namespace Casimodo.Lib.Mojen
             Scope = "Context";
         }
 
+        public WebDataLayerConfig WebConfig { get; set; }
+
         protected override void GenerateCore()
         {
-            var webConfig = App.Get<WebDataLayerConfig>();
-            var outputDirPath = webConfig.TypeScriptDataDirPath;
+            WebConfig = App.Get<WebDataLayerConfig>();
+            var outputDirPath = WebConfig.TypeScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
@@ -23,19 +25,16 @@ namespace Casimodo.Lib.Mojen
                 .Where(x => !x.WasGenerated)
                 .Where(x => !x.IsAbstract && !x.IsTenant).ToArray();
 
-            PerformWrite(Path.Combine(outputDirPath, "data.generated.ts"), () =>
+            PerformWrite(Path.Combine(outputDirPath, "DataTypes.generated.ts"), () =>
             {
-                OB("module {0}", webConfig.ScriptNamespace);
-                O("\"use strict\";");
-                O();
-
-                foreach (var item in items)
+                OTsNamespace(WebConfig.ScriptNamespace, () =>
                 {
-                    Generate(item);
-                    O();
-                }
-
-                End();
+                    foreach (var item in items)
+                    {
+                        Generate(item);
+                        O();
+                    }
+                });
             });
         }
 
@@ -50,7 +49,10 @@ namespace Casimodo.Lib.Mojen
             O();
 
             // Default constructor.
-            O("constructor() { }");
+            OB("constructor()");
+            // TODO: Find a way to emit this only when used in the context of OData.
+            O($"this['@odata.type'] = '#{WebConfig.ODataNamespace}.{item.ClassName}';");
+            End();
 
             // Properties
             O();

@@ -18,13 +18,15 @@ namespace Casimodo.Lib.Mojen
             Scope = "App";
         }
 
+        WebDataLayerConfig WebConfig;
+
         public bool AreCommentsEnabled { get; set; }
 
         protected override void GenerateCore()
         {
-            var webConfig = App.Get<WebDataLayerConfig>();
-            var moduleName = webConfig.ScriptNamespace;
-            var outputDirPath = webConfig.JavaScriptDataDirPath;
+            WebConfig = App.Get<WebDataLayerConfig>();
+            var moduleName = WebConfig.ScriptNamespace;
+            var outputDirPath = WebConfig.JavaScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
@@ -56,7 +58,7 @@ namespace Casimodo.Lib.Mojen
                      // Properties
 
                      // OData type property.
-                     O("this['@odata.type'] = '#{0}.{1}';", item.Namespace, item.ClassName);
+                     O("this['@odata.type'] = '#{0}.{1}';", WebConfig.ODataNamespace, item.ClassName);
 
                      MojProp prop;
                      var props = item.GetProps(custom: false)

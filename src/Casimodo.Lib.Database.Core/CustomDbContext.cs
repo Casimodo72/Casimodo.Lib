@@ -75,7 +75,7 @@ namespace Casimodo.Lib.Data
 
                     trans.Commit();
                 }
-                catch
+                catch (Exception ex)
                 {
                     trans.Rollback();
                     throw;
