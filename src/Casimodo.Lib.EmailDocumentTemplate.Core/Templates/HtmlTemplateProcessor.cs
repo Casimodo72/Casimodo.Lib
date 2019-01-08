@@ -91,15 +91,6 @@ namespace Casimodo.Lib.Templates
 
         public RazorRemoverParser RazorRemover { get; set; } = new RazorRemoverParser();
 
-        // KABU TODO: MAGIC paths.
-        // KABU TODO: ELIMINATE
-        string BaseDocumentCssPath { get; set; } = "~/Content/app/css/print/print-document.css";
-        // KABU TODO: ELIMINATE
-        string BaseContainerCssPath { get; set; } = "~/Content/app/css/print/print-container.css";
-
-        // KABU TODO: MAGIC path.
-        public string ImagePageTemplatePath { get; set; } = "~/Content/app/print/image-page-template.html";
-
         string ImagePageTemplate { get; set; }
 
         string PageTemplate { get; set; }
@@ -140,9 +131,9 @@ namespace Casimodo.Lib.Templates
                     {
                         var parentElem = originalElem.ParentElement;
                         var cursorNode = originalElem;
-                        // KABU TODO: IMPORTANT: We don't allow nested foreach instructions yet.
+                        // TODO: IMPORTANT: We don't allow nested foreach instructions yet.
 
-                        // KABU TODO: IMPORTANT: If we allow nested foreach then:
+                        // TODO: IMPORTANT: If we allow nested foreach then:
                         // 1) make loop variable name adjustable by consumer.
                         // 2) store/restore loop variable of outer scope with same name.
                         //    This means an equal loop variable name will shadow variables in outer scope.
@@ -295,15 +286,7 @@ namespace Casimodo.Lib.Templates
             CurElem.Remove();
         }
 
-        public Func<IEnumerable<string>> GetLibCssFilePaths = () => Enumerable.Empty<string>();
         public Func<IEnumerable<string>> GetCssFilePaths = () => Enumerable.Empty<string>();
-
-        // KABU TODO: ELIMINATE
-        IEnumerable<string> GetBaseCssFilePaths()
-        {
-            yield return BaseDocumentCssPath;
-            yield return BaseContainerCssPath;
-        }
 
         public string StylesHtml { get; set; }
 
@@ -328,12 +311,8 @@ namespace Casimodo.Lib.Templates
             if (StylesHtml == null)
             {
                 var sb = new StringBuilder();
-                var files = new List<string>();
-                files.AddRange(GetLibCssFilePaths());
-                files.AddRange(GetBaseCssFilePaths());
-                files.AddRange(GetCssFilePaths());
 
-                foreach (var styleFilePath in files)
+                foreach (var styleFilePath in GetCssFilePaths())
                 {
                     sb.Append("<style>");
                     sb.Append(ReadFile(styleFilePath));
@@ -379,7 +358,7 @@ namespace Casimodo.Lib.Templates
             return string.IsNullOrWhiteSpace(template) ? null : template;
         }
 
-        // KABU TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
+        // TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
         public HtmlTemplate NewPage()
         {
             if (PageTemplate == null)
@@ -428,10 +407,12 @@ namespace Casimodo.Lib.Templates
             }
         }
 
+        const string DefaultImagePageTemplate = @"<div class='image-page'><img class='page-image' alt='Image' data-property='Ext.PageImage' style='max-width:100%' /></div>";
+
         public HtmlTemplate NewImagePage()
         {
             if (ImagePageTemplate == null)
-                ImagePageTemplate = LoadTemplatePart(ImagePageTemplatePath);
+                ImagePageTemplate = DefaultImagePageTemplate;
 
             var doc = new HtmlParser().Parse(ImagePageTemplate);
 
@@ -540,11 +521,8 @@ namespace Casimodo.Lib.Templates
                     // Node might have already been removed by the transformation.
                     continue;
 
-                // KABU TODO: MAGIC strings
                 var attr = node.Attributes.FirstOrDefault(a =>
                     a.Name == TemplateAttr.Property ||
-                    // KABU TODO: IMPORTANT: Change occurences of "data-placeholder" to "data-property".
-                    a.Name == TemplateAttr.Placeholder ||
                     a.Name == TemplateAttr.Foreach ||
                     a.Name == TemplateAttr.If);
 

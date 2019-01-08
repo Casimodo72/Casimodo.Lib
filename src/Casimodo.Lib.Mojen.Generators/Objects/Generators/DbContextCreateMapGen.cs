@@ -30,11 +30,7 @@ namespace Casimodo.Lib.Mojen
         {
             var types = App.AllConcreteEntities.ToArray();
 
-            OUsing(
-                "System",
-                "System.Collections.Generic",
-                "System.Data.Entity",
-                "System.Linq");
+            OUsing("System", "System.Collections.Generic", "System.Linq");
 
             ONamespace(DataConfig.DataNamespace);
 
