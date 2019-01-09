@@ -286,9 +286,9 @@ namespace Casimodo.Lib.Templates
                 // Remove the whole area if:
                 // 1) Area was configured to be removed
                 // 2) Area was configured to be removed when there is no value
-                if (prop.Value.ToLower() == "false")
+                if (prop.Value.ToLowerInvariant() == "false")
                     context.Processor.EnableArea(false);
-                else if (prop.Value.ToLower() == "value")
+                else if (prop.Value.ToLowerInvariant() == "value")
                 {
                     string areaContentPropName = prop.Name.RemoveRight(".Area");
                     var areaContentProp = ExternalPropertiesContainer.Items.FirstOrDefault(x => x.Name == areaContentPropName);

@@ -50,7 +50,7 @@ namespace Casimodo.Lib
                     if ((upper && char.IsUpper(ch)) || (!upper && char.IsLower(ch)))
                         return text;
 
-                    return text.Substring(0, i) + (upper ? char.ToUpper(ch) : char.ToLower(ch)) + text.Substring(i + 1);
+                    return text.Substring(0, i) + (upper ? char.ToUpperInvariant(ch) : char.ToLowerInvariant(ch)) + text.Substring(i + 1);
                 }
             }
 

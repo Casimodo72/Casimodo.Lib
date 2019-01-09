@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
@@ -8,17 +9,14 @@ namespace Casimodo.Lib.Data
 
         object GetFileInfo(Guid guid, bool required = true);
 
-        byte[] ReadData(Guid guid);
+        Task<byte[]> ReadDataAsync(Guid guid);
 
-        byte[] ReadDataAndRemove(Guid guid);
+        Task<byte[]> ReadDataAndRemoveAsync(Guid guid);
 
         string GetValidUploadRootDirPath();
 
         void Add(Guid userId, IDbFileInfo item, string storeFilePath);
 
         bool Remove(Guid fileId);
-
-        // KABU TODO: REMOVE? Not used. This was intended to be called only by the KendoUpload widget.
-        //void Remove(string userId, string kind, string[] fileNames);
     }
 }

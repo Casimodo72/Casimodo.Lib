@@ -112,7 +112,7 @@ namespace Casimodo.Lib.SimpleParser
 
         bool CheckExpected(char ch, bool caseSensitive = true)
         {
-            return !IsEnd && ((caseSensitive && ch == Cur) || (!caseSensitive && char.ToLower(ch) == char.ToLower(Cur)));
+            return !IsEnd && ((caseSensitive && ch == Cur) || (!caseSensitive && char.ToLowerInvariant(ch) == char.ToLowerInvariant(Cur)));
         }
 
         public bool Skip(string text, bool caseSensitive = true)
@@ -133,7 +133,7 @@ namespace Casimodo.Lib.SimpleParser
             if (current == null)
                 return false;
 
-            return !IsEnd && ((caseSensitive && text == current) || (!caseSensitive && current.ToLower() == text.ToLower()));
+            return !IsEnd && ((caseSensitive && text == current) || (!caseSensitive && current.ToLowerInvariant() == text.ToLowerInvariant()));
         }
 
 

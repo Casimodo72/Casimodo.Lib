@@ -64,7 +64,6 @@ namespace Casimodo.Lib.Data
             }
         }
 
-
         public async Task PerformTransactionAsync(Func<DbTransactionContext, Task> action)
         {
             using (var trans = Database.BeginTransaction())
@@ -78,13 +77,13 @@ namespace Casimodo.Lib.Data
                 catch (Exception ex)
                 {
                     trans.Rollback();
-                    throw;
+                    throw ex;
                 }
             }
         }
 
         /// <summary>
-        /// KABU TODO: IMPORTANT: REVISIT: EF Core conventions not ready yet?
+        /// TODO: IMPORTANT: REVISIT: EF Core conventions not ready yet?
         ///     See https://github.com/aspnet/EntityFrameworkCore/issues/13954
         /// </summary>
         protected void OnModelCreatingApplyDecimalPrecision(ModelBuilder builder)

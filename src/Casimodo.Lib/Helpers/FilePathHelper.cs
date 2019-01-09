@@ -48,7 +48,7 @@ namespace Casimodo.Lib
             if (string.IsNullOrWhiteSpace(ext))
                 return defaultValue;
 
-            ext = ext.ToLower();
+            ext = ext.ToLowerInvariant();
 
             if (ext.StartsWith("."))
                 return ext.Substring(1);
