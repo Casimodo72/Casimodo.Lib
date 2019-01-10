@@ -219,7 +219,7 @@ namespace Casimodo.Lib.Mojen
             O("_db.ReferenceLoading(false);");
             O();
 
-            O("await OnCreatingExtended?.Invoke(model);");
+            O("if (OnCreatingExtended != null) await OnCreatingExtended(model);");
 
             // KABU TODO: IMPORTANT: MOVE to repository core layer.
             // Apply DB sequences.
@@ -398,7 +398,7 @@ namespace Casimodo.Lib.Mojen
             // Update the item.
             O($"var item = _db.Update({key.VName}, model, mask);");
 
-            O("await OnUpdatedExtended?.Invoke(item, group);");
+            O("if (OnUpdatedExtended != null) await OnUpdatedExtended(item, group);");
 
             // Save to DB
             O($"{GetDbContextSaveChangesExpression("_db")};");
