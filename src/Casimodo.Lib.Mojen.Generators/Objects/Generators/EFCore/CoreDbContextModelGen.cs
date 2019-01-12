@@ -158,7 +158,10 @@ namespace Casimodo.Lib.Mojen
                                 O($".WithOne()");
 
                             if (prop.Reference.ForeignKey != null)
+                            {                               
                                 O($".HasForeignKey<{type.Name}>(x => x.{prop.Reference.ForeignKey.Name})");
+                                O($".IsRequired({Moj.CS(prop.Reference.ForeignKey.Rules.IsRequired)})");
+                            }
                         }
                         else
                         {
