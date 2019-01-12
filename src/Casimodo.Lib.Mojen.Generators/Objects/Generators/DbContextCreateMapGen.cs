@@ -31,13 +31,16 @@ namespace Casimodo.Lib.Mojen
             var types = App.AllConcreteEntities.ToArray();
 
             OUsing("System", "System.Collections.Generic", "System.Linq");
+            O($"using source = {DataConfig.DataNamespace};");
+            O($"using dest = {DataConfig.DataNamespace};");
+            O();
 
             ONamespace(DataConfig.DataNamespace);
 
             O($"public partial class {DataConfig.DbContextName}");
             Begin();
 
-            O($"static void CreateMap()");
+            O($"static void CreateMap(Action<AutoMapper.IMapperConfigurationExpression> build)");
             Begin();
 
             // NOTE: We're using AutoMapper 4.2.1.
@@ -46,7 +49,7 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var type in types)
             {
-                Oo("c.CreateMap<{0}, {0}>()", type.ClassName);
+                Oo("c.CreateMap<source.{0}, dest.{0}>()", type.ClassName);
                 // Ignore nagivation properties.
                 foreach (var naviProp in type.GetProps()
                     // Exclude hidden collection props.
@@ -56,10 +59,12 @@ namespace Casimodo.Lib.Mojen
                         !x.Reference.Binding.HasFlag(MojReferenceBinding.Nested)))
                 {
                     Br();
-                    Oo($"    .ForMember(s => s.{naviProp.Name}, o => o.Ignore())");
+                    Oo($"    .ForMember(d => d.{naviProp.Name}, o => o.Ignore())");
                 }
                 oO(";");
             }
+
+            O(@"build?.Invoke(c);");
 
             End(");");
 
