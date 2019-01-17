@@ -213,7 +213,7 @@ namespace kmodo {
             if (!this.args.projectSegmentId)
                 return;
 
-            var url = "/odata/Projects/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
+            var url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
             url += "&$filter=";
             url += " Id eq " + this.args.projectSegmentId;
 
@@ -237,7 +237,7 @@ namespace kmodo {
 
             var address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
 
-            var psegmentLinkHtml = this._formatEntityLink("Project", psegment.Id, this._formatTextStrong(address));
+            var psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
 
             this.addMarker({
                 position: {
@@ -401,7 +401,7 @@ namespace kmodo {
 
                 var apiArgs = {
                     ContractId: self.args.contractId,
-                    ProjectSeriesId: self.args.projectId,
+                    ProjectId: self.args.projectId,
                     ProjectSegmentId: self.args.projectSegmentId,
                     VicinityPlaces: apiPlaces
                 };

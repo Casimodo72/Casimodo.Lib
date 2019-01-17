@@ -1,6 +1,4 @@
-﻿/// <reference path="EditableDataSourceViewComponent.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     // KABU TODO: kendo.ui.Editable is missing.
     interface KendoUIEditableOptions {

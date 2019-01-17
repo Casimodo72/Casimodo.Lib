@@ -22,11 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Data.Core\Casimodo.Lib.Data.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Moj\" />
     <Folder Include="Models\" />
   </ItemGroup>

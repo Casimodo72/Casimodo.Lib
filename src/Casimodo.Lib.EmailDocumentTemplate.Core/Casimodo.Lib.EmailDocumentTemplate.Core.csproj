@@ -30,8 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.CSharp.Core\Casimodo.Lib.CSharp.Core.csproj" />
     <ProjectReference Include="..\Casimodo.Lib.SimpleStringParser.Core\Casimodo.Lib.SimpleStringParser.Core.csproj" />
   </ItemGroup>
 

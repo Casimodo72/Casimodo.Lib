@@ -625,7 +625,7 @@ namespace kmodo {
 
         constructor(options: MoFileUploadOptions) {
             this.options = options;
-            this._baseUrl = "api/UploadFileToFolder/";
+            this._baseUrl = "api/FileUpload/UploadFileToFolder/";
             this._uploadMode = UPLOAD_MODE_DEFAULT;
             this._scope = kendo.observable({
                 isEmailCreateFolderEnabled: false,
@@ -700,6 +700,8 @@ namespace kmodo {
                     "&isEmailBodyExtractionEnabled=" + this._scope.isEmailBodyExtractionEnabled +
                     "&isEmailAttachmentExtractionEnabled=" + this._scope.isEmailAttachmentExtractionEnabled;
             }
+
+            kmodo.useHeaderRequestVerificationToken(e.XMLHttpRequest);           
         }
 
         trySelectFolder(e): MoFolderTreeEntity {
@@ -1376,7 +1378,7 @@ namespace kmodo {
 
             this._treeView.setFileCollectionViewModel(this._filesView);
 
-            // Combobox for selection of Mo file system owner (i.e. either ProjectSeries, ProjectSegment or Contract).
+            // Combobox for selection of Mo file system owner (i.e. either Project, ProjectSegment or Contract).
             // NOTE: This has to be initialized after the source files view models have been created
             // because is will immediately call "setOwner" on those view models.
             this.owners = kendo.observable({

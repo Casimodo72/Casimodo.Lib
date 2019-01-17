@@ -50,7 +50,7 @@
         IsContainer: boolean;
     }
 
-    interface ViewModel extends ViewComponentModel {
+    interface ViewModel extends kmodo.ViewComponentModel {
         values: TextItem[];
         containers: TextItemContainer[];
         deleteAllValues: Function;
@@ -61,15 +61,15 @@
         typeId: string;
     }
 
-    interface ViewArgs extends ViewComponentArgs {
+    interface ViewArgs extends kmodo.ViewComponentArgs {
         params: ViewArgsParams;
     }
 
-    export class TextSnippetsEditor extends ViewComponent {
+    export class TextSnippetsEditor extends kmodo.ViewComponent {
         private _dialogWindow: kendo.ui.Window;
         protected args: ViewArgs;
 
-        constructor(options: ViewComponentOptions) {
+        constructor(options: kmodo.ViewComponentOptions) {
             super(options);
 
             var self = this;
@@ -269,9 +269,11 @@
 
         private getAllSnippetStrings(): string[] {
             var list: string[] = [];
-            for (let container of this.getModel().containers)
-                for (let item of container.items)
-                    list.push(item.value);
+            // NOTE: kendo.data.ObservableArray is *not* iterable. We can't use a for..of loop.
+            this.getModel().containers.forEach(container =>
+                container.items.forEach(item =>
+                    list.push(item.value))
+            );
 
             return list;
         }
@@ -283,7 +285,7 @@
         refresh(): Promise<void> {
             let self = this;
 
-            let url = "/odata/TextItems/Ga.Query()?$select=Id,Value1,IsContainer,ContainerId&$orderby=Index";
+            let url = "/odata/TextItems/Query()?$select=Id,Value1,IsContainer,ContainerId&$orderby=Index";
             url += "&$filter=TypeId+eq+" + this.args.params.typeId;
 
             let ds = new kendo.data.DataSource({

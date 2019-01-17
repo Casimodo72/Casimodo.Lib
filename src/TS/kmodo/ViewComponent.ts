@@ -1,6 +1,4 @@
-﻿/// <reference path="../cmodo/ViewComponent.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export type KendoTemplate = (data: any) => string;
 

@@ -1,8 +1,4 @@
-﻿/// <reference path="../cmodo/ComponentRegistry.ts" />
-/// <reference path="../cmodo/Navigation.ts" />
-/// <reference path="Window.ts" />
-
-namespace kmodo {   
+﻿namespace kmodo {   
 
     export function navigate(part: string, itemId: string) {
         _openCore(cmodo.componentRegistry.items.find(x => x.part === part && x.role === "Page"), { itemId: itemId });

@@ -65,7 +65,7 @@
             if (!location.projectSegmentId)
                 return;
 
-            var url = "/odata/Projects/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
+            var url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
             url += "&$filter=";
             url += " Id eq " + location.projectSegmentId;
 
@@ -83,7 +83,7 @@
 
             var address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
 
-            var psegmentLinkHtml = this._formatEntityLink("Project", psegment.Id, this._formatTextStrong(address));
+            var psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
 
             this.addMarker({
                 position: {

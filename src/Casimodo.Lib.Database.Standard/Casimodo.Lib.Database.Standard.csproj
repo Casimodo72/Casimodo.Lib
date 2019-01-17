@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Casimodo.Lib.Database.Core\CustomDbContext.cs" Link="CustomDbContext.cs" />
+    <Compile Include="..\Casimodo.Lib.Database.Core\DbRepoOperationContext.cs" Link="DbRepoOperationContext.cs" />
+    <Compile Include="..\Casimodo.Lib.Database.Core\DbRepository.cs" Link="DbRepository.cs" />
+    <Compile Include="..\Casimodo.Lib.Database.Core\DbRepositoryCore.cs" Link="DbRepositoryCore.cs" />
+    <Compile Include="..\Casimodo.Lib.Database.Core\DbSeedBase.cs" Link="DbSeedBase.cs" />
+    <Compile Include="..\Casimodo.Lib.Database.Core\Helpers\DbContextExtensions.cs" Link="Helpers\DbContextExtensions.cs" />
+    <Compile Include="..\Casimodo.Lib.Database.Core\ModelDbRepository.cs" Link="ModelDbRepository.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\DbRepositoryException.cs" Link="DbRepositoryException.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\Helpers\CommonDataNames.cs" Link="Helpers\CommonDataNames.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\ICurrentTenantProvider.cs" Link="ICurrentTenantProvider.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\IDbFileInfo.cs" Link="IDbFileInfo.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\IODataDynamicPropertiesAccessor.cs" Link="IODataDynamicPropertiesAccessor.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\IUploadedFileProvider.cs" Link="IUploadedFileProvider.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\Moj\MojDataGraphMask.cs" Link="Moj\MojDataGraphMask.cs" />
+    <Compile Include="..\Casimodo.Lib.Database\PrecisionAttribute.cs" Link="Models\PrecisionAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.Standard.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.Standard.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Helpers\" />
+    <Folder Include="Models\" />
+    <Folder Include="Moj\" />
+  </ItemGroup>
+
+</Project>

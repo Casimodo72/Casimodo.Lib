@@ -199,6 +199,9 @@ namespace kmodo {
                 saveUrl: url,
                 autoUpload: true
             },
+            upload: function (e) {
+                kmodo.useHeaderRequestVerificationToken(e.XMLHttpRequest); 
+            },
             success: function (e) {
                 // Hide the irritating warning icon.
                 //$upload.find(".k-icon.k-warning").hide();

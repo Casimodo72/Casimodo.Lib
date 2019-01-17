@@ -11,8 +11,4 @@
     <Compile Include="..\Casimodo.Lib.Parsing\SimpleStringTokenParser.cs" Link="SimpleStringTokenParser.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
-  </ItemGroup>
-
 </Project>

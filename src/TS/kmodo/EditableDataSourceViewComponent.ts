@@ -1,8 +1,4 @@
-﻿/// <reference path="Dialog.ts" />
-/// <reference path="DataSourceViewComponent.ts" />
-/// <reference path="Data.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     interface EditStates {
         mode: string;

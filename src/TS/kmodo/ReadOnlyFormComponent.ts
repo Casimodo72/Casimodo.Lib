@@ -1,6 +1,4 @@
-﻿/// <reference path="DataSourceViewComponent.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export interface FormReadOnlyFormOptions extends DataSourceViewOptions {
         editor?: EditorInfo;

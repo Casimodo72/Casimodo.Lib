@@ -1,9 +1,4 @@
-﻿/// <reference path="EventManager.ts" />
-
-//import * as $ from 'jquery';
-//import 'kendo-ui';
-//import { EventManager } from "./eventManager.js";
-
+﻿
 // Performance: https://www.contentful.com/blog/2017/04/04/es6-modules-support-lands-in-browsers-is-it-time-to-rethink-bundling/
 // Multi files per module: https://github.com/Microsoft/TypeScript/issues/17
 namespace cmodo {

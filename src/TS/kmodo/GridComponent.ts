@@ -1,10 +1,4 @@
-﻿/// <reference path="TemplateRegistry.ts" />
-/// <reference path="Misc.ts" />
-
-/// <reference path="../cmodo/Navigation.ts" />
-/// <reference path="DataSourceViewComponent.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
     // kendo.ui.Grid:    https://docs.telerik.com/kendo-ui/api/javascript/ui/grid
     // kendo.DataSource: https://docs.telerik.com/kendo-ui/api/javascript/data/datasource
 

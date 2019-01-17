@@ -1,8 +1,4 @@
-﻿/// <reference path="ViewComponent.ts" />
-/// <reference path="../cmodo/ComponentRegistry.ts" />
-/// <reference path="../cmodo/Data.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export function progress(isbusy: boolean, $el?: JQuery) {
         if (!$el || !$el.length)

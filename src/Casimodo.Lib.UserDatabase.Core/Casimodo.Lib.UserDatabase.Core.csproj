@@ -30,10 +30,4 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="2.2.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Data.Core\Casimodo.Lib.Data.Core.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Database.Core\Casimodo.Lib.Database.Core.csproj" />
-  </ItemGroup>
-
 </Project>

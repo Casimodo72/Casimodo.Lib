@@ -60,7 +60,7 @@ namespace Casimodo.Lib.Templates
         }
 
         public T Prop<T>(string name)
-            
+
         {
             var prop = GetPropAccessor(name);
 
@@ -179,7 +179,7 @@ namespace Casimodo.Lib.Templates
                     $"return type '{typeof(TTargetType).Name}' is a simple type.");
 
             names = names ?? "";
-            foreach (var name in names.Split(",").Select(x => x.Trim()))
+            foreach (var name in names.Split(',').Select(x => x.Trim()))
             {
                 CheckName(name);
 

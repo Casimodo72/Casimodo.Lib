@@ -61,7 +61,7 @@
             this.fileExplorer.clearAllOwnerValues();
             if (companyId) {
                 if (projectId)
-                    this.fileExplorer.setOwnerValues("ProjectSeries", { Id: projectId, Name: "Projekt (alle Segmente)", CompanyId: companyId });
+                    this.fileExplorer.setOwnerValues("Project", { Id: projectId, Name: "Projekt (alle Segmente)", CompanyId: companyId });
                 if (projectSegmentId)
                     this.fileExplorer.setOwnerValues("ProjectSegment", { Id: projectSegmentId, Name: "Projekt-Segment", CompanyId: companyId });
                 if (contractId)
@@ -137,8 +137,8 @@
 
                     items.push({
                         Name: "Projekt (für alle Segmente)",
-                        Kind: "ProjectSeries",
-                        TypeId: cmodo.entityMappingService.getTypeKey("ProjectSeries"),
+                        Kind: "Project",
+                        TypeId: cmodo.entityMappingService.getTypeKey("Project"),
                         Id: null
                     });
 

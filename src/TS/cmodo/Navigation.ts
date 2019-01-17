@@ -1,5 +1,4 @@
-﻿/// <reference path="ComponentBase.ts" />
-
+﻿
 namespace cmodo {
     export class DialogArgs {
 

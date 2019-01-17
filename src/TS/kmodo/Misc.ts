@@ -1,6 +1,4 @@
-﻿/// <reference path="DataSource.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export interface CompanySelectorOptions {
         changed?: (companyId: string) => void,
@@ -132,6 +130,19 @@ namespace kmodo {
         }
 
         return menu.element.find(query);
+    }
+
+    export function useHeaderRequestVerificationToken(xhr: XMLHttpRequest): void {
+        if (xhr) {
+            let requestVerficatonToken = $(':input[name="__RequestVerificationToken"]').first().val();
+            if (requestVerficatonToken) {
+                xhr.addEventListener("readystatechange", function (e) {
+                    if (xhr.readyState == 1 /* OPENED */) {
+                        xhr.setRequestHeader("RequestVerificationToken", requestVerficatonToken);
+                    }
+                });
+            }
+        }
     }
 
     export function onServerErrorOData(args: any): string {

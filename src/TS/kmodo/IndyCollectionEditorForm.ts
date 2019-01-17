@@ -1,6 +1,4 @@
-﻿/// <reference path="../cmodo/Transport.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export interface IndyCollectionEditorFormOptions extends ViewComponentOptions {
         title?: string;

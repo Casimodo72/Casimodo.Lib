@@ -1,6 +1,4 @@
-﻿/// <reference path="Utils.ts" />
-
-namespace cmodo {
+﻿namespace cmodo {
 
     export class ComponentRegItem {
         public registry: ComponentRegistry;

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Casimodo.Lib.Parsing\ParserException.cs" Link="ParserException.cs" />
+    <Compile Include="..\Casimodo.Lib.Parsing\SimpleParserBase.cs" Link="SimpleParserBase.cs" />
+    <Compile Include="..\Casimodo.Lib.Parsing\SimpleStringParser.cs" Link="SimpleStringParser.cs" />
+    <Compile Include="..\Casimodo.Lib.Parsing\SimpleStringTokenParser.cs" Link="SimpleStringTokenParser.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.Standard.csproj" />
+  </ItemGroup>
+
+</Project>

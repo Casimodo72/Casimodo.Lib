@@ -1,6 +1,4 @@
-﻿/// <reference path="../cmodo/ComponentBase.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export interface EmailAttachmentsViewOptions {
         $area: JQuery;
@@ -36,7 +34,7 @@ namespace kmodo {
             // options.areFileSelectorsVisible (default: false)
             // options.isRecycleBinEnabled (default: true)
 
-            this.currentOwnerKind = "ProjectSeries";
+            this.currentOwnerKind = "Project";
 
             this._attachmentsDataSource = new kendo.data.DataSource({
                 data: [],

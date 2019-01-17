@@ -1,7 +1,4 @@
-﻿/// <reference path="../cmodo/Transport.ts" />
-/// <reference path="DataSource.ts" />
-
-namespace kmodo {
+﻿namespace kmodo {
 
     export function odataQueryFirstOrDefault(url: string, parameter): Promise<any> {
 
