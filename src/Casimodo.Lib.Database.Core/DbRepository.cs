@@ -300,7 +300,10 @@ namespace Casimodo.Lib.Data
 
         public IQueryable<TEntity> LocalAndQuery(bool includeDeleted, Expression<Func<TEntity, bool>> predicate)
         {
-            // KABU TODO: Not tenant safe.
+            // TODO: EF Core's Local is slow because it is a view over the state manager.
+            //   See https://github.com/aspnet/EntityFrameworkCore/issues/14231
+            //   Do we want to use ToObservableCollection here?
+            // TODO: Not tenant safe.
             var localItems = FilterByIsDeleted(includeDeleted, EntitySet.Local.AsQueryable().Where(predicate));
 
             if (!localItems.Any())
@@ -309,7 +312,8 @@ namespace Casimodo.Lib.Data
             var keys = localItems.Select(x => GetKey(x)).ToArray();
 
             // Return local items + queried items from db.
-            // KABU TODO: VERY IMPORTANT: This could return duplicates.
+            // TODO: VERY IMPORTANT: This could return duplicates.
+            //   TODO: Is this still an issue? We exclude the local items, don't we?
             return localItems.ToArray().Concat(
                 Query(includeDeleted)
                     .Where(predicate)

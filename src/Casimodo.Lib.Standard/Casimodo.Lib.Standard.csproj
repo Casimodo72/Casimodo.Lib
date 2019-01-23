@@ -29,6 +29,7 @@
     <Compile Include="..\Casimodo.Lib\Helpers\StringExtensions.cs" Link="Helpers\StringExtensions.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\TypeHelper.cs" Link="Helpers\TypeHelper.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\XmlLinqExtensions.cs" Link="Helpers\XmlLinqExtensions.cs" />
+    <Compile Include="..\Casimodo.Lib\Profiling\SimpleStopwatch.cs" Link="Helpers\SimpleStopwatch.cs" />
   </ItemGroup>
 
   <ItemGroup>

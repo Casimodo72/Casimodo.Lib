@@ -25,6 +25,8 @@ namespace Casimodo.Lib.Mojen
         public EntityGen()
         {
             Scope = "Context";
+            Lang = "C#";
+            ;
         }
 
         protected override void GenerateCore()
@@ -132,6 +134,7 @@ namespace Casimodo.Lib.Mojen
             GenerateNamedAssignFromMethods(type);
 
             End();
+
             End();
         }
     }

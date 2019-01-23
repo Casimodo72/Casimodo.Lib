@@ -131,8 +131,40 @@ namespace Casimodo.Lib.Mojen
 
             GenerateNamedAssignFromMethods(type);
 
+            // GenSelfAssign(type);
+
             End();
             End();
+        }
+
+        void GenSelfAssign(MojType type)
+        {
+            OB($"public static void AssignSimpleProps({type.Name} source, {type.Name} target)");
+
+            var props = type.GetProps().ToList();
+            MojProp prop;
+            for (int i = 0; i < props.Count; i++)
+            {
+                prop = props[i];
+                if (prop.Type.IsMojType)
+                    continue;
+
+                var ptype = prop.Type.TypeNormalized;
+
+                if (prop.Type.IsCollection || !IsSimpleType(ptype))
+                    continue;
+
+                O($"target.{prop.Name} = source.{prop.Name};");
+            }
+
+            End();
+        }
+
+        bool IsSimpleType(Type type)
+        {
+            return type == typeof(string) ||
+                (type.FullName.StartsWith("System") &&
+                !typeof(System.Collections.IEnumerable).IsAssignableFrom(type));
         }
     }
 }

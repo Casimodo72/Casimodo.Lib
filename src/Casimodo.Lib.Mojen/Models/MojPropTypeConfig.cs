@@ -138,6 +138,11 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojType TypeConfig { get; set; }
 
+        public bool IsMojType
+        {
+            get { return TypeConfig != null; }
+        }
+
         public object GetPrimitiveDefaultValue()
         {
             if (Type == null)
