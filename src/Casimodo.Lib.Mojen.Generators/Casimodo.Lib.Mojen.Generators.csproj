@@ -158,6 +158,7 @@
     <Compile Include="App\Generators\Models\AutoMapperGen.cs" />
     <Compile Include="App\Generators\OData\WebApiAuthConfigGen.cs" />
     <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\HardCodedKendoTagsIndyListEditorViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoIndyListEditorViewGen.cs" />
     <Compile Include="App\Generators\Views\Kendo\KendoDataSourceMex.cs" />
     <Compile Include="App\Generators\Mex\MexGeneratorBase.cs" />

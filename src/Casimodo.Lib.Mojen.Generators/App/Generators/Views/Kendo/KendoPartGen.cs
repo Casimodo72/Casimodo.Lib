@@ -435,7 +435,7 @@ namespace Casimodo.Lib.Mojen
                     x != view &&
                     x.Controller == controller &&
                     x.Group == "Tags" &&
-                    x.Uses<HardCodedKendoTagsEditorViewGen>())
+                    x.Uses<HardCodedKendoTagsIndyListEditorViewGen>())
                 .SingleOrDefault();
         }
     }

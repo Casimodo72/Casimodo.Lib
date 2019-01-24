@@ -3,18 +3,7 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public interface IMvcActionInjector
-    {
-        bool GenerateMvcActionFor(WebPartGenerator g, MojViewConfig view);
-    }
-
-    public interface IWebApiODataActionInjector
-    {
-        bool GenerateWebApiODataActionConfigFor(WebPartGenerator g, MojType type);
-        bool GenerateWebApiODataActionFor(WebPartGenerator g, MojType type);
-    }
-
-    public partial class HardCodedKendoTagsEditorViewGen : KendoViewGenBase, IWebApiODataActionInjector
+    public partial class HardCodedKendoTagsIndyListEditorViewGen : KendoViewGenBase, IWebApiODataActionInjector
     {
         bool IWebApiODataActionInjector.GenerateWebApiODataActionConfigFor(WebPartGenerator g, MojType type)
         {
@@ -35,55 +24,29 @@ namespace Casimodo.Lib.Mojen
             if (!EvalTagEditorViews(type))
                 return false;
 
-            var toTagsCollectionProp = type.GetProps()
-                .First(x =>
-                    x.IsNavigation &&
-                    x.Type.IsCollection &&
-                    x.Navigation.Reference.ToType.GetProps().Any(y =>
-                        y.IsNavigation &&
-                        !y.Type.IsCollection &&
-                        y.Navigation.Reference.ToType.Name == "MoTag"));
-
-            var linkType = toTagsCollectionProp.Navigation.Reference.ToType;
-            var linkForeignKeyToOwner = toTagsCollectionProp.Reference.ForeignBackrefProp.ForeignKey;
-            // Just select the other foreign key on the link type (there are always only to foreign keys).
-            var linkForeignKeyToItem = linkType.GetProps().First(x => x.IsForeignKey && x != linkForeignKeyToOwner);
-            var linkNavigationToItem = linkForeignKeyToItem.Navigation;
-
             var ownerTypeName = type.Name;
-            var linkTypeName = linkType.Name;
-            var itemTypeName = linkForeignKeyToItem.Reference.ToType.Name;
+            var itemTypeName = "MoTag";
 
             g.O();
             g.O("[HttpPost]");
-            g.O("public async Task<IActionResult> UpdateTags(ODataActionParameters parameters)");
+            g.O("public IHttpActionResult UpdateTags(ODataActionParameters parameters)");
             g.Begin();
-            g.O("_db.Context.ChangeTracker.AutoDetectChangesEnabled = false;");
+            g.O("_db.Context.Configuration.LazyLoadingEnabled = false;");
+            g.O("_db.Context.Configuration.AutoDetectChangesEnabled = false;");
             g.O();
-            g.O($"if (this.UpdateUnidirM2MCollection<{ownerTypeName}, {linkTypeName}, {itemTypeName}>(parameters,");
+            g.O("if (this.UpdateIndependentCollection<{0}, {1}>(_db.Context, parameters, nameof({0}.Tags),",
+                ownerTypeName, itemTypeName);
             g.Push();
-
-            g.O($"new UnidirM2MCollectionOperationOptions<{ownerTypeName}, {itemTypeName}>");
-            g.Begin();
-
-            g.O("Db = _db.Context,");
-            g.O($@"PropPath = $""{{nameof({ownerTypeName}.{toTagsCollectionProp.Name})}}.{{nameof({linkTypeName}.{linkNavigationToItem.Name})}}"",");
-            g.O($@"ForeignKeyToOwner = ""{linkForeignKeyToOwner.Name}"",");
-            g.O($@"ForeignKeyToItem = ""{linkForeignKeyToItem.Name}"",");
-
-            g.O("ValidateItem = (controller, owner, item) =>");
+            g.O("validateItem: (controller, owner, item) =>");
             g.Begin();
             g.O("if (item.AssignableToTypeId != TypeIdentityHelper.GetTypeGuid(typeof({0})))",
                 ownerTypeName);
             g.O("    controller.ThrowBadRequest(\"The {0} is not assignable to this object.\");",
                 itemTypeName);
-            g.End();
-
             g.End("))");
-
             g.Pop();
             g.Begin();
-            g.O("await _db.SaveChangesAsync();");
+            g.O("_db.SaveChanges();");
             g.End();
             g.O();
             g.O("return Ok(1);");
@@ -114,8 +77,9 @@ namespace Casimodo.Lib.Mojen
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this)))
             {
-                var name = view.TypeConfig.Name + ".Tags.unidirM2MList.editor.vm.generated";
+                var name = view.TypeConfig.Name + ".Tags.indylist.editor.vm.generated";
                 ScriptFilePath = BuildTsScriptFilePath(view, name);
+                //ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, name);
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
@@ -127,12 +91,23 @@ namespace Casimodo.Lib.Mojen
 
                 TransportConfig = this.CreateODataTransport(view);
 
+                //PerformWrite(view, () => GenerateView(context));
+
                 PerformWrite(ScriptFilePath, () =>
                 {
                     OScriptUseStrict();
 
                     GenerateViewModel(context);
                 });
+
+                //var dataViewModelGen = new WebDataEditViewModelGen();
+                //dataViewModelGen.Initialize(App);
+
+                //dataViewModelGen.PerformWrite(Path.Combine(GetViewDirPath(view), BuildEditorDataModelFileName(view)), () =>
+                //{
+                //    dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group,
+                //        isDateTimeOffsetSupported: false);
+                //});
 
                 RegisterComponent(context);
             }
@@ -153,7 +128,7 @@ namespace Casimodo.Lib.Mojen
             {
                 KendoGen.OBeginComponentViewModelFactory(context);
                 O();
-                OB("return new kmodo.UnidirM2MCollectionEditorForm(");
+                OB("return new kmodo.IndyCollectionEditorForm(");
 
                 // TODO: LOCALIZE
                 var title = context.View.TypeConfig.DisplayName + " Markierungen";
@@ -162,16 +137,17 @@ namespace Casimodo.Lib.Mojen
                     {
                         // Hard-coded ID of the view's root HTML element.
                         // This ID does not change because we reusing a single piece of HTML for all Tags Editors.
-                        O(@"viewId: 'f5fcba1a-44cc-4d30-ad78-640007a4b5a1',");
+                        O(@"viewId: '844ed81d-dbbb-4278-abf4-2947f11fa4d3',");
 
                         // The hard-coded ID of the MoTag grid/list view component.
                         O(@"sourceListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
                         O(@"targetListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
 
                         // Hard-coded Mo
-                        O($@"targetContainerQuery: '{TransportConfig.ODataBaseUrl}/Query()?$select=Id&$expand=ToTags($select=Id;$expand=Tag($select=Id,DisplayName))',");
+                        O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand=Tags($select=Id,DisplayName)',",
+                                TransportConfig.ODataBaseUrl);
 
-                        O(@"targetContainerListField: 'ToTags.Tag',");
+                        O(@"targetContainerListField: 'Tags',");
                         O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
                         O(@"saveMethod: 'UpdateTags',");
                     });
