@@ -16,11 +16,6 @@ namespace Casimodo.Lib.Mojen
 
     public partial class HardCodedKendoTagsEditorViewGen : KendoViewGenBase, IWebApiODataActionInjector
     {
-        public HardCodedKendoTagsEditorViewGen()
-        {
-            Lang = "C#";
-        }
-
         bool IWebApiODataActionInjector.GenerateWebApiODataActionConfigFor(WebPartGenerator g, MojType type)
         {
             if (!EvalTagEditorViews(type))
@@ -58,6 +53,8 @@ namespace Casimodo.Lib.Mojen
             var ownerTypeName = type.Name;
             var linkTypeName = linkType.Name;
             var itemTypeName = linkForeignKeyToItem.Reference.ToType.Name;
+
+            Lang = "C#";
 
             g.O();
             g.O("[HttpPost]");
@@ -108,6 +105,8 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
+            Lang = null;
+
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
                 .Where(x => x.Uses(this)))
             {
