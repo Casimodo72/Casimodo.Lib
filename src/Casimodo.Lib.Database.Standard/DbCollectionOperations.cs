@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNet.OData;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace Casimodo.Lib.Web
+namespace Casimodo.Lib.Data
 {
     public class UnidirM2MCollectionOperationOptions<TOwner, TItem>
     {
@@ -14,10 +14,11 @@ namespace Casimodo.Lib.Web
         public string PropPath { get; set; }
         public string ForeignKeyToOwner { get; set; }
         public string ForeignKeyToItem { get; set; }
-        public Action<ODataControllerBase, TOwner, TItem> ValidateItem { get; set; }
+        public Action<TOwner, TItem> ValidateItem { get; set; }
+        public bool IsAutoSaveEnabled { get; set; }
     }
 
-    public static class ODataControllerExtensions
+    public static class DbCollectionOperations
     {
         private class Entry<TLink, TItem>
         {
@@ -25,19 +26,17 @@ namespace Casimodo.Lib.Web
             public TItem Item { get; set; }
         }
 
-
-
         private class UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>
             where TOwner : class, IIdGetter
             where TLink : class, IIdGetter, IGuidGenerateable, new()
             where TItem : class, IIdGetter
         {
+            public DbContext Db { get; set; }
             public Guid[] ItemIds;
             public TOwner Owner;
             public Guid OwnerId;
-            public DbSet<TOwner> OwnerSet;
+            public DbSet<TOwner> OwnerDbSet;
             public DbSet<TItem> ItemDbSet;
-            public ICollection<TLink> LinkDbCollection;
             public List<Entry<TLink, TItem>> Entries = new List<Entry<TLink, TItem>>();
             public bool IsChanged;
             //public System.Data.Entity.Core.Objects.ObjectStateManager StateManager;
@@ -46,8 +45,7 @@ namespace Casimodo.Lib.Web
             public string ItemPropName;
             public string ForeignKeyToItemPropName;
             public string ForeignKeyToOwnerPropName;
-            public Action<ODataControllerBase, TOwner, TItem> ValidateItem;
-            public ODataControllerBase ODataController;
+            public Action<TOwner, TItem> ValidateItem;
 
             public void AddItems()
             {
@@ -63,9 +61,9 @@ namespace Casimodo.Lib.Web
                     // Load collection item entity.
                     var item = ItemDbSet.Find(itemId);
                     if (item == null)
-                        ODataController.ThrowNotFound($"Collection item not found (type: {typeof(TItem).Name}, ID: {itemId}).");
+                        throw new EntityNotFoundException($"Collection item not found (type: {typeof(TItem).Name}, ID: {itemId}).");
 
-                    ValidateItem?.Invoke(ODataController, Owner, item);
+                    ValidateItem?.Invoke(Owner, item);
 
                     // Add link between owner and collection item.
                     var link = new TLink();
@@ -74,8 +72,9 @@ namespace Casimodo.Lib.Web
                     typeof(TLink).GetProperty(ForeignKeyToOwnerPropName).SetValue(link, OwnerId);
                     // Set foreign key on link to collection item entity.
                     typeof(TLink).GetProperty(ForeignKeyToItemPropName).SetValue(link, itemId);
-                    // NOTE: Effectively we are adding to a DbSet here.
-                    LinkDbCollection.Add(link);
+                    // Add to DB.
+                    Db.Add(link);
+                    // TODO: REMOVE: LinkDbCollection.Add(link);
                     // Also add to entries in order to ignore duplicates.
                     Entries.Add(new Entry<TLink, TItem>
                     {
@@ -97,8 +96,9 @@ namespace Casimodo.Lib.Web
 
                     IsChanged = true;
 
-                    // Remove link. NOTE: Effectively we are removing from a DbSet here.
-                    LinkDbCollection.Remove(entry.Link);
+                    // Remove link.
+                    Db.Remove(entry.Link);
+                    // TODO: REMOVE: LinkDbCollection.Remove(entry.Link);
                     Entries.Remove(entry);
                     // TODO: REMOVE: StateManager.ChangeRelationshipState(Owner, item, CollectionPropName, EntityState.Deleted);
                 }
@@ -117,30 +117,44 @@ namespace Casimodo.Lib.Web
 
                     IsChanged = true;
 
-                    // Remove link. NOTE: Effectively we are removing from a DbSet here.
-                    LinkDbCollection.Remove(entry.Link);
+                    // Remove link.
+                    Db.Remove(entry.Link);
+                    // TODO: REMOVE: LinkDbCollection.Remove(entry.Link);
                     Entries.Remove(entry);
                     // TODO: REMOVE: StateManager.ChangeRelationshipState(Owner, item, CollectionPropName, EntityState.Deleted);
                 }
             }
         }
 
-        static bool ModifyUnidirM2MCollection<TOwner, TLink, TItem>(
-            this ODataControllerBase controller,
+        static async Task<bool> ModifyUnidirM2MCollection<TOwner, TLink, TItem>(
             UnidirM2MCollectionOperationOptions<TOwner, TItem> options,
             Action<UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>> operation)
             where TOwner : class, IIdGetter
             where TLink : class, IIdGetter, IGuidGenerateable, new()
             where TItem : class, IIdGetter
         {
-            if (options.Db.ChangeTracker.LazyLoadingEnabled)
-                throw new Exception("Modifying collection: 'Lazy loading' must not be enabled for this operation.");
-            if (options.Db.ChangeTracker.AutoDetectChangesEnabled)
-                throw new Exception("Modifying collection: 'Auto detect changes' must not be enabled for this operation.");
+
+            // Disable lazy loading.
+            // TODO: We would like to just throw an exception if lazy loading is enabled,
+            //   I currently do not see a way of asking the DbContext is really enabled.
+            //   LazyLoadingEnabled might be set to true even if the DbContext was not configured
+            //   with UseLazyLoadingProxies.
+            options.Db.ChangeTracker.LazyLoadingEnabled = false;
+            // TODO: If would try to restore the original value of AutoDetectChangesEnabled,
+            //   would that trigger a re-detection of the already added/removed entities?
+            options.Db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            // TODO: REMOVE:
+            //if (options.Db.ChangeTracker.LazyLoadingEnabled)
+            //    throw new Exception("Modifying collection: 'Lazy loading' must not be enabled for this operation.");
+            //if (options.Db.ChangeTracker.AutoDetectChangesEnabled)
+            //    throw new Exception("Modifying collection: 'Auto detect changes' must not be enabled for this operation.");
 
             var context = new UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>();
+            context.Db = options.Db;
+            context.OwnerDbSet = options.Db.Set<TOwner>();
+            context.ItemDbSet = options.Db.Set<TItem>();
 
-            context.ODataController = controller;
             context.ItemIds = options.ItemIds;
 
             // Property names.
@@ -153,23 +167,16 @@ namespace Casimodo.Lib.Web
 
             context.ValidateItem = options.ValidateItem;
 
-            context.OwnerSet = options.Db.Set<TOwner>();
-            context.ItemDbSet = options.Db.Set<TItem>();
-
-            // Load owner with collection items.
             context.OwnerId = options.OwnerId;
-            // TODO: Use async?
-            context.Owner = context.OwnerSet
-                // TODO: Check if the include path works with EF Core.
+            // Load owner with collection items.
+            context.Owner = await context.OwnerDbSet
                 .Include(context.PropPath)
-                .FirstOrDefault(x => x.Id == context.OwnerId);
+                .FirstOrDefaultAsync(x => x.Id == context.OwnerId);
 
             if (context.Owner == null)
-                controller.ThrowNotFound($"Owner of unidirectional many to many collection not found (ID: {context.OwnerId}).");
+                throw new EntityNotFoundException($"Owner of unidirectional many to many collection not found (ID: {context.OwnerId}).");
 
-            context.LinkDbCollection = (ICollection<TLink>)typeof(TOwner).GetProperty(context.LinksPropName).GetValue(context.Owner);
-
-            foreach (var link in context.LinkDbCollection)
+            foreach (var link in (ICollection<TLink>)typeof(TOwner).GetProperty(context.LinksPropName).GetValue(context.Owner))
             {
                 context.Entries.Add(new Entry<TLink, TItem>
                 {
@@ -178,25 +185,21 @@ namespace Casimodo.Lib.Web
                 });
             }
 
-            // TODO: REMOVE: context.StateManager = ((IObjectContextAdapter)db).ObjectContext.ObjectStateManager;
-
             operation(context);
+
+            if (options.IsAutoSaveEnabled)
+                await context.Db.SaveChangesAsync();
 
             return context.IsChanged;
         }
 
-        public static bool UpdateUnidirM2MCollection<TOwner, TLink, TItem>(
-            this ODataControllerBase controller,
-            ODataActionParameters parameters,
+        public static async Task<bool> UpdateUnidirM2MCollection<TOwner, TLink, TItem>(
             UnidirM2MCollectionOperationOptions<TOwner, TItem> options)
             where TOwner : class, IIdGetter
             where TLink : class, IIdGetter, IGuidGenerateable, new()
             where TItem : class, IIdGetter
         {
-            options.OwnerId = (Guid)parameters["id"];
-            options.ItemIds = (parameters["itemIds"] as IEnumerable<Guid>).ToArray();
-
-            return ModifyUnidirM2MCollection<TOwner, TLink, TItem>(controller, options,
+            return await ModifyUnidirM2MCollection<TOwner, TLink, TItem>(options,
                (context) =>
                {
                    context.RemoveMissing();
@@ -204,28 +207,26 @@ namespace Casimodo.Lib.Web
                });
         }
 
-        public static bool AddToUnidirM2MCollection<TOwner, TLink, TItem>(
-            this ODataControllerBase controller,
+        public static async Task<bool> AddToUnidirM2MCollection<TOwner, TLink, TItem>(
             UnidirM2MCollectionOperationOptions<TOwner, TItem> options)
             where TOwner : class, IIdGetter
             where TLink : class, IIdGetter, IGuidGenerateable, new()
             where TItem : class, IIdGetter
         {
-            return ModifyUnidirM2MCollection<TOwner, TLink, TItem>(controller, options,
+            return await ModifyUnidirM2MCollection<TOwner, TLink, TItem>(options,
                 (context) =>
                 {
                     context.AddItems();
                 });
         }
 
-        public static bool RemoveFromUnidirM2MCollection<TOwner, TLink, TItem>(
-            this ODataControllerBase controller,
+        public static async Task<bool> RemoveFromUnidirM2MCollection<TOwner, TLink, TItem>(
             UnidirM2MCollectionOperationOptions<TOwner, TItem> options)
             where TOwner : class, IIdGetter
             where TLink : class, IIdGetter, IGuidGenerateable, new()
             where TItem : class, IIdGetter
         {
-            return ModifyUnidirM2MCollection<TOwner, TLink, TItem>(controller, options,
+            return await ModifyUnidirM2MCollection<TOwner, TLink, TItem>(options,
                 operation: (context) =>
                 {
                     context.RemoveItems();
@@ -233,7 +234,9 @@ namespace Casimodo.Lib.Web
         }
 
         // TODO: REVISIT: Independent lists are currently disabled because EF Core does
-        // not support those. Use unidirectional many to many lists instead.
+        //   not support those. Use unidirectional many to many lists instead.
+        // The code below was for EF independent collections in the web odata layer.
+        // TODO: Remove web & odata related stuff if this needs to be revived some day.
 #if (false)
         // KABU TODO: Think about using two one-to-many associations instead
         //   of those black-box many-to-many associations, because sometimes

@@ -16,6 +16,11 @@ namespace Casimodo.Lib.Mojen
 
     public partial class HardCodedKendoTagsEditorViewGen : KendoViewGenBase, IWebApiODataActionInjector
     {
+        public HardCodedKendoTagsEditorViewGen()
+        {
+            Lang = "C#";
+        }
+
         bool IWebApiODataActionInjector.GenerateWebApiODataActionConfigFor(WebPartGenerator g, MojType type)
         {
             if (!EvalTagEditorViews(type))
@@ -56,35 +61,27 @@ namespace Casimodo.Lib.Mojen
 
             g.O();
             g.O("[HttpPost]");
-            g.O("public async Task<IActionResult> UpdateTags(ODataActionParameters parameters)");
-            g.Begin();
-            g.O("_db.Context.ChangeTracker.AutoDetectChangesEnabled = false;");
-            g.O();
-            g.O($"if (this.UpdateUnidirM2MCollection<{ownerTypeName}, {linkTypeName}, {itemTypeName}>(parameters,");
+            g.OB("public async Task<IActionResult> UpdateTags(ODataActionParameters parameters)");
+            g.O($"await DbCollectionOperations.UpdateUnidirM2MCollection<{ownerTypeName}, {linkTypeName}, {itemTypeName}>(");
             g.Push();
 
-            g.O($"new UnidirM2MCollectionOperationOptions<{ownerTypeName}, {itemTypeName}>");
-            g.Begin();
+            g.OB($"new UnidirM2MCollectionOperationOptions<{ownerTypeName}, {itemTypeName}>");
 
             g.O("Db = _db.Context,");
+            g.O("IsAutoSaveEnabled = true,");
             g.O($@"PropPath = $""{{nameof({ownerTypeName}.{toTagsCollectionProp.Name})}}.{{nameof({linkTypeName}.{linkNavigationToItem.Name})}}"",");
             g.O($@"ForeignKeyToOwner = ""{linkForeignKeyToOwner.Name}"",");
             g.O($@"ForeignKeyToItem = ""{linkForeignKeyToItem.Name}"",");
 
-            g.O("ValidateItem = (controller, owner, item) =>");
-            g.Begin();
+            g.OB("ValidateItem = (owner, item) =>");
             g.O("if (item.AssignableToTypeId != TypeIdentityHelper.GetTypeGuid(typeof({0})))",
                 ownerTypeName);
-            g.O("    controller.ThrowBadRequest(\"The {0} is not assignable to this object.\");",
+            g.O("    ThrowBadRequest(\"The {0} is not assignable to this object.\");",
                 itemTypeName);
             g.End();
 
-            g.End("))");
+            g.End(");");
 
-            g.Pop();
-            g.Begin();
-            g.O("await _db.SaveChangesAsync();");
-            g.End();
             g.O();
             g.O("return Ok(1);");
             g.End();
