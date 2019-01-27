@@ -66,6 +66,8 @@ namespace Casimodo.Lib.Mojen
 
             g.O("Db = _db.Context,");
             g.O("IsAutoSaveEnabled = true,");
+            g.O(@"OwnerId = (Guid)parameters[""id""],");
+            g.O(@"ItemIds = (parameters[""itemIds""] as IEnumerable<Guid>).ToArray(),");
             g.O($@"PropPath = $""{{nameof({ownerTypeName}.{toTagsCollectionProp.Name})}}.{{nameof({linkTypeName}.{linkNavigationToItem.Name})}}"",");
             g.O($@"ForeignKeyToOwner = ""{linkForeignKeyToOwner.Name}"",");
             g.O($@"ForeignKeyToItem = ""{linkForeignKeyToItem.Name}"",");
@@ -79,9 +81,13 @@ namespace Casimodo.Lib.Mojen
 
             g.End(");");
 
+            g.Pop();
+
             g.O();
             g.O("return Ok(1);");
             g.End();
+
+            Lang = null;
 
             return true;
         }

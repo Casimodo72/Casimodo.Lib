@@ -99,12 +99,15 @@ namespace Casimodo.Lib.Mojen
             O($"public partial class {controllerName} : {ODataConfig.WebODataControllerBaseClass}");
             Begin();
 
+            // Db context
+            O($"{dbContextName} _dbcontext;");
             // Generic entity repository
             O($"{repoName} _db;");
             O();
 
             // Constructor
             OB($@"public {controllerName}({dbContextName} dbcontext)");
+            O("_dbcontext = dbcontext;");
             O($@"_db = new {repoName}(dbcontext);");
             O("InitializeExtended();");
             End();
