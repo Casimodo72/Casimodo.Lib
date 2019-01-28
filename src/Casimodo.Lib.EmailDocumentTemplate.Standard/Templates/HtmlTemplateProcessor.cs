@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
@@ -105,24 +106,24 @@ namespace Casimodo.Lib.Templates
 
         HtmlTemplate CurrentTemplate { get; set; }
 
-        public void ProcessTemplate(HtmlTemplate template)
+        public async Task ProcessTemplate(HtmlTemplate template)
         {
             CurrentTemplate = template;
-            ProcessTemplateElemCore(CurrentTemplate.Doc.DocumentElement, ExecuteCurrentTemplateElement);
+            await ProcessTemplateElemCore(CurrentTemplate.Doc.DocumentElement, ExecuteCurrentTemplateElement);
         }
 
         List<AngleSharp.Dom.IElement> _processedNodes = new List<AngleSharp.Dom.IElement>();
 
-        void ProcessTemplateElemCore(AngleSharp.Dom.IElement elem, Action visitor)
+        async Task ProcessTemplateElemCore(AngleSharp.Dom.IElement elem, Func<Task> visitor)
         {
-            VisitTemplateElements(elem, () =>
+            await VisitTemplateElements(elem, async () =>
             {
                 if (_processedNodes.Any(x => x == CurTemplateElement.Elem))
                     throw new Exception("This node was already processed.");
 
                 if (CurTemplateElement.IsForeach)
                 {
-                    var values = FindObjects(CurTemplateElement)
+                    var values = (await FindObjects(CurTemplateElement))
                         .Where(x => x != null)
                         .ToArray();
 
@@ -160,7 +161,7 @@ namespace Casimodo.Lib.Templates
                             // Operate on a clone of the original "foreach" template element.
                             var currentTemplateElem = (AngleSharp.Dom.IElement)originalElem.Clone();
 
-                            ProcessTemplateElemCore(currentTemplateElem, visitor);
+                            await ProcessTemplateElemCore(currentTemplateElem, visitor);
 
                             // Insert all children of the transformed "foreach" template element.
                             foreach (var child in currentTemplateElem.Children)
@@ -183,12 +184,12 @@ namespace Casimodo.Lib.Templates
                     var parentElem = originalElem.ParentElement;
                     var cursorNode = originalElem;
 
-                    if (EvaluateCondition(CurTemplateElement))
+                    if (await EvaluateCondition(CurTemplateElement))
                     {
                         // Operate on a clone of the original "if" element.
                         var currentTemplateElem = (AngleSharp.Dom.IElement)originalElem.Clone();
 
-                        ProcessTemplateElemCore(currentTemplateElem, visitor);
+                        await ProcessTemplateElemCore(currentTemplateElem, visitor);
 
                         // Insert all children of the transformed "foreach" template element.
                         foreach (var child in currentTemplateElem.Children)
@@ -217,7 +218,7 @@ namespace Casimodo.Lib.Templates
                     // Operate on a clone of the original value template element.
                     var currentTemplateElem = (AngleSharp.Dom.IElement)template.Elem.Clone();
 
-                    ProcessTemplateElemCore(currentTemplateElem, visitor);
+                    await ProcessTemplateElemCore(currentTemplateElem, visitor);
 
                     // Insert all children of the transformed "foreach" template element.
                     foreach (var child in currentTemplateElem.Children)
@@ -234,7 +235,7 @@ namespace Casimodo.Lib.Templates
                 }
                 else
                 {
-                    visitor();
+                    await visitor();
                 }
             });
         }
@@ -557,7 +558,7 @@ namespace Casimodo.Lib.Templates
             get { return ((HtmlTemplateElement)CurTemplateElement).Elem; }
         }
 
-        protected void VisitTemplateElements(AngleSharp.Dom.IElement template, Action action)
+        protected async Task VisitTemplateElements(AngleSharp.Dom.IElement template, Func<Task> action)
         {
             foreach (HtmlTemplateElement item in GetTemplateElements(template))
             {
@@ -567,7 +568,7 @@ namespace Casimodo.Lib.Templates
 
                 CurTemplateElement = item;
                 IsMatch = false;
-                action();
+                await action();
 
                 // Remove placeholder attribute.
                 item.Elem.RemoveAttribute(item.Attr.NamespaceUri, item.Attr.LocalName);

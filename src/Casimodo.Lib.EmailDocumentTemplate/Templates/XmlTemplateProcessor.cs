@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Casimodo.Lib.Templates
@@ -57,19 +58,19 @@ namespace Casimodo.Lib.Templates
             return items;
         }
 
-        public void ProcessTemplate(XElement template)
+        public async Task ProcessTemplate(XElement template)
         {
-            ProcessTemplateElements(template, ExecuteCurrentTemplateElement);
+            await ProcessTemplateElements(template, ExecuteCurrentTemplateElement);
         }
 
-        protected void ProcessTemplateElements(XElement template, Action action)
+        protected async Task ProcessTemplateElements(XElement template, Func<Task> action)
         {
             var elements = GetTemplateElements(template);
             foreach (XmlTemplateElement item in elements)
             {
                 CurTemplateElement = item;
                 IsMatch = false;
-                action();
+                await action();
 
                 // Remove placeholder element.
                 item.Elem.Remove();

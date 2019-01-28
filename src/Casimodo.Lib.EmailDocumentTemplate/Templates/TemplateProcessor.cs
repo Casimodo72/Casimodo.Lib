@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
@@ -64,26 +65,26 @@ namespace Casimodo.Lib.Templates
 
         public TemplateCoreContext CoreContext { get; set; }
 
-        protected IEnumerable<object> FindObjects(TemplateExpression expression)
+        protected async Task<IEnumerable<object>> FindObjects(TemplateExpression expression)
         {
-            return GetExpressionProcessor().FindObjects(CoreContext, expression);
+            return await GetExpressionProcessor().FindObjects(CoreContext, expression);
         }
 
-        protected bool EvaluateCondition(TemplateExpression expression)
+        protected async Task<bool> EvaluateCondition(TemplateExpression expression)
         {
-            return GetExpressionProcessor().EvaluateCondition(CoreContext, expression);
+            return await GetExpressionProcessor().EvaluateCondition(CoreContext, expression);
         }
 
-        protected object EvaluateValue(TemplateExpression expression)
+        protected async Task<object> EvaluateValue(TemplateExpression expression)
         {
-            return GetExpressionProcessor().EvaluateValue(CoreContext, expression);
+            return await GetExpressionProcessor().EvaluateValue(CoreContext, expression);
         }
 
         bool _isInTransformation;
 
         public event TemplateProcessorEvent ElementExecuted;
 
-        protected void ExecuteCurrentTemplateElement()
+        protected async Task ExecuteCurrentTemplateElement()
         {
             if (_isInTransformation)
                 throw new TemplateException(
@@ -92,7 +93,7 @@ namespace Casimodo.Lib.Templates
 
             _isInTransformation = true;
 
-            Execute(CurTemplateElement);
+            await Execute(CurTemplateElement);
 
             ElementExecuted?.Invoke(this, new TemplateProcessorEventArgs { Processor = this });
 
@@ -102,13 +103,13 @@ namespace Casimodo.Lib.Templates
             _isInTransformation = false;
         }
 
-        public void Execute(TemplateElement element)
+        public async Task Execute(TemplateElement element)
         {
             var context = CoreContext.CreateExpressionContext(templateProcessor: this);
 
             context.Ast = ParseExpression(element);
 
-            GetExpressionProcessor().Execute(context);
+            await GetExpressionProcessor().ExecuteAsync(context);
 
             // NOTE: Set value only if it was provided, because instructions might
             //   not return any value but manipulate the output directly instead.

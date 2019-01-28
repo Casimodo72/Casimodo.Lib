@@ -12,28 +12,28 @@ namespace Casimodo.Lib.Templates
 {
     public class TemplateExpressionProcessor
     {
-        public IEnumerable<object> FindObjects(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<IEnumerable<object>> FindObjects(TemplateCoreContext coreContext, TemplateExpression expression)
         {
-            var context = ParseAndEvaluateValue(coreContext, expression);
+            var context = await ParseAndEvaluateValue(coreContext, expression);
 
             return context.HasReturnValue ? context.ReturnValue : Enumerable.Empty<object>();
         }
 
-        public bool EvaluateCondition(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<bool> EvaluateCondition(TemplateCoreContext coreContext, TemplateExpression expression)
         {
-            var context = ParseAndEvaluateValue(coreContext, expression);
+            var context = await ParseAndEvaluateValue(coreContext, expression);
 
             return context.HasReturnValue ? ConditionResultToBoolean(context.ReturnValue) : false;
         }
 
-        public object EvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<object> EvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
         {
-            var context = ParseAndEvaluateValue(coreContext, expression);
+            var context = await ParseAndEvaluateValue(coreContext, expression);
 
             return context.HasReturnValue ? EvaluatedResultToValue(context.ReturnValue) : null;
         }
 
-        public TemplateExpressionContext ParseAndEvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<TemplateExpressionContext> ParseAndEvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
         {
             Guard.ArgNotNull(expression, nameof(expression));
 
@@ -42,7 +42,7 @@ namespace Casimodo.Lib.Templates
             context.IsModificationDenied = true;
             context.Ast = ParseExpression(coreContext, expression);
 
-            this.Execute(context);
+            await ExecuteAsync(context);
 
             return context;
         }
@@ -85,7 +85,7 @@ namespace Casimodo.Lib.Templates
             return true;
         }
 
-        public void Execute(TemplateExpressionContext context)
+        public async Task ExecuteAsync(TemplateExpressionContext context)
         {
             Guard.ArgNotNull(context, nameof(context));
 
@@ -96,10 +96,14 @@ namespace Casimodo.Lib.Templates
             {
                 // KABU TODO: VERY VERY IMPORTANT: We have to make all template stuff async
                 //   in order for the CS script compilation to work in a sane manner.
+                var value = await scriptNode.Script.RunAsync(context.DataContainer);
+                // TODO: REMOVE
+#if (false)
 #if (NET_CORE)
                 var value = Task.Run(() => scriptNode.Script.RunAsync(context.DataContainer)).Result;
 #else
-                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer)); 
+                                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer)); 
+#endif
 #endif
 
                 context.SetReturnValue(ToEnumerable(value));

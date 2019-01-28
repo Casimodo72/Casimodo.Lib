@@ -63,9 +63,7 @@ namespace Casimodo.Lib.CSharp
             result.ErrorMessages = errors.Select(x => x.GetMessage()).ToList();
             result.RunAsync = async (globals) =>
             {
-                // KABU TODO: VERY VERY IMPORTANT: I doubt that ConfigureAwait(false) helps
-                //   for non async scenarios because Roslyn itself does not use ConfigureAwait(false). 
-                var state = await result._script.RunAsync(globals).ConfigureAwait(false);
+                var state = await result._script.RunAsync(globals);
                 return state.ReturnValue;
             };
 
