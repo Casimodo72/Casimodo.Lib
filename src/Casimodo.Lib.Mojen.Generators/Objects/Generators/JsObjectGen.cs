@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         static readonly List<string> _commonProps = new List<string>(new string[]
         {
-            "Id", "Created", "Modified", "Deleted", "IsReadOnly", "IsDeletable"
+            "Id", "Created", "Modified", "Deleted", "IsReadOnly", "IsNotDeletable"
         });
 
         public JsObjectGen()

@@ -863,9 +863,9 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder EnsureEditAuthControlPropsIfMissing()
         {
             // KABU TODO: IMPORTANT: Make this configurable for consumer.
-            // Add mandatory IsReadOnly and IsDeletable props.
+            // Add mandatory IsReadOnly and IsNotDeletable props.
             AddCommandPredicatePropIfMissing("IsReadOnly");
-            AddCommandPredicatePropIfMissing("IsDeletable");
+            AddCommandPredicatePropIfMissing("IsNotDeletable");
 
             return this;
         }
