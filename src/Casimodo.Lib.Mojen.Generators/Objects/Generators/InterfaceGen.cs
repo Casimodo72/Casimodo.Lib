@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    // TODO: Rename to EntityInterfaceGen because it operates on entities only.
+    // TODO: Add ModelInterfaceGen which operates on models only.
     public class InterfaceGen : ClassGen
     {
         public InterfaceGen()
@@ -30,6 +32,9 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateInterface(MojType type)
         {
+            // Operate on the entitiy.
+            type = type.StoreOrSelf;
+
             OUsing(App.Get<DataLayerConfig>().DataNamespaces);
 
             ONamespace(type.Namespace);
@@ -66,11 +71,20 @@ namespace Casimodo.Lib.Mojen
 
                 OSummary(prop.Summary);
 
-                O("{0} {1} {{ get; set; }}", prop.Type.Name, prop.Name);
+                O($"{GetPropertyType(type, prop)} {prop.Name} {{ get; set; }}");
             }
 
             End();
             End();
+        }
+
+        string GetPropertyType(MojType type, MojProp prop)
+        {
+            // Ensure that we reference an entity and not a view model here.
+            if (prop.Type.IsMojType && prop.Type.TypeConfig.IsEntityOrModel())
+                return prop.Type.TypeConfig.RequiredStore.Name;
+
+            return prop.Type.Name;
         }
     }
 }

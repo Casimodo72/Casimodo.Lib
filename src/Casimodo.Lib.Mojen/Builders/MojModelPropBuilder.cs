@@ -3,8 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Casimodo.Lib.Mojen
 {
+    public interface IMojModelPropBuilder
+    {
+        MojEntityPropBuilder Store();
+    }
+
     // TODO: [DisplayFormat]
-    public class MojModelPropBuilder : MojClassPropBuilder<MojModelBuilder, MojModelPropBuilder>
+    public class MojModelPropBuilder : MojClassPropBuilder<MojModelBuilder, MojModelPropBuilder>,
+        IMojModelPropBuilder
     {
         public MojModelPropBuilder NoSetter()
         {

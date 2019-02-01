@@ -5,7 +5,13 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public sealed class MojModelBuilder : MojClassBuilder<MojModelBuilder, MojModelPropBuilder>
+    public interface IMojModelBuilder : IMojClassBuilder
+    {
+
+    }
+
+    public sealed class MojModelBuilder : MojClassBuilder<MojModelBuilder, MojModelPropBuilder>,
+        IMojModelBuilder
     {
         MojProp _lastProp;
 
