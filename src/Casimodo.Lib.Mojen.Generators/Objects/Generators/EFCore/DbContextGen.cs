@@ -49,6 +49,13 @@ namespace Casimodo.Lib.Mojen
                     End();
 
                     O();
+                    O($"protected {config.DbContextName}(DbContextOptions options)");
+                    O("    : base(options)");
+                    Begin();
+                    O("OnCreatingMain();");
+                    End();
+
+                    O();
                     O($"public {config.DbContextName}(DbContextOptions<{config.DbContextName}> options)");
                     O("    : base(options)");
                     Begin();

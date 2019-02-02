@@ -10,8 +10,7 @@ namespace Casimodo.Lib
     {
         public static TResult GetOrDefault<TResult>(this IDictionary<string, object> dictionary, string key, TResult defaultValue = default(TResult))
         {
-            object value;
-            if (dictionary.TryGetValue(key, out value))
+            if (dictionary.TryGetValue(key, out object value))
                 return (TResult)value;
 
             return defaultValue;
@@ -19,8 +18,7 @@ namespace Casimodo.Lib
 
         public static TValue FindOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
         {
-            TValue value;
-            if (dictionary.TryGetValue(key, out value))
+            if (dictionary.TryGetValue(key, out TValue value))
                 return value;
 
             return defaultValue;
@@ -28,8 +26,7 @@ namespace Casimodo.Lib
 
         public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         {
-            TValue value;
-            if (dictionary.TryGetValue(key, out value))
+            if (dictionary.TryGetValue(key, out TValue value))
                 return value;
 
             throw new Exception(string.Format("The entry '{0}' does not exist in this dictionary.", key));

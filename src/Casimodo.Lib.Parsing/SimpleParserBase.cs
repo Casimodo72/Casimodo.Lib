@@ -81,8 +81,7 @@ namespace Casimodo.Lib.SimpleParser
 
         protected int ConvertPropertyIdToInteger(string value)
         {
-            int result;
-            if (!int.TryParse(value, out result))
+            if (!int.TryParse(value, out int result))
                 throw new ParserException(
                     string.Format(
                         "The specified property ID '{0}' is not a valid integer value.",

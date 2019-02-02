@@ -321,8 +321,7 @@ namespace Casimodo.Lib.Templates
                 if (prop == null)
                     return null;
 
-                TemplateInstructionDefinition definition;
-                if (_instructionDefinitionsCache.TryGetValue(prop.Guid, out definition))
+                if (_instructionDefinitionsCache.TryGetValue(prop.Guid, out TemplateInstructionDefinition definition))
                     return definition;
 
                 definition = new TemplateInstructionDefinition<TemplateExternalPropertiesContainer>

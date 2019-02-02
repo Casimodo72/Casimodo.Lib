@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Data
 {
     public abstract class CustomDbContext : DbContext
     {
-        private DbConnection _connection;
+        protected DbConnection _connection;
 
         protected CustomDbContext()
         { }
@@ -25,10 +25,6 @@ namespace Casimodo.Lib.Data
         public CustomDbContext(DbContextOptions options)
             : base(options)
         { }
-
-        //public CustomDbContext(DbConnection existingConnection, bool contextOwnsConnection)
-        //    : base(existingConnection, contextOwnsConnection)
-        //{ }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

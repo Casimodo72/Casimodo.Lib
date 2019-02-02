@@ -75,6 +75,12 @@ namespace Casimodo.Lib.Data
             return _db;
         }
 
+        public void EnlistTransaction(DbContext dbcontext)
+        {
+            Guard.ArgNotNull(dbcontext, nameof(dbcontext));
+            dbcontext.Database.UseTransaction(Transaction.GetDbTransaction());
+        }
+
         //public TDbContext CreateDbContext<TDbContext>()
         //    where TDbContext : CustomDbContext, new()
         //{
