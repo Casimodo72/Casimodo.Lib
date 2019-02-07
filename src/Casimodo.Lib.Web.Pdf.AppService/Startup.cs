@@ -63,9 +63,6 @@ namespace Casimodo.Lib.Web.Pdf
 
             app.UseAuthentication();
 
-            // UseHttpsRedirection: Do I need that?
-            app.UseHttpsRedirection();
-
             app.UseMvc();
         }
     }
