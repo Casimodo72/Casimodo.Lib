@@ -74,6 +74,7 @@ namespace Casimodo.Lib.WebControllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
+                    // TODO: Can I really just set a string here?
                     $@"Failed to generate a PDF document: {ex.GetType().Name}: {ex.Message}");
             }
         }
