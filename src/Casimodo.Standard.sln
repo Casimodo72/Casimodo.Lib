@@ -13,15 +13,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Data.Standard"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.UserDatabase.Standard", "Casimodo.Lib.UserDatabase.Standard\Casimodo.Lib.UserDatabase.Standard.csproj", "{BA4370BA-708B-4D70-A3CC-37BEDAE91BD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Lib.MediaTypes.Standard", "Casimodo.Lib.MediaTypes.Standard\Casimodo.Lib.MediaTypes.Standard.csproj", "{AED9831F-F1DE-4F7C-9558-AB6454B0D493}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.MediaTypes.Standard", "Casimodo.Lib.MediaTypes.Standard\Casimodo.Lib.MediaTypes.Standard.csproj", "{AED9831F-F1DE-4F7C-9558-AB6454B0D493}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Lib.SimpleStringParser.Standard", "Casimodo.Lib.SimpleStringParser.Standard\Casimodo.Lib.SimpleStringParser.Standard.csproj", "{8938C66E-221F-487B-9F37-02FD8D9F750D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.SimpleStringParser.Standard", "Casimodo.Lib.SimpleStringParser.Standard\Casimodo.Lib.SimpleStringParser.Standard.csproj", "{8938C66E-221F-487B-9F37-02FD8D9F750D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Lib.EmailDocumentTemplate.Standard", "Casimodo.Lib.EmailDocumentTemplate.Standard\Casimodo.Lib.EmailDocumentTemplate.Standard.csproj", "{D398225C-9420-4865-9569-19E891842B16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.EmailDocumentTemplate.Standard", "Casimodo.Lib.EmailDocumentTemplate.Standard\Casimodo.Lib.EmailDocumentTemplate.Standard.csproj", "{D398225C-9420-4865-9569-19E891842B16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Lib.Web.Standard", "Casimodo.Lib.Web.Standard\Casimodo.Lib.Web.Standard.csproj", "{6C87AA81-01DC-4754-8011-6134148AEA09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Web.Standard", "Casimodo.Lib.Web.Standard\Casimodo.Lib.Web.Standard.csproj", "{6C87AA81-01DC-4754-8011-6134148AEA09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Lib.ActionAuth.Standard", "Casimodo.Lib.ActionAuth.Standard\Casimodo.Lib.ActionAuth.Standard.csproj", "{B434200D-629C-42F4-8F24-070869416783}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.ActionAuth.Standard", "Casimodo.Lib.ActionAuth.Standard\Casimodo.Lib.ActionAuth.Standard.csproj", "{B434200D-629C-42F4-8F24-070869416783}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Web.Auth.BasicSingleUser", "Casimodo.Lib.Web.Auth.BasicSingleUser\Casimodo.Lib.Web.Auth.BasicSingleUser.csproj", "{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +71,10 @@ Global
 		{B434200D-629C-42F4-8F24-070869416783}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B434200D-629C-42F4-8F24-070869416783}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B434200D-629C-42F4-8F24-070869416783}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

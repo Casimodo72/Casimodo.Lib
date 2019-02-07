@@ -22,7 +22,10 @@ namespace Casimodo.Lib.Web.Pdf
             services.AddAuthentication("Basic")
                 .AddScheme<AuthenticationSchemeOptions, MyBasicAuthHandler>("Basic", null);
 
+            // NOTE: Adjust to scenario
+#if (true)
             services.AddCors();
+#endif
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
