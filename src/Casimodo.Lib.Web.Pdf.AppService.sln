@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Pdf.AppService", "Casimodo.Lib.Web.Pdf.AppService\Casimodo.Lib.Pdf.AppService.csproj", "{770F3783-02EE-4AAA-B6C7-35A77602F8F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Web.Pdf.AppService", "Casimodo.Lib.Web.Pdf.AppService\Casimodo.Lib.Web.Pdf.AppService.csproj", "{770F3783-02EE-4AAA-B6C7-35A77602F8F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -53,7 +53,7 @@ namespace Casimodo.Lib.WebControllers
                     },
                     Objects = {
                         new ObjectSettings() {
-                            RawContent =  await Request.ReadBodyAsByteArrayAsync(),
+                            RawContent = await Request.ReadBodyAsByteArrayAsync(),
                             // TODO: ISSUE: Setting PagesCount to false produces a DevidedByZeroException.
                             //   See https://github.com/rdvojmoc/DinkToPdf/issues/22
                             PagesCount = true,

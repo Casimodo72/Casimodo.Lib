@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Casimodo.Lib.WebPdfGenerator
+namespace Casimodo.Lib.Web.Pdf
 {
     public class Startup
     {
