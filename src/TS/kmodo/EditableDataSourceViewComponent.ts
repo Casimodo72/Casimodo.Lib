@@ -183,7 +183,7 @@
                 this.auth.canDelete &&
                 this._iedit.canDelete &&
                 e.item.IsReadOnly === false &&
-                e.item.IsDeletable === true) {
+                e.item.IsNotDeletable === false) {
 
                 // Add delete button at bottom-left position.
                 $('<a class="k-button k-button-icontext" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')

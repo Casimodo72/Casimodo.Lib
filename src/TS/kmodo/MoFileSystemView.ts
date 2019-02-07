@@ -205,7 +205,7 @@ namespace kmodo {
                 else
                     query += "Query()";
 
-                query += "?$select=Id,Name,ParentId,TypeId,IsContainer,Role,ModifiedOn,CreatedOn,IsDeleted,IsDeletable,IsReadOnly";
+                query += "?$select=Id,Name,ParentId,TypeId,IsContainer,Role,ModifiedOn,CreatedOn,IsDeleted,IsNotDeletable,IsReadOnly";
                 query += "&$expand=Permissions($select=RoleId)";
                 //query += "&$orderby=Name&";
                 query += "&$filter=OwnerId eq " + self.owner.Id;
@@ -366,8 +366,9 @@ namespace kmodo {
 
                         _enableContextMenuItem($addChildAction, self.isAddEnabled);
                         _enableContextMenuItem($renameAction, !isroot && self.isRenameEnabled && !folder.IsReadOnly);
-                        // KABU TODO: Can't use IsDeletable, due to a bug. I.e. IsDeletable is always false.
-                        _enableContextMenuItem($deleteAction, !isroot /* && folder.IsDeletable */ && self.isDeleteEnabled && !folder.IsReadOnly);
+                        // TODO: Can't use IsNotDeletable, due to a bug. I.e. IsNotDeletable is always true.
+                        // TODO: VERY IMPORTANT: FIX IsNotDeletable states in DB.
+                        _enableContextMenuItem($deleteAction, !isroot /* && !folder.IsNotDeletable */ && self.isDeleteEnabled && !folder.IsReadOnly);
                         _enableContextMenuItem($selectFileSystemTemplateAction, self.options.isFileSystemTemplateEnabled && isroot);
                     },
                     select: function (e) {
@@ -701,7 +702,7 @@ namespace kmodo {
                     "&isEmailAttachmentExtractionEnabled=" + this._scope.isEmailAttachmentExtractionEnabled;
             }
 
-            kmodo.useHeaderRequestVerificationToken(e.XMLHttpRequest);           
+            kmodo.useHeaderRequestVerificationToken(e.XMLHttpRequest);
         }
 
         trySelectFolder(e): MoFolderTreeEntity {
@@ -1003,8 +1004,9 @@ namespace kmodo {
                         var $copyImageToPdfAction = $menu.find("li[data-name='CopyImageToPdf']");
 
                         _enableContextMenuItem(renameAction, self.isRenameEnabled && !file.IsReadOnly);
-                        // KABU TODO: Can't use IsDeletable, due to a bug. I.e. IsDeletable is always false.
-                        _enableContextMenuItem(deleteAction, self.isDeleteEnabled && /* file.IsDeletable && */ !file.IsReadOnly);
+                        // TODO: Can't use IsNotDeletable, due to a bug. I.e. IsNotDeletable is always true.
+                        // TODO: VERY IMPORTANT: FIX IsNotDeletable in DB.
+                        _enableContextMenuItem(deleteAction, self.isDeleteEnabled && /* !file.IsNotDeletable && */ !file.IsReadOnly);
 
                         var extension = file.File.FileExtension;
                         _enableContextMenuItem($copyImageToPdfAction, extension === "png" || extension === "jpg");
@@ -1067,7 +1069,7 @@ namespace kmodo {
                         else if (name === "EditFileTags") {
 
                             // Open Mo file tags editor.
-                            kmodo.openById("844ed81d-dbbb-4278-abf4-2947f11fa4d3",
+                            kmodo.openById("f5fcba1a-44cc-4d30-ad78-640007a4b5a13",
                                 {
                                     // KABU TODO: MAGIC Mo file type ID.
                                     filters: buildTagsDataSourceFilters("6773cd3a-2179-4c88-b51f-d22a139b5c60", self.owner.CompanyId),
@@ -1137,8 +1139,8 @@ namespace kmodo {
     }
 
     export interface MoFileTreeOwnerDefinition {
-        Kind: string;       
-        Name: string;      
+        Kind: string;
+        Name: string;
         TypeId: string;
         Id?: string;
         CompanyId?: string;

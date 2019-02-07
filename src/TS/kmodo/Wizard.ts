@@ -1,11 +1,11 @@
 ﻿namespace kmodo {
 
     interface WizardPageOptions {
-        owner: any;
+        owner?: any;
         name: string;
-        commands: any[];
-        enter: any;
-        isEnabled: boolean;
+        commands: WizardCommand[] | (() => WizardCommand[]);
+        enter?: any;
+        isEnabled?: boolean;
     }
 
     export class WizardPageViewModel {
@@ -42,18 +42,18 @@
 
     interface WizardOptions {
         $component: JQuery;
-        close: Function;
-        cancel: Function;
+        close?: Function;
+        cancel?: Function;
         finish: Function;
         pages: WizardPageViewModel[];
     }
 
     interface WizardCommand extends kmodo.ObservableObject {
         name: string;
-        text: string;
-        isEnabled: boolean;
-        isVisible: boolean;
-        onTriggered: Function;
+        text?: string;
+        isEnabled?: boolean;
+        isVisible?: boolean;
+        onTriggered?: Function;
     }
 
     export class WizardViewModel extends cmodo.ComponentBase {

@@ -125,7 +125,7 @@ namespace kmodo {
 
         bind($elem: JQuery): void {
             if ($elem !== null && this.vm && this.vm.getModel())
-                kendo.bind($elem, this.vm.getModel);
+                kendo.bind($elem, this.vm.getModel());
         }
     }
 
