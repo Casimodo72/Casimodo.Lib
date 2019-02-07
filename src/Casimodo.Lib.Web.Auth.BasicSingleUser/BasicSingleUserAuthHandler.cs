@@ -9,13 +9,13 @@ namespace Casimodo.Lib.Web.Auth
 {
     public class BasicSingleUserAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        readonly BasicSingleUserAuthUserInfo _userInfo;
+        readonly BasicSingleUserAuthInfo _userInfo;
 
         public BasicSingleUserAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
             ISystemClock clock,
-            BasicSingleUserAuthUserInfo userInfo)
+            BasicSingleUserAuthInfo userInfo)
             : base(options, logger, encoder, clock)
         {
             _userInfo = userInfo;

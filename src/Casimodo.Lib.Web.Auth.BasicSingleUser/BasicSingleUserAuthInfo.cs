@@ -1,6 +1,6 @@
 ﻿namespace Casimodo.Lib.Web.Auth
 {
-    public class BasicSingleUserAuthUserInfo
+    public class BasicSingleUserAuthInfo
     {
         public string UserName { get; set; }
         public string UserId { get; set; }

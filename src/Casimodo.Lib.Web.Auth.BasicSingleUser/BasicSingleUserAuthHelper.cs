@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Web.Auth
 {
     public static class BasicSingleUserAuthHelper
     {
-        public static BasicAuthResult Evaluate(HttpRequest request, BasicSingleUserAuthUserInfo userInfo)
+        public static BasicAuthResult Evaluate(HttpRequest request, BasicSingleUserAuthInfo userInfo)
         {
             try
             {
