@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib
 {
@@ -11,6 +12,15 @@ namespace Casimodo.Lib
             using (var reader = new StreamReader(stream))
             {
                 return reader.ReadToEnd();
+            }
+        }
+
+        public static async Task<string> ReadTextFileAsync(string filePath)
+        {
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var reader = new StreamReader(stream))
+            {
+                return await reader.ReadToEndAsync();
             }
         }
     }

@@ -249,7 +249,7 @@ namespace Casimodo.Lib.Templates
             return template;
         }
 
-        public Func<string> CreatePageTemplate = () => "";
+        public Func<Task<string>> CreatePageTemplate = () => Task.FromResult("");
 
         public void SetImageSource(string value)
         {
@@ -297,9 +297,9 @@ namespace Casimodo.Lib.Templates
             Fragments.Clear();
         }
 
-        string ReadFile(string filePath)
+        async Task<string> ReadFileAsync(string filePath)
         {
-            return FileHelper.ReadTextFile(GetPhysicalFilePath(filePath));
+            return await FileHelper.ReadTextFileAsync(GetPhysicalFilePath(filePath));
         }
 
         string GetPhysicalFilePath(string filePath)
@@ -307,7 +307,7 @@ namespace Casimodo.Lib.Templates
             return _fileProvider.GetFileInfo(filePath).PhysicalPath;
         }
 
-        public virtual void BuildStylesheets()
+        public virtual async Task BuildStylesheets()
         {
             // Stylesheets
             if (StylesHtml == null)
@@ -317,7 +317,7 @@ namespace Casimodo.Lib.Templates
                 foreach (var styleFilePath in GetCssFilePaths())
                 {
                     sb.Append("<style>");
-                    sb.Append(ReadFile(styleFilePath));
+                    sb.Append(await ReadFileAsync(styleFilePath));
                     sb.Append("</style>");
                 }
 
@@ -325,25 +325,25 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        public virtual void Prepare()
+        public virtual async Task Prepare()
         {
-            BuildStylesheets();
+            await BuildStylesheets();
 
             // Page template
             if (PageTemplate == null)
-                PageTemplate = CreatePageTemplate();
+                PageTemplate = await CreatePageTemplate();
         }
 
-        protected string LoadTemplatePart(string virtualFilePath)
+        protected async Task<string> LoadTemplatePart(string virtualFilePath)
         {
-            return RazorRemover.RemoveRazorSyntax(ReadFile(virtualFilePath));
+            return RazorRemover.RemoveRazorSyntax(await ReadFileAsync(virtualFilePath));
         }
 
         /// <summary>
         /// Expects the main cshtml as first arguments. All other following are expected to be partial views
         /// which will be merged into the main cshtml.
         /// </summary>
-        protected string MergeTemplateParts(params string[] partPaths)
+        protected async Task<string> MergeTemplateParts(params string[] partPaths)
         {
             if (partPaths == null || partPaths.Length == 0)
                 return null;
@@ -352,25 +352,28 @@ namespace Casimodo.Lib.Templates
             foreach (var path in partPaths)
             {
                 if (string.IsNullOrEmpty(template))
-                    template = LoadTemplatePart(path);
+                    template = await LoadTemplatePart(path);
                 else
-                    template = template.Replace($"@Html.Partial(\"{path}\")", LoadTemplatePart(path));
+                    template = template.Replace($"@Html.Partial(\"{path}\")", await LoadTemplatePart(path));
             }
 
             return string.IsNullOrWhiteSpace(template) ? null : template;
         }
 
         // TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
-        public HtmlTemplate NewPage()
+        public Task<HtmlTemplate> NewPage()
         {
             if (PageTemplate == null)
-                PageTemplate = CreatePageTemplate();
+                throw new InvalidOperationException("PageTemplate not assigned.");
+            // PageTemplate = await CreatePageTemplate();
 
             var doc = new HtmlParser().ParseDocument(PageTemplate);
 
-            var fragment = new HtmlTemplate();
-            fragment.Doc = doc;
-            fragment.InlineTemplates = GetInlineTemplateHtmlElemNodes(doc.DocumentElement).ToList();
+            var fragment = new HtmlTemplate
+            {
+                Doc = doc,
+                InlineTemplates = GetInlineTemplateHtmlElemNodes(doc.DocumentElement).ToList()
+            };
 
             ExpandInlineHtmlTemplates(fragment);
 
@@ -378,7 +381,7 @@ namespace Casimodo.Lib.Templates
 
             Page = fragment;
 
-            return fragment;
+            return Task.FromResult(fragment);
         }
 
         void ExpandInlineHtmlTemplates(HtmlTemplate fragment)
@@ -418,8 +421,10 @@ namespace Casimodo.Lib.Templates
 
             var doc = new HtmlParser().ParseDocument(ImagePageTemplate);
 
-            var fragment = new HtmlTemplate();
-            fragment.Doc = doc;
+            var fragment = new HtmlTemplate
+            {
+                Doc = doc
+            };
 
             Fragments.Add(fragment);
             Page = fragment;
@@ -719,9 +724,9 @@ namespace Casimodo.Lib.Templates
             return elem;
         }
 
-        protected AngleSharp.Dom.IElement GetStylesheet(string path)
+        protected async Task<AngleSharp.Dom.IElement> GetStylesheet(string path)
         {
-            string content = ReadFile(path);
+            string content = await ReadFileAsync(path);
 
             return E("style", content);
         }
