@@ -207,7 +207,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 OApiActionAuthAttribute(Type, "Create");
                 O("[HttpPost]");
-                O("[ODataRoute]");
+                OODataRouteAttribute();
                 O($"public async Task<IActionResult> Post([FromBody] {Type.ClassName} model)");
                 Begin();
                 O("return await CreateCore(model);");
@@ -261,6 +261,25 @@ namespace Casimodo.Lib.Mojen
                 return "";
         }
 
+        void OODataRouteAttribute(string route = null)
+        {
+            if (!string.IsNullOrEmpty(route))
+                O($@"[ODataRoute(""{route}"")]");
+            else
+                O(@"[ODataRoute]");
+        }
+
+        void OODataEnableQueryAttribute()
+        {
+            var enableQueryAttrName = ODataConfig.EnableQueryAttributeName ?? "EnableQuery";
+            Oo($"[{enableQueryAttrName}(");
+            if (false)
+#pragma warning disable CS0162
+                o("PageSize = 20, ");
+#pragma warning restore CS0162
+            oO($"AllowedQueryOptions = LookupQueryOptions, MaxExpansionDepth = {Options.MaxExpansionDepth})]");
+        }
+
         void GenerateRead(MojType type, MojProp keyProp, string key)
         {
             // GET: odata/Entities
@@ -273,13 +292,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{GetMethodNs()}{ODataConfig.Query}()\")]");
-            Oo("[EnableQuery(");
-            if (false)
-#pragma warning disable CS0162
-                o("PageSize = 20, ");
-#pragma warning restore CS0162
-            oO($"AllowedQueryOptions = LookupQueryOptions, MaxExpansionDepth = {Options.MaxExpansionDepth})]");
+            OODataEnableQueryAttribute();
             O($"public IActionResult {ODataConfig.Query}()");
             Begin();
             O("return Ok(CustomFilter(_db.Query()));");
@@ -289,8 +302,8 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})\")]");
-            O("[EnableQuery]");
+            OODataRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
+            OODataEnableQueryAttribute();
             O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();
             O($"return Ok(CustomFilter(_db.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
@@ -300,7 +313,8 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O($"[ODataRoute(\"({{{key}}})\"), EnableQuery]");
+            OODataRouteAttribute($@"({{{key}}})");
+            OODataEnableQueryAttribute();
             O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, keyProp.Type.Name, key);
             Begin();
             O($"return SingleResult.Create(_db.QuerySingle({key}));");
@@ -377,7 +391,7 @@ namespace Casimodo.Lib.Mojen
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
                 O("[HttpPut]");
-                O($"[ODataRoute(\"({{{key.VName}}})\")]");
+                OODataRouteAttribute($@"({{{key.VName}}})");
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");
@@ -451,7 +465,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "Delete");
             O("[HttpDelete]");
-            O("[ODataRoute(\"({{{0}}})\")]", key.VName);
+            OODataRouteAttribute($@"({{{key.VName}}})");
             O("public async Task<IActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
             O("_db.ReferenceLoading(false);");

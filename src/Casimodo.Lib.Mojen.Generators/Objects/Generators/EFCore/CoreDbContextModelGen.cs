@@ -139,7 +139,13 @@ namespace Casimodo.Lib.Mojen
 
                     foreach (var prop in toOneNavigationProps)
                     {
-
+                        // TODO: This produces a warning:
+                        //   "Navigations 'x' and 'y' were separated into two relationships
+                        //    as ForeignKeyAttribute was specified on navigations on both sides.".
+                        //    Because in the entity type we also use [ForeignKey] on both sides.
+                        //    See: https://github.com/aspnet/EntityFrameworkCore/issues/11756
+                        // TODO: Will this warning go away if we explicitely define the relationship
+                        //   from the other side as well here?
                         O();
 
                         if (prop.Navigation != null)
@@ -158,7 +164,7 @@ namespace Casimodo.Lib.Mojen
                                 O($".WithOne()");
 
                             if (prop.Reference.ForeignKey != null)
-                            {                               
+                            {
                                 O($".HasForeignKey<{type.Name}>(x => x.{prop.Reference.ForeignKey.Name})");
                                 O($".IsRequired({Moj.CS(prop.Reference.ForeignKey.Rules.IsRequired)})");
                             }

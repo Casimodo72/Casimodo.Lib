@@ -24,7 +24,6 @@
     <Compile Include="..\Casimodo.Lib\Helpers\Guard.cs" Link="Helpers\Guard.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\HProp.cs" Link="Helpers\HProp.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\HPropDispayInfo.cs" Link="Helpers\HPropDispayInfo.cs" />
-    <Compile Include="..\Casimodo.Lib\Helpers\IServiceProviderExtensions.cs" Link="Helpers\IServiceProviderExtensions.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\ListExtensions.cs" Link="Helpers\ListExtensions.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\StringExtensions.cs" Link="Helpers\StringExtensions.cs" />
     <Compile Include="..\Casimodo.Lib\Helpers\TypeHelper.cs" Link="Helpers\TypeHelper.cs" />

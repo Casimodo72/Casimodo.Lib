@@ -23,5 +23,7 @@
         /// Intended for development purposes only. Use with care.
         /// </summary>
         public bool IsPhysicalDeletionEnabled { get; set; }
+
+        public string EnableQueryAttributeName { get; set; } = "EnableQuery";
     }
 }

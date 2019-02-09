@@ -1,4 +1,5 @@
 ﻿using Casimodo.Lib.Auth;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Casimodo.Lib.Web.Auth
 {
@@ -22,7 +23,7 @@ namespace Casimodo.Lib.Web.Auth
             //   every defined view-action and its permissions. I.e. currently we are using the
             //   view-actions permissions also for api-action authorization.
             if (!context.HttpContext.RequestServices
-                .GetService<ActionAuthManager>()
+                .GetRequiredService<ActionAuthManager>()
                 .IsPermitted(context.HttpContext.User, action: Action, part: Part, group: Group, vrole: "*"))
             {
                 context.Result = new Microsoft.AspNetCore.Mvc.ForbidResult();

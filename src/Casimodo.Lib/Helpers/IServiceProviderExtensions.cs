@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib
 {
-    public static class IServiceProviderExtensions
-    {
-        public static T GetService<T>(this IServiceProvider provider)
-        {
-            return (T)provider.GetService(typeof(T));
-        }
-    }
+    //public static class IServiceProviderExtensions
+    //{
+    //    public static T GetService<T>(this IServiceProvider provider)
+    //    {
+    //        return (T)provider.GetService(typeof(T));
+    //    }
+    //}
 }

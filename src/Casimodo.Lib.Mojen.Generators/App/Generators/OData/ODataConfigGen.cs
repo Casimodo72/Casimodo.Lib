@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Mojen
 
             ODataConfig = App.Get<WebODataBuildConfig>();
 
-            string filePath = Path.Combine(WebConfig.WebConfigurationDirPath, "ODataModel.generated.cs");
+            string filePath = Path.Combine(WebConfig.WebConfigurationDirPath, "ODataConfig.generated.cs");
             PerformWrite(filePath, () => GenerateODataConfig(types));
         }
 
@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
                 "System.Linq",
                 "System.Web",
                 "System.Web.Http",
-                "Microsoft.AspNet.OData.Builder", //"Microsoft.AspNet.OData.Builder",
+                "Microsoft.AspNet.OData.Builder",
                 GetAllDataNamespaces());
 
             ONamespace(WebConfig.WebAppConfigNamespace);
