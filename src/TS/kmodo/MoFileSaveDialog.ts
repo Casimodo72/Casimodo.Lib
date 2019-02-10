@@ -164,7 +164,7 @@
                 }
             });
 
-            this.fileExplorer.initComponent();
+            this.fileExplorer.createView();
         };
 
         _initDialogWindowTitle() {

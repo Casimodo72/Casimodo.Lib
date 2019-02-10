@@ -237,6 +237,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCustomSave { get; set; }
 
+        public bool IsCustomApi { get; set; }
+
         public bool IsCustomView { get; set; }
 
         public MojStandaloneViewConfig Standalone { get; set; } = MojStandaloneViewConfig.None;

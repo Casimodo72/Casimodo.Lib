@@ -699,7 +699,7 @@ namespace Casimodo.Lib.Mojen
             if (value)
             {
                 // KABU TODO: LOCALIZE?
-                ListItemCommand("EditTags", "Markierungen setzen");
+                ListItemCommand("EditTags", "Tags setzen (Markierungen)");
             }
             else
                 RemoveListItemCommand("EditTags");
@@ -950,6 +950,12 @@ namespace Casimodo.Lib.Mojen
         public MojViewBuilder CustomSave()
         {
             View.IsCustomSave = true;
+            return this;
+        }
+
+        public MojViewBuilder CustomApi()
+        {
+            View.IsCustomApi = true;
             return this;
         }
 

@@ -162,7 +162,7 @@
                 isUploadEnabled: false,
                 owners: this.options.owners
             });
-            this._fileExplorer.initComponent();
+            this._fileExplorer.createView();
 
             var filesView = this._fileExplorer._filesView;
 

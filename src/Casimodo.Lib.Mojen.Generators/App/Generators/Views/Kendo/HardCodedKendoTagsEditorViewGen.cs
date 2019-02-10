@@ -158,7 +158,7 @@ namespace Casimodo.Lib.Mojen
                 OB("return new kmodo.UnidirM2MCollectionEditorForm(");
 
                 // TODO: LOCALIZE
-                var title = context.View.TypeConfig.DisplayName + " Markierungen";
+                var title = context.View.TypeConfig.DisplayName + " Tags (Markierungen)";
                 KendoGen.OViewModelOptions(context, title: title, dataType: false,
                     extend: () =>
                     {

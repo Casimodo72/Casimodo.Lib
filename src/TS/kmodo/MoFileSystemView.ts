@@ -75,11 +75,9 @@ namespace kmodo {
         private _isComponentInitialized: boolean;
         private _folderKendoTreeView: kendo.ui.TreeView;
         private moFileCollectionViewModel: MoFileCollectionViewModel;
-        //private _kendoContextMenu: kendo.ui.ContextMenu;
         private _items: MoFolderTreeEntity[];
         private _containerDict: Object = {};
         private _filterTagIds: string[];
-        //private _root: MoFolderTreeEntity;
 
         constructor(options: MoFolderTreeOptions) {
 
@@ -178,6 +176,10 @@ namespace kmodo {
             // TODO: REMOVE: this.moFileCollectionViewModel.setTagsFilter(tagIds);
         }
 
+        isEmpty(): boolean {
+            return !this._items || this._items.length === 0;
+        }
+
         refreshFolders(selection): Promise<void> {
 
             var self = this;
@@ -211,7 +213,7 @@ namespace kmodo {
                 query += "&$filter=OwnerId eq " + self.owner.Id;
 
                 if (self._filterTagIds && self._filterTagIds.length) {
-                    var tagsExpression = self._filterTagIds.map(x => "Tags/any(tag: tag/Id eq " + x + ")").join(" and ");
+                    var tagsExpression = self._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
                     query += " and (IsContainer eq true or (" + tagsExpression + "))";
                 }
 
@@ -299,7 +301,7 @@ namespace kmodo {
             ];
 
             if (this._filterTagIds && this._filterTagIds.length) {
-                var tagsExpression = this._filterTagIds.map(x => "Tags/any(tag: tag/Id eq " + x + ")").join(" and ");
+                var tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
                 (filters as any[]).push({ customExpression: tagsExpression });
             }
 
@@ -444,7 +446,6 @@ namespace kmodo {
                                 });
                         }
                         else if (name === "SelectFileSystemTemplate") {
-                            // Open Tag selector. Show only tags assignable to file-Mos.
 
                             kmodo.openById("8f25bf5c-c20f-4337-8072-1e397cdcf976", {
                                 title: "Dateisystem-Vorlage wählen",
@@ -1067,14 +1068,14 @@ namespace kmodo {
                                 });
                         }
                         else if (name === "EditFileTags") {
-
-                            // Open Mo file tags editor.
-                            kmodo.openById("f5fcba1a-44cc-4d30-ad78-640007a4b5a13",
+                            // Open Mo Tags editor. Show only tags assignable to file-Mos.
+                            // TODO: MAGIC component ID.
+                            kmodo.openById("27325a97-268c-4064-aebd-46b74474bcbd",
                                 {
-                                    // KABU TODO: MAGIC Mo file type ID.
+                                    // TODO: MAGIC Mo file type ID.
                                     filters: buildTagsDataSourceFilters("6773cd3a-2179-4c88-b51f-d22a139b5c60", self.owner.CompanyId),
                                     itemId: file.Id,
-                                    title: "Datei-Markierungen bearbeiten",
+                                    title: "Datei-Tags bearbeiten",
                                     message: file.File.FileName,
                                     minWidth: 400,
                                     minHeight: 500,
@@ -1174,11 +1175,15 @@ namespace kmodo {
         private _filesGrid: GridComponent;
         private _lastCompanyId: string;
         private owners: MoFileTreeOnwersModel;
+        private _$fileSystemInitiatorBtn: JQuery;
+        private _$tagSelectorIcon: JQuery;
 
         constructor(options: MoFileExplorerOptions) {
             super(options);
 
             this._setOptions(options);
+
+            this._$fileSystemInitiatorBtn = null;
 
             // NOTE: _initComponent() will be called on demand via initComponent().
         }
@@ -1196,12 +1201,33 @@ namespace kmodo {
             };
         }
 
-        initComponent(): void {
-            this._initComponent(this.options);
+        createView(): void {
+            this._createView(this.options);
         }
 
         refresh(): Promise<void> {
-            return this._treeView.refresh();
+            return this._refreshTreeView();
+        }
+
+        private _refreshTreeView(): Promise<void> {
+            return this._treeView.refresh()
+                .then(() => {
+                    if (this._treeView.isEmpty()) {
+                        this._$fileSystemInitiatorBtn.show();
+                        if (this._tagFilterSelector) {
+                            this._$tagSelectorIcon.hide();
+                            this._tagFilterSelector.wrapper.hide();
+                        }
+                    }
+                    else {
+                        this._$fileSystemInitiatorBtn.hide();
+
+                        if (this._tagFilterSelector) {
+                            this._$tagSelectorIcon.show();
+                            this._tagFilterSelector.wrapper.show();
+                        }
+                    }
+                });
         }
 
         clear(): void {
@@ -1284,10 +1310,10 @@ namespace kmodo {
             this._filesView.clear();
             // Set the selected owner.
             this._treeView.setOwner(owner);
-            // Don't refresh initially, but alwas refresh subsequently, so that the
+            // Don't refresh initially, but always refresh subsequently, so that the
             // consumer can have control over the first refresh.
             if (this._isComponentInitialized) {
-                this._treeView.refresh();
+                this._refreshTreeView();                  
             }
 
             // Update available tags.
@@ -1353,14 +1379,14 @@ namespace kmodo {
                         files: fileInfos,
                         errorMessage: "Fehler beim Speichern. Der Vorgang wurde abgebrochen. Es wurde nichts gespeichert.",
                         success: function (result) {
-                            self._treeView.refresh();
+                            self._refreshTreeView();
                             kmodo.openInfoDialog("Die Dateien wurden im Verzeichnis \"" + path + "\" gespeichert.");
                         }
                     });
                 });
         }
 
-        private _initComponent(options: InternalMoFileExplorerOptions): void {
+        private _createView(options: InternalMoFileExplorerOptions): void {
             if (this._isComponentInitialized)
                 return;
             this._isComponentInitialized = true;
@@ -1394,6 +1420,22 @@ namespace kmodo {
             }) as MoFileTreeOnwersModel;
             kendo.bind(options.$area.find("input.mo-file-system-owner-selector"), this.owners);
 
+            this._$fileSystemInitiatorBtn = options.$area.find(".mo-file-system-initialize");
+            this._$fileSystemInitiatorBtn.on("click", () => {
+                kmodo.progress(true, this.$view);
+                cmodo.oDataAction("odata/Mos", "CreateFilesystem",
+                    [
+                        { name: "ownerId", value: this.getCurrentOwner().Id }
+                    ])
+                    .finally(() => {
+                        this._$fileSystemInitiatorBtn.hide();
+                        kmodo.progress(false, this.$view);
+                        this.refresh();
+                    });
+            });
+
+            this._$tagSelectorIcon = options.$area.find(".mo-file-system-tag-icon");
+
             var $selector = options.$area.find("input.mo-file-system-tag-filter-selector");
             if ($selector.length) {
                 this._tagFilterSelector = createMoTagFilterSelector(
@@ -1403,7 +1445,7 @@ namespace kmodo {
                         filters: buildTagsDataSourceFilters("6773cd3a-2179-4c88-b51f-d22a139b5c60"),
                         changed: function (tagIds) {
                             self._treeView.setTagsFilter(tagIds);
-                            self._treeView.refresh();
+                            self._refreshTreeView();
                         }
                     }
                 );

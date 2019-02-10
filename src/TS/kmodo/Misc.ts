@@ -106,13 +106,39 @@
         return $elem.kendoMultiSelect(opts).data("kendoMultiSelect") as kendo.ui.MultiSelect;
     }
 
+    export function enableContextMenuItems2(e: kendo.ui.ContextMenuOpenEvent, names: string | string[], enabled: boolean): void {
+        var $items = getContextMenuItems2(e, names);
+        e.sender.enable($items, enabled);
+        if (enabled)
+            $items.show(); //.removeClass("k-hidden");
+        else
+            $items.hide(); //.addClass("k-hidden");
+    }
+
+    function getContextMenuItems2(e: kendo.ui.ContextMenuOpenEvent, names: string | string[]): JQuery {
+        var namesArray: string[];
+        if (typeof names === "string")
+            namesArray = names.split(",").map(function (x) { return x.trim(); });
+        else
+            namesArray = names;
+
+        var query = "";
+        for (let i = 0; i < namesArray.length; i++) {
+            if (i > 0)
+                query += ", ";
+            query += "li[data-name='" + namesArray[i] + "']";
+        }
+
+        return $(e.item).find(query);
+    }
+
     export function enableContextMenuItems(menu: kendo.ui.ContextMenu, names: string | string[], enabled: boolean): void {
         var $items = getContextMenuItems(menu, names);
-
+        menu.enable($items, enabled);
         if (enabled)
-            $items.removeClass("k-hidden");
+            $items.show(); //.removeClass("k-hidden");
         else
-            $items.addClass("k-hidden");
+            $items.hide(); //.addClass("k-hidden");
     }
 
     function getContextMenuItems(menu: kendo.ui.ContextMenu, names: string | string[]): JQuery {

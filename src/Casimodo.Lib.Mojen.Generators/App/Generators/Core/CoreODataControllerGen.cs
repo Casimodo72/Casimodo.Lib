@@ -15,6 +15,7 @@ namespace Casimodo.Lib.Mojen
         public CoreODataControllerGen()
         {
             Scope = "App";
+            Lang = "C#";
         }
 
         WebODataBuildConfig ODataConfig { get; set; }
@@ -54,6 +55,16 @@ namespace Casimodo.Lib.Mojen
         public override string GetWebRepositoryName(MojType type)
         {
             return type.PluralName + "Repository";
+        }
+
+        string GetControllerBaseClass()
+        {
+            // TODO: REMOVE: return ODataConfig.WebODataControllerBaseClass;
+
+            var dataContext = App.GetDataLayerConfig(Type.DataContextName);
+            var repoName = GetWebRepositoryName(Type);
+
+            return $@"StandardODataControllerBase<{repoName}, {dataContext.DbContextName}, {Type.Name}, {Type.Key.Type.Name}>";
         }
 
         void GenerateController()
@@ -96,22 +107,34 @@ namespace Casimodo.Lib.Mojen
             var repoName = GetWebRepositoryName(Type);
 
             O($@"[ODataRoutePrefix(""{Type.PluralName}"")]");
-            O($"public partial class {controllerName} : {ODataConfig.WebODataControllerBaseClass}");
+            O($"public partial class {controllerName} : {GetControllerBaseClass()}");
             Begin();
 
+            // TODO: REMOVE: Moved to controller base class.
+#if (false)
             // Db context
-            O($"{dbContextName} _dbcontext;");
+            O($"readonly {dbContextName} _dbcontext;");
             // Generic entity repository
-            O($"{repoName} _db;");
+            O($"readonly {repoName} _db;");
             O();
+#endif
 
             // Constructor
-            OB($@"public {controllerName}({dbContextName} dbcontext)");
+            O($@"public {controllerName}({dbContextName} dbcontext)");
+            O($@"    : base(dbcontext, new {repoName}(dbcontext))");
+            O("{");
+            Push();
+            // TODO: REMOVE: Moved to controller base class.
+#if (false)     
+            O("Guard.ArgNotNull(dbcontext, nameof(dbcontext));");
             O("_dbcontext = dbcontext;");
             O($@"_db = new {repoName}(dbcontext);");
+#endif
             O("InitializeExtended();");
-            End();
+            Pop();
+            O("}");
 
+            O();
             O("partial void InitializeExtended();");
 
             if (!Options.IsEmpty)
@@ -214,6 +237,8 @@ namespace Casimodo.Lib.Mojen
                 End();
             }
 
+            // TODO: REMOVE: Moved to controller base class.
+#if (false)
             O();
             O($"async Task<IActionResult> CreateCore({Type.ClassName} model)");
             Begin();
@@ -223,13 +248,6 @@ namespace Casimodo.Lib.Mojen
             O();
 
             O("if (OnCreatingExtended != null) await OnCreatingExtended(model);");
-
-            // KABU TODO: IMPORTANT: MOVE to repository core layer.
-            // Apply DB sequences.
-            foreach (var prop in Type.GetProps().Where(x => x.DbAnno.Sequence.IsDbSequence))
-            {
-                O("model.{0} = _db.{1};", prop.Name, GetDbSequenceFunction(prop));
-            }
 
             O("var item = _db.Add(model);");
             O();
@@ -241,14 +259,18 @@ namespace Casimodo.Lib.Mojen
 
             O();
             O($"Func<{Type.ClassName}, Task> OnCreatingExtended = null;");
+#endif
         }
 
         // Filters
 
         void GenerateFilters(MojType type)
         {
+            // TODO: REMOVE: Moved to controller base class.
+#if (false)
             O();
             O($"Func<IQueryable<{type.ClassName}>, IQueryable<{type.ClassName}>> CustomFilter {{ get; set; }} = (query) => query;");
+#endif
         }
 
         // Read ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -401,6 +423,8 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateUpdateSingleMain()
         {
+            // TODO: REMOVE? UpdateCore moved to a controller base class.
+#if (false)
             var key = Type.Key;
 
             O();
@@ -425,6 +449,7 @@ namespace Casimodo.Lib.Mojen
 
             O();
             O($"Func<{Type.ClassName}, string, Task> OnUpdatedExtended = null;");
+#endif
         }
 
         // Patch ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -436,7 +461,7 @@ namespace Casimodo.Lib.Mojen
             // Async, delta
             if (false)
             {
-#pragma warning disable 0162                
+#pragma warning disable 0162
                 var key = Type.Key;
 
                 O();
