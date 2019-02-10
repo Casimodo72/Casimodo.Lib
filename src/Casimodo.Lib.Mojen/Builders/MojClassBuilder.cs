@@ -453,6 +453,7 @@ namespace Casimodo.Lib.Mojen
                 store.SoftReferences.AddRange(TypeConfig.SoftReferences.Select(x => x.CloneToEntity()));
                 store.AssignFromConfig = TypeConfig.AssignFromConfig;
                 store.IsManyToManyLink = TypeConfig.IsManyToManyLink;
+                store.IsTagsLink = TypeConfig.IsTagsLink;
 
                 if (TypeConfig.BaseClass != null && TypeConfig.BaseClass.Store != null)
                 {

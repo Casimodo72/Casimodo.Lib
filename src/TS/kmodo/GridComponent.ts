@@ -734,7 +734,7 @@
 
         private _hasNonRemovableCompanyFilter(): boolean {
 
-            return null === kmodo.findDataSourceFilter(this._getAllConsumerFilters(),
+            return null !== kmodo.findDataSourceFilter(this._getAllConsumerFilters(),
                 function (filter) {
                     // KABU TODO: MAGIC Company type ID
                     return filter.targetTypeId === "59a58131-960d-4197-a537-6fbb58d54b8a" &&
@@ -888,12 +888,12 @@
                     self._tagsFilterSelector = kmodo.createMoTagFilterSelector(
                         $selector,
                         {
-                            // KABU TODO: VERY IMPORTANT: Needs to be updated
+                            // TODO: VERY IMPORTANT: Needs to be updated
                             //  when the company filter changes.
                             filters: kmodo.buildTagsDataSourceFilters(self._options.dataTypeId, initialCompanyId),
                             changed: function (tagIds) {
                                 if (tagIds && tagIds.length) {
-                                    var expression = tagIds.map(x => "Tags/any(tag: tag/Id eq " + x + ")").join(" and ");
+                                    var expression = tagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
                                     self._setBaseFilter(TAGS_FILTER_ID, { expression: expression });
                                 }
                                 else

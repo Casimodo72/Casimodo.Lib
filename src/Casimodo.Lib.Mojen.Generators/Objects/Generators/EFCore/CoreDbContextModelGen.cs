@@ -193,12 +193,12 @@ namespace Casimodo.Lib.Mojen
 
                     // ToMany navigation properties.
                     var toManyNavigationProps = properties
-                    .Where(x =>
-                        x.IsNavigation &&
-                        x.Reference.IsToMany &&
-                        x.Reference.ToType.IsEntity() &&
-                        // Ignore many-to-many because those will be modelled elsewhere.
-                        !x.Reference.ToType.IsManyToManyLink);
+                        .Where(x =>
+                            x.IsNavigation &&
+                            x.Reference.IsToMany &&
+                            x.Reference.ToType.IsEntity() &&
+                            // Ignore many-to-many because those will be modelled elsewhere.
+                            !x.Reference.ToType.IsManyToManyLink);
 
                     foreach (var prop in toManyNavigationProps)
                     {

@@ -256,6 +256,9 @@ namespace Casimodo.Lib.Mojen
         public bool IsManyToManyLink { get; set; }
 
         [DataMember]
+        public bool IsTagsLink { get; set; }
+
+        [DataMember]
         public bool ExistsAlready { get; set; }
 
         [DataMember]
