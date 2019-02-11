@@ -49,7 +49,7 @@ namespace Casimodo.Lib.Mojen
                     type.Key.Type.Name);
 
 
-                O($"public {name}() {{ }}");
+                // TODO: REMOVE: O($"public {name}() {{ }}");
                 O($"public {name}({db.DbContextName} db) : base(db) {{ }}");
 
                 End();

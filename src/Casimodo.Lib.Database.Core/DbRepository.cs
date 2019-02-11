@@ -92,13 +92,13 @@ namespace Casimodo.Lib.Data
 
     public static class DbRepositoryExtensions
     {
-        public static TRepo Use<TRepo>(this TRepo repository, DbContext context)
-            where TRepo : IDbRepository
-        {
-            repository.Use(context);
+        //public static TRepo Use<TRepo>(this TRepo repository, DbContext context)
+        //    where TRepo : IDbRepository
+        //{
+        //    repository.Use(context);
 
-            return repository;
-        }
+        //    return repository;
+        //}
 
         public static TRepo Use<TRepo>(this TRepo repository, IDbRepository other)
             where TRepo : IDbRepository

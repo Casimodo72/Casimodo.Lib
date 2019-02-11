@@ -45,8 +45,6 @@ namespace Casimodo.Lib.Mojen
 
             O($"public sealed partial class {name} : DbRepoContainer");
             Begin();
-            //O($"readonly {context.DbContextName} _db;");
-            //O();
 
             O($"public {name}()");
             O($"    : base(new {dataConfig.DbContextName}())");
@@ -56,9 +54,6 @@ namespace Casimodo.Lib.Mojen
             O($"public {name}({dataConfig.DbContextName} db)");
             O("    : base(db)");
             O("{ }");
-            //Begin();
-            //O("_db = db;");
-            //End();
 
             O();
             O($"public {dataConfig.DbContextName} Db {{ get {{ return ({dataConfig.DbContextName})_db; }} }}");
@@ -72,7 +67,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 O("public {0} {1}", @class, prop);
                 Begin();
-                O("get {{ return {0} ?? ({0} = new {1}().Use(Db)); }}", field, @class);
+                O("get {{ return {0} ?? ({0} = new {1}(Db)); }}", field, @class);
                 End();
                 O("{0} {1};", @class, field);
             }

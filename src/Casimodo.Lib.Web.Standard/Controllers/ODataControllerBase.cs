@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Web
         where TKey : struct, IComparable<TKey>
     {
         protected readonly TDbContext _dbcontext;
-        protected readonly TDbRepository _db;
+        protected readonly TDbRepository _repo;
 
         public StandardODataControllerBase(TDbContext dbcontext, TDbRepository dbrepo)
         {
@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Web
             Guard.ArgNotNull(dbrepo, nameof(dbrepo));
 
             _dbcontext = dbcontext;
-            _db = dbrepo;
+            _repo = dbrepo;
         }
 
         protected Func<IQueryable<TEntity>, IQueryable<TEntity>> CustomFilter { get; set; } = (query) => query;
@@ -56,12 +56,12 @@ namespace Casimodo.Lib.Web
         protected async Task<IActionResult> CreateCore(TEntity model)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            _db.ReferenceLoading(false);
+            _repo.ReferenceLoading(false);
 
             if (OnCreatingExtended != null) await OnCreatingExtended(model);
-            var item = _db.Add(model);
+            var item = _repo.Add(model);
 
-            await _db.SaveChangesAsync();
+            await _repo.SaveChangesAsync();
 
             return Created(item);
         }
@@ -71,10 +71,10 @@ namespace Casimodo.Lib.Web
         protected async Task<IActionResult> UpdateCore(TKey id, TEntity model, MojDataGraphMask mask, string group = null)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            _db.ReferenceLoading(false);
-            var item = _db.Update(id, model, mask);
+            _repo.ReferenceLoading(false);
+            var item = _repo.Update(id, model, mask);
             if (OnUpdatedExtended != null) await OnUpdatedExtended(item, group);
-            await _db.SaveChangesAsync();
+            await _repo.SaveChangesAsync();
 
             return Updated(item);
         }
