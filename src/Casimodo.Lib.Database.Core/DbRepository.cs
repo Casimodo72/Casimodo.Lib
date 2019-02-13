@@ -352,6 +352,15 @@ namespace Casimodo.Lib.Data
             return query;
         }
 
+        public IQueryable<TEntity> QueryDistinct(string on, bool includeDeleted = false, bool trackable = true)
+        {
+            Guard.ArgNotEmpty(on, nameof(on));
+
+            return Query(includeDeleted: includeDeleted, trackable: trackable)
+                .GroupBy(ExpressionHelper.GetGroupKey<TEntity>(on.Trim('\'')))
+                .Select(g => g.FirstOrDefault());
+        }
+
         // CRUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         public int SaveChanges()

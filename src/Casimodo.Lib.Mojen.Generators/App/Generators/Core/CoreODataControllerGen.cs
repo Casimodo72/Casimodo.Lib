@@ -67,6 +67,16 @@ namespace Casimodo.Lib.Mojen
             return $@"StandardODataControllerBase<{repoName}, {dataContext.DbContextName}, {Type.Name}, {Type.Key.Type.Name}>";
         }
 
+        string RepoVar()
+        {
+            return "_repo";
+        }
+
+        string DbVar()
+        {
+            return "_db";
+        }
+
         void GenerateController()
         {
             Options = Controller.GetGeneratorConfig<ODataControllerOptions>() ?? new ODataControllerOptions();
@@ -113,22 +123,22 @@ namespace Casimodo.Lib.Mojen
             // TODO: REMOVE: Moved to controller base class.
 #if (false)
             // Db context
-            O($"readonly {dbContextName} _dbcontext;");
+            O($"readonly {dbContextName} {DbVar()};");
             // Generic entity repository
-            O($"readonly {repoName} _db;");
+            O($"readonly {repoName} {RepoVar()};");
             O();
 #endif
 
             // Constructor
-            O($@"public {controllerName}({dbContextName} dbcontext)");
-            O($@"    : base(dbcontext, new {repoName}(dbcontext))");
+            O($@"public {controllerName}({dbContextName} db)");
+            O($@"    : base(db, new {repoName}(db))");
             O("{");
             Push();
             // TODO: REMOVE: Moved to controller base class.
 #if (false)     
-            O("Guard.ArgNotNull(dbcontext, nameof(dbcontext));");
-            O("_dbcontext = dbcontext;");
-            O($@"_db = new {repoName}(dbcontext);");
+            O("Guard.ArgNotNull(db, nameof(db));");
+            O($"{DbVar()} = db;");
+            O($"{RepoVar()} = new {repoName}(db);");
 #endif
             O("InitializeExtended();");
             Pop();
@@ -244,14 +254,14 @@ namespace Casimodo.Lib.Mojen
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-            O("_db.ReferenceLoading(false);");
+            O($"{RepoVar()}.ReferenceLoading(false);");
             O();
 
             O("if (OnCreatingExtended != null) await OnCreatingExtended(model);");
 
-            O("var item = _db.Add(model);");
+            O($"var item = {RepoVar()}.Add(model);");
             O();
-            O($"{GetDbContextSaveChangesExpression("_db")};");
+            O($"{GetDbContextSaveChangesExpression(DbVar())};");
             O();
             O("return Created(item);");
 
@@ -317,7 +327,7 @@ namespace Casimodo.Lib.Mojen
             OODataEnableQueryAttribute();
             O($"public IActionResult {ODataConfig.Query}()");
             Begin();
-            O("return Ok(CustomFilter(_db.Query()));");
+            O($"return Ok(CustomFilter({RepoVar()}.Query()));");
             End();
 
             // Distinct by property query function.
@@ -328,7 +338,7 @@ namespace Casimodo.Lib.Mojen
             OODataEnableQueryAttribute();
             O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();
-            O($"return Ok(CustomFilter(_db.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
+            O($"return Ok(CustomFilter({RepoVar()}.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
             End();
 
             // GET: odata/Entities(x)
@@ -339,7 +349,7 @@ namespace Casimodo.Lib.Mojen
             OODataEnableQueryAttribute();
             O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, keyProp.Type.Name, key);
             Begin();
-            O($"return SingleResult.Create(_db.QuerySingle({key}));");
+            O($"return SingleResult.Create({RepoVar()}.QuerySingle({key}));");
             End();
         }
 
@@ -434,15 +444,15 @@ namespace Casimodo.Lib.Mojen
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
 
             // Disable loading of referenced entities.
-            O("_db.ReferenceLoading(false);");
+            O($"{RepoVar()}.ReferenceLoading(false);");
 
             // Update the item.
-            O($"var item = _db.Update({key.VName}, model, mask);");
+            O($"var item = {RepoVar()}.Update({key.VName}, model, mask);");
 
             O("if (OnUpdatedExtended != null) await OnUpdatedExtended(item, group);");
 
             // Save to DB
-            O($"{GetDbContextSaveChangesExpression("_db")};");
+            O($"{GetDbContextSaveChangesExpression(DbVar())};");
             O();
             O("return Updated(item);");
             End();
@@ -472,8 +482,8 @@ namespace Casimodo.Lib.Mojen
                 Begin();
                 O("Validate(delta.GetEntity());");
                 O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-                O("_db.ReferenceLoading(false);");
-                O("return Updated(await _db.PatchAsync({0}, delta, save: true, token: cancellationToken));", key.VName);
+                O($"{RepoVar()}.ReferenceLoading(false);");
+                O($"return Updated(await {RepoVar()}.PatchAsync({0}, delta, save: true, token: cancellationToken));", key.VName);
                 End();
 #pragma warning restore 0162
             }
@@ -493,10 +503,10 @@ namespace Casimodo.Lib.Mojen
             OODataRouteAttribute($@"({{{key.VName}}})");
             O("public async Task<IActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
-            O("_db.ReferenceLoading(false);");
+            O($"{RepoVar()}.ReferenceLoading(false);");
             O();
             // Operate on the entity repository (i.e. not the model repository).
-            var repository = Type.Kind == MojTypeKind.Model ? "_db.Entities" : "_db";
+            var repository = Type.Kind == MojTypeKind.Model ? $"{RepoVar()}.Entities" : RepoVar();
             O($"var item = {repository}.Get({key.VName});");
             O();
 
@@ -523,14 +533,14 @@ namespace Casimodo.Lib.Mojen
             O("// Mark as deleted");
             O($"item.{Type.FindDeletedMarker(MojPropDeletedMarker.Self).Name} = true;");
 
-            var repository = Type.Kind == MojTypeKind.Model ? "_db.Entities" : "_db";
+            var repository = Type.Kind == MojTypeKind.Model ? $"{RepoVar()}.Entities" : RepoVar();
             O($"{repository}.Update(item);");
         }
 
         void GeneratePhysicalDelete()
         {
             O("// Delete physically");
-            var repository = Type.Kind == MojTypeKind.Model ? "_db.Entities" : "_db";
+            var repository = Type.Kind == MojTypeKind.Model ? $"{RepoVar()}.Entities" : RepoVar();
             O($"{repository}.Delete(item, isPhysicalDeletionAuthorized: true);");
         }
 

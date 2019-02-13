@@ -64,7 +64,7 @@ namespace Casimodo.Lib.Mojen
 
             g.OB($"new UnidirM2MCollectionOperationOptions<{ownerTypeName}, {itemTypeName}>");
 
-            g.O("Db = _db.Context,");
+            g.O("Db = _db,");
             g.O("IsAutoSaveEnabled = true,");
             g.O(@"OwnerId = (Guid)parameters[""id""],");
             g.O(@"ItemIds = (parameters[""itemIds""] as IEnumerable<Guid>).ToArray(),");

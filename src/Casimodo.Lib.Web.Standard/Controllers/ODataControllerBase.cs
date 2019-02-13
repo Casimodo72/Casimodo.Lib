@@ -39,16 +39,16 @@ namespace Casimodo.Lib.Web
         where TEntity : class, IKeyAccessor<TKey>, new()
         where TKey : struct, IComparable<TKey>
     {
-        protected readonly TDbContext _dbcontext;
+        protected readonly TDbContext _db;
         protected readonly TDbRepository _repo;
 
-        public StandardODataControllerBase(TDbContext dbcontext, TDbRepository dbrepo)
+        public StandardODataControllerBase(TDbContext db, TDbRepository repo)
         {
-            Guard.ArgNotNull(dbcontext, nameof(dbcontext));
-            Guard.ArgNotNull(dbrepo, nameof(dbrepo));
+            Guard.ArgNotNull(db, nameof(db));
+            Guard.ArgNotNull(repo, nameof(repo));
 
-            _dbcontext = dbcontext;
-            _repo = dbrepo;
+            _db = db;
+            _repo = repo;
         }
 
         protected Func<IQueryable<TEntity>, IQueryable<TEntity>> CustomFilter { get; set; } = (query) => query;
