@@ -21,7 +21,8 @@ namespace Casimodo.Lib.Mojen
 
             ODataConfig = App.Get<WebODataBuildConfig>();
 
-            string filePath = Path.Combine(WebConfig.WebConfigurationDirPath, "ODataConfig.generated.cs");
+            var dirPath = WebConfig.WebODataConfigurationDirPath ?? WebConfig.WebConfigurationDirPath;
+            string filePath = Path.Combine(dirPath, "ODataConfig.generated.cs");
             PerformWrite(filePath, () => GenerateODataConfig(types));
         }
 

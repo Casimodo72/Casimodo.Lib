@@ -37,6 +37,8 @@ namespace Casimodo.Lib.Mojen
 
         public string WebConfigurationDirPath { get; set; }
 
+        public string WebODataConfigurationDirPath { get; set; }
+
         public string WebAuthConfigurationDirPath { get; set; }
         public string WebAuthNamespace { get; set; }
 

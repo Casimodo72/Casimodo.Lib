@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
         public string Section { get; set; }
         public string OrderBy { get; set; }
         public bool IsDbImportEnabled { get; set; } = true;
-       
+
         public MojValueSetContainerBuilder SeedBuilder { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
         public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
@@ -64,6 +64,8 @@ namespace Casimodo.Lib.Mojen
             if (!IsEnabled)
                 return;
 
+            var config = App.Get<MojGlobalDataSeedConfig>();
+
             if (SeedConfig.IsInitialSeedEnabled)
             {
                 if (InitialSeed != null)
@@ -77,7 +79,15 @@ namespace Casimodo.Lib.Mojen
                 SeedBuilder.SeedAllProps();
                 ConfigureDbImport?.Invoke(this, SeedBuilder);
             }
-            else
+            else if (SeedBuilder.Config.ProducesPrimitiveKeys)
+            {
+                if (AlwaysSeed == null)
+                    throw new MojenException("Seed item must provice an 'AlwaysSeed' if used for primitive keys.");
+
+                AlwaysSeed?.Invoke(SeedBuilder);
+                SeedBuilder.Build();
+            }
+            else if (SeedConfig.IsDbSeedGeneratorEnabled)
             {
                 if (Seeder != null)
                 {

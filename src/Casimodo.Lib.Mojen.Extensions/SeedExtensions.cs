@@ -42,6 +42,7 @@ namespace Casimodo.Lib.Mojen
         public static MojValueSetContainerBuilder UsePrimitiveKeys(this MojValueSetContainerBuilder builder)
         {
             return builder
+                .ProducePrimitiveKeys()
                 .Use<PrimitiveKeysGen>()
                 .Use<TsPrimitiveKeysGen>();
         }

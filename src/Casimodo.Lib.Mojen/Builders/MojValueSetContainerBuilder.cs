@@ -64,6 +64,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojValueSetContainerBuilder ProducePrimitiveKeys()
+        {
+            Config.ProducesPrimitiveKeys = true;
+            return this;
+        }
+
         // KABU TODO: ELIMINATE
         [Obsolete("Will be removed")]
         MojValueSetContainerBuilder Ignore(params string[] propertyNames)

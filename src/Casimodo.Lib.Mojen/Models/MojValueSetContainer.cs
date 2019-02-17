@@ -28,6 +28,9 @@ namespace Casimodo.Lib.Mojen
         public bool IsDbSeedEnabled { get; set; } = true;
 
         [DataMember]
+        public bool ProducesPrimitiveKeys { get; set; }
+
+        [DataMember]
         public string Name { get; set; }
 
         [DataMember]
