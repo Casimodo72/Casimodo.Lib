@@ -271,7 +271,7 @@ namespace Casimodo.Lib.Mojen
             PropConfig.IsHiddenCollectionNavigationProp = hidden;
             PropConfig.SingleName = PropConfig.Name;
             PropConfig.SetName(MojType.Pluralize(PropConfig.Name));
-
+            PropConfig.Type.Type = null;
             PropConfig.Type.IsCollection = true;
 
             bool isBackrefNavigationApplied = false;
@@ -402,6 +402,7 @@ namespace Casimodo.Lib.Mojen
             if (backrefProp != null)
                 backrefProp.NavigationOrSelf.Reference.ForeignCollectionProp = PropConfig;
 
+            PropConfig.Type.CollectionElementTypeConfig = childType;
             PropConfig.Type.GenericTypeArguments.Add(MojPropType.Create(childType, nullable: false));
 
             PropConfig.Type.BuildName(null);

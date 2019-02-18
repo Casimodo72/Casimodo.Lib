@@ -49,15 +49,21 @@ namespace Casimodo.Lib.Mojen
             ClassGen.OJsClass(ns, name, isstatic: isstatic, export: export, constructor: constructor, content: content);
         }
 
-        public void OTsClass(string name, bool isstatic = false, bool export = true, bool hasconstructor = true, Action constructor = null, Action content = null)
+        public void OTsClass(string name, string extends = null,
+            bool isstatic = false, bool export = true,
+            bool hasconstructor = true,
+            Action constructor = null, Action content = null)
         {
-            ClassGen.OTsClass(name, isstatic: isstatic, export: export, hasconstructor: hasconstructor, constructor: constructor, content: content);
+            ClassGen.OTsClass(name, extends: extends,
+                isstatic: isstatic, export: export,
+                hasconstructor: hasconstructor,
+                constructor: constructor, content: content);
         }
 
         public string GetJsDefaultValue(MojProp prop)
         {
             if (prop.IsKey)
-                return "cmodo.guid()";
+                return "cmodo.guid()"; // TODO: Make configurable
 
             if (prop.DefaultValues.Is)
             {

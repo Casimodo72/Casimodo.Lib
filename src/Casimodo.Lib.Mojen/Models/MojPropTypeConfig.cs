@@ -138,9 +138,24 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojType TypeConfig { get; set; }
 
+        /// <summary>
+        /// Not serialized.
+        /// </summary>
+        public MojType CollectionElementTypeConfig { get; set; }
+
+        public MojType DirectOrContainedTypeConfig
+        {
+            get { return TypeConfig ?? CollectionElementTypeConfig; }
+        }
+
         public bool IsMojType
         {
             get { return TypeConfig != null; }
+        }
+
+        public bool IsDirectOrContainedMojType
+        {
+            get { return DirectOrContainedTypeConfig != null; }
         }
 
         public object GetPrimitiveDefaultValue()

@@ -176,9 +176,13 @@ namespace Casimodo.Lib.Mojen
                 // Property type
                 // Doc: {number | string | boolean | date}
                 // Default is string
-                string type = Moj.ToJsType(prop.Type);
-                if (type != "string")
-                    O($"type: '{type}',");
+                // NOTE: Use ToLower because Kendo expects "date" and not "Date".
+                if (!prop.Type.IsCollection)
+                {
+                    string type = Moj.ToJsType(prop.Type).ToLower();
+                    if (type != "string")
+                        O($"type: '{type}',");
+                }
 
                 if (context.IsEditableView)
                 {

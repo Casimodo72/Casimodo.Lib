@@ -47,6 +47,9 @@ namespace Casimodo.Lib.Mojen
         public string TypeScriptDataDirPath { get; set; }
 
         [DataMember]
+        public string TypeScriptModuleEntitiesDirPath { get; set; }
+
+        [DataMember]
         public string JavaScriptDataDirPath { get; set; }
 
         [DataMember]

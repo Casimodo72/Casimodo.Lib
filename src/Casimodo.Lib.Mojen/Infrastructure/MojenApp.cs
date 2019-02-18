@@ -141,7 +141,19 @@ namespace Casimodo.Lib.Mojen
                 generator.Initialize(this);
                 generator.Generate();
             }
+
+            ExecuteCustomGenerators?.Invoke(stage, scope);
         }
+
+        public TGenerator Initialize<TGenerator>(TGenerator generator)
+            where TGenerator: MojenGenerator
+        {
+            generator.Initialize(this);
+
+            return generator;
+        }
+
+        public Action<string, string> ExecuteCustomGenerators = null;
 
         public DateTimeOffset Now { get; set; }
 
@@ -210,14 +222,12 @@ namespace Casimodo.Lib.Mojen
             return Get<T>();
         }
 
-        public void Use(MojenGenerator generator)
+        public void Add(MojenGenerator generator)
         {
             if (generator == null) throw new ArgumentNullException("generator");
             generator.Initialize(this);
             Generators.Add(generator);
         }
-
-
 
         public void Add(MojBase item)
         {

@@ -287,15 +287,25 @@ namespace Casimodo.Lib.Mojen
         public static string ToJsType(MojPropType type)
         {
             string t = "string";
-            if (type.IsEnum)
-                // KABU REVISIT: Maybe Symbol some day. https://developer.mozilla.org/en-US/docs/Glossary/Symbol
-                t = "string";
+            if (type.IsDirectOrContainedMojType)
+            {
+                t = type.DirectOrContainedTypeConfig.Name;
+                if (type.IsCollection)
+                    t += "[]";
+            }
+            else if (type.IsCollection)
+            {
+                throw new NotImplementedException("TS/JS Conversion of simple type collections is not implemented (yet).");
+            }
             else if (type.IsNumber)
                 t = "number";
             else if (type.IsBoolean)
                 t = "boolean";
             else if (type.IsAnyTime)
-                t = "date";
+                t = "Date";
+            else if (type.IsEnum)
+                // TODO: REVISIT> Maybe Symbol some day. https://developer.mozilla.org/en-US/docs/Glossary/Symbol
+                t = "string";
 
             return t;
         }
