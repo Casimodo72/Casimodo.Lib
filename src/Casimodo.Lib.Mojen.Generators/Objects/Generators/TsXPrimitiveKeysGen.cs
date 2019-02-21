@@ -5,10 +5,25 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public partial class TsPrimitiveKeysGen : DataLayerGenerator
+    public class TsXPrimitiveKeysGenOptions
     {
-        public TsPrimitiveKeysGen()
+        public string OutputDirPath { get; set; }
+        public string FileName { get; set; }
+        public string[] IncludeTypes { get; set; }
+    }
+
+    /// <summary>
+    /// Uses TypeScriptDataDirPath as output dir path by default.
+    /// Override with options.OutputDirPath.
+    /// </summary>
+    public partial class TsXPrimitiveKeysGen : DataLayerGenerator
+    {
+        readonly TsXPrimitiveKeysGenOptions _options;
+        public TsXPrimitiveKeysGen(TsXPrimitiveKeysGenOptions options)
         {
+            Guard.ArgNotNull(options, nameof(options));
+
+            _options = options;
             Scope = "Context";
         }
 
@@ -18,26 +33,29 @@ namespace Casimodo.Lib.Mojen
         {
             var webConfig = App.Get<WebDataLayerConfig>();
             var moduleName = webConfig.ScriptNamespace;
-            var outputDirPath = webConfig.TypeScriptDataDirPath;
+
+            var outputDirPath = _options.OutputDirPath ?? webConfig.TypeScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            var items = App.AllValueCollections.Where(x => x.Uses(this)).ToArray();
+            var items = App.AllValueCollections
+                .Where(x => _options.IncludeTypes.Contains(x.TypeConfig.Name))
+                .ToList();
+
             if (!items.Any())
                 return;
 
-            PerformWrite(Path.Combine(outputDirPath, "Primitives.generated.ts"), () =>
+            var fileName = (_options.FileName ?? "keys.generated") + ".ts";
+
+            PerformWrite(Path.Combine(outputDirPath, fileName), () =>
             {
-                OTsNamespace(moduleName, () =>
+                foreach (var item in items)
                 {
-                    foreach (var item in items)
-                    {
-                        O();
-                        OTsClass(name: item.KeysContainerName, export: true,
-                            hasconstructor: false,
-                            content: () => GeneratePrimitiveDefinition(moduleName, item));
-                    }
-                });
+                    O();
+                    OTsClass(name: item.KeysContainerName, export: true,
+                        hasconstructor: false,
+                        content: () => GeneratePrimitiveDefinition(moduleName, item));
+                }
             });
         }
 
@@ -57,7 +75,6 @@ namespace Casimodo.Lib.Mojen
 
             if (Options.IsNamedValueEnabled)
             {
-                O();
                 MojValueSet item;
                 var props = config.Items.Where(x => !x.IsNull).ToList();
                 for (int i = 0; i < props.Count; i++)
@@ -66,6 +83,8 @@ namespace Casimodo.Lib.Mojen
 
                     item = props[i];
 
+                    // TODO: Do we need a summary?
+#if (false)
                     // Summary of member                
                     if (item.Has("DisplayValue"))
                         O("// DisplayValue: " + item.Get("DisplayValue").Value);
@@ -78,6 +97,7 @@ namespace Casimodo.Lib.Mojen
 
                     if (item.Has("Description"))
                         O("// Description: " + item.Get("Description").Value);
+#endif
 
                     // Public static member
                     var name = item.Get(config.NamePropName);

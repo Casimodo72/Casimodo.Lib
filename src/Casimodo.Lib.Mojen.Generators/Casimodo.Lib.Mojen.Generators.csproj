@@ -207,8 +207,9 @@
     <Compile Include="Objects\Generators\DbRepoCore.RestoreIsCascadeDeleted.CascadeGen.cs" />
     <Compile Include="Objects\Generators\EFCore\DbSeedGen.cs" />
     <Compile Include="Objects\Generators\EFCore\EntityGen.cs" />
-    <Compile Include="Objects\Generators\TsModuleBasedClassGen.cs" />
+    <Compile Include="Objects\Generators\TsXClassGen.cs" />
     <Compile Include="Objects\Generators\TsObjectInitializerGen.cs" />
+    <Compile Include="Objects\Generators\TsXPrimitiveKeysGen.cs" />
     <Compile Include="Objects\Infrastructure\EntityUserFromDbToSeedOptions.cs" />
     <Compile Include="Objects\Infrastructure\EntityToDbTransformationOptions.cs" />
     <Compile Include="Objects\Infrastructure\EntityFromDbTransformationGenBase.cs" />

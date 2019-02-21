@@ -1,6 +1,7 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
+using AngleSharp.Xhtml;
 using Casimodo.Lib.SimpleParser;
 using Microsoft.Extensions.FileProviders;
 using System;
@@ -290,6 +291,9 @@ namespace Casimodo.Lib.Templates
 
         public Func<IEnumerable<string>> GetCssFilePaths = () => Enumerable.Empty<string>();
 
+        public Func<IEnumerable<string>> GetCustomCss = () => Enumerable.Empty<string>();
+
+
         public string StylesHtml { get; set; }
 
         public void ClearDocument()
@@ -314,10 +318,18 @@ namespace Casimodo.Lib.Templates
             {
                 var sb = new StringBuilder();
 
-                foreach (var styleFilePath in GetCssFilePaths())
+                var cssFilePaths = GetCssFilePaths().ToArray();
+                var customCss = GetCustomCss().ToArray();
+                if (cssFilePaths.Any() || customCss.Any())
                 {
                     sb.Append("<style>");
-                    sb.Append(await ReadFileAsync(styleFilePath));
+
+                    foreach (var styleFilePath in GetCssFilePaths())
+                        sb.Append(await ReadFileAsync(styleFilePath));
+
+                    foreach (var css in customCss)
+                        sb.Append(css);
+
                     sb.Append("</style>");
                 }
 
@@ -451,7 +463,8 @@ namespace Casimodo.Lib.Templates
             {
                 using (var writer = new System.IO.StringWriter())
                 {
-                    page.Doc.ToHtml(writer);
+                    page.Doc.Body.ChildNodes.ToHtml(writer, XhtmlMarkupFormatter.Instance);
+                    // page.Doc.ToHtml(writer);
                     writer.Flush();
 
                     sb.Append(writer.ToString());

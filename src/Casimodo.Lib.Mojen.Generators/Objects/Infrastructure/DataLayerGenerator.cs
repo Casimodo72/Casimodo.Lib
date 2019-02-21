@@ -52,12 +52,26 @@ namespace Casimodo.Lib.Mojen
         public void OTsClass(string name, string extends = null,
             bool isstatic = false, bool export = true,
             bool hasconstructor = true,
+            bool propertyInitializer = false,
             Action constructor = null, Action content = null)
         {
             ClassGen.OTsClass(name, extends: extends,
                 isstatic: isstatic, export: export,
                 hasconstructor: hasconstructor,
+                propertyInitializer: propertyInitializer,
                 constructor: constructor, content: content);
+        }
+
+        public void OTsInterface(string name, string extends = null, bool export = true,
+             Action content = null)
+        {
+            var isDerived = !string.IsNullOrEmpty(extends);
+
+            OB($"{(export ? "export " : "")}interface {name}{(isDerived ? " extends " + extends : "")}");
+
+            content.Invoke();
+
+            End();
         }
 
         public string GetJsDefaultValue(MojProp prop)

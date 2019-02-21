@@ -12,6 +12,7 @@ namespace Casimodo.Lib.Mojen
                bool isstatic = false, bool export = true,
                bool hasconstructor = true,
                string constructorOptions = null,
+               bool propertyInitializer = false,
                Action constructor = null,
                Action content = null)
         {
@@ -23,13 +24,27 @@ namespace Casimodo.Lib.Mojen
 
             OB($"{(export ? "export " : "")}class {name}{(isDerived ? " extends " + extends : "")}");
 
+            if (!hasconstructor && propertyInitializer)
+                throw new MojenException("Can't generate a property initializing constructor if there's no constructor.");
+
+            if (hasOptions && propertyInitializer)
+                throw new MojenException("Can't generate a property initializing constructor if there the constructor has options.");
+
             if (hasconstructor)
             {
                 // Constructor
-                OB($"constructor({(hasOptions ? constructorOptions : "")})");
+                if (propertyInitializer)
+                    OB($"constructor(value?: Partial<{name}>)");
+                else if (hasOptions)
+                    OB($"constructor({constructorOptions})");
+                else
+                    OB("constructor()");
 
                 if (isDerived)
                     O($"super({(hasOptions ? constructorOptions : "")});");
+
+                if (propertyInitializer)
+                    O("if (value) Object.assign(this, value);");
 
                 if (constructor != null)
                 {

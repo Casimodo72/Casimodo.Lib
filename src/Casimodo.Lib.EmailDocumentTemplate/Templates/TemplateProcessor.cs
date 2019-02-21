@@ -26,6 +26,14 @@ namespace Casimodo.Lib.Templates
 
             return uri;
         }
+
+        /// <summary>
+        /// Returns a data URI with base64 encoded data.
+        /// </summary>        
+        public static string ToDataUri(string mediaType, byte[] data)
+        {
+            return $"data:{mediaType};base64,{Convert.ToBase64String(data)}";
+        }
     }
 
     public class TemplateLoopCursorVariable<T> : TemplateLoopCursor
@@ -226,7 +234,7 @@ namespace Casimodo.Lib.Templates
 
         public string GetDataUriFromEmbeddedPng(string name)
         {
-            return GetDataUri("image/png", GetEmbeddedResource(name));
+            return TemplateUtils.ToDataUri("image/png", GetEmbeddedResource(name));
         }
 
         public byte[] GetEmbeddedResource(string name)
@@ -237,15 +245,7 @@ namespace Casimodo.Lib.Templates
                 stream.CopyTo(ms);
                 return ms.ToArray();
             }
-        }
-
-        /// <summary>
-        /// Returns a data URI with base64 encoded data.
-        /// </summary>        
-        public string GetDataUri(string mediaType, byte[] data)
-        {
-            return $"data:{mediaType};base64,{Convert.ToBase64String(data)}";
-        }
+        }        
 
         protected void ThrowUnhandledTemplateExpression(string expression)
         {

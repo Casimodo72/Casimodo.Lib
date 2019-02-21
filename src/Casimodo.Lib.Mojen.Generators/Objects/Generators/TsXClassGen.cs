@@ -6,11 +6,13 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class TsModuleBasedClassGenOptions
+    public class TsXClassGenOptions
     {
         public string OutputDirPath { get; set; }
         public bool OutputSingleFile { get; set; }
         public string[] IncludeTypes { get; set; }
+
+        public bool GenerateInterfaces { get; set; }
 
         public string SingleFileName { get; set; }
 
@@ -19,11 +21,11 @@ namespace Casimodo.Lib.Mojen
         public Func<MojType, string> FormatFileName { get; set; }
     }
 
-    public class TsModuleBasedClassGen : DataLayerGenerator
+    public class TsXClassGen : DataLayerGenerator
     {
-        readonly TsModuleBasedClassGenOptions _options;
+        readonly TsXClassGenOptions _options;
 
-        public TsModuleBasedClassGen(TsModuleBasedClassGenOptions options = null)
+        public TsXClassGen(TsXClassGenOptions options = null)
         {
             _options = options;
             Scope = "Context";
@@ -139,8 +141,6 @@ namespace Casimodo.Lib.Mojen
 
         public void Generate(MojType type, bool import)
         {
-            var tenantKey = type.FindTenantKey();
-
             var localProps = type.GetLocalProps(custom: false)
                 // Exclude hidden EF navigation collection props.
                 .Where(x => !x.IsHiddenCollectionNavigationProp)
@@ -154,9 +154,20 @@ namespace Casimodo.Lib.Mojen
                 foreach (var prop in localProps.Where(x => x.Type.IsMojType))
                     OImportType(prop.Type.TypeConfig);
 
+            if (_options.GenerateInterfaces == true)
+            {
+                OTsInterface(type.Name,
+                    extends: type.HasBaseClass ? type.BaseClass.Name : null,
+                    content: () =>
+                    {
+                        OClassOrInterfaceProps(type, localProps, isInterface: true);
+                    });
+            }
+
             O();
             OTsClass(type.Name,
                 extends: type.HasBaseClass ? type.BaseClass.Name : null,
+                propertyInitializer: true,
                 constructor: () =>
                 {
                     // TODO: Find a way to emit this only when used in the context of OData.
@@ -164,54 +175,73 @@ namespace Casimodo.Lib.Mojen
                 },
                 content: () =>
                 {
-                    // Local properties                  
-                    MojProp prop;
-                    for (int i = 0; i < localProps.Count; i++)
-                    {
-                        prop = localProps[i];
-
-                        if (prop == tenantKey)
-                            // Don't expose tenant information.
-                            continue;
-
-                        //if (i > 0)
-                        //    O();
-
-                        OTsDoc(prop);
-
-                        if (prop.Type.IsCollection)
-                        {
-                            string propTypeName;
-                            // Use Partial<T> for references.
-                            if (prop.Type.IsDirectOrContainedMojType)
-                            {
-                                propTypeName = $"Partial<{prop.Type.DirectOrContainedTypeConfig.Name}>";
-                            }
-                            else
-                                propTypeName = Moj.ToJsType(prop.Type);
-
-                            O($"{prop.Name}: {propTypeName}[] = [];");
-                        }
-                        else
-                        {
-                            // Use Partial<T> for references.
-                            string propTypeName = Moj.ToJsType(prop.Type);
-                            if (prop.Type.IsMojType)
-                                propTypeName = $"Partial<{propTypeName}>";
-
-                            string defaultValue = "null";
-
-                            if (_options?.UseDefaultValues == true)
-                            {
-                                // Don't auto-generate GUIDs for IDs.
-                                if (!prop.IsKey)
-                                    defaultValue = GetJsDefaultValue(prop);
-                            }
-
-                            O($"{prop.Name}: {propTypeName} = {defaultValue};");
-                        }
-                    }
+                    OClassOrInterfaceProps(type, localProps, isInterface: false);
                 });
+        }
+
+        void OClassOrInterfaceProps(MojType type, List<MojProp> localProps, bool isInterface)
+        {
+            var tenantKey = type.FindTenantKey();
+
+            // Local properties                  
+            MojProp prop;
+            for (int i = 0; i < localProps.Count; i++)
+            {
+                prop = localProps[i];
+
+                if (prop == tenantKey)
+                    // Don't expose tenant information.
+                    continue;
+
+                //if (i > 0)
+                //    O();
+
+                if (!isInterface)
+                    OTsDoc(prop);
+
+                if (prop.Type.IsCollection)
+                {
+                    string propTypeName;
+                    // Use Partial<T> for references.
+                    if (prop.Type.IsDirectOrContainedMojType)
+                    {
+                        propTypeName = $"Partial<{prop.Type.DirectOrContainedTypeConfig.Name}>";
+                    }
+                    else
+                        propTypeName = Moj.ToJsType(prop.Type);
+
+                    if (!isInterface)
+                        O($"{prop.Name}: {propTypeName}[] = [];");
+                    else
+                        O($"{prop.Name}: {propTypeName}[];");
+                }
+                else
+                {
+                    // Use Partial<T> for references.
+                    string propTypeName = Moj.ToJsType(prop.Type);
+                    if (prop.Type.IsMojType)
+                        propTypeName = $"Partial<{propTypeName}>";
+
+                    string defaultValue = "null";
+
+                    if (_options?.UseDefaultValues == true)
+                    {
+                        // Don't auto-generate GUIDs for IDs.
+                        if (!prop.IsKey)
+                            defaultValue = GetJsDefaultValue(prop);
+                    }
+                    else if (prop.Type.IsBoolean && !prop.Type.IsNullableValueType)
+                    {
+                        // Always initialize non nullable booleans.
+                        defaultValue = "false";
+                    }
+
+                    if (!isInterface)
+                        O($"{prop.Name}: {propTypeName} = {defaultValue};");
+                    else
+                        O($"{prop.Name}: {propTypeName};");
+                }
+            }
         }
     }
 }
