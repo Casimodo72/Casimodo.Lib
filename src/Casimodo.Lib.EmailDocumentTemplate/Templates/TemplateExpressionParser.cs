@@ -120,8 +120,10 @@ namespace Casimodo.Lib.Templates
                 _codeCache.Add(new CodeCacheItem { Code = code, Script = script });
             }
 
-            var scriptNode = new CSharpScriptAstNode();
-            scriptNode.Script = script;
+            var scriptNode = new CSharpScriptAstNode
+            {
+                Script = script
+            };
 
             return scriptNode;
         }

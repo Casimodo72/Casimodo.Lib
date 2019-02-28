@@ -85,6 +85,81 @@ namespace Casimodo.Lib.Mojen
                     O("public static {0} = {1};", name.Value, Moj.JS(val.Value));
                 }
             }
+
+            var type = config.TypeConfig;
+            foreach (var mapping in config.Mappings)
+            {
+                GenerateMapping(config, mapping);
+            }
+        }
+
+        void GenerateMapping(MojValueSetContainer config, MojValueSetMapping mapping)
+        {
+            var type = config.TypeConfig;
+
+            if (config.Items.Count == 0)
+                return;
+
+            var first = config.Items.First();
+
+            var toPropName = mapping.To;
+            var toProp = type.FindProp(toPropName);
+            var toPropType = toProp.Type.NameNormalized;
+
+            var keyProps = mapping.From;
+            var keyName = keyProps.Join("And");
+
+            bool isToNamedValue = Options.IsNamedValueEnabled && toPropName == config.ValuePropName;
+            //bool isFromNamedValue = Options.IsNamedValueEnabled && mapping.From.Count == 1 && keyName == config.ValuePropName;
+
+            var dictionary = $"_{FirstCharToLower(keyName)}2{toPropName}";
+
+            var keyType = keyProps.Select(x => type.FindProp(x).Type.NameNormalized).Join(", ");
+            var keyTemplate = keyProps.Select((x, i) => $"{{{i}}}").Join(", ");
+
+            if (mapping.From.Count > 1)
+            {
+                throw new NotSupportedException("Multiple 'from' mappings are not suported yet for TypeScript.");
+                //keyType = $"Tuple<{keyType}>";
+                //keyTemplate = $"Tuple.Create({keyTemplate})";
+            }
+
+            // Mapping dictionary
+            O();
+            OB($"private static {dictionary} =");
+            string key;
+            string value;
+            foreach (MojValueSet item in config.Items)
+            {
+                key = string.Format(keyTemplate,
+                    mapping.From.Select(x =>
+                        Moj.JS(item.Get(x).Value, parse: true))
+                   .ToArray());
+
+                if (isToNamedValue)
+                    value = config.KeysContainerName + "." + item.Get(config.NamePropName).Value;
+                else
+                    value = Moj.JS(item.Get(toPropName).Value, parse: true);
+
+                O($"{key}: {value},");
+            }
+            End(";");
+
+            // Mapping function
+            O();
+            key = keyProps.Select(x => FirstCharToLower(x)).Join(", ");
+
+            OB($"public static get{toPropName}By{keyName}({key})");
+
+            key = string.Format(keyTemplate,
+                keyProps.Select(x => FirstCharToLower(x))
+                .ToArray());
+
+            O($"if (typeof {key} === 'undefined' || {key} === null) return null;");
+
+            O($"return {config.KeysContainerName}.{dictionary}['' + {key}] || null;");
+
+            End();
         }
     }
 }

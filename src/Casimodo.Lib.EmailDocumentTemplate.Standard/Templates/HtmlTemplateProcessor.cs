@@ -1,7 +1,6 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
-using AngleSharp.Xhtml;
 using Casimodo.Lib.SimpleParser;
 using Microsoft.Extensions.FileProviders;
 using System;
@@ -21,8 +20,24 @@ namespace Casimodo.Lib.Templates
 
     public class HtmlTemplate
     {
+        public HtmlTemplate(AngleSharp.Dom.IDocument doc)
+        {
+            Guard.ArgNotNull(doc, nameof(doc));
+
+            Doc = doc;
+        }
         public AngleSharp.Dom.IDocument Doc { get; set; }
         public List<HtmlInlineTemplate> InlineTemplates { get; set; } = new List<HtmlInlineTemplate>();
+
+        //public AngleSharp.Dom.IElement GetContainerElem()
+        //{
+        //    return Doc.Body;
+        //}
+
+        public IEnumerable<AngleSharp.Dom.IElement> Elements
+        {
+            get { return Doc?.Body?.Children ?? Enumerable.Empty<AngleSharp.Dom.IElement>(); }
+        }
     }
 
     public static class DomExtensions
@@ -38,7 +53,7 @@ namespace Casimodo.Lib.Templates
         // Attributes.SetNamedItem(;
         public static AngleSharp.Dom.IAttr GetOrSetAttr(this AngleSharp.Dom.IElement elem, string name)
         {
-            var attr = elem.Attributes.GetNamedItem(name); // CurElem.Attributes.fi.FirstOrDefault(x => x.Name == name);
+            var attr = elem.Attributes.GetNamedItem(name);
             if (attr != null)
                 return attr;
 
@@ -57,8 +72,8 @@ namespace Casimodo.Lib.Templates
 
     public class HtmlInlineTemplate
     {
-        public string Name { get; set; }
-        public AngleSharp.Dom.IElement Elem { get; set; }
+        public string Id { get; set; }
+        public AngleSharp.Html.Dom.IHtmlTemplateElement TemplateElement { get; set; }
     }
     public class TemplateProcessorEventArgs : EventArgs
     {
@@ -76,9 +91,8 @@ namespace Casimodo.Lib.Templates
             public const string Placeholder = "data-placeholder";
             public const string Foreach = "data-foreach";
             public const string If = "data-if";
-            public const string Template = "data-template";
-            public const string IncludeTemplate = "data-include-template";
-            public const string ValueTemplateName = "data-value-template";
+            public const string TemplateRef = "template-id";
+            public const string ValueTemplateRef = "value-template-id";
         }
 
         IFileProvider _fileProvider;
@@ -90,14 +104,15 @@ namespace Casimodo.Lib.Templates
             _fileProvider = fileProvider;
         }
 
-        protected List<HtmlTemplate> Fragments { get; set; } = new List<HtmlTemplate>();
+        protected List<HtmlTemplate> Pages { get; set; } = new List<HtmlTemplate>();
 
         public RazorRemoverParser RazorRemover { get; set; } = new RazorRemoverParser();
 
-        string ImagePageTemplate { get; set; }
+        string ImagePageTemplateHtml { get; set; }
 
-        string PageTemplate { get; set; }
-        HtmlTemplate Page { get; set; }
+        string PageTemplateHtml { get; set; }
+
+        protected HtmlTemplate CurrentTemplate { get; set; }
 
         public new HtmlTemplateElement CurTemplateElement
         {
@@ -105,23 +120,18 @@ namespace Casimodo.Lib.Templates
             set { base.CurTemplateElement = value; }
         }
 
-        HtmlTemplate CurrentTemplate { get; set; }
-
-        public async Task ProcessTemplate(HtmlTemplate template)
+        public async Task ProcessNewPage()
         {
-            CurrentTemplate = template;
-            await ProcessTemplateElemCore(CurrentTemplate.Doc.DocumentElement, ExecuteCurrentTemplateElement);
+            CurrentTemplate = AddPage(await NewPage());
+            await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
-        List<AngleSharp.Dom.IElement> _processedNodes = new List<AngleSharp.Dom.IElement>();
+        readonly List<AngleSharp.Dom.IElement> _processedElements = new List<AngleSharp.Dom.IElement>();
 
-        async Task ProcessTemplateElemCore(AngleSharp.Dom.IElement elem, Func<Task> visitor)
+        async Task ProcessTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> visitor)
         {
-            await VisitTemplateElements(elem, async () =>
+            await VisitTemplateElements(elements, async () =>
             {
-                if (_processedNodes.Any(x => x == CurTemplateElement.Elem))
-                    throw new Exception("This node was already processed.");
-
                 if (CurTemplateElement.IsForeach)
                 {
                     var values = (await FindObjects(CurTemplateElement))
@@ -132,16 +142,16 @@ namespace Casimodo.Lib.Templates
 
                     if (values.Length != 0)
                     {
-                        var parentElem = originalElem.ParentElement;
-                        var cursorNode = originalElem;
-                        // TODO: IMPORTANT: We don't allow nested foreach instructions yet.
+                        var parentNode = originalElem.Parent;
+
+                        // TODO: IMPORTANT: We don't support nested foreach instructions yet.
 
                         // TODO: IMPORTANT: If we allow nested foreach then:
                         // 1) make loop variable name adjustable by consumer.
                         // 2) store/restore loop variable of outer scope with same name.
                         //    This means an equal loop variable name will shadow variables in outer scope.
 
-                        var itemVarName = "item";
+                        const string loopCurrenItemPropName = "item";
 
                         for (int i = 0; i < values.Length; i++)
                         {
@@ -150,7 +160,8 @@ namespace Casimodo.Lib.Templates
                             var item = (TemplateLoopCursor)Activator.CreateInstance(
                                 typeof(TemplateLoopCursorVariable<>).MakeGenericType(new Type[] { value.GetType() }));
 
-                            CoreContext.Data.AddProp(item.GetType(), itemVarName, item);
+                            // Add "item" property.
+                            CoreContext.Data.AddProp(item.GetType(), loopCurrenItemPropName, item);
 
                             item.ValueObject = values[i];
 
@@ -159,20 +170,17 @@ namespace Casimodo.Lib.Templates
                             item.IsFirst = i == 0;
                             item.IsLast = i == values.Length - 1;
 
-                            // Operate on a clone of the original "foreach" template element.
-                            var currentTemplateElem = (AngleSharp.Dom.IElement)originalElem.Clone();
+                            // Operate on a clone of the original "foreach" element.
+                            var elemClone = (AngleSharp.Dom.IElement)originalElem.Clone();
 
-                            await ProcessTemplateElemCore(currentTemplateElem, visitor);
+                            await ProcessTemplateElements(elemClone.Children, visitor);
 
-                            // Insert all children of the transformed "foreach" template element.
-                            foreach (var child in currentTemplateElem.Children)
-                            {
-                                _processedNodes.Add(child);
-                                parentElem.InsertElemAfter(child, cursorNode);
-                                cursorNode = child;
-                            }
+                            // Insert all child nodes of the transformed "foreach" element.
+                            foreach (var childNode in elemClone.ChildNodes.ToArray())
+                                parentNode.InsertBefore(childNode, originalElem);
 
-                            CoreContext.Data.RemoveProp(itemVarName);
+                            // Remove "item" property.
+                            CoreContext.Data.RemoveProp(loopCurrenItemPropName);
                         }
                     }
 
@@ -182,23 +190,18 @@ namespace Casimodo.Lib.Templates
                 else if (CurTemplateElement.IsCondition)
                 {
                     var originalElem = CurTemplateElement.Elem;
-                    var parentElem = originalElem.ParentElement;
-                    var cursorNode = originalElem;
+                    var parentNode = originalElem.Parent;
 
                     if (await EvaluateCondition(CurTemplateElement))
                     {
                         // Operate on a clone of the original "if" element.
-                        var currentTemplateElem = (AngleSharp.Dom.IElement)originalElem.Clone();
+                        var elemClone = (AngleSharp.Dom.IElement)originalElem.Clone();
 
-                        await ProcessTemplateElemCore(currentTemplateElem, visitor);
+                        await ProcessTemplateElements(elemClone.Children, visitor);
 
-                        // Insert all children of the transformed "foreach" template element.
-                        foreach (var child in currentTemplateElem.Children)
-                        {
-                            _processedNodes.Add(child);
-                            parentElem.InsertElemAfter(child, cursorNode);
-                            cursorNode = child;
-                        }
+                        // Insert all child nodes of the transformed "if" element.
+                        foreach (var childNode in elemClone.ChildNodes.ToArray())
+                            parentNode.InsertBefore(childNode, originalElem);
                     }
 
                     // Remove the original "if" element and its content.
@@ -206,29 +209,25 @@ namespace Casimodo.Lib.Templates
                 }
                 else if (CurTemplateElement.ValueTemplateName != null)
                 {
-                    var template = GetInlineTemplate(CurTemplateElement.ValueTemplateName);
-
                     var originalElem = CurTemplateElement.Elem;
-                    var parentElem = originalElem.ParentElement;
-                    var cursorNode = originalElem;
-                    var valueVarName = "value";
-                    var value = EvaluateValue(CurTemplateElement);
+                    var valueTemplate = GetInlineTemplate(CurTemplateElement.ValueTemplateName);
 
-                    CoreContext.Data.AddProp(value?.GetType() ?? typeof(object), valueVarName, value);
+                    // Get the value that will be used by the value template.
+                    var value = await EvaluateValue(CurTemplateElement);
 
-                    // Operate on a clone of the original value template element.
-                    var currentTemplateElem = (AngleSharp.Dom.IElement)template.Elem.Clone();
+                    // Add "value" property.
+                    const string valueVarName = "value";
+                    CoreContext.Data.AddProp(value?.GetType() ?? typeof(object), "value", value);
 
-                    await ProcessTemplateElemCore(currentTemplateElem, visitor);
+                    var fragmentClone = (IDocumentFragment)valueTemplate.TemplateElement.Content.Clone();
 
-                    // Insert all children of the transformed "foreach" template element.
-                    foreach (var child in currentTemplateElem.Children)
-                    {
-                        _processedNodes.Add(child);
-                        parentElem.InsertElemAfter(child, cursorNode);
-                        cursorNode = child;
-                    }
+                    // Process the content of the value template.
+                    await ProcessTemplateElements(fragmentClone.Children, visitor);
 
+                    // Add processed content of the value template to the result.
+                    originalElem.ParentElement.InsertBefore(fragmentClone, originalElem);
+
+                    // Remove the "value" property.
                     CoreContext.Data.RemoveProp(valueVarName);
 
                     // Remove the original element and its content.
@@ -243,7 +242,7 @@ namespace Casimodo.Lib.Templates
 
         HtmlInlineTemplate GetInlineTemplate(string name)
         {
-            var template = CurrentTemplate.InlineTemplates.FirstOrDefault(x => x.Name == name);
+            var template = CurrentTemplate.InlineTemplates.FirstOrDefault(x => x.Id == name);
             if (template == null)
                 throw new TemplateException($"Inline template '{name}' not found.");
 
@@ -298,7 +297,7 @@ namespace Casimodo.Lib.Templates
 
         public void ClearDocument()
         {
-            Fragments.Clear();
+            Pages.Clear();
         }
 
         async Task<string> ReadFileAsync(string filePath)
@@ -342,8 +341,8 @@ namespace Casimodo.Lib.Templates
             await BuildStylesheets();
 
             // Page template
-            if (PageTemplate == null)
-                PageTemplate = await CreatePageTemplate();
+            if (PageTemplateHtml == null)
+                PageTemplateHtml = await CreatePageTemplate();
         }
 
         protected async Task<string> LoadTemplatePart(string virtualFilePath)
@@ -372,189 +371,200 @@ namespace Casimodo.Lib.Templates
             return string.IsNullOrWhiteSpace(template) ? null : template;
         }
 
-        // TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
-        public Task<HtmlTemplate> NewPage()
+        async Task<HtmlTemplate> ParseHtmlTemplate(string htmlFragment)
         {
-            if (PageTemplate == null)
-                throw new InvalidOperationException("PageTemplate not assigned.");
-            // PageTemplate = await CreatePageTemplate();
+            var document = await BrowsingContext.New().OpenNewAsync();
+            document.Body.InnerHtml = PageTemplateHtml;
 
-            var doc = new HtmlParser().ParseDocument(PageTemplate);
-
-            var fragment = new HtmlTemplate
-            {
-                Doc = doc,
-                InlineTemplates = GetInlineTemplateHtmlElemNodes(doc.DocumentElement).ToList()
-            };
-
-            ExpandInlineHtmlTemplates(fragment);
-
-            Fragments.Add(fragment);
-
-            Page = fragment;
-
-            return Task.FromResult(fragment);
+            return new HtmlTemplate(document);
         }
 
-        void ExpandInlineHtmlTemplates(HtmlTemplate fragment)
+        // TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
+        public async Task<HtmlTemplate> NewPage()
         {
-            foreach (var node in GetHtmlElemNodes(fragment.Doc.DocumentElement)
-                .Where(x => HasAttr(x, TemplateAttr.IncludeTemplate))
+            if (PageTemplateHtml == null)
+                throw new InvalidOperationException("PageTemplate not assigned.");
+
+            var template = await ParseHtmlTemplate(PageTemplateHtml);
+
+            RemoveWhitespace(template.Doc.GetDescendants());
+
+            template.InlineTemplates = GetTemplateHtmlElements(template.Elements).ToList();
+            Expand(template);
+            // Remove HTML templates from tree.
+            //foreach (var inlineTemplate in template.InlineTemplates)
+            //    inlineTemplate.TemplateElement.Remove();
+
+            return template;
+        }
+
+        void RemoveWhitespace(IEnumerable<INode> nodes)
+        {
+            foreach (IText node in nodes.OfType<IText>().ToArray())
+            {
+                if (string.IsNullOrWhiteSpace(node.Text))
+                    node.Remove();
+            }
+        }
+
+        void Expand(HtmlTemplate template)
+        {
+            foreach (var elem in GetHtmlElements(template.Elements, (x) => HasAttr(x, TemplateAttr.TemplateRef))
                 .ToArray())
             {
                 // Replace template includes with template content.
+                var inlineTemplateId = elem.GetAttribute(TemplateAttr.TemplateRef);
+                var inlineTemplate = template.InlineTemplates.FirstOrDefault(x => x.Id == inlineTemplateId);
+                if (inlineTemplate == null)
+                    throw new TemplateException($"Inline template '{inlineTemplateId}' not found.");
 
-                var templateName = node.GetAttribute(TemplateAttr.IncludeTemplate, null);
+                // Clone the DocumentFragment content of the template element.
+                var clone = (IDocumentFragment)inlineTemplate.TemplateElement.Content.Clone();
+                // Insert the fragment's child nodes.
+                elem.ParentElement.InsertBefore(clone, elem);
 
-                var template = fragment.InlineTemplates.FirstOrDefault(x => x.Name == templateName);
-                if (template == null)
-                    throw new TemplateException($"Inline template '{templateName}' not found.");
+                // Remove "template" include instruction element.
+                elem.Remove();
+            }
+        }
 
-                var templateElem = (AngleSharp.Dom.IElement)template.Elem.Clone();
-                var cursorNode = node;
-                // Insert all children of the transformed "foreach" template element.
-                foreach (var child in templateElem.Children)
-                {
-                    node.ParentElement.InsertElemAfter(child, cursorNode);
-                    cursorNode = child;
-                }
+        protected IEnumerable<AngleSharp.Dom.IElement> GetHtmlElements(
+            IEnumerable<AngleSharp.Dom.IElement> elements,
+            Func<IElement, bool> predicate = null)
+        {
+            foreach (var elem in elements.ToArray())
+            {
+                if (predicate?.Invoke(elem) != false)
+                    yield return elem;
 
-                // Remove "include template" instruction from tree.
-                node.Remove();
+                // Skip content of template includes.
+                if (HasAttr(elem, TemplateAttr.TemplateRef))
+                    continue;
+
+                // Process child elements.
+                foreach (var childElem in GetHtmlElements(elem.Children, predicate))
+                    yield return childElem;
             }
         }
 
         const string DefaultImagePageTemplate = @"<div class='image-page'><img class='page-image' alt='Image' data-property='Ext.PageImage' style='max-width:100%' /></div>";
 
-        public HtmlTemplate NewImagePage()
+        protected async Task<HtmlTemplate> NewImagePage()
         {
-            if (ImagePageTemplate == null)
-                ImagePageTemplate = DefaultImagePageTemplate;
+            if (ImagePageTemplateHtml == null)
+                ImagePageTemplateHtml = DefaultImagePageTemplate;
 
-            var doc = new HtmlParser().ParseDocument(ImagePageTemplate);
+            // TODO: Eval if we should cache the template DOM.
+            return await ParseHtmlTemplate(ImagePageTemplateHtml);
+        }
 
-            var fragment = new HtmlTemplate
-            {
-                Doc = doc
-            };
+        protected HtmlTemplate AddPage(HtmlTemplate pageTemplate)
+        {
+            Pages.Add(pageTemplate);
 
-            Fragments.Add(fragment);
-            Page = fragment;
-
-            return fragment;
+            return pageTemplate;
         }
 
         public string BuildFinalDocument()
         {
             var sb = new StringBuilder();
-            sb.AppendLine("<!DOCTYPE html>");
-            sb.Append("<html>");
-            sb.Append("<head>");
-            sb.Append("<meta charset='UTF-8'>");
-
-            // Stylesheets
-            sb.Append(StylesHtml);
-
-            sb.Append("</head>");
-            sb.Append("<body>");
-
-            int i = 0;
-            foreach (var page in Fragments)
+            using (var wr = new System.IO.StringWriter(sb))
             {
-                using (var writer = new System.IO.StringWriter())
-                {
-                    page.Doc.Body.ChildNodes.ToHtml(writer, XhtmlMarkupFormatter.Instance);
-                    // page.Doc.ToHtml(writer);
-                    writer.Flush();
+                wr.WriteLine("<!DOCTYPE html>");
+                wr.Write("<html>");
+                wr.Write("<head>");
+                wr.Write("<meta charset='UTF-8'>");
 
-                    sb.Append(writer.ToString());
+                // Stylesheets
+                wr.Write(StylesHtml);
+
+                wr.Write("</head>");
+                wr.Write("<body>");
+
+                int i = 0;
+                foreach (var page in Pages)
+                {
+                    //using (var writer = new System.IO.StringWriter(sb))
+                    //{
+                    page.Doc.Body.ChildNodes.ToHtml(wr);
+                    //wr.Flush();
+                    //sb.Append(writer.ToString());
+                    //}
+
+                    // Page break
+                    if (i < Pages.Count - 1)
+                        wr.Write(@"<div style=""page-break-before:always""></div>");
+                    i++;
                 }
 
-                // Page break
-                if (i < Fragments.Count - 1)
-                    sb.Append(@"<div style=""page-break-before:always""></div>");
-                i++;
-            }
+                wr.Write("</body>");
+                wr.Write("</html>");
 
-            sb.Append("</body>");
-            sb.Append("</html>");
+                wr.Flush();
+            }
 
             return sb.ToString();
         }
 
-        IEnumerable<HtmlInlineTemplate> GetInlineTemplateHtmlElemNodes(AngleSharp.Dom.IElement root)
+        IEnumerable<HtmlInlineTemplate> GetTemplateHtmlElements(IEnumerable<AngleSharp.Dom.IElement> elements)
         {
-            // Return top level "data-template" element nodes.
-            foreach (var node in root.Children.ToArray())
-            {
-                if (HasAttr(node, TemplateAttr.Template))
+            // Return top level template elements.
+            var inlineTemplates= elements
+                .OfType<AngleSharp.Html.Dom.IHtmlTemplateElement>()
+                .Select(elem => new HtmlInlineTemplate
                 {
-                    node.Remove();
-                    yield return new HtmlInlineTemplate
-                    {
-                        Name = Attr(node, TemplateAttr.Template),
-                        Elem = node
-                    };
-                }
+                    Id = elem.GetAttribute("id"),
+                    TemplateElement = elem
+                })
+                .ToArray();
+
+            foreach (var t in inlineTemplates)
+            {
+                // Remove HTML templates from tree.
+               
+                RemoveWhitespace(t.TemplateElement.Content.GetDescendants());
+                t.TemplateElement.Remove();
             }
+           
+
+            return inlineTemplates;
         }
 
-        protected IEnumerable<AngleSharp.Dom.IElement> GetHtmlElemNodes(AngleSharp.Dom.IElement parent)
+        bool HasAttr(AngleSharp.Dom.IElement elem, string attrName)
         {
-            if (parent.Owner == null)
-                // Node might have already been removed by the transformation.
-                yield break;
+            return elem.HasAttribute(attrName);
+        }
 
-            foreach (var node in parent.Children.ToArray())
+        string Attr(AngleSharp.Dom.IElement elem, string attrName)
+        {
+            return elem.GetAttribute(attrName);
+        }
+
+        protected IEnumerable<HtmlTemplateElement> GetTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements)
+        {
+            foreach (var elem in elements)
             {
-                yield return node;
-
-                // Skip content of template includes.
-                if (HasAttr(node, TemplateAttr.IncludeTemplate))
+                if (elem is AngleSharp.Html.Dom.IHtmlTemplateElement)
                     continue;
 
-                // Process children.
-                foreach (var node2 in GetHtmlElemNodes(node))
-                    yield return node2;
-            }
-        }
-
-        bool HasAttr(AngleSharp.Dom.IElement node, string attrName)
-        {
-            return node.Attributes.FirstOrDefault(a => a.Name == attrName) != null;
-        }
-
-        string Attr(AngleSharp.Dom.IElement node, string attrName)
-        {
-            return node.GetAttribute(attrName, null);
-        }
-
-        protected IEnumerable<HtmlTemplateElement> GetTemplateElements(AngleSharp.Dom.IElement elem)
-        {
-            if (elem.Owner == null)
-                // Node might have already been removed by the transformation.
-                yield break;
-
-            foreach (var node in elem.Children.ToArray())
-            {
-                if (node.Owner == null)
+                if (elem.Owner == null)
                     // Node might have already been removed by the transformation.
-                    continue;
+                    throw new Exception("This node was already removed.");
 
-                var attr = node.Attributes.FirstOrDefault(a =>
+                var attr = elem.Attributes.FirstOrDefault(a =>
                     a.Name == TemplateAttr.Property ||
                     a.Name == TemplateAttr.Foreach ||
                     a.Name == TemplateAttr.If);
 
                 if (attr != null)
-                    yield return CreateTemplateElement(node, attr);
+                    yield return CreateTemplateElement(elem, attr);
 
                 // Don't process the content of loop and conditional instructions.
                 if (attr?.Name == TemplateAttr.Foreach || attr?.Name == TemplateAttr.If)
                     continue;
 
                 // Process children.
-                foreach (var node2 in GetTemplateElements(node))
+                foreach (var node2 in GetTemplateElements(elem.Children))
                     yield return node2;
             }
         }
@@ -566,7 +576,7 @@ namespace Casimodo.Lib.Templates
             elem.Attr = attr;
             elem.IsForeach = attr.Name == TemplateAttr.Foreach;
             elem.IsCondition = attr.Name == TemplateAttr.If;
-            elem.ValueTemplateName = Attr(node, TemplateAttr.ValueTemplateName);
+            elem.ValueTemplateName = Attr(node, TemplateAttr.ValueTemplateRef);
 
             return elem;
         }
@@ -576,13 +586,18 @@ namespace Casimodo.Lib.Templates
             get { return ((HtmlTemplateElement)CurTemplateElement).Elem; }
         }
 
-        protected async Task VisitTemplateElements(AngleSharp.Dom.IElement template, Func<Task> action)
+        protected async Task VisitTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> action)
         {
-            foreach (HtmlTemplateElement item in GetTemplateElements(template))
+            foreach (HtmlTemplateElement item in GetTemplateElements(elements))
             {
                 if (item.Elem.Owner == null)
                     // Element might have already been removed by the transformation.
                     continue;
+
+                if (_processedElements.Any(x => x == item.Elem))
+                    throw new Exception("This element was already processed.");
+
+                _processedElements.Add(item.Elem);
 
                 CurTemplateElement = item;
                 IsMatch = false;
@@ -680,7 +695,7 @@ namespace Casimodo.Lib.Templates
 
         protected AngleSharp.Dom.IElement E(string name, params object[] content)
         {
-            var elem = Page.Doc.CreateElement(name);
+            var elem = CurrentTemplate.Doc.CreateElement(name);
 
             if (content != null)
             {
@@ -704,7 +719,7 @@ namespace Casimodo.Lib.Templates
 
         protected AngleSharp.Dom.IAttr A(string name, string value)
         {
-            var attr = Page.Doc.CreateAttribute(name);
+            var attr = CurrentTemplate.Doc.CreateAttribute(name);
             attr.Value = value;
 
             return attr;

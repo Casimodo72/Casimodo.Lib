@@ -223,7 +223,7 @@ namespace Casimodo.Lib.Templates
 
         public void SetText(object value)
         {
-            SetText(value != null ? value.ToString() : null);
+            SetText(value?.ToString());
         }
 
         public void SetTextNonEmpty(string text)

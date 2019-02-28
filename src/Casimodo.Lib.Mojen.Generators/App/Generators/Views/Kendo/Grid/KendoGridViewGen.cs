@@ -262,9 +262,9 @@ namespace Casimodo.Lib.Mojen
             // Paging ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             if (Options.IsPagerVisible)
-            {
+            {              
                 OXP("pageable",
-                    $"refresh: {Moj.JS(Options.Pager.UseRefresh)}",
+                    $"refresh: {Moj.JS(view.IsReloadable && Options.Pager.UseRefresh)}",
                     $"input: {Moj.JS(Options.Pager.UseInput)}",
                     $"pageSizes: {Moj.JS(Options.Pager.UsePageSizes)}"
                 );
