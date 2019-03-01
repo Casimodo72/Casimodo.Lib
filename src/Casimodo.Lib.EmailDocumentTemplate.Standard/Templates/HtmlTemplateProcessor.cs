@@ -520,10 +520,13 @@ namespace Casimodo.Lib.Templates
 
             foreach (var t in inlineTemplates)
             {
-                // Remove HTML templates from tree.
-               
-                RemoveWhitespace(t.TemplateElement.Content.GetDescendants());
+                // Remove HTML <template> elements from tree.
                 t.TemplateElement.Remove();
+
+                // Remove whitespace text nodes.
+                // TODO: REVISIT: Strangely this produces errors later on. Dunny why.
+                //   I checked that this really only removes non-relevant text nodes.
+                // RemoveWhitespace(t.TemplateElement.Content.GetDescendants());             
             }
            
 
