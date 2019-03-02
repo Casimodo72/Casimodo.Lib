@@ -279,30 +279,7 @@ namespace Casimodo.Lib.Templates
             if (prop == null)
                 throw new TemplateException($"External property '{propName}' not found.");
 
-            // KABU TODO: ELIMINATE: We now use dedicated area definitions ending with "-Area".
-            // Handle areas.
-            if (prop.Name.EndsWith(".Area"))
-            {
-                // Remove the whole area if:
-                // 1) Area was configured to be removed
-                // 2) Area was configured to be removed when there is no value
-                if (prop.Value.ToLowerInvariant() == "false")
-                    context.Processor.EnableArea(false);
-                else if (prop.Value.ToLowerInvariant() == "value")
-                {
-                    string areaContentPropName = prop.Name.RemoveRight(".Area");
-                    var areaContentProp = ExternalPropertiesContainer.Items.FirstOrDefault(x => x.Name == areaContentPropName);
-                    if (areaContentProp == null)
-                        throw new TemplateException($"External property '{propName}' not found.");
-
-                    if (string.IsNullOrWhiteSpace(areaContentProp.Value))
-                        context.Processor.EnableArea(false);
-                }
-            }
-            else
-            {
-                context.Processor.SetText(prop.Value);
-            }
+            context.Processor.SetText(prop.Value);
 
             context.Processor.IsMatch = true;
         }

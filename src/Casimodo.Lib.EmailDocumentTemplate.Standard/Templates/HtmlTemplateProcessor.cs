@@ -130,15 +130,15 @@ namespace Casimodo.Lib.Templates
 
         async Task ProcessTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> visitor)
         {
-            await VisitTemplateElements(elements, async () =>
+            await WalkTemplateElements(elements, async (current) =>
             {
-                if (CurTemplateElement.IsForeach)
+                if (current.IsForeach)
                 {
-                    var values = (await FindObjects(CurTemplateElement))
+                    var values = (await FindObjects(current))
                         .Where(x => x != null)
                         .ToArray();
 
-                    var originalElem = CurTemplateElement.Elem;
+                    var originalElem = current.Elem;
 
                     if (values.Length != 0)
                     {
@@ -186,13 +186,16 @@ namespace Casimodo.Lib.Templates
 
                     // Remove the original "foreach" template element and its content.
                     originalElem.Remove();
+
+                    // Skip content because we already processed the content.
+                    return false;
                 }
-                else if (CurTemplateElement.IsCondition)
+                else if (current.IsCondition)
                 {
-                    var originalElem = CurTemplateElement.Elem;
+                    var originalElem = current.Elem;
                     var parentNode = originalElem.Parent;
 
-                    if (await EvaluateCondition(CurTemplateElement))
+                    if (await EvaluateCondition(current))
                     {
                         // Operate on a clone of the original "if" element.
                         var elemClone = (AngleSharp.Dom.IElement)originalElem.Clone();
@@ -206,14 +209,17 @@ namespace Casimodo.Lib.Templates
 
                     // Remove the original "if" element and its content.
                     originalElem.Remove();
+
+                    // Skip content because we already processed the content.
+                    return false;
                 }
-                else if (CurTemplateElement.ValueTemplateName != null)
+                else if (current.ValueTemplateName != null)
                 {
-                    var originalElem = CurTemplateElement.Elem;
-                    var valueTemplate = GetInlineTemplate(CurTemplateElement.ValueTemplateName);
+                    var originalElem = current.Elem;
+                    var valueTemplate = GetInlineTemplate(current.ValueTemplateName);
 
                     // Get the value that will be used by the value template.
-                    var value = await EvaluateValue(CurTemplateElement);
+                    var value = await EvaluateValue(current);
 
                     // Add "value" property.
                     const string valueVarName = "value";
@@ -232,10 +238,14 @@ namespace Casimodo.Lib.Templates
 
                     // Remove the original element and its content.
                     originalElem.Remove();
+
+                    // Skip content because we already processed the content.
+                    return false;
                 }
                 else
                 {
                     await visitor();
+                    return true;
                 }
             });
         }
@@ -387,23 +397,21 @@ namespace Casimodo.Lib.Templates
 
             var template = await ParseHtmlTemplate(PageTemplateHtml);
 
-            RemoveWhitespace(template.Doc.GetDescendants());
+            RemoveWhitespace(template.Doc.Body.GetDescendants());
 
-            template.InlineTemplates = GetTemplateHtmlElements(template.Elements).ToList();
+            template.InlineTemplates = BuildTopLevelInlineTemplates(template.Elements).ToList();
             Expand(template);
-            // Remove HTML templates from tree.
-            //foreach (var inlineTemplate in template.InlineTemplates)
-            //    inlineTemplate.TemplateElement.Remove();
+
 
             return template;
         }
 
         void RemoveWhitespace(IEnumerable<INode> nodes)
         {
-            foreach (IText node in nodes.OfType<IText>().ToArray())
+            foreach (INode node in nodes.Where(x => x.NodeType == NodeType.Text).ToArray())
             {
-                if (string.IsNullOrWhiteSpace(node.Text))
-                    node.Remove();
+                if (string.IsNullOrWhiteSpace(node.TextContent))
+                    node.Parent?.RemoveChild(node);
             }
         }
 
@@ -438,7 +446,7 @@ namespace Casimodo.Lib.Templates
                     yield return elem;
 
                 // Skip content of template includes.
-                if (HasAttr(elem, TemplateAttr.TemplateRef))
+                if (HasAttr(elem, TemplateAttr.TemplateRef) || HasAttr(elem, TemplateAttr.ValueTemplateRef))
                     continue;
 
                 // Process child elements.
@@ -506,10 +514,10 @@ namespace Casimodo.Lib.Templates
             return sb.ToString();
         }
 
-        IEnumerable<HtmlInlineTemplate> GetTemplateHtmlElements(IEnumerable<AngleSharp.Dom.IElement> elements)
+        IEnumerable<HtmlInlineTemplate> BuildTopLevelInlineTemplates(IEnumerable<AngleSharp.Dom.IElement> elements)
         {
             // Return top level template elements.
-            var inlineTemplates= elements
+            var items = elements
                 .OfType<AngleSharp.Html.Dom.IHtmlTemplateElement>()
                 .Select(elem => new HtmlInlineTemplate
                 {
@@ -518,19 +526,17 @@ namespace Casimodo.Lib.Templates
                 })
                 .ToArray();
 
-            foreach (var t in inlineTemplates)
+            foreach (var item in items)
             {
-                // Remove HTML <template> elements from tree.
-                t.TemplateElement.Remove();
+                // Remove from tree.
+                item.TemplateElement.Remove();
 
                 // Remove whitespace text nodes.
-                // TODO: REVISIT: Strangely this produces errors later on. Dunny why.
-                //   I checked that this really only removes non-relevant text nodes.
-                // RemoveWhitespace(t.TemplateElement.Content.GetDescendants());             
+                RemoveWhitespace(item.TemplateElement.Content.GetDescendants());
             }
-           
 
-            return inlineTemplates;
+
+            return items;
         }
 
         bool HasAttr(AngleSharp.Dom.IElement elem, string attrName)
@@ -543,32 +549,61 @@ namespace Casimodo.Lib.Templates
             return elem.GetAttribute(attrName);
         }
 
-        protected IEnumerable<HtmlTemplateElement> GetTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements)
+        protected async Task WalkTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements,
+            Func<HtmlTemplateElement, Task<bool>> action)
         {
-            foreach (var elem in elements)
+            foreach (var elem in elements.ToArray())
             {
+                if (_processedElements.Any(x => x == elem))
+                    throw new Exception("This element was already processed.");
+
+                _processedElements.Add(elem);
+
                 if (elem is AngleSharp.Html.Dom.IHtmlTemplateElement)
                     continue;
 
                 if (elem.Owner == null)
-                    // Node might have already been removed by the transformation.
-                    throw new Exception("This node was already removed.");
+                    throw new Exception("This node has no owner.");
 
+                if (elem.Parent == null)
+                    throw new Exception("This node has no parent.");
+
+                // Find instruction attribute.
                 var attr = elem.Attributes.FirstOrDefault(a =>
                     a.Name == TemplateAttr.Property ||
                     a.Name == TemplateAttr.Foreach ||
                     a.Name == TemplateAttr.If);
 
                 if (attr != null)
-                    yield return CreateTemplateElement(elem, attr);
+                {
+                    var cur = CurTemplateElement = CreateTemplateElement(elem, attr);
 
-                // Don't process the content of loop and conditional instructions.
-                if (attr?.Name == TemplateAttr.Foreach || attr?.Name == TemplateAttr.If)
-                    continue;
+                    // Remove instruction attribute.
+                    elem.RemoveAttribute(attr.Name);
 
-                // Process children.
-                foreach (var node2 in GetTemplateElements(elem.Children))
-                    yield return node2;
+                    IsMatch = false;
+
+                    var processContent = await action(CurTemplateElement);
+
+                    if (!processContent)
+                        continue;
+
+                    // Skip content if this node was removed.
+                    if (elem.Parent == null)
+                        continue;
+
+                    // Remove instruction attribute.
+                    cur.Elem.RemoveAttribute(cur.Attr.NamespaceUri, cur.Attr.LocalName);
+
+                    //// Skip content instructions.
+                    //if (attr?.Name == TemplateAttr.Foreach || attr?.Name == TemplateAttr.If)
+                    //    continue;
+                }
+
+                CurTemplateElement = null;
+
+                // Process content.
+                await WalkTemplateElements(elem.Children, action);
             }
         }
 
@@ -589,28 +624,20 @@ namespace Casimodo.Lib.Templates
             get { return ((HtmlTemplateElement)CurTemplateElement).Elem; }
         }
 
-        protected async Task VisitTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> action)
-        {
-            foreach (HtmlTemplateElement item in GetTemplateElements(elements))
-            {
-                if (item.Elem.Owner == null)
-                    // Element might have already been removed by the transformation.
-                    continue;
+        //protected async Task VisitTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> action)
+        //{
+        //    WalkTemplateElements(elements, (HtmlTemplateElement item) =>
+        //    {
+        //        CurTemplateElement = item;
+        //        IsMatch = false;
+        //        await action();
 
-                if (_processedElements.Any(x => x == item.Elem))
-                    throw new Exception("This element was already processed.");
+        //        // Remove placeholder attribute.
+        //        item.Elem.RemoveAttribute(item.Attr.NamespaceUri, item.Attr.LocalName);
+        //    });
 
-                _processedElements.Add(item.Elem);
-
-                CurTemplateElement = item;
-                IsMatch = false;
-                await action();
-
-                // Remove placeholder attribute.
-                item.Elem.RemoveAttribute(item.Attr.NamespaceUri, item.Attr.LocalName);
-            }
-            CurTemplateElement = null;
-        }
+        //    CurTemplateElement = null;
+        //}
 
         void AppendTextNode(string value)
         {
