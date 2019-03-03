@@ -29,11 +29,6 @@ namespace Casimodo.Lib.Templates
         public AngleSharp.Dom.IDocument Doc { get; set; }
         public List<HtmlInlineTemplate> InlineTemplates { get; set; } = new List<HtmlInlineTemplate>();
 
-        //public AngleSharp.Dom.IElement GetContainerElem()
-        //{
-        //    return Doc.Body;
-        //}
-
         public IEnumerable<AngleSharp.Dom.IElement> Elements
         {
             get { return Doc?.Body?.Children ?? Enumerable.Empty<AngleSharp.Dom.IElement>(); }
@@ -62,7 +57,6 @@ namespace Casimodo.Lib.Templates
             return elem.Attributes.SetNamedItem(attr);
         }
 
-
         public static void RemoveAllChildren(this AngleSharp.Dom.IElement element)
         {
             while (element.FirstChild != null)
@@ -81,7 +75,6 @@ namespace Casimodo.Lib.Templates
     }
 
     public delegate void TemplateProcessorEvent(object sender, TemplateProcessorEventArgs e);
-
 
     public abstract class HtmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
     {
@@ -374,7 +367,7 @@ namespace Casimodo.Lib.Templates
             {
                 if (string.IsNullOrEmpty(template))
                     template = await LoadTemplatePart(path);
-                else
+                else // TODO: ELIMINATE: We don't use pre ASP Core Razor include syntax anymore.
                     template = template.Replace($"@Html.Partial(\"{path}\")", await LoadTemplatePart(path));
             }
 
@@ -492,12 +485,7 @@ namespace Casimodo.Lib.Templates
                 int i = 0;
                 foreach (var page in Pages)
                 {
-                    //using (var writer = new System.IO.StringWriter(sb))
-                    //{
                     page.Doc.Body.ChildNodes.ToHtml(wr);
-                    //wr.Flush();
-                    //sb.Append(writer.ToString());
-                    //}
 
                     // Page break
                     if (i < Pages.Count - 1)
@@ -591,13 +579,6 @@ namespace Casimodo.Lib.Templates
                     // Skip content if this node was removed.
                     if (elem.Parent == null)
                         continue;
-
-                    // Remove instruction attribute.
-                    cur.Elem.RemoveAttribute(cur.Attr.NamespaceUri, cur.Attr.LocalName);
-
-                    //// Skip content instructions.
-                    //if (attr?.Name == TemplateAttr.Foreach || attr?.Name == TemplateAttr.If)
-                    //    continue;
                 }
 
                 CurTemplateElement = null;
@@ -623,21 +604,6 @@ namespace Casimodo.Lib.Templates
         {
             get { return ((HtmlTemplateElement)CurTemplateElement).Elem; }
         }
-
-        //protected async Task VisitTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> action)
-        //{
-        //    WalkTemplateElements(elements, (HtmlTemplateElement item) =>
-        //    {
-        //        CurTemplateElement = item;
-        //        IsMatch = false;
-        //        await action();
-
-        //        // Remove placeholder attribute.
-        //        item.Elem.RemoveAttribute(item.Attr.NamespaceUri, item.Attr.LocalName);
-        //    });
-
-        //    CurTemplateElement = null;
-        //}
 
         void AppendTextNode(string value)
         {
@@ -773,11 +739,12 @@ namespace Casimodo.Lib.Templates
 
         protected AngleSharp.Dom.IElement CleanupAttributes(AngleSharp.Dom.IElement elem)
         {
+            // TODO: Do we really need to remove "id"?
             elem.RemoveAttribute("id");
-            // KABU TODO: Remove all attributes starting with "ng-" and "data-" (except for template attributes).
-            elem.RemoveAttribute("ng-bind");
-            elem.RemoveAttribute("ng-hide");
-            elem.RemoveAttribute("data-ng-src");
+
+            foreach (var attr in elem.Attributes.ToArray())
+                if (attr.LocalName.Contains("-"))
+                    elem.RemoveAttribute(attr.NamespaceUri, attr.LocalName);
 
             return elem;
         }

@@ -14,6 +14,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool GenerateInterfaces { get; set; }
 
+        public bool PrefixInterfaces { get; set; }
+
         public string SingleFileName { get; set; }
 
         public bool UseDefaultValues { get; set; }
@@ -49,12 +51,6 @@ namespace Casimodo.Lib.Mojen
                 .Where(x => IncludedTypeNames == null || IncludedTypeNames.Contains(x.Name))
                 .ToList();
 
-            //foreach (var type in types.ToArray())
-            //{
-            //    if (type.HasBaseClass && !types.Contains(type.BaseClass))
-            //        types.Add(type.BaseClass);
-            //}
-
             if (_options?.OutputSingleFile == true)
             {
                 var fileName = _options?.SingleFileName ?? "DataTypes.generated";
@@ -67,8 +63,12 @@ namespace Casimodo.Lib.Mojen
                         .Distinct()
                         .ToList();
 
-                    foreach (var type in excludedBaseTypes)
-                        OImportType(type);
+                    if (excludedBaseTypes.Any())
+                    {
+                        foreach (var type in excludedBaseTypes)
+                            OImportType(type);
+                        O();
+                    }
 
                     foreach (var type in types)
                     {
@@ -98,7 +98,11 @@ namespace Casimodo.Lib.Mojen
             if (type == null)
                 return;
 
-            O("import {{ {0} }} from './{0}';", type.Name);
+            string[] typeNames = _options.GenerateInterfaces && _options.PrefixInterfaces
+                ? typeNames = new[] { type.Name, "I" + type.Name }
+                : typeNames = new[] { type.Name };
+
+            O($"import {{ {typeNames.Join(", ")} }} from './{type.Name.FirstLetterToLower()}';");
         }
 
         public void OTsDoc(MojProp prop)
@@ -123,9 +127,6 @@ namespace Casimodo.Lib.Mojen
 
                 hasContent = true;
             }
-
-            //if (prop.DisplayLabel != prop.Name)
-            //    O(" * Display: '" + prop.DisplayLabel + "'");
 
             if (prop.Summary.Remarks.Count != 0)
             {
@@ -154,10 +155,17 @@ namespace Casimodo.Lib.Mojen
                 foreach (var prop in localProps.Where(x => x.Type.IsMojType))
                     OImportType(prop.Type.TypeConfig);
 
-            if (_options.GenerateInterfaces == true)
+            string iname = null;
+
+            if (_options.GenerateInterfaces)
             {
-                OTsInterface(type.Name,
-                    extends: type.HasBaseClass ? type.BaseClass.Name : null,
+                iname = _options.PrefixInterfaces ? "I" + type.Name : type.Name;
+                var ibaseName = !type.HasBaseClass
+                    ? ""
+                    : _options.PrefixInterfaces ? "I" + type.BaseClass.Name : type.BaseClass.Name;
+
+                OTsInterface(iname,
+                    extends: ibaseName,
                     content: () =>
                     {
                         OClassOrInterfaceProps(type, localProps, isInterface: true);
@@ -167,6 +175,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OTsClass(type.Name,
                 extends: type.HasBaseClass ? type.BaseClass.Name : null,
+                implements: _options.GenerateInterfaces ? new string[] { iname } : null,
                 propertyInitializer: true,
                 constructor: () =>
                 {
@@ -201,26 +210,30 @@ namespace Casimodo.Lib.Mojen
 
                 if (prop.Type.IsCollection)
                 {
-                    string propTypeName;
-                    // Use Partial<T> for references.
-                    if (prop.Type.IsDirectOrContainedMojType)
-                    {
-                        propTypeName = $"Partial<{prop.Type.DirectOrContainedTypeConfig.Name}>";
-                    }
-                    else
-                        propTypeName = Moj.ToJsType(prop.Type);
+                    // This will use Partial<T> for references.
+                    string propTypeName = Moj.ToTsType(prop.Type, partial: true);
+
+                    //if (prop.Type.IsDirectOrContainedMojType)
+                    //{
+                    //    propTypeName = $"Partial<{prop.Type.DirectOrContainedTypeConfig.Name}>";
+                    //}
+                    //else
+                    //    propTypeName = Moj.ToTsType(prop.Type);
 
                     if (!isInterface)
-                        O($"{prop.Name}: {propTypeName}[] = [];");
+                    {
+                        var initializer = Moj.ToJsCollectionInitializer(prop.Type);
+                        O($"{prop.Name}: {propTypeName} = {initializer};");
+                    }
                     else
-                        O($"{prop.Name}: {propTypeName}[];");
+                        O($"{prop.Name}: {propTypeName};");
                 }
                 else
                 {
-                    // Use Partial<T> for references.
-                    string propTypeName = Moj.ToJsType(prop.Type);
-                    if (prop.Type.IsMojType)
-                        propTypeName = $"Partial<{propTypeName}>";
+                    // This will use Partial<T> for references.
+                    string propTypeName = Moj.ToTsType(prop.Type, partial: true);
+                    //if (prop.Type.IsMojType)
+                    //    propTypeName = $"Partial<{propTypeName}>";
 
                     string defaultValue = "null";
 

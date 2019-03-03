@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen
@@ -50,12 +51,13 @@ namespace Casimodo.Lib.Mojen
         }
 
         public void OTsClass(string name, string extends = null,
+            IEnumerable<string> implements = null,
             bool isstatic = false, bool export = true,
             bool hasconstructor = true,
             bool propertyInitializer = false,
             Action constructor = null, Action content = null)
         {
-            ClassGen.OTsClass(name, extends: extends,
+            ClassGen.OTsClass(name, extends: extends, implements: implements,
                 isstatic: isstatic, export: export,
                 hasconstructor: hasconstructor,
                 propertyInitializer: propertyInitializer,

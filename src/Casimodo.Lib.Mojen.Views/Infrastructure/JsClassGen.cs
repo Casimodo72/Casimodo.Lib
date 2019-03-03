@@ -9,6 +9,7 @@ namespace Casimodo.Lib.Mojen
     public class JsClassGen : MojenGenerator
     {
         public void OTsClass(string name, string extends = null,
+                IEnumerable<string> implements = null,
                bool isstatic = false, bool export = true,
                bool hasconstructor = true,
                string constructorOptions = null,
@@ -20,9 +21,13 @@ namespace Casimodo.Lib.Mojen
                 extends = "";
 
             var isDerived = !string.IsNullOrEmpty(extends);
+            var isImplementing = implements?.Any() == true;
             var hasOptions = !string.IsNullOrWhiteSpace(constructorOptions);
 
-            OB($"{(export ? "export " : "")}class {name}{(isDerived ? " extends " + extends : "")}");
+            OB($"{(export ? "export " : "")}" +
+                $"class {name}" +
+                $"{(isDerived ? " extends " + extends : "")}" +
+                $"{(isImplementing ? " implements " + implements.Join(", "): "")}");
 
             if (!hasconstructor && propertyInitializer)
                 throw new MojenException("Can't generate a property initializing constructor if there's no constructor.");

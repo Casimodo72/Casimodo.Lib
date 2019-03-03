@@ -284,6 +284,33 @@ namespace Casimodo.Lib.Mojen
             return string.Format(CultureInfo.InvariantCulture, "{0}", value);
         }
 
+        public static string ToJsCollectionInitializer(MojPropType type, int size = 0)
+        {
+            if (!type.IsCollection)
+                throw new MojenException("This type is not a collection type.");
+
+            var sizeStr = size != 0 ? size.ToString() : "";
+            if (type.IsByteArray)
+                return $"new Uint8Array({sizeStr})";
+            else
+                return $"[{sizeStr}]";
+        }
+
+        public static string ToTsType(MojPropType type, bool partial = false)
+        {
+            if (type.IsDirectOrContainedMojType)
+            {
+                var t = type.DirectOrContainedTypeConfig.Name;
+                if (partial)
+                    t = "Partial<" + t + ">";
+                if (type.IsCollection)
+                    t += "[]";
+
+                return t;
+            }
+            else return ToJsType(type);
+        }
+
         public static string ToJsType(MojPropType type)
         {
             string t = "string";
@@ -295,7 +322,15 @@ namespace Casimodo.Lib.Mojen
             }
             else if (type.IsCollection)
             {
-                throw new NotImplementedException("TS/JS Conversion of simple type collections is not implemented (yet).");
+                if (type.IsByteArray)
+                    t = "Uint8Array";
+                else
+                {
+                    var collectionElementType = type.GenericTypeArguments.First();
+                    return ToJsType(collectionElementType) + "[]";
+                    // TODO: REMOVE? 
+                    // throw new NotImplementedException("TS/JS Conversion of simple type collections is not implemented (yet).");
+                }
             }
             else if (type.IsNumber)
                 t = "number";

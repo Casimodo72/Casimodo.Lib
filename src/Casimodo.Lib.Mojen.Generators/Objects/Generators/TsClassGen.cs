@@ -84,6 +84,7 @@ namespace Casimodo.Lib.Mojen
                 foreach (var description in prop.Summary.Descriptions)
                     O("// Description: " + description);
 
+                // TODO: IMPORTANT: Use code from TsXClassGen for collections.
                 if (prop.Type.IsCollection)
                 {
                     O("{0} = [];", prop.Name);
