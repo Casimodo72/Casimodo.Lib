@@ -58,6 +58,8 @@ namespace Casimodo.Lib.Mojen
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
                 {
+                    O("/* tslint:disable:no-inferrable-types max-line-length */");
+
                     var excludedBaseTypes = types.Where(x => x.HasBaseClass && !types.Contains(x.BaseClass))
                         .Select(x => x.BaseClass)
                         .Distinct()
@@ -102,7 +104,7 @@ namespace Casimodo.Lib.Mojen
                 ? typeNames = new[] { type.Name, "I" + type.Name }
                 : typeNames = new[] { type.Name };
 
-            O($"import {{ {typeNames.Join(", ")} }} from './{type.Name.FirstLetterToLower()}';");
+            O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
         }
 
         public void OTsDoc(MojProp prop)
@@ -180,7 +182,7 @@ namespace Casimodo.Lib.Mojen
                 constructor: () =>
                 {
                     // TODO: Find a way to emit this only when used in the context of OData.
-                    O($"this['@odata.type'] = '#{WebConfig.ODataNamespace}.{type.ClassName}';");
+                    O($@"this[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
                 },
                 content: () =>
                 {
