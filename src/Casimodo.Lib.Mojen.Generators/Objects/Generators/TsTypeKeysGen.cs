@@ -6,6 +6,14 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class TsTypeKeysGenOptions
+    {
+        public string OutputDirPath { get; set; }
+        public string FileName { get; set; }
+        public string[] IncludeTypes { get; set; }
+        public bool IsModule { get; set; }
+    }
+
     public class TsTypeKeysGen : DataLayerGenerator
     {
         public TsTypeKeysGen()
@@ -13,19 +21,40 @@ namespace Casimodo.Lib.Mojen
             Scope = "App";
         }
 
+        public TsTypeKeysGen(TsTypeKeysGenOptions options = null)
+            : this()
+        {
+            if (options != null)
+                Options = options;
+        }
+
+        public TsTypeKeysGenOptions Options { get; set; } = new TsTypeKeysGenOptions();
+
         protected override void GenerateCore()
         {
             var webConfig = App.Get<WebDataLayerConfig>();
 
-            if (string.IsNullOrEmpty(webConfig.TypeScriptDataDirPath)) return;
+            var outputDirPath = Options.OutputDirPath ?? webConfig.TypeScriptDataDirPath;
+            var fileName = Options.FileName ?? "Primitives.TypeKeys.generated";
 
-            PerformWrite(Path.Combine(webConfig.TypeScriptDataDirPath, "Primitives.TypeKeys.generated.ts"),
+            fileName += ".ts";
+
+            if (string.IsNullOrEmpty(outputDirPath)) return;
+
+            PerformWrite(Path.Combine(outputDirPath, fileName),
                 () =>
                 {
-                    OTsNamespace(webConfig.ScriptNamespace, () =>
+                    if (Options.IsModule)
                     {
                         GenerateTypeKeys();
-                    });
+                    }
+                    else
+                    {
+                        OTsNamespace(webConfig.ScriptNamespace, () =>
+                        {
+                            GenerateTypeKeys();
+                        });
+                    }
                 });
         }
 
@@ -42,17 +71,20 @@ namespace Casimodo.Lib.Mojen
                     if (types.Any(x => x.Id == type.Id))
                         continue;
 
+                    if (Options.IncludeTypes?.Contains(type.Name) == false)
+                        continue;
+
                     types.Add(type);
                 }
 
                 foreach (var type in types)
-                    O($"public static {type.Name} = '{type.Id}';");
+                    O($@"public static {type.Name} = ""{type.Id}"";");
 
                 O();
                 OB("private static _id2Name =");
                 foreach (var type in types)
-                    O($"'{type.Id}': '{type.Name}',");
-                End();
+                    O($@"""{type.Id}"": ""{type.Name}"",");
+                End(";");
 
                 O();
                 OB("public static getNameById(id)");
