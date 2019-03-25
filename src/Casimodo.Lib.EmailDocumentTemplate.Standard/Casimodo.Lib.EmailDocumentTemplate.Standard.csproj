@@ -13,18 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\ITemplateProcessor.cs" Link="Templates\ITemplateProcessor.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TemplateException.cs" Link="Templates\TemplateException.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TemplateExpressionParser.cs" Link="Templates\TemplateExpressionParser.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TemplateExpressionProcessor.cs" Link="Templates\TemplateExpressionProcessor.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TemplateMisc.cs" Link="Templates\TemplateMisc.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TemplateProcessor.cs" Link="Templates\TemplateProcessor.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TemplateTransformation.cs" Link="Templates\TemplateTransformation.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\TextTemplateProcessor.cs" Link="Templates\TextTemplateProcessor.cs" />
-    <Compile Include="..\Casimodo.Lib.EmailDocumentTemplate\Templates\XmlTemplateProcessor.cs" Link="Templates\XmlTemplateProcessor.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.10.1" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="2.2.0" />
   </ItemGroup>

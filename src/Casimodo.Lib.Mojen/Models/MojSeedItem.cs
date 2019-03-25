@@ -114,6 +114,7 @@ namespace Casimodo.Lib.Mojen
     {
         public string Name { get; set; }
         public bool IsEnabled { get; set; } = true;
+        public bool IsDbImportEnabled { get; set; } = true;
         public bool IsDbSeedEnabled { get; set; } = true;
     }
 
@@ -127,9 +128,15 @@ namespace Casimodo.Lib.Mojen
         public string DbImportOutputXmlDirPath { get; set; }
         public string DbImportOutputSeedDirPath { get; set; }
 
-        public MojGlobalDataSeedConfig AddSection(string name, bool enabled = true, bool dbseed = true)
+        public MojGlobalDataSeedConfig AddSection(string name, bool enabled = true, bool dbimport = false, bool dbseed = true)
         {
-            Sections.Add(new MojDataSeedSectionConfig { Name = name, IsEnabled = enabled, IsDbSeedEnabled = dbseed });
+            Sections.Add(new MojDataSeedSectionConfig
+            {
+                Name = name,
+                IsEnabled = enabled,
+                IsDbImportEnabled = dbimport,
+                IsDbSeedEnabled = dbseed
+            });
 
             return this;
         }
