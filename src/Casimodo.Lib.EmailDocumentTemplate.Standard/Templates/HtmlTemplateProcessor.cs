@@ -81,7 +81,7 @@ namespace Casimodo.Lib.Templates
         public static class TemplateAttr
         {
             public const string Property = "data-property";
-            public const string Placeholder = "data-placeholder";
+            // public const string Placeholder = "data-placeholder";
             public const string Foreach = "data-foreach";
             public const string If = "data-if";
             public const string TemplateRef = "template-id";
@@ -268,7 +268,7 @@ namespace Casimodo.Lib.Templates
             if (IsEmpty(value))
                 return;
 
-            if (!value.Contains(NewLineTokens))
+            if (!value.ContainsAny(NewLineTokens))
                 AppendTextNode(value);
             else
             {

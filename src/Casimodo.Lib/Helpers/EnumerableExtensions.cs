@@ -23,7 +23,10 @@ namespace Casimodo.Lib
                 yield return result;
         }
 
-        public static bool Contains(this string text, params string[] values)
+        /// <summary>
+        /// Returns true if the string contains any of the given values.
+        /// </summary>
+        public static bool ContainsAny(this string text, params string[] values)
         {
             if (string.IsNullOrEmpty(text) || values == null)
                 return false;
