@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using Microsoft.OData;
 
 namespace Casimodo.Lib.Web
 {
@@ -85,6 +86,12 @@ namespace Casimodo.Lib.Web
     [Authorize]
     public class ODataControllerBase : ODataController
     {
+        [NonAction]
+        public BadRequestObjectResult BadRequest(string errorMessage)
+        {
+            return base.BadRequest(new ODataError { ErrorCode = "400", Message = errorMessage });
+        }
+
         [System.Diagnostics.DebuggerHidden]
         public void ThrowNotFound(string message = null)
         {
