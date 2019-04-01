@@ -254,6 +254,7 @@ namespace Casimodo.Lib.Templates
 
         public void ThrowUnhandledTemplateIfNoMatch()
         {
+            // TODO: Check if CurTemplateElement will be null if there's no template element.
             if (!IsMatch)
                 ThrowUnhandledTemplateExpression(CurTemplateElement.Expression);
         }

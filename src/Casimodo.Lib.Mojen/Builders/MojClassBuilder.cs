@@ -141,18 +141,24 @@ namespace Casimodo.Lib.Mojen
             return Interface(iface.ClassName, store);
         }
 
-        public TClassBuilder Interface(string name, bool store = true)
+        public TClassBuilder Interface(string name, bool store = true, string implementation = null)
         {
             var item = TypeConfig.Interfaces.FirstOrDefault(x => x.Name == name);
             if (item != null)
             {
                 // Update
                 item.AddToStore = store;
+                item.Implementation = implementation;
             }
             else
             {
                 // Create
-                TypeConfig.Interfaces.Add(new MojInterface { Name = name, AddToStore = store });
+                TypeConfig.Interfaces.Add(new MojInterface
+                {
+                    Name = name,
+                    AddToStore = store,
+                    Implementation = implementation
+                });
             }
 
             return This();

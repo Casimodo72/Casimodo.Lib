@@ -15,6 +15,8 @@
 
         public bool AddToStore { get; set; }
 
+        public string Implementation { get; set; }
+
         public override string ToString()
         {
             return Name;

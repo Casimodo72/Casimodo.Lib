@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
             string name = pathOrName;
             string path = null;
 
-            if (pathOrName != null && pathOrName.Contains("/", @"\"))
+            if (pathOrName != null && pathOrName.ContainsAny("/", @"\"))
             {
                 name = Path.GetFileName(pathOrName);
                 if (path != null)

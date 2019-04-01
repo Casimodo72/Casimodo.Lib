@@ -377,7 +377,7 @@ namespace Casimodo.Lib.Templates
         async Task<HtmlTemplate> ParseHtmlTemplate(string htmlFragment)
         {
             var document = await BrowsingContext.New().OpenNewAsync();
-            document.Body.InnerHtml = PageTemplateHtml;
+            document.Body.InnerHtml = htmlFragment;
 
             return new HtmlTemplate(document);
         }

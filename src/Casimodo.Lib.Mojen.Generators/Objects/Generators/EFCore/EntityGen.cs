@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
 
         public void Generate(MojType type)
         {
-            OUsing(BuildNamespaces(type));
+            OUsing(BuildNamespaces(type), "System.Linq");
 
             ONamespace(type.Namespace);
 
@@ -116,6 +116,8 @@ namespace Casimodo.Lib.Mojen
 
                 O($"public{accessor} {prop.Type.Name} {prop.Name} {{ get; set; }}");
             }
+
+            GenerateInterfaceImpl(type);
 
             GenerateIKeyAccessorImpl(type);
 

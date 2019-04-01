@@ -60,6 +60,15 @@ namespace Casimodo.Lib.Mojen
             Begin();
         }
 
+        public void GenerateInterfaceImpl(MojType type)
+        {
+            foreach (var iface in type.Interfaces.Where(x => !string.IsNullOrEmpty(x.Implementation)))
+            {
+                O();
+                O(iface.Implementation);
+            }
+        }
+
         public void GenerateIKeyAccessorImpl(MojType type)
         {
             // IKeyAccessor<TKey>

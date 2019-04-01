@@ -7,6 +7,14 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    public static class MojClassBuilderHelper
+    {
+        public static string BuildLinkTypeName(MojType source, MojType target)
+        {
+            return source.PluralName + "2" + target.PluralName;
+        }
+    }
+
     public interface IMojClassPropBuilder
     {
         IMojClassPropBuilder Required();
@@ -78,7 +86,7 @@ namespace Casimodo.Lib.Mojen
             {
                 var prop = PropConfig;
 
-                var type = prop.DeclaringType.PluralName + "2" + itemType.PluralName;
+                var type = MojClassBuilderHelper.BuildLinkTypeName(prop.DeclaringType, itemType);
 
                 var atype = prop.DeclaringType; // e.g. Project
                 var aprop = prop.DeclaringType.Name; // e.g. Project
