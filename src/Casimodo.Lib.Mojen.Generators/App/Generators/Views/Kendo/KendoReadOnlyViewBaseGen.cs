@@ -65,33 +65,39 @@ namespace Casimodo.Lib.Mojen
 
         public override void OProp(WebViewGenContext context)
         {
+            OReadOnlyProp(context);
+        }
+
+        public void OReadOnlyProp(WebViewGenContext context, string binding = null)
+        {
             var vprop = context.PropInfo.ViewProp;
-            var dprop = context.PropInfo.TargetDisplayProp;
+            var prop = context.PropInfo.TargetDisplayProp;
+            binding = binding ?? GetBinding(context);
 
             CustomElemStyle(context);
 
-            if (dprop.Type.IsBoolean)
+            if (prop.Type.IsBoolean)
             {
-                O($"<span data-bind='yesno:{GetBinding(context)}'{GetElemAttrs()}></span>");
+                O($"<span data-bind='yesno:{binding}'{GetElemAttrs()}></span>");
             }
-            else if (dprop.Type.IsAnyTime)
+            else if (prop.Type.IsAnyTime)
             {
                 string binder = "";
-                if (dprop.Type.DateTimeInfo.IsDate) binder += "date";
-                if (dprop.Type.DateTimeInfo.IsTime) binder += "time";
-                O($"<span data-bind='{binder}:{GetBinding(context)}'{GetElemAttrs()}></span>");
+                if (prop.Type.DateTimeInfo.IsDate) binder += "date";
+                if (prop.Type.DateTimeInfo.IsTime) binder += "time";
+                O($"<span data-bind='{binder}:{binding}'{GetElemAttrs()}></span>");
             }
-            else if (dprop.IsColor)
+            else if (prop.IsColor)
             {
                 // Bind background-color to the value of the property.
                 // http://demos.telerik.com/kendo-ui/mvvm/style
-                O($"<div style='width: 30px' data-bind='style:{{backgroundColor:{GetBinding(context)}}}'{GetElemAttrs()}>&nbsp;</div>");
+                O($"<div style='width: 30px' data-bind='style:{{backgroundColor:{binding}}}'{GetElemAttrs()}>&nbsp;</div>");
             }
-            else if (dprop.Type.IsString && vprop.IsRenderedHtml)
+            else if (prop.Type.IsString && vprop.IsRenderedHtml)
             {
-                O($"<span data-bind='textToHtml:{GetBinding(context)}'{GetElemAttrs()} style='white-space:pre'></span>");
+                O($"<span data-bind='textToHtml:{binding}'{GetElemAttrs()} style='white-space:pre'></span>");
             }
-            else if (dprop.Type.IsMultilineString)
+            else if (prop.Type.IsMultilineString)
             {
                 ElemClass("k-textbox");
                 ElemStyleDefaultWidth();
@@ -99,18 +105,18 @@ namespace Casimodo.Lib.Mojen
                 if (vprop.UseCodeRenderer != null)
                     ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
 
-                O($"<textarea data-bind='value:{GetBinding(context)}' readonly rows='{dprop.RowCount}'{GetElemAttrs()}></textarea>");
+                O($"<textarea data-bind='value:{binding}' readonly rows='{prop.RowCount}'{GetElemAttrs()}></textarea>");
             }
-            else if (dprop.Type.IsString && vprop.IsRenderedHtml)
+            else if (prop.Type.IsString && vprop.IsRenderedHtml)
             {
-                O($"<span data-bind='textToHtml:{GetBinding(context)}'{GetElemAttrs()} style='white-space:pre'></span>");
+                O($"<span data-bind='textToHtml:{binding}'{GetElemAttrs()} style='white-space:pre'></span>");
             }
             else
             {
-                O($"<span data-bind='text:{GetBinding(context)}'{GetElemAttrs()}></span>");
+                O($"<span data-bind='text:{binding}'{GetElemAttrs()}></span>");
             }
 
-            // KABU TODO: Support TimeSpan
+            // TODO: Support TimeSpan
         }
     }
 }

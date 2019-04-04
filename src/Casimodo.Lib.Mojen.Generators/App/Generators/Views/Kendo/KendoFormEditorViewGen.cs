@@ -650,6 +650,15 @@ namespace Casimodo.Lib.Mojen
             return true;
         }
 
+        public void OLookupSelectorReadOnlyText(WebViewGenContext context)
+        {
+            var vprop = context.PropInfo.ViewProp;
+            CustomElemStyle(context);
+            ElemClass("form-control", "text-truncate");
+            var binding = GetBinding(vprop);
+            O($@"<div data-bind='text:{binding},attr:{{title:{binding}}}'{GetElemAttrs()}></div>");
+        }
+
         public bool OPropLookupSelectorDialog(WebViewGenContext context)
         {
             var type = context.View.TypeConfig;
@@ -675,6 +684,8 @@ namespace Casimodo.Lib.Mojen
 
             // Invisible input for binding & validation.
             OSelectorControlInvisibleInput(context);
+
+            OLookupSelectorReadOnlyText(context);
 
             // Button for popping up the lookup dialog.
             OSelectorControlButton(context);

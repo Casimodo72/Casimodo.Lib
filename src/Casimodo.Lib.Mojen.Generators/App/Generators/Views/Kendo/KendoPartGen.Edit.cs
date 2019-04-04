@@ -132,8 +132,8 @@ namespace Casimodo.Lib.Mojen
 
             var looseReferenceGroups =
                 (from prop in view.Props
-                     // Select all read-only props with *loose* references.
-                 where !prop.IsEditable
+                 // Select all read-only (or lookup display) props with *loose* references.
+                 where !prop.IsEditable || prop.Lookup.Is
                  let step = prop.FormedNavigationTo.FirstLooseStep
                  where step != null
                  select new

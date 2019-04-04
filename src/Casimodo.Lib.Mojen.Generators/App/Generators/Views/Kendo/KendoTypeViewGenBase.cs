@@ -123,10 +123,13 @@ namespace Casimodo.Lib.Mojen
             Attributes.Add(XA(name, name));
         }
 
-        public void ElemClass(string value)
+        public void ElemClass(params string[] values)
         {
             var attr = GetOrCreateAttr("class");
-            attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + " " + value;
+            foreach (var value in values)
+            {                
+                attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + " " + value;
+            }
         }
 
         public void ElemStyle(string value)
@@ -160,24 +163,39 @@ namespace Casimodo.Lib.Mojen
             return attr;
         }
 
-        public string GetBinding(object item, bool alias = false)
+        public string GetBinding(MojViewProp vprop)
         {
-            // E.g. "item.FirstName" or just "FirstName" if DataViewModelAccessor is not assigned.
-            var accessor = !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? DataViewModelAccessor : "";
-            string path = null;
-
-            var context = item as WebViewGenContext;
-            if (context != null)
-                path = alias ? context.PropInfo.PropAliasPath : context.PropInfo.PropPath;
-
-            var propTypePath = item as MojFormedType;
-            if (propTypePath != null)
-                path = alias ? propTypePath.FormedNavigationFrom.TargetAliasPath : propTypePath.FormedNavigationFrom.TargetPath;
+            string path = vprop.FormedTargetPath.ToString();
 
             if (path == null)
-                throw new MojenException($"Failed to build property binding path for item of type '{item.GetType().Name}'.");
+                throw new MojenException($"Failed to build property binding path for view prop.");
 
-            return $"{accessor}{path}";
+            return $"{GetBindingPrefixObject()}{path}";
+        }
+
+        public string GetBinding(MojFormedType propTypePath, bool alias = false)
+        {
+            string path = alias ? propTypePath.FormedNavigationFrom.TargetAliasPath : propTypePath.FormedNavigationFrom.TargetPath;
+
+            if (path == null)
+                throw new MojenException($"Failed to build property binding path for formed type path.");
+
+            return $"{GetBindingPrefixObject()}{path}";
+        }
+
+        public string GetBinding(WebViewGenContext context, bool alias = false)
+        {
+            string path = alias ? context.PropInfo.PropAliasPath : context.PropInfo.PropPath;        
+            if (path == null)
+                throw new MojenException($"Failed to build property binding path.");
+
+            return $"{GetBindingPrefixObject()}{path}";
+        }
+
+        string GetBindingPrefixObject()
+        {
+            // E.g. "item.FirstName" or just "FirstName" if DataViewModelAccessor is not assigned.
+            return !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? DataViewModelAccessor : "";
         }
 
         IEnumerable<List<ViewTemplateItem>> FilterHiddenProps(IEnumerable<List<ViewTemplateItem>> runs, MojViewMode mode)
@@ -481,15 +499,12 @@ namespace Casimodo.Lib.Mojen
                 var @class = "panel panel-default";
                 var predicate = "";
 
-                if (cur.VisibilityCondition as MojFormedType != null)
+                if (cur.VisibilityCondition is MojFormedType visibilityConditionObject)
                 {
-                    predicate = $" data-bind='visible: {GetBinding(cur.VisibilityCondition)}'";
+                    predicate = $" data-bind='visible: {GetBinding(visibilityConditionObject)}'";
                 }
-
-                if (cur.VisibilityCondition as MojViewMode? != null)
+                else if (cur.VisibilityCondition is MojViewMode hideModes)
                 {
-                    var hideModes = (MojViewMode)cur.VisibilityCondition;
-
                     if (context.View.IsEditor)
                     {
                         foreach (var mode in hideModes.GetAtomicFlags())

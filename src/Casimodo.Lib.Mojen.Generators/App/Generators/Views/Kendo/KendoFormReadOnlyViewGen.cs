@@ -137,8 +137,6 @@ namespace Casimodo.Lib.Mojen
             var prop = vitem.Prop;
             var propPath = vitem.PropPath;
 
-            CustomElemStyle(context);
-
             if (prop.Reference.Is || prop.FileRef.Is || prop.Type.IsEnum)
             {
                 throw new MojenException("No references and enums allowed in read-only views.");

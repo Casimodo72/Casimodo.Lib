@@ -171,11 +171,10 @@ namespace Casimodo.Lib.Mojen
                 OHtmlDataBindValue(context);
                 if (vprop.UseCodeRenderer != null)
                     ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
-                oO("/>");
+                oO("></textarea>");
                 /*
-
-     <textarea class="form-control form-control" cols="20" data-val="true" data-val-length="Das Feld &quot;Notizen&quot; muss eine Zeichenfolge mit einer maximalen Länge von 4096 sein." data-val-length-max="4096" id="Notes" name="Notes" rows="6" spellcheck="false">
-</textarea>
+                    <textarea class="form-control form-control" cols="20" data-val="true" data-val-length="Das Feld &quot;Notizen&quot; muss eine Zeichenfolge mit einer maximalen Länge von 4096 sein." data-val-length-max="4096" id="Notes" name="Notes" rows="6" spellcheck="false">
+                    </textarea>
                 */
             }
             else
