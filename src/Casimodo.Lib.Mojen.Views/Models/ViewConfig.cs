@@ -47,14 +47,21 @@ namespace Casimodo.Lib.Mojen
 
     public class MojLookupViewConfig : MojBase
     {
-        public static readonly MojLookupViewConfig None = new MojLookupViewConfig();
+        public static readonly MojLookupViewConfig None = new MojLookupViewConfig(false);
+
+        MojLookupViewConfig(bool @is)
+            : this()
+        {
+            Is = @is;
+        }
 
         public MojLookupViewConfig()
         {
+            Is = true;
             Sources = new List<MojLookupViewSource>();
         }
 
-        public bool Is { get; set; }
+        public bool Is { get; private set; }
 
         public MojMultiplicity Multiplicity { get; set; }
 
@@ -65,12 +72,19 @@ namespace Casimodo.Lib.Mojen
 
     public class MojStandaloneViewConfig : MojBase
     {
-        public static readonly MojStandaloneViewConfig None = new MojStandaloneViewConfig();
+        public static readonly MojStandaloneViewConfig None = new MojStandaloneViewConfig(false);
+
+        MojStandaloneViewConfig(bool @is)
+        {
+            Is = @is;
+        }
 
         public MojStandaloneViewConfig()
-        { }
+        {
+            Is = true;
+        }
 
-        public bool Is { get; set; }
+        public bool Is { get; private set; }
     }
 
     public class MojViewCustomControl

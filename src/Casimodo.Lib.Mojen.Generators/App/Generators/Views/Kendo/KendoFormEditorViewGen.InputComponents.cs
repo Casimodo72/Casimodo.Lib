@@ -15,6 +15,8 @@ namespace Casimodo.Lib.Mojen
             min = min ?? dprop.Rules.Min;
             max = max ?? dprop.Rules.Max;
 
+            XB("<div class='input-control-container'>");
+
             Oo("<input");
             oAttr("data-role", "numerictextbox");
             oAttr("id", ppath);
@@ -85,7 +87,12 @@ namespace Casimodo.Lib.Mojen
             oO("/>");
 
             if (validationElem)
-                OValidationMessageElem(context.PropInfo.PropPath);
+            {
+                OInvalidTooltip(context);
+                // OValidationMessageElem(context.PropInfo.PropPath);
+            }
+
+            XE("</div>"); // custom input group container
         }
 
         void OKendoColorPicker(WebViewGenContext context)
@@ -104,7 +111,6 @@ namespace Casimodo.Lib.Mojen
             jQuery(function(){jQuery("#Color").kendoColorPicker({"opacity":false});});
 #endif
         }
-
 
         void OKendoDateTimePicker(WebViewGenContext context)
         {

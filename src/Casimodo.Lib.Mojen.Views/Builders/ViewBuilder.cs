@@ -296,7 +296,6 @@ namespace Casimodo.Lib.Mojen
             View.ItemSelection.IsEnabled = true;
             View.Lookup = new MojLookupViewConfig
             {
-                Is = true,
                 Multiplicity = Data.MojMultiplicity.OneOrZero,
                 Parameters = new List<MojProp>(parameters)
             };
@@ -317,12 +316,10 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder Standalone()
+        public MojViewBuilder Standalone(bool value = true)
         {
-            if (View.Standalone.Is)
-                throw new MojenException("This view is already standalone.");
-
-            View.Standalone = new MojStandaloneViewConfig { Is = true };
+            if (View.Standalone.Is != value)
+                View.Standalone = value ? new MojStandaloneViewConfig() : MojStandaloneViewConfig.None;
 
             return this;
         }
@@ -331,7 +328,7 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
-            //View.Kind.RoleName = "List";
+            // View.Kind.RoleName = "List";
             View.Kind.RawControllerAction = "List";
             View.Group = "Standalone";
 
@@ -345,9 +342,8 @@ namespace Casimodo.Lib.Mojen
 
             View.Standalone = new MojStandaloneViewConfig
             {
-                Is = true,
                 // KABU TODO: REMOVE? Not used
-                //Parameters = new List<MojProp>(parameters)
+                // Parameters = new List<MojProp>(parameters)
             };
 
             Title(View.TypeConfig.DisplayName);
@@ -581,9 +577,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder Modal()
+        public MojViewBuilder Modal(bool value = true)
         {
-            View.IsModal = true;
+            View.IsModal = value;
             return this;
         }
 

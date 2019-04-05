@@ -17,7 +17,6 @@ namespace Casimodo.Lib.Mojen
         public string ViewFileName { get; set; }
 
         public string ScriptFilePath { get; set; }
-        //public string ScriptVirtualFilePath { get; set; }
 
         protected override void GenerateCore()
         {
@@ -27,7 +26,6 @@ namespace Casimodo.Lib.Mojen
                 UsedViewPropInfos.Clear();
 
                 ScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
-                //ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
                 var context = KendoGen.InitComponentNames(new WebViewGenContext
                 {
@@ -348,7 +346,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (dprop.IsColor)
             {
-                OKendoColorPicker(context);             
+                OKendoColorPicker(context);
             }
             else if (vpropType.IsAnyTime)
             {
@@ -654,9 +652,16 @@ namespace Casimodo.Lib.Mojen
         {
             var vprop = context.PropInfo.ViewProp;
             CustomElemStyle(context);
-            ElemClass("form-control", "text-truncate");
+            // TODO: We need Bootstrap 4 to use class "text-truncate".
+            //   Currently I have to add that CSS selector explicitely in my apps.
+            ElemClass("form-control", "text-form-control", "text-truncate");
             var binding = GetBinding(vprop);
             O($@"<div data-bind='text:{binding},attr:{{title:{binding}}}'{GetElemAttrs()}></div>");
+        }
+
+        public void OInvalidTooltip(WebViewGenContext context)
+        {
+            O($"<span class='k-invalid-msg' data-for='{context.PropInfo.PropPath}'></span>");
         }
 
         public bool OPropLookupSelectorDialog(WebViewGenContext context)
@@ -682,15 +687,24 @@ namespace Casimodo.Lib.Mojen
             // Input group
             XB("<div class='input-group'>");
 
+            // TODO: REVISIT: Add a custom container.
+            //   Couldn't make the outcome look nice without an additional custom flexbox container.
+            XB("<div class='input-control-container'>");
+
+            OLookupSelectorReadOnlyText(context);
+
             // Invisible input for binding & validation.
             OSelectorControlInvisibleInput(context);
 
-            OLookupSelectorReadOnlyText(context);
+            XE("</div>"); // custom input-control-container
 
             // Button for popping up the lookup dialog.
             OSelectorControlButton(context);
 
-            XE("</div>"); // Input group
+            // Place the validation error tooltip after the button.
+            OInvalidTooltip(context);
+
+            XE("</div>"); // input-group
 
             OMvcScriptBegin();
             O($"// Lookup dialog for {propPath}");
@@ -943,6 +957,7 @@ namespace Casimodo.Lib.Mojen
                             o($@"cascadeFrom: ""{cascadeParentComponentId}"",");
                             o($@"cascadeFromField: ""{cascadeParentForeignKeyName}"",");
                         }
+                        Br();
                         OBegin("dataSource:", () => KendoGen.OODataSourceReadOptions(context, odataQuery), ",");
                     }, ");");
                 });
