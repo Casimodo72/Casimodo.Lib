@@ -9,7 +9,6 @@
         }
 
         setArgs(args): void {
-            var self = this;
             this.args = args;
             this.getModel().set("item", args.item ? kendo.observable(args.item) : kendo.observable(new kmodo.GeoPlaceInfo()));
 
@@ -17,26 +16,24 @@
                 this.args.isCancelled = false;
                 this.args.isOk = false;
 
-                this.args.buildResult = function () {
-                    var item = self.getCurrentItem();
+                this.args.buildResult = () => {
+                    const item = this.getCurrentItem();
 
-                    self.args.item = item;
+                    this.args.item = item;
                 };
             }
         }
 
         refresh(): Promise<void> {
-            var self = this;
-
             return this._loadMap()
                 .then(() => {
-                    self._initMap();
-                    self._findContextPlace();
+                    this._initMap();
+                    this._findContextPlace();
                 });
         }
 
         private _findContextPlace(): void {
-            var address = this.getCurrentItem().getDisplayAddress();
+            const address = this.getCurrentItem().getDisplayAddress();
             if (address) {
                 // NOTE: Setting the search text does not trigger a search.
                 this.setSearchText(address);
@@ -62,8 +59,6 @@
         }
 
         private _initComponentAsDialog(): void {
-            var self = this;
-
             this._dialogWindow = kmodo.findKendoWindow(this.$view);
             this._initDialogWindowTitle();
 
@@ -72,32 +67,32 @@
             //   decorator for dialog functionality. That's why the view model
             //   itself has to take care of the dialog commands which are located
             //   *outside* the widget.
-            var $dialogCommands = $('#dialog-commands-' + this._options.id);
+            const $dialogCommands = $('#dialog-commands-' + this._options.id);
             // Init OK/Cancel buttons.
             $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", (e) => {
-                if (!self.getCurrentItem())
+                if (!this.getCurrentItem())
                     return false;
 
-                self.args.buildResult();
-                self.args.isCancelled = false;
-                self.args.isOk = true;
+                this.args.buildResult();
+                this.args.isCancelled = false;
+                this.args.isOk = true;
 
-                self._dialogWindow.close();
+                this._dialogWindow.close();
                 return false;
             });
 
             // KABU TODO: Move to helper.
-            $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-                self.args.isCancelled = true;
-                self.args.isOk = false;
+            $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", () => {
+                this.args.isCancelled = true;
+                this.args.isOk = false;
 
-                self._dialogWindow.close();
+                this._dialogWindow.close();
             });
         };
 
         // KABU TODO: Move to helper.
         private _initDialogWindowTitle(): void {
-            var title = "";
+            let title = "";
 
             if (this.args.title) {
                 title = this.args.title;

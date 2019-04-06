@@ -2,7 +2,7 @@
 namespace kmodo {
 
     export function findKendoWindow($context: JQuery): kendo.ui.Window {
-        var $window = $context.closest('div [data-role=window], .k-popup-edit-form');
+        const $window = $context.closest('div [data-role=window], .k-popup-edit-form');
 
         return $window.data('kendoWindow');
     }
@@ -20,7 +20,7 @@ namespace kmodo {
         };
     }
 
-    var _modalWindowsCount = 0;
+    let _modalWindowsCount = 0;
 
     export function setModalWindowBehavior(wnd: kendo.ui.Window) {
         // Used for setting of opacity the overlay used for modal windows.

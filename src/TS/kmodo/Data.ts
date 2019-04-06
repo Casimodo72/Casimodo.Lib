@@ -16,11 +16,11 @@ namespace kmodo {
     // This is needed because Kendo annoyingly insists in initializing string values to ""
     //   even if we explicitely specify NULL as default value.
     export function initDataItemOnCreating (item: any, propInfos: Object) {
-        var propNames = Object.getOwnPropertyNames(propInfos);
-        var info;
+        const propNames = Object.getOwnPropertyNames(propInfos);
+        let info;
 
         for (let i = 0; i < propNames.length; i++) {
-            var name = propNames[i];
+            const name = propNames[i];
             if (!item.hasOwnProperty(name))
                 continue;
 

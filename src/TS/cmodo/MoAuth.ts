@@ -24,7 +24,7 @@ namespace cmodo {
 
         // KABU TODO: 
 
-        var manamegentPerm = mo.Permissions.find(x => x.RoleId === cmodo.authRoleSettings.roles.ManagerRoleId);
+        const manamegentPerm = mo.Permissions.find(x => x.RoleId === cmodo.authRoleSettings.roles.ManagerRoleId);
         if (manamegentPerm)
             // Currently a manager permission means: management only.
             return true;

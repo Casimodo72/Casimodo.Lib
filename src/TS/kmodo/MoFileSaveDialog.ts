@@ -43,14 +43,14 @@
 
         refresh(): Promise<void> {
             // KABU TODO: Do we want to use images or not?
-            //var imageDataUrl = this.args.item.imageDataUrl;
+            // const imageDataUrl = this.args.item.imageDataUrl;
 
-            var companyId = null;
-            var projectId = null;
-            var projectSegmentId = null;
-            var contractId = null;
+            let companyId = null;
+            let projectId = null;
+            let projectSegmentId = null;
+            let contractId = null;
 
-            var ctx = this.args.item.context;
+            const ctx = this.args.item.context;
             if (ctx) {
                 companyId = ctx.companyId;
                 projectId = ctx.projectId;
@@ -74,8 +74,6 @@
         }
 
         createView(): void {
-            var self = this;
-
             if (this._isComponentInitialized)
                 return;
             this._isComponentInitialized = true;
@@ -87,42 +85,41 @@
 
             kendo.bind(this.$view.find(".file-name-input"), this.getModel());
 
-            var $dialogCommands = $('#dialog-commands-' + this._options.id);
+            const $dialogCommands = $('#dialog-commands-' + this._options.id);
             // Init OK/Cancel buttons.
-            $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", function () {
+            $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", () => {
 
-                var targetFolder = self.fileExplorer.getCurrentFolder();
+                const targetFolder = this.fileExplorer.getCurrentFolder();
                 if (!targetFolder)
                     return;
 
-                //self.args.buildResult();
-                self.args.isCancelled = false;
-                self.args.isOk = true;
+                this.args.isCancelled = false;
+                this.args.isOk = true;
 
-                kmodo.progress(true, self.$view);
+                kmodo.progress(true, this.$view);
 
                 cmodo.webApiPost("/api/Mos/SaveImageDataToFolder",
                     {
-                        FileName: self.getModel().fileName,
-                        Data: self.args.item.imageDataUrl,
+                        FileName: this.getModel().fileName,
+                        Data: this.args.item.imageDataUrl,
                         FolderId: targetFolder.Id
                     })
-                    .then(function (responseData) {
-                        kmodo.progress(false, self.$view);
+                    .then((responseData) => {
+                        kmodo.progress(false, this.$view);
                         cmodo.showInfo("Die Datei wurde gespeichert.");
-                        self._dialogWindow.close();
+                        this._dialogWindow.close();
                     })
-                    .catch(function () {
-                        kmodo.progress(false, self.$view);
+                    .catch(() => {
+                        kmodo.progress(false, this.$view);
                         cmodo.showError("Die Datei konnte nicht gespeichert werden.");
                     });
             });
 
-            $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-                self.args.isCancelled = true;
-                self.args.isOk = false;
+            $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", () => {
+                this.args.isCancelled = true;
+                this.args.isOk = false;
 
-                self._dialogWindow.close();
+                this._dialogWindow.close();
             });
 
             // The actual Mo file explorer component.
@@ -133,7 +130,7 @@
                 isRecycleBinEnabled: false,
                 isUploadEnabled: false,
                 owners: function () {
-                    var items = [];
+                    const items = [];
 
                     items.push({
                         Name: "Projekt (für alle Segmente)",
@@ -168,7 +165,7 @@
         };
 
         _initDialogWindowTitle() {
-            var title = "";
+            let title = "";
 
             if (this.args.title) {
                 title = this.args.title;

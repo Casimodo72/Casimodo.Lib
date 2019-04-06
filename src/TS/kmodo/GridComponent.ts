@@ -11,7 +11,7 @@
     export function foreachGridRow(grid: kendo.ui.Grid, action: ($row: JQuery, item: any) => void) {
 
         grid.tbody.find("tr[role=row]").each((idx, elem) => {
-            var $row = $(elem);
+            let $row = $(elem);
             action($row, grid.dataItem($row));
         });
     }
@@ -51,6 +51,7 @@
     }
 
     export class GridComponent extends DataSourceViewComponent {
+        private _kendoGrid: kendo.ui.Grid;
         protected _options: GridComponentOptions;
         private expandedKeys: string[];
         private _customCommands: CustomCommand[];
@@ -69,9 +70,9 @@
 
             // TODO: REMOVE: this._options = super._options as GridComponentOptions;
 
-            var self = this;
+            let self = this;
 
-            var componentArgs = cmodo.componentArgs.consume(this._options.id);
+            let componentArgs = cmodo.componentArgs.consume(this._options.id);
             if (componentArgs) {
                 if (componentArgs.createComponentOptionsOverride)
                     this.createComponentOptionsOverride = componentArgs.createComponentOptionsOverride;
@@ -134,10 +135,12 @@
             options.requestEnd = this._eve(this.onDataSourceRequestEnd);
         }
 
-        // override
-        setComponent(value: kendo.ui.Grid) {
-            this.component = value;
-            this.setDataSource(this.grid().dataSource);
+        private grid(): kendo.ui.Grid {
+            return this._kendoGrid;
+        }
+
+        getKendoGrid(): kendo.ui.Grid {
+            return this._kendoGrid;
         }
 
         // override
@@ -151,7 +154,7 @@
         }
 
         refreshAndTrySetCurrentById(id) {
-            var self = this;
+            let self = this;
 
             this.refresh()
                 .then(function () {
@@ -176,12 +179,12 @@
 
                 if (this.grid().options.scrollable) {
                     // Compute current scroll top position. This will be restored after the refresh.
-                    var content = this.grid().content;
+                    let content = this.grid().content;
                     this._state.gridLastScrollTop = content.length ? content[0].scrollTop : null;
                 }
 
                 // Save current item. It will be restored after the refresh.
-                var item = this.getCurrentItem();
+                let item = this.getCurrentItem();
                 this._state.lastCurrentItemId = item ? item[this.keyName] : null;;
                 this.setCurrentItem(null);
             }
@@ -198,7 +201,7 @@
             if (this._isDebugLogEnabled)
                 console.debug("- data bound");
 
-            var action = this._state.gridDataBindAction;
+            let action = this._state.gridDataBindAction;
 
             this._initGridRows();
 
@@ -236,9 +239,9 @@
         }
 
         private _trySetCurrentItemById(id) {
-            var self = this;
+            let self = this;
 
-            var item = this.getCurrentItem();
+            let item = this.getCurrentItem();
             if (item && item[this.keyName] === id)
                 // This item is already the current item.
                 return true;
@@ -309,12 +312,12 @@
         private onComponentDetailExpanding(e) {
 
             // KABU TODO: Animation doesn't work, although advertised by Telerik.
-            //var detailRow = e.detailRow;
+            //let detailRow = e.detailRow;
             //kendo.fx(detailRow).fadeIn().play();               
 
             if (!this._state.isRestoringExpandedRows) {
 
-                var id = this.grid().dataItem(e.masterRow)[this.keyName];
+                let id = this.grid().dataItem(e.masterRow)[this.keyName];
                 if (id)
                     this.expandedKeys.push(id);
             }
@@ -329,15 +332,15 @@
 
             // KABU TODO: Animation doesn't work, although advertised by Telerik.
             /*
-            var detailRow = e.detailRow;
+            let detailRow = e.detailRow;
             setTimeout(function () {
                 kendo.fx(detailRow).fadeOut().duration(375).play();
             }, 0);
             */
 
             if (!this._state.isRestoringExpandedRows) {
-                var id = this.grid().dataItem(e.masterRow)[this.keyName];
-                var idx = this.expandedKeys.indexOf(id);
+                let id = this.grid().dataItem(e.masterRow)[this.keyName];
+                let idx = this.expandedKeys.indexOf(id);
                 if (idx !== -1)
                     this.expandedKeys.splice(idx, 1);
             }
@@ -349,11 +352,7 @@
             if (model)
                 this.dataSource.cancelChanges(model);
             else
-                this.grid().cancelChanges();
-        }
-
-        grid(): kendo.ui.Grid {
-            return this.component as kendo.ui.Grid;
+                this.getKendoGrid().cancelChanges();
         }
 
         /**
@@ -362,15 +361,15 @@
         */
         private _restoreExpandedRows(e, expandedKeys: string[], keyname: string): string[] {
 
-            var self = this;
+            let self = this;
 
             if (!expandedKeys || !expandedKeys.length) return [];
 
-            var restored: string[] = [];
+            let restored: string[] = [];
 
             this.foreachGridRow(($row, item) => {
 
-                var id: string = item[keyname];
+                let id: string = item[keyname];
 
                 if (expandedKeys.indexOf(id) !== -1) {
                     self.grid().expandRow($row);
@@ -382,16 +381,16 @@
         }
 
         foreachGridRow(action: ($row: JQuery, item: any) => void): void {
-            var self = this;
+            let self = this;
 
             this.grid().tbody.find("tr[role=row]").each((idx, elem) => {
-                var $row = $(elem);
+                let $row = $(elem);
                 action($row, self.grid().dataItem($row));
             });
         }
 
         private _initGridRows(): void {
-            var self = this;
+            let self = this;
 
             this.foreachGridRow(($row, item) => {
                 self._initRowExpander(item, $row);
@@ -421,7 +420,7 @@
 
         private _initRowEditing(item, $row: JQuery): void {
 
-            var $btn = $row.find(".k-grid-custom-edit").first();
+            let $btn = $row.find(".k-grid-custom-edit").first();
             if (!$btn.length)
                 return;
 
@@ -442,8 +441,8 @@
             //   KEEP: maybe we can use this in the future.
 
             $row.find(".kendomodo-button-show-image").each((idx, elem) => {
-                var $btn = $(elem);
-                var uri = $btn.data("file-uri");
+                let $btn = $(elem);
+                let uri = $btn.data("file-uri");
 
                 // NOTE: Using magnific popup lib.
                 ($btn as any).magnificPopup({
@@ -477,7 +476,7 @@
 
         // overwrite
         protected _applyAuth(): void {
-            var self = this;
+            let self = this;
 
             //if (!this.auth.canView)
             //    this.grid().wrapper.hide();
@@ -487,7 +486,7 @@
             if (this.auth.canCreate) {
                 this.grid().element.find('.k-grid-toolbar .k-grid-add').removeClass("hide");
 
-                var $createBtn = this.grid().element.find('.k-grid-toolbar .k-grid-custom-add');
+                let $createBtn = this.grid().element.find('.k-grid-toolbar .k-grid-custom-add');
                 $createBtn.removeClass("hide");
 
                 $createBtn.on("click", function (e) {
@@ -509,7 +508,7 @@
            This will process such navigational arguments, filter the data and modify the UI.
         */
         processNavigation(): any {
-            var self = this;
+            let self = this;
 
             if (!this._hasBaseFilter(KEY_FILTER_ID))
                 return this;
@@ -524,7 +523,7 @@
                 .hide();
 
             // Display button for deactivation of the "specific-item" filter.
-            var $command = this._$toolbar.find(".kmodo-clear-guid-filter-command");
+            let $command = this._$toolbar.find(".kmodo-clear-guid-filter-command");
 
             // Clear single object filter on demand.
             // Views can be called with a item GUID filter which loads only a single specific object.
@@ -561,7 +560,7 @@
         };
 
         private _addOrEdit(mode): boolean {
-            var self = this;
+            let self = this;
 
             if (this._state.isEditing)
                 return false;
@@ -569,7 +568,7 @@
             if (!this._options.editor || !this._options.editor.url)
                 return false;
 
-            var item = this.getCurrentItem();
+            let item = this.getCurrentItem();
 
             if (mode === "create") {
                 if (!this.auth.canCreate)
@@ -621,10 +620,10 @@
 
             // KABU TODO: VERY IMPORTANT: Check if this works.
             // This is used by the MoFileExplorerView.
-            var extraOptions = this._options["componentOptions"];
+            let extraOptions = this._options["componentOptions"];
             if (extraOptions) {
                 // Extend with privided extra options.
-                for (var prop in extraOptions)
+                for (let prop in extraOptions)
                     options[prop] = extraOptions[prop];
             }
 
@@ -684,7 +683,7 @@
         }
 
         private _executeCustomCommand(name: string): void {
-            var cmd = this._customCommands.find(x => x.name === name);
+            let cmd = this._customCommands.find(x => x.name === name);
             if (!cmd)
                 return;
 
@@ -695,7 +694,7 @@
         }
 
         private _executeRowCommand(name: string, dataItem: any): void {
-            var cmd = this._customRowCommands.find(x => x.name === name);
+            let cmd = this._customRowCommands.find(x => x.name === name);
             if (!cmd)
                 return;
 
@@ -721,7 +720,7 @@
 
         private _getAllConsumerFilters(): ViewComponentFilter[] {
 
-            var filters = this._options.filters || [];
+            let filters = this._options.filters || [];
 
             // Add filters of args.
             if (this.args &&
@@ -744,19 +743,23 @@
 
         private _updateTagFilterSelector(): void {
             if (this._tagsFilterSelector) {
-                var companyFilter = this._findBaseFilter(COMPANY_FILTER_ID);
-                var companyId = companyFilter ? companyFilter.value : null;
-                var filters = buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
+                let companyFilter = this._findBaseFilter(COMPANY_FILTER_ID);
+                let companyId = companyFilter ? companyFilter.value : null;
+                let filters = buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
 
                 this._tagsFilterSelector.dataSource.filter(filters);
             }
         }
 
         createView(): void {
-            if (this.component)
-                return this.component;
 
-            var self = this;
+            // Skip if the component was provided externally.
+
+            if (this._isComponentInitialized)
+                return;
+            this._isComponentInitialized = true;
+
+            let self = this;
 
             // Add base filters from options.
             if (this._options.baseFilters) {
@@ -772,39 +775,34 @@
             }
 
             // Evaluate navigation args
-            var naviArgs = cmodo.navigationArgs.consume(this._options.id);
+            let naviArgs = cmodo.navigationArgs.consume(this._options.id);
             if (naviArgs && naviArgs.itemId) {
                 this._setBaseFilter(KEY_FILTER_ID, { field: this.keyName, value: naviArgs.itemId });
             }
 
-            var isCompanyChangeable = !this._hasNonRemovableCompanyFilter();
+            let isCompanyChangeable = !this._hasNonRemovableCompanyFilter();
 
             if (self._options.isGlobalCompanyFilterEnabled &&
                 isCompanyChangeable &&
                 // Don't filter by global company if navigating to a specific entity.
                 !self._hasBaseFilter(KEY_FILTER_ID)) {
 
-                var companyId = cmodo.getGlobalInitialCompanyId();
+                let companyId = cmodo.getGlobalInitialCompanyId();
                 if (companyId)
                     self._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
             }
 
-            var $component = this._options.$component || null;
+            let $component = this._options.$component || null;
 
             // Find the element of the grid.
             if (!$component)
                 $component = $("#grid-" + this._options.id);
 
-            var kendoGridOptions = this._initOptions();
+            let kendoGridOptions = this._initOptions();
 
             // Create the Kendo Grid.
-            var kendoGrid = $component.kendoGrid(kendoGridOptions).data('kendoGrid');
-
-            this.setComponent(kendoGrid);
-
-            //var validator = $component.kendoValidator({
-            //    errorTemplate: '<span class="">' + '<span class="k-icon k-warning"> </span> #=message#</span>',
-            //}).data('kendoValidator');
+            this._kendoGrid = $component.kendoGrid(kendoGridOptions).data('kendoGrid');
+            this.setDataSource(this._kendoGrid.dataSource);
 
             if (kendoGridOptions.selectable === "row") {
 
@@ -823,8 +821,8 @@
                 this.grid().tbody.on("click", ".list-item-remove-command", (e) => {
                     e.stopPropagation();
 
-                    var $row = self._gridGetRowByContent($(e.currentTarget));
-                    var item = self.getItemByRow($row);
+                    let $row = self._gridGetRowByContent($(e.currentTarget));
+                    let item = self.getItemByRow($row);
 
                     self.trigger("item-remove-command-fired", { sender: self, item: item, $row: $row });
 
@@ -833,7 +831,7 @@
             }
 
             // Toolbar commands
-            var $toolbar = this._$toolbar = self.grid().wrapper.find(".km-grid-toolbar-content");
+            let $toolbar = this._$toolbar = self.grid().wrapper.find(".km-grid-toolbar-content");
 
             // Refresh command
             $toolbar.find(".k-grid-refresh").on("click", function (e) {
@@ -841,10 +839,10 @@
                 // KABU TODO: REMOVE: self.grid().dataSource.read();
             });
 
-            var initialCompanyId: string = null;
+            let initialCompanyId: string = null;
             if (self._options.isCompanyFilterEnabled) {
 
-                var $companySelector = $toolbar.find(".km-grid-company-filter-selector");
+                let $companySelector = $toolbar.find(".km-grid-company-filter-selector");
                 if ($companySelector.length) {
 
                     if (!isCompanyChangeable) {
@@ -883,7 +881,7 @@
             }
 
             if (self._options.isTagsFilterEnabled) {
-                var $selector = $toolbar.find(".km-grid-tags-filter-selector");
+                let $selector = $toolbar.find(".km-grid-tags-filter-selector");
                 if ($selector.length) {
                     self._tagsFilterSelector = kmodo.createMoTagFilterSelector(
                         $selector,
@@ -893,7 +891,7 @@
                             filters: kmodo.buildTagsDataSourceFilters(self._options.dataTypeId, initialCompanyId),
                             changed: function (tagIds) {
                                 if (tagIds && tagIds.length) {
-                                    var expression = tagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
+                                    let expression = tagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
                                     self._setBaseFilter(TAGS_FILTER_ID, { expression: expression });
                                 }
                                 else
@@ -907,13 +905,14 @@
             }
 
             // Export menu
-            var $toolsMenu = $toolbar.find(".km-grid-tools-menu");
+            let $toolsMenu = $toolbar.find(".km-grid-tools-menu");
             $toolsMenu.kendoMenu({
                 openOnClick: true,
                 select: function (e) {
-                    var name = $(e.item).data("name");
+                    let name = $(e.item).data("name");
 
                     // Close menu.
+                    e.sender.wrapper.find('.k-animation-container').css('display', 'none');
                     e.sender.close();
 
                     if (name === "ExportToExcel")
@@ -945,22 +944,22 @@
                 // EditTags context menu action.
                 if (this._options.hasRowContextMenu) {
 
-                    var $contextMenu = $component.parent().find("#row-context-menu-grid-" + this._options.id);
+                    let $contextMenu = $component.parent().find("#row-context-menu-grid-" + this._options.id);
                     $contextMenu.kendoContextMenu({
                         target: $component,
                         filter: "tr[role=row]",
                         open: function (e) {
-                            //var menu = e.sender;
-                            //var name = $(e.item).data("name");
-                            //var dataItem = self.grid().dataItem(e.target);
+                            //let menu = e.sender;
+                            //let name = $(e.item).data("name");
+                            //let dataItem = self.grid().dataItem(e.target);
 
                             // KABU TODO: IMPORTANT: Apply auth.
                             //kmodo.enableContextMenuItems(menu, "EditTags", xyz);
                         },
                         select: (e) => {
-                            // var menu = e.sender;
-                            var name = $(e.item).data("name");
-                            var dataItem = self.grid().dataItem(e.target) as any;
+                            // let menu = e.sender;
+                            let name = $(e.item).data("name");
+                            let dataItem = self.grid().dataItem(e.target) as any;
 
                             // KABU TODO: This may be just a temporary hack.
                             //   We could/should use a service instead in the future.
@@ -996,33 +995,38 @@
 
             if (!this._options.isDialog &&
                 this.grid().options.scrollable === true) {
-                // NOTE: The grid's scroll area is not being updated (the k-grid-content has a fixed height)
-                //   when the window is being resized. As a workaround the user has to refresh the grid.
-                //   For a possible calculation on window resize see: https://www.telerik.com/forums/window-resize-c4fcceedd72c
 
-                $(window).resize(function (e) {
-                    var $grid = self.grid().wrapper;
-
-                    var gridHeight = $grid.outerHeight(true);
-
-                    var extraContentSize = 0;
-                    $grid.find(">div:not(.k-grid-content)").each((idx, elem) => {
-                        extraContentSize += $(elem).outerHeight(true);
-                    });
-
-                    var contentHeight = gridHeight - extraContentSize;
-
-                    $grid.find(".k-grid-content").first().height(contentHeight);
+                $(window).resize((e) => {
+                    this.updateSize();
                 });
 
             }
 
             if (this._options.isLookup)
                 this._initComponentAsLookup();
-        };
+        }
+
+        updateSize() {
+            // NOTE: The grid's scroll area is not being updated (the k-grid-content has a fixed height)
+            //   when the window is being resized. As a workaround the user has to refresh the grid.
+            //   For a possible calculation on window resize see: https://www.telerik.com/forums/window-resize-c4fcceedd72c
+
+            let $grid = this.grid().wrapper;
+
+            let gridHeight = $grid.outerHeight(true);
+
+            let extraContentSize = 0;
+            $grid.find(">div:not(.k-grid-content)").each((idx, elem) => {
+                extraContentSize += $(elem).outerHeight(true);
+            });
+
+            let contentHeight = gridHeight - extraContentSize;
+
+            $grid.find(".k-grid-content").first().height(contentHeight);
+        }
 
         _initComponentAsLookup() {
-            var self = this;
+            let self = this;
 
             // Get dialog arguments and set them on the view model.
             if (!this.args)
@@ -1035,7 +1039,7 @@
             //   decorator for dialog functionality. That's why the grid view model
             //   itself has to take care of the dialog commands which are located
             //   *outside* the grid widget.
-            var $dialogCommands = $('#dialog-commands-' + this._options.id);
+            let $dialogCommands = $('#dialog-commands-' + this._options.id);
             // Init OK/Cancel buttons.
             $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", (e) => {
                 if (!self.getCurrentItem())
@@ -1058,9 +1062,9 @@
                 return false;
             });
 
-            var $toolbarLeft = this._$toolbar.find(".km-grid-tools").first();
+            let $toolbarLeft = this._$toolbar.find(".km-grid-tools").first();
 
-            var filterCommands = this.args.filterCommands;
+            let filterCommands = this.args.filterCommands;
             if (filterCommands && filterCommands.length) {
 
                 // Add deactivatable filter buttons to the grid's toolbar.
@@ -1068,10 +1072,10 @@
                 // The filter/button will be removed by pressing the button.
 
                 for (let i = 0; i < filterCommands.length; i++) {
-                    var cmd = filterCommands[i];
+                    let cmd = filterCommands[i];
 
                     if (cmd.deactivatable) {
-                        var $btn = $("<button class='k-button active-toggle-button'>" + cmd.title + "</button>");
+                        let $btn = $("<button class='k-button active-toggle-button'>" + cmd.title + "</button>");
                         $btn.on("click", function (e) {
 
                             // Remove that filter by field name.
@@ -1095,11 +1099,11 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                var row = e.currentTarget;
+                let row = e.currentTarget;
 
                 // If the selected row has a data item...
                 if (self.grid().dataItem(row)) {
-                    var wnd = kmodo.findKendoWindow(self.grid().wrapper);
+                    let wnd = kmodo.findKendoWindow(self.grid().wrapper);
                     if (wnd) {
                         self.args.buildResult();
                         self.args.isCancelled = false;
@@ -1117,13 +1121,13 @@
             // Those filters could be circumvented by the user by
             // manipulating the filter cell or the filter in the column menu.
             // Thus we need to hide any filter UI of the given filter fields.
-            var filters = this.args.filters;
+            let filters = this.args.filters;
             if (filters && filters.length) {
 
-                var $thead = self.grid().thead;
+                let $thead = self.grid().thead;
 
                 for (let item of filters) {
-                    var fieldName = (item as any).field;
+                    let fieldName = (item as any).field;
                     if (typeof fieldName === "undefined")
                         return;
 
@@ -1145,7 +1149,7 @@
         }
 
         _initDialogWindowTitle() {
-            var title = "";
+            let title = "";
 
             if (this.args.title) {
                 title = this.args.title;
@@ -1159,79 +1163,11 @@
 
             this._dialogWindow.title(title);
         }
-
-        // Obsolete or postponed ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        // KABU TODO: REMOVE? KEEP, may be usefull someday.
-        // See http://www.telerik.com/forums/way-to-show-remind-user-that-a-column-is-applying-a-filter-
-        /*
-        kmodo.hideGridManipulationColumnsDefault  (grid) {
-            var filter = grid.dataSource.filter();
-            grid.thead.find(".k-header-column-menu.k-state-active").removeClass("k-state-active");
-            if (filter) {
-                var filteredMembers = {};
-                this._setFilteredMembers(filter, filteredMembers);
-                grid.thead.find("th[data-field]").each(function () {
-                    var cell = $(this);
-                    var filtered = filteredMembers[cell.data("field")];
-                    if (filtered) {
-                        cell.find(".k-header-column-menu").addClass("k-state-active");
-                    }
-                });
-            }
-        };
-        */
-
-        // KABU TODO: REMOVE? KEEP, may be usefull someday.
-        // See http://www.telerik.com/forums/way-to-show-remind-user-that-a-column-is-applying-a-filter-
-        /*
-        _hideGridManipulationColumnsLocked  (grid) {
-            var filter = grid.dataSource.filter();
-         
-            grid.thead.find(".k-header-column-menu.k-state-active").removeClass("k-state-active");
-            grid.wrapper.find(".k-grid-header-locked .k-header-column-menu.k-state-active").removeClass("k-state-active");
-         
-            if (filter) {
-                var filteredMembers = {};
-                this._setFilteredMembers(filter, filteredMembers);
-         
-                var heads = grid.thead.find("th[data-field]");
-                var frozenHeads = grid.wrapper.find(".k-grid-header-locked th[data-field]");
-         
-                heads.add(frozenHeads).each(function () {
-                    var cell = $(this);
-                    var filtered = filteredMembers[cell.data("field")];
-                    if (filtered) {
-                        cell.find(".k-header-column-menu").addClass("k-state-active");
-                    }
-                });
-            }
-        };
-        */
-
-        // KABU TODO: REMOVE? KEEP, may be usefull someday.
-        // See http://www.telerik.com/forums/way-to-show-remind-user-that-a-column-is-applying-a-filter-
-        /*
-        _setFilteredMembers  (filter, members) {
-            if (filter.filters) {
-                for (let i = 0; i < filter.filters.length; i++) {
-                    this._setFilteredMembers(filter.filters[i], members);
-                }
-            }
-            else {
-                members[filter.field] = true;
-            }
-        };
-        */
     }
 
     export function getGridRowDataItem(grid: kendo.ui.Grid, $elem: JQuery): any {
         return grid.dataItem($elem.closest("tr[role='row']"));
     }
-
-    //export function gridReferenceFilterColTemplateNullable(args: any): void {
-    //    gridReferenceFilterColTemplate(args, true);
-    //}
 
     export function gridReferenceFilterColTemplate(args: any, valueField: string, textField: string, isNullable: boolean): void {
         args.element.kendoDropDownList({
@@ -1242,29 +1178,6 @@
             valuePrimitive: true
         });
     }
-
-    //export function gridEnumFilterColTemplateNullable(args: any): void {
-    //    gridEnumFilterColTemplate(args, true);
-    //}
-
-    //export function gridEnumFilterColTemplate(args: any, nullable: boolean): void {
-
-    //    var options: any = {
-    //        dataSource: args.dataSource,
-    //        dataValueField: "value",
-    //        dataTextField: "text",
-    //        valuePrimitive: true
-    //    };
-
-    //    if (nullable) {
-    //        options.optionLabel = {
-    //            value: "", text: " "
-    //        };
-    //    }
-
-    //    args.element.kendoDropDownList(options);
-    //}
-
 
     interface AllSelectionInfo {
         isInitialized: boolean;
@@ -1331,7 +1244,7 @@
         }
 
         clearSelection(): void {
-            var self = this;
+            let self = this;
 
             this._performBatchUpdate(function () {
                 self.selection = [];
@@ -1374,7 +1287,7 @@
 
         deselectedById(id: string): void {
 
-            var isel = this._iselectors.find(function (x) { return x.id === id; });
+            let isel = this._iselectors.find(function (x) { return x.id === id; });
             if (isel && isel.isSelected) {
                 isel.$selector.prop("checked", false).change();
             }
@@ -1385,7 +1298,7 @@
         }
 
         private getKendoGrid(): kendo.ui.Grid {
-            return this.gridViewModel.component as kendo.ui.Grid;
+            return this.gridViewModel.getKendoGrid() as kendo.ui.Grid;
         }
 
         private _getIsEnabled(): boolean {
@@ -1401,9 +1314,9 @@
         }
 
         private _initAllSelector(): void {
-            var self = this;
+            let self = this;
 
-            var isel = this._iallSelector;
+            let isel = this._iallSelector;
             if (isel.isInitialized)
                 return;
 
@@ -1424,7 +1337,7 @@
         }
 
         private _initSelectors(): void {
-            var self = this;
+            let self = this;
 
             if (!this._getIsEnabled())
                 return;
@@ -1450,13 +1363,13 @@
 
                 // Build selector infos.
                 this.getKendoGrid().tbody.find("tr[role='row']").each((idx, elem) => {
-                    var $row = $(elem);
-                    var $selector = $row.find("input.list-item-selector");
-                    var $selectorVisual = $row.find("label.list-item-selector");
+                    let $row = $(elem);
+                    let $selector = $row.find("input.list-item-selector");
+                    let $selectorVisual = $row.find("label.list-item-selector");
 
-                    var item = self.getKendoGrid().dataItem($row);
-                    var id = item[self.keyName];
-                    var isSelected = self._getIsSelectedById(id);
+                    let item = self.getKendoGrid().dataItem($row);
+                    let id = item[self.keyName];
+                    let isSelected = self._getIsSelectedById(id);
 
                     self._iselectors.push({
                         id: id,
@@ -1475,7 +1388,7 @@
                     if (self.customSelectorInitializer) {
                         // Hook for the consumer in order to provide custom logic for the
                         // initial states of a selector such as isSelected, isEnabled and isVisible.
-                        var custom = self.customSelectorInitializer(isel);
+                        let custom = self.customSelectorInitializer(isel);
 
                         if (custom.isVisible !== undefined)
                             isel.isVisible = custom.isVisible;
@@ -1527,7 +1440,7 @@
         }
 
         private _updateSelectedViewStates(): void {
-            var self = this;
+            let self = this;
             for (let isel of this._iselectors) {
                 isel.isSelected = self._getIsSelectedById(isel.id);
                 isel.$selector.prop("checked", isel.isSelected);
@@ -1539,13 +1452,13 @@
             if (this._isUpdatingSelectors)
                 return;
 
-            var self = this;
+            let self = this;
 
             this._performBatchUpdate(function () {
 
-                var add = $selector.prop("checked") === true;
+                let add = $selector.prop("checked") === true;
 
-                var items = self._getDataSource().data();
+                let items = self._getDataSource().data();
                 items.forEach((item) => {
                     if (add)
                         self._addDataItem(item);
@@ -1586,7 +1499,7 @@
 
         _addDataItem(item: any): void {
             // Add item to selection.
-            var index = this.selection.indexOf(item[this.keyName]);
+            let index = this.selection.indexOf(item[this.keyName]);
             if (index !== -1)
                 return;
 
@@ -1605,11 +1518,11 @@
 
         _removeDataItemById(id: string): void {
 
-            var index = this.selection.indexOf(id);
+            let index = this.selection.indexOf(id);
             if (index === -1)
                 return;
 
-            var item = this._selectionDataItems[index];
+            let item = this._selectionDataItems[index];
 
             this.selection.splice(index, 1);
             this._selectionDataItems.splice(index, 1);

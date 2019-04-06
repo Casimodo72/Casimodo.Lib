@@ -1,35 +1,11 @@
 ﻿
 namespace kmodo {
 
-    export function oDataQuery(url: string, parameter?: any, extraDataSourceOptions?: Object): Promise<any> {
-
-        return new Promise((resolve, reject) => {
-            var ds = createReadDataSource(url, parameter, extraDataSourceOptions);
-
-            ds.fetch()
-                .then(function () {
-                    var items = ds.data();
-                    // Clear the data source.
-                    ds.data([]);
-
-                    cmodo.fixupDataDeep(items);
-
-                    resolve(items);
-
-                }, function (err) {
-                    var msg = cmodo.getResponseErrorMessage("odata", err);
-
-                    cmodo.showError(msg);
-
-                    reject();
-                });
-        });
-    }
-
     export function createReadDataSource(url: string, parameter?: any, extraDataSourceOptions?: Object) {
 
-        var dsoptions: kendo.data.DataSourceOptions = {
+        const dsoptions: kendo.data.DataSourceOptions = {
             type: "odata-v4",
+            error: kendoDataSourceODataErrorHandler,
             transport: {
                 parameterMap: function (data, type) { return parameterMapForOData(data, type); },
                 read: {
@@ -69,6 +45,7 @@ namespace kmodo {
     export function extendODataSourceReadOptions(opts: kendo.data.DataSourceOptions): kendo.data.DataSourceOptions {
         let options: kendo.data.DataSourceOptions = {
             type: 'odata-v4',
+            error: kendoDataSourceODataErrorHandler,
             schema: {
                 model: {
                     id: 'Id'
@@ -90,11 +67,11 @@ namespace kmodo {
         if (!filters || !filters.length)
             return null;
 
-        var filter;
+        let filter;
         for (let i = 0; i < filters.length; i++) {
             filter = filters[i];
             if (filter.logic) {
-                var foundFilter = findDataSourceFilter(filter.filters, predicate);
+                const foundFilter = findDataSourceFilter(filter.filters, predicate);
                 if (foundFilter)
                     return foundFilter;
             }
@@ -115,7 +92,7 @@ namespace kmodo {
     export function buildTagsDataSourceFilters(dataTypeId: string, companyId?: string)
         : kendo.data.DataSourceFilter {
 
-        var assignableFilter = { field: "AssignableToTypeId", operator: "eq", value: dataTypeId };
+        const assignableFilter = { field: "AssignableToTypeId", operator: "eq", value: dataTypeId };
 
         if (typeof companyId === "undefined")
             return assignableFilter as kendo.data.DataSourceFilterItem;
@@ -152,7 +129,7 @@ namespace kmodo {
 
     export function parameterMapForOData(data: any, type: string, strategy?: string) {
 
-        var effectiveData = data;
+        let effectiveData = data;
         if (strategy === "Action" && (type === "update" || type === "create")) {
             // We are using OData actions for updates.
             // OData actions need a named parameter in the payload.
@@ -180,7 +157,7 @@ namespace kmodo {
             });
         }
 
-        var result = fixODataV4FilterParameterMap(effectiveData, type);
+        const result = fixODataV4FilterParameterMap(effectiveData, type);
 
         return result;
     }
@@ -189,7 +166,7 @@ namespace kmodo {
         // This is needed for Kendo grid's filters when using OData v4.
 
         // Call the default OData V4 parameterMap.
-        var result = kendo.data.transports["odata-v4"].parameterMap(data, type);
+        const result = kendo.data.transports["odata-v4"].parameterMap(data, type);
 
         if (type === "read" && result && result.$filter) {
 
@@ -203,7 +180,7 @@ namespace kmodo {
     }
 
     export function oDataLookupValueAndDisplay(url: string, valueProp: string, displayProp: string, async: boolean): Promise<any> | kendo.data.ObservableArray {
-        var ds = new kendo.data.DataSource({
+        const ds = new kendo.data.DataSource({
             type: 'odata-v4',
             transport: {
                 read: {
@@ -237,8 +214,8 @@ namespace kmodo {
     }
 
     function _convertLookupData(data: any[], valueProp: string, displayProp: string): any[] {
-        var items = [];
-        var item;
+        const items = [];
+        let item;
         for (let i = 0; i < data.length; i++) {
             item = data[i];
             items.push({

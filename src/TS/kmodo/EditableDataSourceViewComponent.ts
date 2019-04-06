@@ -1,7 +1,14 @@
 ﻿namespace kmodo {
 
-    interface EditStates {
-        mode: string;
+    interface EditModes {
+        create: string;
+        modify: string;
+    }
+
+    export type EditModeKeys = keyof EditModes;
+
+    export interface EditStates {
+        mode: EditModeKeys;
         item: any;
         itemId: string;
         isCancelled: boolean;
@@ -38,15 +45,11 @@
     export abstract class EditableDataSourceViewComponent extends DataSourceViewComponent {
         protected _options: EditableDataSourceViewOptions;
         protected _iedit: EditStates;
-        protected dataModel: any;
-        protected readQuery: string;
+        protected dataModel: any = null;
+        protected readQuery: string = null;
 
         constructor(options) {
             super(options);
-
-            // TODO: REMOVE: this._options = super._options as EditableDataSourceViewOptions;
-
-            var self = this;
 
             this._iedit = {
                 mode: null,
@@ -62,21 +65,21 @@
                 errorMessage: null
             };
 
-            this.on("argsChanged", function (e) {
-                self._iedit.mode = self.args.mode;
+            this.on("argsChanged", (e) => {
+                this._iedit.mode = this.args.mode as EditModeKeys;
 
-                if (self._iedit.mode === "modify")
-                    self._iedit.canDelete = true;
+                if (this._iedit.mode === "modify")
+                    this._iedit.canDelete = true;
 
                 // KABU TODO: Eval if "canDelete" is ever specified on args.
-                if (self._iedit.mode === "modify" && typeof self.args.canDelete !== "undefined")
-                    self._iedit.canDelete = !!self.args.canDelete;
+                if (this._iedit.mode === "modify" && typeof this.args.canDelete !== "undefined")
+                    this._iedit.canDelete = !!this.args.canDelete;
             });
         }
 
         // override
         protected createDataSourceOptions(): kendo.data.DataSourceOptions {
-            var dataSourceOptions: kendo.data.DataSourceOptions = {
+            const dataSourceOptions: kendo.data.DataSourceOptions = {
                 type: 'odata-v4',
                 schema: {
                     model: this.createDataModel()
@@ -102,36 +105,34 @@
         }
 
         protected _delete() {
-            var self = this;
-
             if (this._iedit.mode !== "modify" || !this.auth.canDelete || !this._iedit.canDelete)
                 return;
 
-            var item = this.getCurrentItem();
+            const item = this.getCurrentItem();
             if (!item)
                 return;
 
             kmodo.openDeletionConfirmationDialog(
                 "Wollen Sie diesen Eintrag wirklich endgültig löschen?")
-                .then(function (result) {
+                .then((result) => {
 
                     if (result !== true)
                         return;
 
-                    self.dataSource.remove(item);
-                    self.dataSource.sync()
-                        .then(function () {
-                            if (self._iedit.isError)
+                    this.dataSource.remove(item);
+                    this.dataSource.sync()
+                        .then(() => {
+                            if (this._iedit.isError)
                                 return;
 
-                            self._iedit.isDeleted = true;
+                            this._iedit.isDeleted = true;
 
                             kmodo.openInfoDialog("Der Eintrag wurde gelöscht.", {
                                 kind: "info"
                             })
-                                .then(function () {
+                                .then(() => {
                                     // KABU TODO: Should we do something else other than cancel?
-                                    self._cancel();
+                                    this._cancel();
                                 });
                         });
                 });
@@ -151,14 +152,12 @@
             // NOP           
         }
 
-        private getDataSourceModelFiels(): any {
-            var ds: any = this.dataSource;
+        private getDataSourceModelFields(): any {
+            const ds: any = this.dataSource;
             return ds.reader.model.fields;
         }
 
         protected onEditing(e: EditableViewOnEditingEvent): void {
-            var self = this;
-
             if (this._isDebugLogEnabled)
                 console.debug("- EDITOR: '%s'", e.isNew ? "create" : "modify");
 
@@ -171,7 +170,7 @@
             //    this.onEditingGenerated(context);
 
             if (e.mode === "create") {
-                kmodo.initDataItemOnCreating(e.item, this.getDataSourceModelFiels());
+                kmodo.initDataItemOnCreating(e.item, this.getDataSourceModelFields());
 
                 // Prepare domain object for editing.
                 // E.g. this will create nested complex properties if missing.
@@ -189,7 +188,7 @@
                 $('<a class="k-button k-button-icontext" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')
                     .appendTo(this.$view.find(".k-edit-buttons"))
                     .on("click", (e) => {
-                        self._delete();
+                        this._delete();
                     });
             }
 
@@ -254,7 +253,7 @@
 
         protected onDataSourceError(e): string {
             this._iedit.isError = true;
-            var message = super.onDataSourceError(e);
+            const message = super.onDataSourceError(e);
             this._iedit.errorMessage = message;
 
             return message;
@@ -262,34 +261,36 @@
 
         _setNestedItem(prop: string, foreignKey: string, referencedKey: string, odataQuery: string, assignments?: PropAssignment[]) {
 
-            var self = this;
-
-            var item: kendo.data.Model = this.getCurrentItem();
+            const item: kendo.data.Model = this.getCurrentItem();
             if (!item)
                 return;
 
             // Clear previously assigned referenced object.
             item.set(prop, null);
-            var foreignKeyValue = item.get(foreignKey);
+            const foreignKeyValue = item.get(foreignKey);
             if (!foreignKeyValue)
                 return;
 
             // KABU TODO: MAGIC: assumes there's an "Id" property on the referenced object.
-            kmodo.odataQueryFirstOrDefault(odataQuery + "&$filter=" + referencedKey + " eq " + foreignKeyValue, null)
-                .then(function (result) {
-                    if (!result) {
+            cmodo.executeODataRequestCore("GET", odataQuery + "&$filter=" + referencedKey + " eq " + foreignKeyValue)
+                .then(refItems => {
+
+                    const refItem = refItems && refItems.length ? refItems[0] : null;
+
+                    if (!refItem) {
                         // Clear the foreign key property because no result was returned.
                         item.set(foreignKey, null);
                     }
                     else {
                         // Set the referenced object.
-                        item.set(prop, result);
+                        item.set(prop, refItem);
                     }
 
-                    if (!result || item.isNew()) {
+                    // TODO: IMPORTANT: always allow assignment of properties.                    
+                    if (!refItem || item.isNew()) {
                         // Assign properties from the referenced object
                         // or set them all to null if the referenced object is null.
-                        self._setNestedItemProps(result, item, assignments);
+                        this._setNestedItemProps(refItem, item, assignments);
                     }
                 });
         }
@@ -306,9 +307,9 @@
             if (!assignments || !assignments.length)
                 return;
 
-            var dataTemplate = this._options.dataTemplate;
+            const dataTemplate = this._options.dataTemplate;
 
-            var item: PropAssignment;
+            let item: PropAssignment;
             for (let i = 0; i < assignments.length; i++) {
                 item = assignments[i];
 

@@ -50,13 +50,13 @@
         }
 
         parse(text: string): FlexTemplateProp[] {
-            var props: FlexTemplateProp[] = [];
+            const props: FlexTemplateProp[] = [];
 
             if (cmodo.isNullOrWhiteSpace(text))
                 return props;
 
-            var elements = (new DOMParser()).parseFromString("<root>" + text + "</root>", "text/xml").documentElement.children;
-            var elem, name, value, kind;
+            const elements = (new DOMParser()).parseFromString("<root>" + text + "</root>", "text/xml").documentElement.children;
+            let elem, name, value, kind;
             for (let i = 0; i < elements.length; i++) {
                 elem = elements[i];
                 if (elem.nodeName !== "prop")
@@ -70,7 +70,7 @@
 
                 kind = elem.getAttribute("kind");
 
-                var item: FlexTemplateProp = {
+                const item: FlexTemplateProp = {
                     name: name,
                     value: value,
                     kind: kind,

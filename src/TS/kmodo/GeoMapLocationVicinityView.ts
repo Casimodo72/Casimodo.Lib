@@ -85,8 +85,6 @@ namespace kmodo {
         constructor(options: GeoMapViewOptions) {
             super(options);
 
-            var self = this;
-
             this._isOnlyCurrentCategoryVisible = true;
             this._candidateVicinityPlaceZIndex = 90;
             this._nonCandidateVicinityPlaceZIndex = 80;
@@ -95,13 +93,13 @@ namespace kmodo {
             this._selectedVicinityPlace = null;
 
             this._categories = [];
-            var doctorTypes = ["doctor"];
-            var hospitalTypes = ["hospital"];
+            const doctorTypes = ["doctor"];
+            const hospitalTypes = ["hospital"];
             // KABU TODO: IMPORTANT: Clarify which initial radius to use.
-            var defaultRadius = 5;
+            const defaultRadius = 5;
             // KABU TODO: IMPORTANT: Clarify which max radius to use.
-            var defaultMaxRadius = 10000;
-            var defaultMinNumPerCategory = 3;
+            const defaultMaxRadius = 10000;
+            const defaultMinNumPerCategory = 3;
             this._addVicinityPlaceCategory("Durchgangsarzt", "Durchgangsarzt",
                 doctorTypes, defaultRadius, defaultMaxRadius, defaultMinNumPerCategory,
                 "Durchgangsarzt");
@@ -128,31 +126,32 @@ namespace kmodo {
                 displayName: "Übersicht"
             });
 
-            for (let item of this._categories)
-                self._addPaneInfo({
+            for (let item of this._categories) {
+                this._addPaneInfo({
                     name: item.name,
                     displayName: item.displayName
                 });
+            }
 
             // Define view model.
             this.scope = kendo.observable({
                 views: this.views,
                 // Show overview intially.
                 currentView: this.views[0] as VicinityPaneInfo,
-                generateDocument: function (e) {
-                    self._generateDocumentAsync();
+                generateDocument: (e) => {
+                    this._generateDocumentAsync();
                 },
-                generateDocumentHtmlPreview: function (e) {
-                    self._generateDocumentHtmlPreviewAsync();
+                generateDocumentHtmlPreview: (e) => {
+                    this._generateDocumentHtmlPreviewAsync();
                 },
-                refresh: function (e) {
-                    self.refreshCore();
+                refresh: (e) => {
+                    this.refreshCore();
                 }
             });
-            this.getModel().bind("change", function (e) {
+            this.getModel().bind("change", (e) => {
                 if (e.field === "currentView") {
                     // Activate category or show overview.
-                    self._activateView(self.getModel().currentView.name);
+                    this._activateView(this.getModel().currentView.name);
                 }
             });
 
@@ -195,38 +194,32 @@ namespace kmodo {
         }
 
         private refreshCore(): Promise<void> {
-            var self = this;
-
             this._clearCore();
 
             return this._loadMap()
                 .then(() => {
-                    self.createView();
-                    self.clear();
-                    self.displayContextLocation();
+                    this.createView();
+                    this.clear();
+                    this.displayContextLocation();
                 });
         }
 
         private displayContextLocation(): void {
-            var self = this;
-
             if (!this.args.projectSegmentId)
                 return;
 
-            var url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
+            let url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
             url += "&$filter=";
             url += " Id eq " + this.args.projectSegmentId;
 
             cmodo.oDataQuery(url)
-                .then(function (items) {
+                .then((items) => {
                     if (items.length === 1)
-                        self.addProjectSegment(items[0]);
+                        this.addProjectSegment(items[0]);
                 });
         }
 
         private addProjectSegment(psegment: any): void {
-            var self = this;
-
             if (!this._hasDataLatLong(psegment))
                 return;
 
@@ -235,9 +228,9 @@ namespace kmodo {
                 lng: psegment.Longitude
             };
 
-            var address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
+            const address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
 
-            var psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
+            const psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
 
             this.addMarker({
                 position: {
@@ -252,19 +245,19 @@ namespace kmodo {
                 zIndex: 0
             });
 
-            var loc = { lat: psegment.Latitude, lng: psegment.Longitude };
+            const loc = { lat: psegment.Latitude, lng: psegment.Longitude };
             this.setMapCenter(loc);
             this.setMapZoom(10);
 
-            var allVicinityPlaces: VicinityPlaceModel[] = [];
-            var candidates: VicinityPlaceModel[] = [];
+            const allVicinityPlaces: VicinityPlaceModel[] = [];
+            let candidates: VicinityPlaceModel[] = [];
 
             kmodo.progress(true, this.$vicinityPanel);
 
-            var vicinityPlaceAsyncSearches = this._categories
+            const vicinityPlaceAsyncSearches = this._categories
                 .map(category =>
                     // Query places async.
-                    self._findVicinityPlacesPerCategoryAsync(loc, category)
+                    this._findVicinityPlacesPerCategoryAsync(loc, category)
                         .then((vicinityPlacesPerCategory) => {
                             // Add all places to array when each category search finishes.
                             allVicinityPlaces.push(...vicinityPlacesPerCategory);
@@ -283,10 +276,10 @@ namespace kmodo {
             // Wait for all promises to finish.
             Promise.all(vicinityPlaceAsyncSearches)
                 // Query GM distance matrix for places of this category.
-                .then(() => self._computeVicinityPlaceDistancesAsync(allVicinityPlaces))
+                .then(() => this._computeVicinityPlaceDistancesAsync(allVicinityPlaces))
                 .then(() => {
 
-                    console.debug("GM TOTAL distance matrix items: " + self._totalDistanceRequestItems);
+                    console.debug("GM TOTAL distance matrix items: " + this._totalDistanceRequestItems);
 
                     // Candidates: Group by category and mark first 3 nearest places as candidates.
                     Enumerable.from(allVicinityPlaces)
@@ -312,19 +305,19 @@ namespace kmodo {
                         .where(x => x.isCandidate)
                         .toArray();
 
-                    self._allVicinityPlaces.push(...allVicinityPlaces);
+                    this._allVicinityPlaces.push(...allVicinityPlaces);
                 })
                 // Query phone numbers for all candidates.      
-                .then(() => self._getVicinityPlaceDetailsAsync(candidates))
+                .then(() => this._getVicinityPlaceDetailsAsync(candidates))
                 .then(() => {
 
                     // Create map markers.
-                    for (let p of allVicinityPlaces)
-                        self._createVicinityPlaceMarker(p);
+                    for (const p of allVicinityPlaces)
+                        this._createVicinityPlaceMarker(p);
 
                     // Enable place events.
-                    for (let p of self._allVicinityPlaces)
-                        self._vicinityPlaceAttachEvents(p);
+                    for (const p of this._allVicinityPlaces)
+                        this._vicinityPlaceAttachEvents(p);
                 })
                 .catch(ex => {
                     console.error(ex);
@@ -332,60 +325,54 @@ namespace kmodo {
                         "fehl und wurde komplett verworfen da unvollständige Daten in dieser Ansicht " +
                         "keinen Sinn machen. " +
                         "Versuchen Sie die Ansicht zu aktualisieren.");
-                    self._clearOnError();
+                    this._clearOnError();
                 })
                 .finally(() => {
-                    kmodo.progress(false, self.$view);
+                    kmodo.progress(false, this.$view);
                 });
         }
 
         private _generateDocumentAsync(): Promise<any> {
-            var self = this;
-
-            kmodo.progress(true, self.$view);
+            kmodo.progress(true, this.$view);
 
             return this._callGeoMapDocumentGeneratorServiceAsync(
                 "/api/FlexEmailDocument/GenerateGeoMapProjectHealthInVicinityDocument")
-                .then(function () {
+                .then(() => {
                     cmodo.showInfo("Das Dokument wurde erstellt und gespeichert.");
                 })
-                .catch(function (ex) {
+                .catch((ex) => {
                     cmodo.showError("Fehler: Das Dokument konnte nicht erstellt/gespeichert werden.");
                 })
                 .finally(() => {
-                    kmodo.progress(false, self.$view);
+                    kmodo.progress(false, this.$view);
                 });
         }
 
         private _generateDocumentHtmlPreviewAsync(): Promise<any> {
-            var self = this;
-
-            kmodo.progress(true, self.$view);
+            kmodo.progress(true, this.$view);
 
             return this._callGeoMapDocumentGeneratorServiceAsync(
                 "/api/FlexEmailDocument/GetGeoMapProjectHealthInVicinityHtmlPreview",
                 { resultDataType: "html" })
-                .then(function (html) {
-                    var win = window.open("", "_blank");
+                .then((html) => {
+                    const win = window.open("", "_blank");
                     win.document.write(html);
                     win.document.close();
                     win.document.title = "Dokument - Vorschau";
                 })
                 .finally(() => {
-                    kmodo.progress(false, self.$view);
+                    kmodo.progress(false, this.$view);
                 });
         }
 
         private _callGeoMapDocumentGeneratorServiceAsync(url: string, transportOptions?: any): Promise<any> {
             // Calls Web API in order to generate the final document and save it to the Mo file system.
-            var self = this;
-
             return new Promise((resolve, reject) => {
 
-                kmodo.progress(true, self.$view);
+                kmodo.progress(true, this.$view);
 
                 // Convert vicinity places to Web API's place info.
-                var apiPlaces = Enumerable.from(self._allVicinityPlaces)
+                const apiPlaces = Enumerable.from(this._allVicinityPlaces)
                     .where(x => x.isCandidate)
                     .toArray()
                     .map(x => ({
@@ -399,10 +386,10 @@ namespace kmodo {
                         DurationText: x.dist.duration.text
                     }));
 
-                var apiArgs = {
-                    ContractId: self.args.contractId,
-                    ProjectId: self.args.projectId,
-                    ProjectSegmentId: self.args.projectSegmentId,
+                const apiArgs = {
+                    ContractId: this.args.contractId,
+                    ProjectId: this.args.projectId,
+                    ProjectSegmentId: this.args.projectSegmentId,
                     VicinityPlaces: apiPlaces
                 };
 
@@ -418,36 +405,34 @@ namespace kmodo {
 
             })
                 .finally(() => {
-                    kmodo.progress(false, self.$view);
+                    kmodo.progress(false, this.$view);
                 });
         }
 
         private _getVicinityPlaceDetailsAsync(vicintyPlaces: VicinityPlaceModel[]): Promise<void> {
-            var self = this;
-
             // Observed GM's limiting behavior:
             // An unknown number of first requests will succeed in parallel.
             // Max 10. (observed: sotimes only 7, sometimes 9, etc.)
             //
             // Strategy:
             // Start executing all requests sequentially without a delay.
-            // After first error: wait one second and retry.
+            // After first error: wait for 1.5 seconds and retry.
             // Proceed with rest of requests.
 
             const delay = 1500;
             const retryTimes = 2;
 
-            const detailsRequest = (vicinityPlace: VicinityPlaceModel) => self._queryPlaceDetails(
+            const detailsRequest = (vicinityPlace: VicinityPlaceModel) => this._queryPlaceDetails(
                 {
                     placeId: vicinityPlace.placeId,
                     fields: ["formatted_phone_number"]
                 })
                 .then((placeDetails: google.maps.places.PlaceResult) => {
-                    self._setVicinityPlaceDetails(vicinityPlace, placeDetails);
+                    this._setVicinityPlaceDetails(vicinityPlace, placeDetails);
                 });
 
             const requestWithDelayedRetry = (place: VicinityPlaceModel) =>
-                self._retryAsync(
+                this._retryAsync(
                     {
                         func: () => detailsRequest(place),
                         times: retryTimes,
@@ -460,49 +445,7 @@ namespace kmodo {
                 Promise.resolve());
         }
 
-        // KABU TODO: REMOVE? Not used
-        //private _queryMultiplePlaceDetails(vicinityPlaces: VicinityPlaceModel[]): Promise<void[]> {
-        //    // KABU TODO: Doesn't work with referer restrictions.
-        //    const url = "https://maps.googleapis.com/maps/api/place/details/json?";
-
-        //    var self = this;
-
-        //    return Promise.all(vicinityPlaces.map(place =>
-        //        self._queryGooleMapWebApi(url + "placeid=" + place.placeId + "&fields=formatted_phone_number")
-        //            .then(response => {
-        //                if (response.status === "OK") {
-        //                    console.debug("GM got Details");
-        //                }
-        //            })
-        //    ));
-        //}
-
-        /*
-        private _queryGooleMapWebApi(url: string): Promise<any> {
-            // KABU TODO: Doesn't work because this GM API does not work
-            // with referer restrictions. We have restricted GM to our websites.
-            // Thus using this makes only sense in a server scenario with IP restrictions.
-            return new Promise((resolve, reject) => {
-                url += "&key=" + kmodo.googleMapInitializer._key;
-                $.ajax({
-                    url: url,
-                    type: "GET",
-                    crossDomain: true,
-                    dataType: "json",
-                    success: function (response) {
-                        resolve(response);
-                    },
-                    error: function (xhr, status) {
-                        reject(status);
-                    }
-                });
-            });
-        };
-        */
-
         private _activateView(viewName: string): void {
-            var self = this;
-
             // Activate category or show overview.
 
             this._selectVicinityPlace(null);
@@ -521,7 +464,7 @@ namespace kmodo {
                 // Validate places (e.g. duplicate addresses).
                 this._validateVicinityPlacesOfCategory(viewName);
 
-                var vicinityPlacesOfCategory = this._allVicinityPlaces.filter(x => x.categoryName === viewName);
+                const vicinityPlacesOfCategory = this._allVicinityPlaces.filter(x => x.categoryName === viewName);
 
                 // Set current vicinity list data in panel.
                 this._vicinitiesViewDataSource.data(vicinityPlacesOfCategory);
@@ -529,8 +472,8 @@ namespace kmodo {
                 // Show only markers of current category.
                 if (this._isOnlyCurrentCategoryVisible) {
 
-                    for (let marker of this._getAllVicinityPlaceMarkers()) {
-                        if (self._getMarkerVicinityPlace(marker).categoryName === viewName)
+                    for (const marker of this._getAllVicinityPlaceMarkers()) {
+                        if (this._getMarkerVicinityPlace(marker).categoryName === viewName)
                             marker.setVisible(true);
                         else
                             marker.setVisible(false);
@@ -542,44 +485,41 @@ namespace kmodo {
         private _validateVicinityPlacesOfCategory(categoryName: string): void {
             // Validate places (e.g. duplicate addresses).
 
-            var vicinityPlacesOfCategory = this._allVicinityPlaces.filter(x => x.categoryName === categoryName);
+            const vicinityPlacesOfCategory = this._allVicinityPlaces.filter(x => x.categoryName === categoryName);
 
             // Find places with duplicate addresses.
-            var placesByAddress = Enumerable.from(vicinityPlacesOfCategory)
+            const placesByAddress = Enumerable.from(vicinityPlacesOfCategory)
                 .groupBy(x => x.address)
                 .toArray();
 
             for (let item of placesByAddress) {
 
-                var placesOfAddress = item.getSource();
+                const placesOfAddress = item.getSource();
 
                 // Duplicate addresses will be shown with an orange background.
-                var isDuplicateAddress = placesOfAddress.length > 1;
+                const isDuplicateAddress = placesOfAddress.length > 1;
                 for (let x of placesOfAddress) {
                     x.set("isDuplicateAddress", isDuplicateAddress);
                     x.set("isDuplicateAddressCandidate", false);
                 }
 
                 // Duplicate addresses in *candidates* will be shown with a red background.
-                var candidatePlacesOfAddress = placesOfAddress.filter(x => x.isCandidate);
-                var isDuplicateAddressCandidate = candidatePlacesOfAddress.length > 1;
+                const candidatePlacesOfAddress = placesOfAddress.filter(x => x.isCandidate);
+                const isDuplicateAddressCandidate = candidatePlacesOfAddress.length > 1;
                 for (let x of candidatePlacesOfAddress)
                     x.set("isDuplicateAddressCandidate", isDuplicateAddressCandidate);
             }
         }
 
         private _getAllVicinityPlaceMarkers(): google.maps.Marker[] {
-            var self = this;
-            return Enumerable.from(this._locationMarkers)
-                .where(marker => self._getMarkerVicinityPlace(marker) !== null)
-                .toArray();
+            return this._locationMarkers.filter(marker => this._getMarkerVicinityPlace(marker) !== null);
         }
 
         private _addVicinityPlaceCategory(name: string, displayName: string, searchTypes: string[],
             radius: number, maxRadius: number,
             minItemCount?: number, searchText?: string): void {
 
-            var category: VicinityPlaceCategory = {
+            const category: VicinityPlaceCategory = {
                 name: name,
                 displayName: displayName,
                 searchTypes: searchTypes,
@@ -597,21 +537,19 @@ namespace kmodo {
             category: VicinityPlaceCategory)
             : Promise<VicinityPlaceModel[]> {
 
-            var self = this;
-
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
 
                 // Find places in vicinity of the context place.
 
-                var queryStrategy = "textSearch";
+                let queryStrategy = "textSearch";
 
                 // See https://developers.google.com/maps/documentation/javascript/reference/places-service
-                var placesService = new google.maps.places.PlacesService(self.map);
+                const placesService = new google.maps.places.PlacesService(this.map);
 
-                var search = (cat: VicinityPlaceCategory, radius: number) => {
+                const search = (cat: VicinityPlaceCategory, radius: number) => {
 
                     // See https://developers.google.com/maps/documentation/javascript/reference/places-service#TextSearchRequest
-                    var request = {
+                    const request = {
                         location: contextLocation,
                         // NOTE: Using "textSearch" the radius acts as a bias rather than a real restriction.
                         //   I.e. results won't be restricted to this radius.
@@ -622,15 +560,15 @@ namespace kmodo {
                         keyword: cat.searchText // Used by "nearbySearch" only.
                     };
 
-                    var queryFunc = placesService.textSearch;
+                    let queryFunc = placesService.textSearch;
                     if (queryStrategy === "nearbySearch")
                         queryFunc = placesService.nearbySearch;
 
                     // textSearch or nearbySearch
                     queryFunc.apply(placesService,
-                        [request, function (
+                        [request, (
                             searchResultPlaces: google.maps.places.PlaceResult[],
-                            status: google.maps.places.PlacesServiceStatus) {
+                            status: google.maps.places.PlacesServiceStatus) => {
 
                             if (status !== google.maps.places.PlacesServiceStatus.OK &&
                                 status !== google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
@@ -647,8 +585,8 @@ namespace kmodo {
                                     category.radius = radius;
 
                                     // Create vicinity place objects from results.
-                                    var vicinityPlacesPerCategory = searchResultPlaces
-                                        .map(place => self._createVicinityPlaceCore(category, place));
+                                    const vicinityPlacesPerCategory = searchResultPlaces
+                                        .map(place => this._createVicinityPlaceCore(category, place));
 
                                     resolve(vicinityPlacesPerCategory);
                                 }
@@ -666,8 +604,6 @@ namespace kmodo {
 
         private _computeVicinityPlaceDistancesAsync(vicinityPlaces: VicinityPlaceModel[])
             : Promise<VicinityPlaceModel[]> {
-
-            var self = this;
 
             const _sleep = (ms: number) =>
                 new Promise(resolve => {
@@ -687,15 +623,15 @@ namespace kmodo {
 
             const requestPerInterval = (interval: number, vicinityPlaces: VicinityPlaceModel[]) =>
                 _sleep(interval)
-                    .then(() => self._retryAsync(
+                    .then(() => this._retryAsync(
                         {
-                            func: () => self._perChunkDistanceMatrixRequestAsync(vicinityPlaces),
+                            func: () => this._perChunkDistanceMatrixRequestAsync(vicinityPlaces),
                             times: maxRetries,
                             delay: intervalDelay,
                             retryErrorFilter: (ex) => ex === "OVER_QUERY_LIMIT"
                         }));
 
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
 
                 if (vicinityPlaces.length === 0) {
                     resolve(vicinityPlaces);
@@ -703,7 +639,7 @@ namespace kmodo {
                 }
 
                 // NOTE: "Requests per interval" are executed *sequentially*.
-                self._toChunkedList(vicinityPlaces, maxNumPerInterval)
+                this._toChunkedList(vicinityPlaces, maxNumPerInterval)
                     // Aggregate into single promise chain.
                     .reduce(
                         (p, items, i) => p.then(() => requestPerInterval(i !== 0 ? intervalDelay : 0, items)),
@@ -717,18 +653,14 @@ namespace kmodo {
             });
         }
 
-        private _perChunkDistanceMatrixRequestAsync(vicinityPlaces: VicinityPlaceModel[]):
-            Promise<VicinityPlaceModel[]> {
-
-            var self = this;
-
+        private _perChunkDistanceMatrixRequestAsync(vicinityPlaces: VicinityPlaceModel[]): Promise<VicinityPlaceModel[]> {
             // Docu: "MAX_DIMENSIONS_EXCEEDED — Your request contained more than 25 origins,
             //        or more than 25 destinations."
-            var maxNumPerRequest = 25;
-            var maxRetries = 5;
-            var retryDelay = 1000;
+            const maxNumPerRequest = 25;
+            const maxRetries = 5;
+            const retryDelay = 1000;
 
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
 
                 // Clear previous distance error values.
                 for (let item of vicinityPlaces) {
@@ -736,17 +668,17 @@ namespace kmodo {
                     item.set("distanceRequestErrorText", null);
                 }
 
-                var promises = self._toChunkedList(vicinityPlaces, maxNumPerRequest)
+                const promises = this._toChunkedList(vicinityPlaces, maxNumPerRequest)
                     .map(places =>
-                        self._retryAsync(
+                        this._retryAsync(
                             {
-                                func: () => self._computeVicinityPlaceDistancesCoreAsync(places),
+                                func: () => this._computeVicinityPlaceDistancesCoreAsync(places),
                                 times: maxRetries,
                                 delay: retryDelay,
                                 retryErrorFilter: (ex) => ex === "OVER_QUERY_LIMIT"
                             })
                             .then((places: VicinityPlaceModel[]) => {
-                                self._totalDistanceRequestItems += places.length;
+                                this._totalDistanceRequestItems += places.length;
                             })
                     );
 
@@ -762,11 +694,11 @@ namespace kmodo {
 
         private _retryAsync(options: RetryOptions): Promise<any> {
 
-            return new Promise(function (resolve, reject) {
-                var times = options.times;
-                var error: any;
-                var attemptIndex: number = 0;
-                var attempt = function () {
+            return new Promise((resolve, reject) => {
+                let times = options.times;
+                let error: any;
+                let attemptIndex: number = 0;
+                const attempt = () => {
                     if (times === 0) {
                         reject(error);
                     } else {
@@ -775,7 +707,7 @@ namespace kmodo {
 
                         options.func()
                             .then(resolve)
-                            .catch(function (ex) {
+                            .catch((ex) => {
                                 if (!options.retryErrorFilter(ex)) {
                                     reject(ex);
                                     return;
@@ -784,7 +716,7 @@ namespace kmodo {
                                 times--;
                                 attemptIndex++;
                                 error = ex;
-                                setTimeout(function () { attempt(); }, options.delay);
+                                setTimeout(() => { attempt(); }, options.delay);
                             });
                     }
                 };
@@ -794,18 +726,14 @@ namespace kmodo {
 
         private _toChunkedList(items: VicinityPlaceModel[], size: number): VicinityPlaceModel[][] {
 
-            var list: VicinityPlaceModel[][] = [];
+            const list: VicinityPlaceModel[][] = [];
             for (let i = 0; i < items.length; i += size)
                 list.push(items.slice(i, i + size));
 
             return list;
         }
 
-        private _computeVicinityPlaceDistancesCoreAsync(vicinityPlaces: VicinityPlaceModel[])
-            : Promise<VicinityPlaceModel[]> {
-
-            var self = this;
-
+        private _computeVicinityPlaceDistancesCoreAsync(vicinityPlaces: VicinityPlaceModel[]): Promise<VicinityPlaceModel[]> {
             // DistanceMatrixService: 
             // https://developers.google.com/maps/documentation/javascript/reference/distance-matrix
             // https://developers.google.com/maps/documentation/javascript/distancematrix
@@ -820,21 +748,21 @@ namespace kmodo {
             //   This shouldn't be a problem because we won't get more
             //   than 100 doctors per category, right?
 
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
 
                 if (!vicinityPlaces.length) {
                     resolve(vicinityPlaces);
                     return;
                 }
 
-                self._getDistanceMatrixService().getDistanceMatrix({
-                    origins: [self._contextPlaceLocation],
+                this._getDistanceMatrixService().getDistanceMatrix({
+                    origins: [this._contextPlaceLocation],
                     destinations: vicinityPlaces.map(x => x.location),
                     travelMode: google.maps.TravelMode.DRIVING,
                     avoidFerries: true
-                }, function (
+                }, (
                     response: google.maps.DistanceMatrixResponse,
-                    status: google.maps.DistanceMatrixStatus) {
+                    status: google.maps.DistanceMatrixStatus) => {
 
                         if (status !== google.maps.DistanceMatrixStatus.OK) {
 
@@ -854,9 +782,9 @@ namespace kmodo {
 
                             // Response: https://developers.google.com/maps/documentation/javascript/distancematrix#distance_matrix_responses
                             // First row of the response holds the result of the first origin location.
-                            var row = response.rows[0];
-                            var elements = row.elements;
-                            var destinationPlace: VicinityPlaceModel = null;
+                            const row = response.rows[0];
+                            const elements = row.elements;
+                            let destinationPlace: VicinityPlaceModel = null;
                             elements.forEach((element: google.maps.DistanceMatrixResponseElement, idx: number) => {
 
                                 // Status codes: https://developers.google.com/maps/documentation/javascript/distancematrix#distance_matrix_status_codes
@@ -905,15 +833,12 @@ namespace kmodo {
             vicinityPlace._wasDetailsSet = true;
         }
 
-        private _createVicinityPlaceCore(
-            category: VicinityPlaceCategory,
-            place: google.maps.places.PlaceResult)
-            : VicinityPlaceModel {
+        private _createVicinityPlaceCore(category: VicinityPlaceCategory, place: google.maps.places.PlaceResult): VicinityPlaceModel {
 
             // Creates the vicinity place VM and initializes its map marker.
 
-            var location = place.geometry.location;
-            var vicinityPlace = new kendo.data.Model({
+            const location = place.geometry.location;
+            const vicinityPlace = new kendo.data.Model({
                 id: cmodo.guid(),
                 categoryName: category.name,
                 categoryDisplayName: category.displayName,
@@ -947,15 +872,14 @@ namespace kmodo {
         }
 
         private _vicinityPlaceAttachEvents(vicinityPlace: VicinityPlaceModel): void {
-            var self = this;
-            vicinityPlace.bind("change", function (e) {
+            vicinityPlace.bind("change", (e) => {
                 if (e.field === "isCandidate") {
                     if (vicinityPlace.isCandidate && !vicinityPlace._wasDetailsSet) {
                         // Query details (phone number).
-                        self._getVicinityPlaceDetailsAsync([vicinityPlace]);
+                        this._getVicinityPlaceDetailsAsync([vicinityPlace]);
                     }
-                    self._updateVicinityPlaceViewState(vicinityPlace);
-                    self._validateVicinityPlacesOfCategory(self.getModel().currentView.name);
+                    this._updateVicinityPlaceViewState(vicinityPlace);
+                    this._validateVicinityPlacesOfCategory(this.getModel().currentView.name);
                 }
             });
         }
@@ -976,49 +900,49 @@ namespace kmodo {
         }
 
         private _createVicinityPlaceMarker(vicinityPlace: VicinityPlaceModel): void {
-            var self = this;
-
             // Create map marker for vicinity place.
-            var markerOptions = this._getMarkerOptions({
+            const markerOptions: google.maps.MarkerOptions = this._getMarkerOptions({
                 title: vicinityPlace.categoryDisplayName,
-                label: null, //category.displayName,
+                //label: null, //category.displayName,
                 position: vicinityPlace.location,
-                symbol: google.maps.SymbolPath.CIRCLE.toString(),
+                symbol: google.maps.SymbolPath.CIRCLE,
                 color: this._getVicinityPlaceMarkerColor(vicinityPlace),
                 customData: {
                     vicinityPlace: vicinityPlace
                 },
                 zIndex: this._getVicinityPlaceZIndex(vicinityPlace)
             });
-            var marker = new google.maps.Marker(markerOptions);
+
+            const marker = new google.maps.Marker(markerOptions);
+
             this._trackLocationMarker(marker);
 
             vicinityPlace.marker = marker;
 
             // On marker click: show info window and route.
             google.maps.event.addListener(marker, 'click', (e) => {
-                self._selectVicinityPlace(self._getMarkerVicinityPlace(marker));
+                this._selectVicinityPlace(this._getMarkerVicinityPlace(marker));
             });
         }
 
         private _selectVicinityPlaceInPanel(vicinityPlace: VicinityPlaceModel): void {
 
             // Change category in vicinity panel.
-            var categoryName = vicinityPlace.categoryName;
+            const categoryName = vicinityPlace.categoryName;
             if (!this.getModel().currentView || categoryName !== this.getModel().currentView.name) {
                 this.getModel().set("currentView",
                     this.getModel().views.find((x: VicinityPaneInfo) => x.name === categoryName));
             }
 
             // Select place in vicinities panel.
-            var gridView = this._vicinitiesView;
+            const gridView = this._vicinitiesView;
 
-            var selectedPlace = gridView.dataItem(gridView.select()) as VicinityPlaceModel;
+            const selectedPlace = gridView.dataItem(gridView.select()) as VicinityPlaceModel;
 
             if (!selectedPlace || selectedPlace.id !== vicinityPlace.id) {
 
                 gridView.items().each((idx, elem) => {
-                    var dataItem = gridView.dataItem(elem) as VicinityPlaceModel;
+                    const dataItem = gridView.dataItem(elem) as VicinityPlaceModel;
                     //some condition
                     if (dataItem.id === vicinityPlace.id) {
                         gridView.select(elem);
@@ -1030,23 +954,21 @@ namespace kmodo {
         }
 
         private _showVicinityPlaceRoute(vicinityPlace: VicinityPlaceModel): void {
-            var self = this;
-
             // Show route from context place to vicinity place.
             if (vicinityPlace.routes) {
                 this._showRoutes(vicinityPlace.routes);
             }
             else {
                 this._queryRouteAsync(this._contextPlaceLocation, vicinityPlace.location)
-                    .then(function (routes) {
+                    .then((routes) => {
                         vicinityPlace.routes = routes;
-                        self._showRoutes(vicinityPlace.routes);
+                        this._showRoutes(vicinityPlace.routes);
                     });
             }
         }
 
         private _updateVicinityPlaceViewState(vicinityPlace: VicinityPlaceModel): void {
-            var marker = vicinityPlace.marker;
+            const marker = vicinityPlace.marker;
             if (marker) {
                 marker.setZIndex(this._getVicinityPlaceZIndex(vicinityPlace));
                 marker.setIcon(this._getMarkerSymbolOptions({
@@ -1071,14 +993,14 @@ namespace kmodo {
 
         // KABU TODO: REMOVE
         //_openVicinityPlaceMarkerInfoWindow(marker) {
-        //    var vicinityPlace = this.getMarkerCustomData(marker).vicinityPlace;
-        //    var content = this._getVicinityPlaceInfoHtml(vicinityPlace);
+        //    const vicinityPlace = this.getMarkerCustomData(marker).vicinityPlace;
+        //    const content = this._getVicinityPlaceInfoHtml(vicinityPlace);
         //    this._openMarkerInfoWindow(marker, content);
         //};
 
         private _selectVicinityPlace(vicinityPlace: VicinityPlaceModel): void {
 
-            var prev = this._selectedVicinityPlace;
+            const prev = this._selectedVicinityPlace;
             this._selectedVicinityPlace = vicinityPlace;
             if (prev) {
                 // Revert visuals of previously selected place.
@@ -1141,8 +1063,6 @@ namespace kmodo {
         }
 
         private _createVicinityPanel(): void {
-            var self = this;
-
             this.$vicinityPanel = this.$view.find(".geo-map-vicinity-panel");
 
             kendo.bind(this.$vicinityPanel, this.scope);
@@ -1155,14 +1075,14 @@ namespace kmodo {
                 sortable: false,
                 pageable: false,
                 columns: [{
-                    template: (data) => self._getVicinityListRowHtml(data),
+                    template: (data) => this._getVicinityListRowHtml(data),
                     field: "name",
                     title: ""
                 }],
                 change: (e) => {
                     let $row = e.sender.select();
                     let dataItem = e.sender.dataItem($row) as VicinityPlaceModel;
-                    self._selectVicinityPlace(dataItem);
+                    this._selectVicinityPlace(dataItem);
                 },
                 dataBound: (e) => {
                     // Data-bind all rows.
@@ -1181,14 +1101,14 @@ namespace kmodo {
             //    dataSource: this._vicinitiesViewDataSource,
             //    template: (data) => self._getVicinityListRowHtml(data),
             //    change: function () {
-            //        var $row = this.select();
-            //        var dataItem = this.dataItem($row);
+            //        const $row = this.select();
+            //        const dataItem = this.dataItem($row);
             //        self._selectVicinityPlace(dataItem);
             //    },
             //    dataBound: function (e) {
-            //        var view = this;
+            //        const view = this;
             //        view.element.children("div").each(function (idx, elem) {
-            //            var $row = $(this);
+            //            const $row = $(this);
             //            kendo.bind($row, view.dataItem($row));
             //        });
             //    }
@@ -1211,8 +1131,8 @@ namespace kmodo {
 
         private _getVicinityListRowHtml(vicinityPlace: VicinityPlaceModel): string {
 
-            var html = "<div style='background-color:white;color:black;margin-top:1px;margin-bottom:1px;padding:3px'>" +
-                //var html = "<div style='padding:3px'>" +
+            const html = "<div style='background-color:white;color:black;margin-top:1px;margin-bottom:1px;padding:3px'>" +
+                // const html = "<div style='padding:3px'>" +
                 // Check-box for "isCandidate":
                 "<input id='check-" + vicinityPlace.id + "' class='k-checkbox' type='checkbox' data-bind='checked: isCandidate' />" +
                 "<label for='check-" + vicinityPlace.id + "' class='k-checkbox-label' style='display:inline-block'></label>" +
@@ -1227,13 +1147,13 @@ namespace kmodo {
 
         private _getVicinityPlaceInfoHtml(vicinityPlace: VicinityPlaceModel): string {
 
-            var placeId = vicinityPlace.placeId;
+            const placeId = vicinityPlace.placeId;
 
-            var html = "<span style='font-weight:bold'>" + vicinityPlace.name + "</span><br/>";
+            let html = "<span style='font-weight:bold'>" + vicinityPlace.name + "</span><br/>";
 
             html += "<div style='margin-top:3px'>";
 
-            var colorStyle = "";
+            let colorStyle = "";
             if (vicinityPlace.isDuplicateAddressCandidate)
                 colorStyle = "background-color:#fe7676";
             else if (vicinityPlace.isDuplicateAddress) // fe7676 // fff094
@@ -1244,7 +1164,7 @@ namespace kmodo {
             html += "Telefon: " + (vicinityPlace.phone || "");
 
             if (vicinityPlace.dist) {
-                var dist = vicinityPlace.dist;
+                const dist = vicinityPlace.dist;
                 html +=
                     "<br/>Fahrzeit: <span style='font-weight:bold;background-color:yellow'>" + dist.duration.text + "</span>" +
                     "<br/>Enfernung: <span style='font-weight:bold'>" + dist.distance.text + "</span>";

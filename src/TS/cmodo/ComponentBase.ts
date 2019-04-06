@@ -56,7 +56,7 @@ namespace cmodo {
                 throw new Error("Not implemented.");
             },
             create: function (options: any): any {
-                var vm = this.createCore(options) as any;
+                const vm = this.createCore(options) as any;
                 if (typeof vm.createView === "function")
                     vm.createView();
 

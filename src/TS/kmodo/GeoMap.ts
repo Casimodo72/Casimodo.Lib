@@ -10,11 +10,11 @@
 
         init() {
             if (!this.isInitialized) {
-                $.getScript("https://maps.googleapis.com/maps/api/js?v=3.34&language=de&region=DE&libraries=places,geometry,drawing&callback=kmodo.googleMapInitializer.onScriptReady&key=" + this._key);
+                $.getScript("https://maps.googleapis.com/maps/api/js?v=3.36&language=de&region=DE&libraries=places,geometry,drawing&callback=kmodo.googleMapInitializer.onScriptReady&key=" + this._key);
 
-                //$.getScript("https://maps.googleapis.com/maps/api/js?v=3.34&language=de&region=DE&libraries=places,geometry&key=" + this._key,
-                //    function (e) {
-                //        self.onScriptReady();
+                //$.getScript("https://maps.googleapis.com/maps/api/js?v=3.36&language=de&region=DE&libraries=places,geometry&key=" + this._key,
+                //    (e) => {
+                //        this.onScriptReady();
                 //    });
             }
             else
@@ -26,7 +26,7 @@
             this.trigger("scriptReady", { sender: this });
         }
     }
-    export let googleMapInitializer = new GoogleMapInitializer();
+    export const googleMapInitializer = new GoogleMapInitializer();
 
     export interface GeoPlaceEditorPropMappingSettings {
         City?: string;
@@ -79,9 +79,9 @@
         }
 
         build(): void {
-            var vm = this.vm;
-            var place = this.PlaceInfo || (this.PlaceInfo = new GeoPlaceInfo());
-            var m = this._map;
+            const vm = this.vm;
+            const place = this.PlaceInfo || (this.PlaceInfo = new GeoPlaceInfo());
+            const m = this._map;
             // NOTE: We don't have a street number property on entities.
             this._set(vm, m.Street, place, "Street");
             this._set(vm, m.ZipCode, place, "ZipCode");
@@ -93,9 +93,9 @@
         }
 
         applyChanges(): void {
-            var vm = this.vm;
-            var place = this.PlaceInfo;
-            var m = this._map;
+            const vm = this.vm;
+            const place = this.PlaceInfo;
+            const m = this._map;
             // NOTE: We don't have a street number property on entities.
             place.Street = (place.Street || "") + (place.StreetNumber ? " " + place.StreetNumber : "");
             this._apply(vm, m.Street, place);
@@ -109,7 +109,7 @@
 
         private _set(source: kendo.data.ObservableObject, sourceProp: string, target: GeoPlaceInfo, targetProp: any, converter?: Function): void {
 
-            var sourceValue = cmodo.getValueAtPropPath(source, sourceProp);
+            const sourceValue = cmodo.getValueAtPropPath(source, sourceProp);
 
             target.set(targetProp || sourceProp,
                 typeof sourceValue === "undefined"
@@ -127,9 +127,9 @@
             if (typeof target[targetProp] === "undefined")
                 return;
 
-            var sourceValue = source.get(sourceProp || targetProp);
+            const sourceValue = source.get(sourceProp || targetProp);
 
-            var value = converter
+            const value = converter
                 ? converter(sourceValue)
                 : sourceValue;
 
@@ -165,7 +165,7 @@
         }
 
         getDisplayAddress() {
-            var result = "";
+            let result = "";
             if (this.Street) result += this.Street;
             if (this.StreetNumber) result += " " + this.StreetNumber;
             if (this.ZipCode || this.City) {
@@ -202,7 +202,7 @@
             this.set("CountryShort", this._get(place, "country", true));
             this.set("CountryLong", this._get(place, "country"));
 
-            var location = place.geometry.location;
+            const location = place.geometry.location;
             this.set("Longitude", location.lng());
             this.set("Latitude", location.lat());
         }

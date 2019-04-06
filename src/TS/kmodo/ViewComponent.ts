@@ -78,12 +78,12 @@
 
     export abstract class ViewComponent extends cmodo.ViewComponent implements IViewComponent {
         protected _options: ViewComponentOptions;
-        $view: JQuery;
-        scope: any;
-        protected filters: kendo.data.DataSourceFilter[];
-        protected args: ViewComponentArgs;
-        protected _isComponentInitialized: boolean;
-        protected _isDebugLogEnabled: boolean;
+        $view: JQuery = null;
+        scope: any = null;
+        protected filters: kendo.data.DataSourceFilter[] = [];
+        protected args: ViewComponentArgs = null;
+        protected _isComponentInitialized = false;
+        protected _isDebugLogEnabled = false;
 
         constructor(options: ViewComponentOptions) {
             super(options);
@@ -92,18 +92,12 @@
 
             // Extend with extra options.
             if (this._options.extra) {
-                for (var prop in this._options.extra)
+                for (let prop in this._options.extra)
                     this._options[prop] = this._options.extra[prop];
             }
 
-            this.$view = null;
-            this.args = null;
-            this.filters = [];
             this.scope = kendo.observable({ item: null });
             this.scope.bind("change", $.proxy(this._onScopeChanged, this));
-
-            this._isComponentInitialized = false;
-            this._isDebugLogEnabled = false;
         }
 
         refresh(): Promise<void> {
@@ -143,15 +137,14 @@
 
             // Dialog result builder function.
             if (this._options.isDialog) {
-                var self = this;
                 this.args.isCancelled = true;
                 this.args.isOk = false;
-                this.args.buildResult = function () {
+                this.args.buildResult = () => {
                     // KABU TODO: REMOVE selection
                     // this.args.value = this.selection[this.keyName];
-                    self.args.value = self.scope.get("item") ? self.scope.get("item")[self.keyName] : null;
-                    self.args.item = self.scope.get("item");
-                }.bind(this);
+                    this.args.value = this.scope.get("item") ? this.scope.get("item")[this.keyName] : null;
+                    this.args.item = this.scope.get("item");
+                };
             }
 
             this.onArgs();

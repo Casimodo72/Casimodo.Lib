@@ -3,7 +3,7 @@ namespace cmodo {
 
     export function getActionAuth(queryItems: any[]): Promise<AuthActionManager> {
         return cmodo.webApiPost("/api/Auth/GetActionAuth", queryItems, { isDataFixupDisabled: true })
-            .then(function (response) {
+            .then(response => {
                 return new AuthActionManager(response.result);
             });
     };
@@ -46,7 +46,6 @@ namespace cmodo {
             group = group || null;
             return new AuthPart(this, this.items.find(x => x.Part === name && (group === "*" || x.Group === group)));
         }
-
     }
 
     export class AuthPart {
@@ -65,8 +64,8 @@ namespace cmodo {
 
             vrole = vrole || null;
 
-            var permissions = this.part.Permissions;
-            var perm: AuthPermData;
+            const permissions = this.part.Permissions;
+            let perm: AuthPermData;
             for (let i = 0; i < permissions.length; i++) {
                 perm = permissions[i];
                 if (perm.Action === action && perm.VRole === vrole)
@@ -91,15 +90,14 @@ namespace cmodo {
         }
 
         read(): Promise<AuthActionManager> {
-            var self = this;
             return Promise.resolve()
-                .then(() => getActionAuth(self.items))
-                .then(function (manager: AuthActionManager) {
-                    self.manager = manager;
-                    self.userId = manager.userId;
-                    self.userName = manager.userName;
+                .then(() => getActionAuth(this.items))
+                .then((manager: AuthActionManager) => {
+                    this.manager = manager;
+                    this.userId = manager.userId;
+                    this.userName = manager.userName;
 
-                    self.trigger("read", { sender: self, auth: manager });
+                    this.trigger("read", { sender: this, auth: manager });
 
                     return manager;
                 });
@@ -119,5 +117,5 @@ namespace cmodo {
         }
     }
 
-    export var authContext = new AuthContext();
+    export const authContext = new AuthContext();
 }

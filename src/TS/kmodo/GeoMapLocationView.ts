@@ -4,27 +4,25 @@
         constructor(options: GeoMapViewOptions) {
             super(options);
 
-            var self = this;
-
             this._options.isDrawingEnabled = true;
 
             this.scope = kendo.observable({
                 sizeMode: "standard",
-                refresh: function (e) {
-                    self.refreshCore();
+                refresh: (e) => {
+                    this.refreshCore();
                 },
-                undo: function (e) {
-                    self.undoOperation();
+                undo: (e) => {
+                    this.undoOperation();
                 },
                 isFreehandDrawingEnabled: false,
-                toggleFreehandDrawing: function (e) {
-                    self.onFreehandDrawingEnabledChanged(kmodo.toggleScopeOption(e, self.getModel(), "isFreehandDrawingEnabled"));
+                toggleFreehandDrawing: (e) => {
+                    this.onFreehandDrawingEnabledChanged(kmodo.toggleScopeOption(e, this.getModel(), "isFreehandDrawingEnabled"));
                 }
             });
 
-            this.getModel().bind("change", function (e) {
+            this.getModel().bind("change", (e) => {
                 if (e.field === "sizeMode") {
-                    self.setMapSizeMode(self.getModel().get("sizeMode"));
+                    this.setMapSizeMode(this.getModel().get("sizeMode"));
                 }
             });
         }
@@ -46,33 +44,30 @@
         }
 
         private refreshCore(): Promise<void> {
-            var self = this;
-
             return this._loadMap()
                 .then(() => {
-                    self.createView();
-                    self.clear();
-                    self.displayContextLocation();
+                    this.createView();
+                    this.clear();
+                    this.displayContextLocation();
                 });
         }
 
         private displayContextLocation(): void {
-            var self = this;
 
-            var location = this._contextPlaceInfo;
+            const location = this._contextPlaceInfo;
 
             // KABU TODO: Currently a ProjectSegment is expected as the context location.
             if (!location.projectSegmentId)
                 return;
 
-            var url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
+            let url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
             url += "&$filter=";
             url += " Id eq " + location.projectSegmentId;
 
             cmodo.oDataQuery(url)
-                .then(function (items: any[]) {
+                .then((items: any[]) => {
                     if (items.length === 1)
-                        self.addProjectSegment(items[0]);
+                        this.addProjectSegment(items[0]);
                 });
         }
 
@@ -81,9 +76,9 @@
             if (!this._hasDataLatLong(psegment))
                 return;
 
-            var address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
+            const address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
 
-            var psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
+            const psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
 
             this.addMarker({
                 position: {
@@ -105,8 +100,8 @@
         private setMapSizeMode(mode: string): void {
             // DIN A4: 21.0cm x 29.7cm
             // DIN A3: 29.7cm x 42.0cm 
-            var width = "";
-            var height = "";
+            let width = "";
+            let height = "";
             if (mode === "standard") {
                 // NOP
             }

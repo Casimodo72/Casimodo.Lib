@@ -80,15 +80,13 @@
             if (!attachments)
                 return;
 
-            var self = this;
-
-            for (let item of attachments)
-                self._attachmentsDataSource.insert(item);
+            for (const item of attachments)
+                this._attachmentsDataSource.insert(item);
         }
 
         initInitialAttachments(): void {
             // Add the existing attachments to the selectionManager of the files Grid view model.
-            var selectionManager = this._getFilesSelectionManager();
+            const selectionManager = this._getFilesSelectionManager();
 
             this.getAttachments().forEach(function (item) {
                 selectionManager._addDataItem(item);
@@ -129,8 +127,6 @@
                 return;
             this._isComponentInitialized = true;
 
-            var self = this;
-
             // Init attachment list view.
             this._attachmentsKendoListView = options.$area
                 .find("div.mo-email-attachment-list-view")
@@ -140,9 +136,9 @@
                 }).data("kendoListView");
 
             // Init "remove attachment" buttons on attachment tiles.
-            this._attachmentsKendoListView.wrapper.on('click', ".list-item-remove-command", function (e) {
-                var uid = $(e.currentTarget).closest("div[data-uid]").first().data("uid");
-                self._removeAttachment(self.getAttachmentByUid(uid));
+            this._attachmentsKendoListView.wrapper.on('click', ".list-item-remove-command", (e) => {
+                const uid = $(e.currentTarget).closest("div[data-uid]").first().data("uid");
+                this._removeAttachment(this.getAttachmentByUid(uid));
             });
 
             // Init pager for attachment list view.
@@ -164,25 +160,25 @@
             });
             this._fileExplorer.createView();
 
-            var filesView = this._fileExplorer._filesView;
+            const filesView = this._fileExplorer._filesView;
 
             // Handle file selection changes.
-            filesView.on("selectionChanged", function (e) {
-                self._attachmentsDataSource.data(e.items);
+            filesView.on("selectionChanged", (e) => {
+                this._attachmentsDataSource.data(e.items);
             });
 
-            filesView.on("selectionItemAdded", function (e) {
+            filesView.on("selectionItemAdded", (e) => {
                 // Add file to attachments.
-                var item = self.getAttachmentById(e.item.Id);
+                const item = this.getAttachmentById(e.item.Id);
                 if (!item)
-                    self._attachmentsDataSource.insert(0, e.item);
+                    this._attachmentsDataSource.insert(0, e.item);
             });
 
-            filesView.on("selectionItemRemoved", function (e) {
+            filesView.on("selectionItemRemoved", (e) => {
                 // Remove file from attachments.
-                var item = self.getAttachmentById(e.item.Id);
+                const item = this.getAttachmentById(e.item.Id);
                 if (item)
-                    self._attachmentsDataSource.remove(item);
+                    this._attachmentsDataSource.remove(item);
             });
         }
     }

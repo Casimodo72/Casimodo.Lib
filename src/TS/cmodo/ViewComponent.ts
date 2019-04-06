@@ -15,7 +15,6 @@ namespace cmodo {
         public keyName: string;
         protected auth: ComponentAuthSettings;
         scope: any;
-        component: any;
         protected extension: any;
 
         constructor(options: any) {
@@ -36,8 +35,6 @@ namespace cmodo {
             this.scope = {
                 item: null
             };
-
-            this.component = null;
         }
 
         init(): any {
@@ -52,29 +49,19 @@ namespace cmodo {
             // NOP
         }
 
-        protected setComponent(value: any): void {
-            this.component = value;
-        }
-
-        // KABU TODO: REMOVE?
-        //hasChanges() {
-        //    // NOP
-        //    return false;
-        //}
-
         public clear(): void {
-
             this.trigger("clear", { sender: this });
         }
 
-        executeCustomCommand(cmd): void {
-            if (!this.extension)
-                return;
+        // TODO: REMOVE?
+        // executeCustomCommand(cmd: any): void {
+        //     if (!this.extension)
+        //         return;
 
-            if (!this.extension.actions[cmd.name])
-                return;
+        //     if (!this.extension.actions[cmd.name])
+        //         return;
 
-            this.extension.actions[cmd.name](cmd);
-        }
+        //     this.extension.actions[cmd.name](cmd);
+        // }
     }
 }

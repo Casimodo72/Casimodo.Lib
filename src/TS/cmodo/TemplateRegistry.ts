@@ -11,11 +11,11 @@ namespace cmodo {
 
         get(name: string): (data: any) => string {
 
-            var compiledTemplateFunc = this.compiledTemplates[name];
+            let compiledTemplateFunc = this.compiledTemplates[name];
             if (typeof compiledTemplateFunc === "function")
                 return compiledTemplateFunc;
 
-            var template = this.templates[name];
+            const template = this.templates[name];
             if (typeof template === "undefined")
                 return _emptyTemplateFunc;
 
@@ -39,13 +39,13 @@ namespace cmodo {
         private addDefaultTemplates(): void {
             this.add("Empty", "");
 
-            this.add("MoTreeView", `#var isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='kmodo-icon icon-delete'></span>#} else {#<span#if(isManager) {# style=''#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#};##if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}#`);
+            this.add("MoTreeView", `#const isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='kmodo-icon icon-delete'></span>#} else {#<span#if(isManager) {# style=''#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#};##if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}#`);
 
-            this.add("MoTreeViewOld", `#var isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='kmodo-icon icon-delete'></span>#} else {#<span#if(isManager) {# style='font-weight:bold'#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}}#`);
+            this.add("MoTreeViewOld", `#const isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='kmodo-icon icon-delete'></span>#} else {#<span#if(isManager) {# style='font-weight:bold'#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}}#`);
 
-            this.add("AllRowsCheckBoxSelectorGridCell", `#var randomId = cmodo.guid();#<input id='cb-all-#:randomId#' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-all-#:randomId#' />`);
+            this.add("AllRowsCheckBoxSelectorGridCell", `#const randomId = cmodo.guid();#<input id='cb-all-#:randomId#' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-all-#:randomId#' />`);
 
-            this.add("RowCheckBoxSelectorGridCell", `#var randomId = cmodo.guid();#<input id='cb-#:randomId#' class='k-checkbox list-item-selector' type='checkbox' /><label class='k-checkbox-label list-item-selector' for='cb-#:randomId#' style='display:none'/>`);
+            this.add("RowCheckBoxSelectorGridCell", `#const randomId = cmodo.guid();#<input id='cb-#:randomId#' class='k-checkbox list-item-selector' type='checkbox' /><label class='k-checkbox-label list-item-selector' for='cb-#:randomId#' style='display:none'/>`);
 
             this.add("RowRemoveCommandGridCell", `<div class="list-item-remove-command"><span class="k-icon k-delete"></span></div>`);
         }
@@ -55,5 +55,5 @@ namespace cmodo {
         return "";
     }
 
-    export var templates: TemplateRegistry = new TemplateRegistry();
+    export const templates: TemplateRegistry = new TemplateRegistry();
 }

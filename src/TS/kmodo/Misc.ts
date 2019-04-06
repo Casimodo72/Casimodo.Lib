@@ -7,7 +7,7 @@
 
     export function createCompanySelector($elem: JQuery, options?: CompanySelectorOptions): kendo.ui.DropDownList {
 
-        var opts: kendo.ui.DropDownListOptions = {
+        let opts: kendo.ui.DropDownListOptions = {
             height: 500,
             minLength: 1,
             // KABU TODO: Current kendo version has no clearButton.
@@ -63,19 +63,10 @@
 
     export function createMoTagFilterSelector($elem: JQuery, options: MoTagFilterSelectorOptions): kendo.ui.MultiSelect {
 
-        var opts: kendo.ui.MultiSelectOptions = {
-            // virtual: true,
-            //height: 500,
-            //minLength: 1,
-            // KABU TODO: Current kendo version has no clearButton.
-            //clearButton: true,
+        let opts: kendo.ui.MultiSelectOptions = {
+            // TODO: Current kendo version has no clearButton.
+            // clearButton: true,
             autoClose: false,
-            //filter: "startswith",
-            //placeholder: "[...]",
-            //optionLabel: {
-            //    Id: null,
-            //    DisplayName: ""
-            //},
             dataValueField: "Id",
             dataTextField: "DisplayName",
             autoBind: options.autoBind,
@@ -94,10 +85,10 @@
                 serverPaging: true,
                 serverSorting: true,
                 serverFiltering: true
-            } as kendo.data.DataSourceOptions,
+            },
             change: (e) => {
                 if (options.changed) {
-                    var ids = e.sender.dataItems().map(x => x.Id) as string[];
+                    let ids = e.sender.dataItems().map(x => x.Id) as string[];
                     options.changed(ids);
                 }
             }
@@ -107,7 +98,7 @@
     }
 
     export function enableContextMenuItems2(e: kendo.ui.ContextMenuOpenEvent, names: string | string[], enabled: boolean): void {
-        var $items = getContextMenuItems2(e, names);
+        let $items = getContextMenuItems2(e, names);
         e.sender.enable($items, enabled);
         if (enabled)
             $items.show(); //.removeClass("k-hidden");
@@ -116,13 +107,13 @@
     }
 
     function getContextMenuItems2(e: kendo.ui.ContextMenuOpenEvent, names: string | string[]): JQuery {
-        var namesArray: string[];
+        let namesArray: string[];
         if (typeof names === "string")
             namesArray = names.split(",").map(function (x) { return x.trim(); });
         else
             namesArray = names;
 
-        var query = "";
+        let query = "";
         for (let i = 0; i < namesArray.length; i++) {
             if (i > 0)
                 query += ", ";
@@ -133,7 +124,7 @@
     }
 
     export function enableContextMenuItems(menu: kendo.ui.ContextMenu, names: string | string[], enabled: boolean): void {
-        var $items = getContextMenuItems(menu, names);
+        let $items = getContextMenuItems(menu, names);
         menu.enable($items, enabled);
         if (enabled)
             $items.show(); //.removeClass("k-hidden");
@@ -142,13 +133,13 @@
     }
 
     function getContextMenuItems(menu: kendo.ui.ContextMenu, names: string | string[]): JQuery {
-        var namesArray: string[];
+        let namesArray: string[];
         if (typeof names === "string")
             namesArray = names.split(",").map(function (x) { return x.trim(); });
         else
             namesArray = names;
 
-        var query = "";
+        let query = "";
         for (let i = 0; i < namesArray.length; i++) {
             if (i > 0)
                 query += ", ";
@@ -171,23 +162,21 @@
         }
     }
 
-    export function onServerErrorOData(args: any): string {
+    export function kendoDataSourceODataErrorHandler(e: kendo.data.DataSourceErrorEvent): void {
 
-        var message = cmodo.getResponseErrorMessage("odata", args.xhr);
+        const message = cmodo.getODataErrorMessageFromJQueryXHR(e.xhr);
 
         cmodo.showError(message);
 
         // KABU TODO: ELIMINATE and move into the view models.
-        var $errorBox = $("#validation-errors-box");
+        const $errorBox = $("#validation-errors-box");
         if ($errorBox) {
             $errorBox.empty();
-            var template = kendo.template("<li>#:message #</li>");
+            const template = kendo.template("<li>#:message #</li>");
             $errorBox.append(template({
                 message: message
             }));
         }
-
-        return message;
     }
 
     // KABU TODO: REMOVE? KEEP: maybe we can use this in the future.
@@ -209,8 +198,8 @@
     export function toggleScopeOption(kendoEvent: kendo.ViewEvent, scope: kendo.data.ObservableObject, propName: string): any {
         // KABU TODO: Eval which type of event we actually get here.
         kendoEvent.preventDefault();
-        var $elem = kmodo.getEventTarget(kendoEvent);
-        var value = !!scope[propName];
+        let $elem = kmodo.getEventTarget(kendoEvent);
+        let value = !!scope[propName];
         value = !value;
         scope.set(propName, value);
         kmodo.toggleButton($elem, value);
@@ -240,7 +229,7 @@
         // KABU TODO: Maybe use instead: http://slavik.meltser.info/?p=142
         /*
         function _p8(s) {
-            var p = (Math.random().toString(16) + "000000000").substr(2, 8);
+            let p = (Math.random().toString(16) + "000000000").substr(2, 8);
             return s ? "-" + p.substr(0, 4) + "-" + p.substr(4, 4) : p;
         }
         return _p8() + _p8(true) + _p8(true) + _p8();

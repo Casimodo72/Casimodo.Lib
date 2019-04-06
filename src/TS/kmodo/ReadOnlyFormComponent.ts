@@ -57,12 +57,11 @@
         }
 
         private onDataSourceChanged(e) {
-
-            var item = this.dataSource.data()[0] || null;
+            const item = this.dataSource.data()[0] || null;
 
             this.setCurrentItem(item);
 
-            for (let ed of this._renderers) {
+            for (const ed of this._renderers) {
 
                 // Perform setValue() on code-mirror editor in order to
                 //   populate it with the current textarea's value.
@@ -75,8 +74,6 @@
 
         // overwrite
         protected _applyAuth() {
-            var self = this;
-
             if (!this.auth.canView) {
                 this.$view.children().remove();
                 this.$view.prepend("<div style='color:red'>This view is not permitted.</div>");
@@ -84,11 +81,11 @@
             }
 
             // Init edit button.
-            var $editBtn = this.$toolbar.find(".edit-command");
+            const $editBtn = this.$toolbar.find(".edit-command");
             if (this.auth.canModify && this._options.editor) {
 
                 $editBtn.on("click", (e) => {
-                    self._openEditor();
+                    this._openEditor();
                 });
                 $editBtn.show();
             }
@@ -99,15 +96,13 @@
         }
 
         private _openEditor() {
-            var self = this;
-
             if (!this.auth.canModify)
                 throw new Error("Modification is not permitted.");
 
             if (!this._options.editor || !this._options.editor.url)
                 return;
 
-            var item = self.getCurrentItem();
+            const item = this.getCurrentItem();
             if (item === null)
                 return;
 
@@ -118,13 +113,13 @@
                     // NOTE: We don't allow deletion via the read-only detail views,
                     //   but only via the grid view model.
                     canDelete: false,
-                    finished: function (result) {
+                    finished: (result) => {
                         if (result.isOk) {
                             // Trigger a saved event if the data was modified and saved.
-                            self.trigger("saved");
+                            this.trigger("saved");
                         }
 
-                        self.refresh();
+                        this.refresh();
                     }
                 });
         }
@@ -134,7 +129,7 @@
         }
 
         private _executeCustomCommand(name: string) {
-            var cmd = this._customCommands.find(x => x.name === name);
+            const cmd = this._customCommands.find(x => x.name === name);
             if (!cmd)
                 return;
 
@@ -146,13 +141,8 @@
 
         // override
         createView() {
-
-            if (this.component) return;
-
-            var self = this;
-
-            // Create dummy component object.
-            this.setComponent({});
+            if (this._isComponentInitialized) return
+            this._isComponentInitialized = true;
 
             this.$view = $("#details-view-" + this._options.id);
 
@@ -164,40 +154,38 @@
             this.$toolbar = this.$view.find(".details-view-toolbar");
             // Refresh command.
             this.$toolbar.find(".refresh-command").on("click", (e) => {
-                kmodo.progress(true, self.$view);
-                self.refresh()
-                    .finally(function () {
-                        kmodo.progress(false, self.$view);
+                kmodo.progress(true, this.$view);
+                this.refresh()
+                    .finally(() => {
+                        kmodo.progress(false, this.$view);
                     });
             });
             // Custom commands.
             this.$toolbar.find(".custom-command").on("click", (e) => {
-                var commandName = $(e.currentTarget).attr("data-command-name");
-                self._executeCustomCommand(commandName);
+                const commandName = $(e.currentTarget).attr("data-command-name");
+                this._executeCustomCommand(commandName);
             });
 
             this.setTitle(this._options.title);
         }
 
         private _initTextRenderers() {
-            var self = this;
-
             this.$view.find("textarea[data-use-renderer]").each((idx, elem) => {
-                var $el = $(elem);
-                var type = $el.data("use-renderer");
+                const $el = $(elem);
+                const type = $el.data("use-renderer");
 
                 if (type === "scss" || type === "html") {
 
                     // https://codemirror.net/doc/manual.html
-                    var renderer = CodeMirror.fromTextArea(elem as HTMLTextAreaElement, {
-                        mode: self._getCodeMirrorMode(type),
+                    const renderer = CodeMirror.fromTextArea(elem as HTMLTextAreaElement, {
+                        mode: this._getCodeMirrorMode(type),
                         lineNumbers: true,
                         indentUnit: 4,
                         indentWithTabs: true
                     });
 
                     // Register editor.
-                    self._renderers.push({ type: "CodeMirror", component: renderer, $el: $el });
+                    this._renderers.push({ type: "CodeMirror", component: renderer, $el: $el });
                 }
             });
         }

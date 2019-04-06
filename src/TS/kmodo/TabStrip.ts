@@ -150,13 +150,11 @@ namespace kmodo {
         constructor(options: TabStripOptions) {
             super();
 
-            var self = this;
-
             this._options = options;
 
             this.tabs = options.tabs || [];
             for (let tab of this.tabs) {
-                tab.owner = self;
+                tab.owner = this;
 
                 // Set authorization info.
                 if (tab.icomponent) {
@@ -172,7 +170,7 @@ namespace kmodo {
             if (options.hideAll)
                 this.hideAllTabs();
 
-            cmodo.authContext.one("read", (e) => self._onAuthContextRead(e));
+            cmodo.authContext.one("read", (e) => this._onAuthContextRead(e));
         }
 
         _bindMaster(tab: TabPage): void {
@@ -181,16 +179,16 @@ namespace kmodo {
 
         private _onAuthContextRead(e): void {
             // Apply auth.
-            var auth = e.auth as cmodo.AuthActionManager;
-            var tab: TabPage;
-            var iauth: cmodo.AuthQuery;
+            const auth = e.auth as cmodo.AuthActionManager;
+            let tab: TabPage;
+            let iauth: cmodo.AuthQuery;
             for (let i = 0; i < this.tabs.length; i++) {
                 tab = this.tabs[i];
                 iauth = tab.iauth;
                 if (!iauth)
                     continue;
 
-                var part = auth.part(iauth.Part, iauth.Group);
+                const part = auth.part(iauth.Part, iauth.Group);
                 tab.canShow(part.can("View", iauth.VRole));
             }
 
@@ -207,16 +205,15 @@ namespace kmodo {
         }
 
         private _initComponent(options: TabStripOptions): void {
-            var self = this;
             this.component = options.$component.kendoTabStrip({
-                show: $.proxy(self.onTabActivated, self),
+                show: (e) => this.onTabActivated(e),
                 animation: getDefaultTabControlAnimation()
             }).data("kendoTabStrip");
 
             this._computeTabContentSize();
 
-            $(window).resize(function () {
-                self._computeTabContentSize();
+            $(window).resize(() => {
+                this._computeTabContentSize();
             });
         }
 
@@ -226,10 +223,10 @@ namespace kmodo {
             // those pages to have the same hight as the whole Kendo tabstrip).
             // We have to adjust the pages programmatically on window resize.
             // https://docs.telerik.com/kendo-ui/controls/navigation/tabstrip/how-to/expand-height
-            var $tabstrip = this.component.element;
-            var $tabs = $tabstrip.children(".k-content");
-            var $visibleTab = $tabs.filter(":visible");
-            var height = $tabstrip.innerHeight()
+            const $tabstrip = this.component.element;
+            const $tabs = $tabstrip.children(".k-content");
+            const $visibleTab = $tabs.filter(":visible");
+            const height = $tabstrip.innerHeight()
                 - $tabstrip.children(".k-tabstrip-items").outerHeight()
                 - parseFloat($visibleTab.css("padding-top"))
                 - parseFloat($visibleTab.css("padding-bottom"))
@@ -244,10 +241,9 @@ namespace kmodo {
         }
 
         hideDisabledTabs(): void {
-            var self = this;
             for (let tab of this.tabs) {
                 if (!tab.isEnabled)
-                    self.toggleTabs(false, tab.name);
+                    this.toggleTabs(false, tab.name);
             }
         }
 
@@ -258,11 +254,11 @@ namespace kmodo {
 
         removeTab(name): void {
 
-            var index = this.indexOfTab(name);
+            const index = this.indexOfTab(name);
             if (index === -1)
                 return;
 
-            var tab = this.getTab(index);
+            const tab = this.getTab(index);
 
             if (tab.vm && tab.vm.clear)
                 tab.vm.clear();
@@ -277,7 +273,7 @@ namespace kmodo {
         }
 
         setTabVisible(name: string, value: boolean): void {
-            var tab = this.getTab(name);
+            const tab = this.getTab(name);
             if (value && !tab._canShow)
                 return;
 
@@ -285,7 +281,7 @@ namespace kmodo {
         }
 
         private getIndexOfTabElementByName(name: string): number {
-            var elements = this.component.items();
+            const elements = this.component.items();
             for (let i = 0; i < elements.length; i++) {
                 if ($(elements[i]).data("name") === name)
                     return i;
@@ -295,7 +291,7 @@ namespace kmodo {
         }
 
         toggleTabs(visible: boolean, name?: string): void {
-            var tab;
+            let tab;
             for (let i = 0; i < this.tabs.length; i++) {
                 tab = this.tabs[i];
 
@@ -359,14 +355,14 @@ namespace kmodo {
         }
 
         onTabActivated(e): void {
-            var name = $(e.item).data("name");
+            const name = $(e.item).data("name");
 
             this._onTabActivatedCore(name);
         }
 
         private _onTabActivatedCore(name: string): boolean {
 
-            var tab = this.getTab(name);
+            const tab = this.getTab(name);
             if (!tab)
                 return false;
 
@@ -374,13 +370,13 @@ namespace kmodo {
                 return false;
 
             // Enter tab.
-            var prevTab = this._currentTab;
+            const prevTab = this._currentTab;
             this._currentTab = tab;
 
             if (!tab._isInitPerformed)
                 this._initTab(tab);
 
-            var tabEvent = this._createTabEvent(tab);
+            const tabEvent = this._createTabEvent(tab);
 
             if (tab.vm && typeof tab.filters === "function" && typeof tab.vm["applyFilter"] === "function") {
                 tab.vm["applyFilter"](tab.filters(tabEvent));
@@ -480,21 +476,19 @@ namespace kmodo {
         }
 
         setMasterViewModel(vm): void {
-            var self = this;
-
             this.mvm = vm;
             // KABU TODO: VERY VERY IMPORTANT: React on current *selected* item changed,
             //   because after we add new item, no item is selected, but the current
             //   item still references the last selected item.
 
-            this.mvm.on("currentItemChanged", function (e) {
+            this.mvm.on("currentItemChanged", (e) => {
 
                 // On selected master item changed.
                 // Show/hide tabs if the master item is selected/not selected.
-                self.toggleTabs(self.mvm.getCurrent());
+                this.toggleTabs(this.mvm.getCurrent());
 
                 // Clear all tabs.
-                for (let tab of self.tabs) {
+                for (const tab of this.tabs) {
 
                     if (tab.master) return;
 
@@ -507,7 +501,7 @@ namespace kmodo {
                         tab.vm.clear();
 
                     if (typeof tab.clear === "function")
-                        tab.clear(self._createTabEvent(tab));
+                        tab.clear(this._createTabEvent(tab));
 
                     if (typeof tab.leaveOrClear === "function")
                         tab.leaveOrClear();
@@ -520,8 +514,6 @@ namespace kmodo {
         }
 
         protected _initTab(tab: TabPage): void {
-            var self = this;
-
             if (tab._isInitPerformed)
                 return;
 
@@ -541,8 +533,8 @@ namespace kmodo {
                 // If the component affects the master then
                 // refresh the master component whenever some data
                 // is saved.
-                tab.vm.on("saved", function (e) {
-                    self.mtab._isRefreshPending = true;
+                tab.vm.on("saved", (e) => {
+                    this.mtab._isRefreshPending = true;
                 });
             }
 

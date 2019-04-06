@@ -16,7 +16,7 @@
         //lat: number;
         //lng: number;
         color?: string;
-        symbol?: string;
+        symbol?: any; // E.g.: google.maps.SymbolPath.CIRCLE
         title: string;
         label?: string;
         content?: string;
@@ -103,8 +103,6 @@
         }
 
         initSearchInputBox(): void {
-            var self = this;
-
             if (!this._$searchInput || !this._$searchInput.length)
                 return;
 
@@ -123,30 +121,28 @@
             this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(searchBoxInputElem);
 
             // Bias the SearchBox results towards current map's viewport.
-            //map.addListener('bounds_changed', function () {
+            //map.addListener('bounds_changed', () => {
             //    searchBox.setBounds(map.getBounds());
             //});
 
             // Listen for the event fired when the user selects a prediction and retrieve
             // more details for that place.
-            searchBox.addListener('place_changed', function () {
+            searchBox.addListener('place_changed', () => {
                 let place = searchBox.getPlace();
                 if (place.geometry)
-                    self._activateContextPlace(place);
+                    this._activateContextPlace(place);
                 else
-                    self.findContextPlaceByAddress(place.name);
+                    this.findContextPlaceByAddress(place.name);
             });
 
             // KABU TODO: REMOVE? Was this just an experiment?
-            //searchBox.addListener('remove_at', function () {
+            //searchBox.addListener('remove_at', () => {
             //    alert("removed");
             //});
         }
 
         findContextPlaceByAddress(address: string, options?: any): Promise<void> {
-            var self = this;
-
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
                 // Geocoder: https://developers.google.com/maps/documentation/javascript/reference/geocoder
                 (new google.maps.Geocoder()).geocode({
                     // GeocoderRequest: https://developers.google.com/maps/documentation/javascript/reference/geocoder#GeocoderRequest                      
@@ -164,14 +160,14 @@
                         // Restrict to Germany.
                         country: "DE"
                     }
-                }, function (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) {
+                }, (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
 
                     if (status !== google.maps.GeocoderStatus.OK) {
                         cmodo.showError("Ich kann diesen Ort nicht finden. " + status);
                         reject();
                     }
                     else {
-                        self._activateContextPlace(results[0], options);
+                        this._activateContextPlace(results[0], options);
                         resolve();
                     }
                 });
@@ -180,13 +176,14 @@
 
         _activateContextPlace(place: google.maps.places.PlaceResult | google.maps.GeocoderResult, options?: any): void {
 
-            // KABU TODO: Eliminate use of the "current item".
+            // TODO: Eliminate use of the "current item".
             // Set place values on data view model.
             this.getCurrentItem().buildFromGoogleMapsPlace(place);
 
-            var geometryLocation = place.geometry.location;
-            //var lat = location.lat().toFixed(6);
-            //var lng = location.lng().toFixed(6);
+            const geometryLocation = place.geometry.location;
+            // TODO: REMOVE?
+            // const lat = location.lat().toFixed(6);
+            // const lng = location.lng().toFixed(6);
 
             this.setMapCenter(geometryLocation);
             this._contextPlaceMarker.setPosition(geometryLocation);
@@ -195,7 +192,7 @@
             if (this._infoBox && (!options || !options.isInfoHidden)) {
                 this._infoBox.close();
 
-                var infoText = this._formatTextStrong(place.formatted_address);
+                const infoText = this._formatTextStrong(place.formatted_address);
                 this._infoBox.setContent(infoText);
                 this._infoBox.open(this.map, this._contextPlaceMarker);
             }
@@ -203,14 +200,15 @@
 
         // Markers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        _getMarkerSymbolOptions(options: any): any {
-
-            return {
+        _getMarkerSymbolOptions(options: any): google.maps.Symbol {
+            const symbol: google.maps.Symbol = {
                 path: options.symbol || google.maps.SymbolPath.CIRCLE,
                 scale: 8,
                 strokeColor: options.color || "#ff0000",
                 strokeOpacity: options.opacity || 0.4
             };
+
+            return symbol;
         }
 
         protected getMarkerCustomData(marker: google.maps.Marker): any {
@@ -222,7 +220,7 @@
         }
 
         protected setDataValue(item: google.maps.MVCObject, name: string, value: any): void {
-            var data = this.getData(item);
+            const data = this.getData(item);
             data[name] = value;
         }
 
@@ -231,19 +229,23 @@
         }
 
         protected addLabel(item: google.maps.MVCObject, label: MapLabel): void {
-            var data = this.getData(item);
-            var labels = data.labels || (data.labels = []) as MapLabel[];
+            const data = this.getData(item);
+            const labels = data.labels || (data.labels = []) as MapLabel[];
             labels.push(label);
         }
 
         _getMarkerOptions(options: GeoMapMarkerOptions): google.maps.MarkerOptions {
 
-            var markerOptions: google.maps.MarkerOptions = {
+            const markerOptions: google.maps.MarkerOptions = {
                 map: this.map,
-                position: options.position,
+                position: {
+                    lat: options.position.lat,
+                    lng: options.position.lng
+                },
                 // TODO: REMOVE: || { lat: options.lat, lng: options.lng },
                 title: options.title,
-                label: options.label
+                label: options.label,
+                zIndex: options.zIndex
             };
 
             (markerOptions as any).customData = options.customData;
@@ -268,24 +270,21 @@
         }
 
         addMarker(options: GeoMapMarkerOptions): google.maps.Marker {
-            var self = this;
-
-            var markerOptions = this._getMarkerOptions(options);
-            let marker = new google.maps.Marker(markerOptions);
+            const markerOptions = this._getMarkerOptions(options);
+            const marker = new google.maps.Marker(markerOptions);
 
             this._trackLocationMarker(marker);
 
             if (options.content) {
                 google.maps.event.addListener(marker, 'click', (e) => {
+                    this._infoBox.close();
+                    // const content = "<div style='font-family:Roboto,Arial;color:rgb(51, 51, 51)'>" + options.content + "</div>";
+                    const content = options.content;
+                    this._infoBox.setContent(content);
+                    this._infoBox.open(this.map, marker);
 
-                    self._infoBox.close();
-                    //var content = "<div style='font-family:Roboto,Arial;color:rgb(51, 51, 51)'>" + options.content + "</div>";
-                    var content = options.content;
-                    self._infoBox.setContent(content);
-                    self._infoBox.open(self.map, marker);
-
-                    self.showSelection(marker);
-                    self.showDistances(marker);
+                    this.showSelection(marker);
+                    this.showDistances(marker);
                 });
             }
 
@@ -310,15 +309,15 @@
         }
 
         removeLabel(item: google.maps.MVCObject, role: string): boolean {
-            var labels = this.getDataValue(item, "labels") as MapLabel[];
+            const labels = this.getDataValue(item, "labels") as MapLabel[];
             if (!labels || !labels.length)
                 return false;
 
-            var idx = labels.findIndex(x => (x as any).dataRole === role);
+            const idx = labels.findIndex(x => (x as any).dataRole === role);
             if (idx === -1)
                 return false;
 
-            var label = labels[idx];
+            const label = labels[idx];
             label.setMap(null);
             labels.splice(idx, 1);
 
@@ -336,7 +335,7 @@
 
         createLabel(options: any): MapLabel {
             // Source: https://github.com/googlemaps/js-map-label
-            var label = new MapLabel({
+            const label = new MapLabel({
                 text: options.content,
                 position: options.position,
                 map: this.map,
@@ -382,7 +381,6 @@
         }
 
         protected _queryPlaceDetails(request: google.maps.places.PlaceDetailsRequest): Promise<google.maps.places.PlaceResult> {
-            var self = this;
             // https://developers.google.com/maps/documentation/javascript/places#place_details
             // https://developers.google.com/maps/documentation/javascript/examples/place-details
 
@@ -390,9 +388,9 @@
             //   or if you omit the fields parameter from a request,
             //   ALL possible fields will be returned, and you will be billed accordingly.
 
-            return new Promise(function (resolve, reject) {
-                self._getPlacesService()
-                    .getDetails(request, function (place, status) {
+            return new Promise((resolve, reject) => {
+                this._getPlacesService()
+                    .getDetails(request, (place, status) => {
                         if (status === google.maps.places.PlacesServiceStatus.OK) {
                             console.info("GM details: OK");
                             resolve(place);
@@ -422,6 +420,7 @@
 
             return this._directionsRenderer ||
                 (this._directionsRenderer = new google.maps.DirectionsRenderer({
+                    map: this.map,
                     // DirectionsRendererOptions: https://developers.google.com/maps/documentation/javascript/reference/directions#DirectionsRendererOptions
                     suppressMarkers: true,
                     preserveViewport: true,
@@ -434,14 +433,13 @@
         }
 
         protected _showDrivigDistanceAsync(fromMarker: google.maps.Marker, toMarker: google.maps.Marker): void {
-            var self = this;
-
             this._getDrivingDistanceAsync(fromMarker.getPosition(), toMarker.getPosition(),
-                function (data) {
-                    var label = self.findMarkerLabel(toMarker, "ProjectDistance");
+                (data) => {
+                    const label = this.findMarkerLabel(toMarker, "ProjectDistance");
                     if (!label)
                         return;
-                    var text = label.get("text") + "/" + (data.distance.value / 1000).toFixed(1) + " km (" + data.duration.text + ")";
+
+                    const text = label.get("text") + "/" + (data.distance.value / 1000).toFixed(1) + " km (" + data.duration.text + ")";
                     label.set("text", text);
                 });
         }
@@ -463,17 +461,20 @@
                     unitSystem: google.maps.UnitSystem.METRIC,
                     avoidHighways: false,
                     avoidTolls: false
-                }, function (response, status) {
-                    var data: google.maps.DistanceMatrixResponseElement = null;
-                    var row = response.rows.length ? response.rows[0] : null;
+                }, (response, status) => {
+
+                    let data: google.maps.DistanceMatrixResponseElement = null;
+
+                    const row = response.rows.length ? response.rows[0] : null;
                     if (row)
                         data = row.elements.length ? row.elements[0] : null;
+
                     callback(data);
                 });
         }
 
         protected _clearRoutes(): void {
-            this._setRoutes(null);
+            this._setRoutes({ geocoded_waypoints: [], routes: [] });
         }
 
         protected _showRoutes(routes: google.maps.DirectionsResult): void {
@@ -489,18 +490,16 @@
             destinationLocation: google.maps.LatLngLiteral)
             : Promise<google.maps.DirectionsResult> {
 
-            var self = this;
-
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
                 // DirectionsService: https://developers.google.com/maps/documentation/javascript/directions
-                var request: google.maps.DirectionsRequest = {
+                const request: google.maps.DirectionsRequest = {
                     origin: originLocation,
                     destination: destinationLocation,
                     travelMode: google.maps.TravelMode.DRIVING,
                     avoidFerries: true
                 };
 
-                self._getDirectionsService().route(request, function (response, status) {
+                this._getDirectionsService().route(request, (response, status) => {
                     if (status === google.maps.DirectionsStatus.OK)
                         resolve(response);
                     else
@@ -513,15 +512,13 @@
             if (!items || !items.length)
                 return;
 
-            var self = this;
-
-            for (let x of items) {
+            for (const x of items) {
                 x.setMap(null);
 
                 let labels = x["labels"] as MapLabel[];
 
                 if (labels) {
-                    self.removeItems(labels);
+                    this.removeItems(labels);
                     labels = [];
                 }
             }
@@ -536,12 +533,9 @@
         }
 
         setSelectedItemCircles(position: google.maps.LatLng): void {
-            var self = this;
-
             if (!this._selectionCircles.length) {
-                //setMap(null)
 
-                var circleOptions = {
+                const circleOptions = {
                     strokeColor: "black",
                     strokeOpacity: 1,
                     strokeWeight: 1,
@@ -556,9 +550,9 @@
                 this._createDistanceCircles(circleOptions, 3);
             }
             else {
-                for (let x of this._selectionCircles) {
+                for (const x of this._selectionCircles) {
                     x.setCenter(position);
-                    x.setMap(self.map);
+                    x.setMap(this.map);
                 }
             }
         }
@@ -593,9 +587,7 @@
         }
 
         private _initMapCore(): void {
-            var self = this;
-            if (this._isMapInitialized)
-                return;
+            if (this._isMapInitialized) return;
             this._isMapInitialized = true;
 
             this._checkGoogleApiLoaded();
@@ -603,16 +595,16 @@
             // Init MapLabel lib. It has no TS type declarations.
             (window as any).InitMapLabelLib();
 
-            var hamburg = new google.maps.LatLng(53.550370, 9.994161);
+            const hamburg = new google.maps.LatLng(53.550370, 9.994161);
 
             // MapTypeId.ROADMAP displays the default road map view. This is the default map type.
             // MapTypeId.SATELLITE displays Google Earth satellite images
             // MapTypeId.HYBRID displays a mixture of normal and satellite views
             // MapTypeId.TERRAIN displays a physical map based on terrain information.
-            var mapTypeId = google.maps.MapTypeId.ROADMAP;
+            const mapTypeId = google.maps.MapTypeId.ROADMAP;
 
             // mapOptions: https://developers.google.com/maps/documentation/javascript/reference/map#MapOptions
-            var options = {
+            const options = {
                 zoom: this.standardZoom,
                 center: hamburg,
                 mapTypeId: mapTypeId,
@@ -626,7 +618,7 @@
                 //gestureHandling: 'greedy'
             };
 
-            var map = this.map = new google.maps.Map(this._$mapContainer[0], options);
+            const map = this.map = new google.maps.Map(this._$mapContainer[0], options);
 
             if (this._options.isDrawingEnabled) {
                 this.drawingManager = new google.maps.drawing.DrawingManager({
@@ -651,9 +643,9 @@
                         zIndex: 1
                     }
                 });
-                //this.drawingManager.setMap(map);
-                google.maps.event.addListener(this.drawingManager, 'overlaycomplete', function (e) {
-                    self._drawingOverlays.push(e.overlay);
+
+                google.maps.event.addListener(this.drawingManager, 'overlaycomplete', (e) => {
+                    this._drawingOverlays.push(e.overlay);
                 });
             }
 
@@ -672,17 +664,13 @@
         }
 
         refresh(): Promise<void> {
-            var self = this;
-
             return this._loadMap()
-                .then(() => {
-                    self._initMap();
-                });
+                .then(() => this._initMap());
         }
 
         _loadMap(): Promise<void> {
-            return new Promise(function (resolve, reject) {
-                kmodo.googleMapInitializer.one("scriptReady", function (e) {
+            return new Promise((resolve, reject) => {
+                kmodo.googleMapInitializer.one("scriptReady", (e) => {
                     resolve();
                 });
                 kmodo.googleMapInitializer.init();
@@ -692,7 +680,7 @@
         // Undo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         undoOperation(): void {
-            var overlay = this._drawingOverlays.pop();
+            const overlay = this._drawingOverlays.pop();
             if (!overlay)
                 return;
 
@@ -702,8 +690,6 @@
         // Free hand drawing ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         protected _startMapFreehandDrawingMode(): void {
-            var self = this;
-
             this.map.setOptions({
                 draggable: false,
                 zoomControl: false,
@@ -721,17 +707,17 @@
             });
 
             this._mapListeners.mouseDown = google.maps.event.addDomListener(this.map.getDiv(), 'mousedown', (e) => {
-                self._drawFreeHandUntilMouseUp();
+                this._drawFreeHandUntilMouseUp();
             });
         }
 
         protected _endMapFreehandDrawingMode(): void {
 
-            var mouseDown = this._mapListeners.mouseDown;
+            const mouseDown = this._mapListeners.mouseDown;
             this._mapListeners.mouseDown = null;
             google.maps.event.removeListener(mouseDown);
 
-            // TODO: REMOVE: google.maps.event.clearListeners(self.map.getDiv(), 'mousedown');
+            // TODO: REMOVE: google.maps.event.clearListeners(this.map.getDiv(), 'mousedown');
 
             this.map.setOptions({
                 draggable: true,
@@ -749,9 +735,7 @@
         }
 
         protected _drawFreeHandUntilMouseUp(): void {
-            var self = this;
-
-            var freehandLine = new google.maps.Polyline(
+            const freehandLine = new google.maps.Polyline(
                 {
                     map: this.map,
                     clickable: false,
@@ -762,26 +746,31 @@
                     strokeWeight: 2,
                 });
 
-            // Mouse up: complete drawing.
-            google.maps.event.addListenerOnce(this.map, 'mouseup', function (e) {
-                google.maps.event.removeListener(move);
-                // TODO: REMOVE: google.maps.event.clearListeners(self.map.getDiv(), 'mousedown');
+            // Mouse move: draw.
+            const moveEventListener = google.maps.event.addListener(this.map, 'mousemove', (e) => {
+                freehandLine.getPath().push(e.latLng);
+            });
 
-                var path = freehandLine.getPath();
+            // Mouse up: complete drawing.
+            google.maps.event.addListenerOnce(this.map, 'mouseup', (e) => {
+                google.maps.event.removeListener(moveEventListener);
+                // TODO: REMOVE: google.maps.event.clearListeners(this.map.getDiv(), 'mousedown');
+
+                const path = freehandLine.getPath();
                 freehandLine.setMap(null);
 
                 // Simplify path.
-                var pathArray = path.getArray();
+                const pathArray = path.getArray();
                 // KABU TODO: IMPORTANT: We need to adjust the tolerance value (in meters)
                 //   according to the zoom of the map. Otherwise drawn polylines in the sub
                 //   100 meters resolution will be reduced to a single straight line.
-                var effectivePathArray = pathArray; //GDouglasPeucker(pathArray, 100);
+                const effectivePathArray = pathArray; //GDouglasPeucker(pathArray, 100);
 
                 // Ignore empty or too short paths.
                 if (effectivePathArray.length > 2) {
 
-                    var polyOptions = {
-                        map: self.map,
+                    const polyOptions = {
+                        map: this.map,
                         fillColor: '#0099FF',
                         fillOpacity: 0.7,
                         strokeColor: '#AA2143',
@@ -792,35 +781,31 @@
                         editable: false
                     };
 
-                    self._drawingOverlays.push(new google.maps.Polyline(polyOptions));
+                    this._drawingOverlays.push(new google.maps.Polyline(polyOptions));
                 }
             });
 
-            // Mouse move: draw.
-            var move = google.maps.event.addListener(this.map, 'mousemove', function (e) {
-                freehandLine.getPath().push(e.latLng);
-            });
+
         }
 
         private exportAsPng(): Promise<string> {
-            var self = this;
 
-            kmodo.progress(true, self.$view);
+            kmodo.progress(true, this.$view);
 
-            return new Promise(function (resolve, reject) {
+            return new Promise((resolve, reject) => {
 
                 // See https://github.com/niklasvh/html2canvas/issues/345#issuecomment-420260348
-                var mapElem = self._$googleMap.find('.gm-style>div:eq(0)')[0];
+                const mapElem = this._$googleMap.find('.gm-style>div:eq(0)')[0];
 
                 html2canvas(mapElem,
                     {
                         useCORS: true,
                         // allowTaint: true,
                     })
-                    .then(function (canvas) {
-                        var dataUrl = canvas.toDataURL("image/png");
+                    .then((canvas) => {
+                        const dataUrl = canvas.toDataURL("image/png");
 
-                        kmodo.progress(false, self.$view);
+                        kmodo.progress(false, this.$view);
 
                         resolve(dataUrl);
                         //$imgOut.attr("src", dataUrl);
@@ -829,24 +814,23 @@
         }
 
         private initSaveToFileCommand(): void {
-            var self = this;
-            var $saveToFileCmd = this.$view.find(".geo-map-save-to-file-command");
+            const $saveToFileCmd = this.$view.find(".geo-map-save-to-file-command");
             if ($saveToFileCmd.length) {
-                $saveToFileCmd.on("click", function () {
+                $saveToFileCmd.on("click", () => {
                     // Convert map to image as data URL.
-                    self.exportAsPng()
-                        .then(function (dataUrl) {
+                    this.exportAsPng()
+                        .then((dataUrl) => {
                             // Open save to Mo file system dialog. 
                             kmodo.openById("16b14f2e-907a-4fba-adea-beca4f995c8c",
                                 {
                                     title: "Karte als Bild (PNG) speichern",
                                     item: {
                                         imageDataUrl: dataUrl,
-                                        context: self._contextPlaceInfo
+                                        context: this._contextPlaceInfo
                                     },
                                     options: {
                                     },
-                                    finished: function (result) {
+                                    finished: (result) => {
                                         if (result.isOk) {
                                             // NOP
                                         }
@@ -942,7 +926,7 @@
         //}
 
         protected _buildAddressText(street: string, zipCode: string, city: string, countryStateObj: any): string {
-            var address = (street || "");
+            let address = (street || "");
             if (zipCode || city) {
                 address += ",";
                 if (zipCode)

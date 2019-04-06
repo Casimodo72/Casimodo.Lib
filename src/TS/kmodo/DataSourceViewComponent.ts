@@ -24,7 +24,7 @@
         dataTypeName?: string;
         dataTypeId?: string;
         readQuery?: string;
-        dataModel: (e: DataSourceViewEvent) => any;
+        dataModel?: (e: DataSourceViewEvent) => any;
         extendDataModel?: (e: DataSourceViewEvent) => any;
         dataSourceOptions?: (e: DataSourceViewEvent) => kendo.data.DataSourceOptions;
         transport?: (e: DataSourceViewEvent) => kendo.data.DataSourceTransport;
@@ -42,7 +42,7 @@
         constructor(options: DataSourceViewOptions) {
             super(options);
 
-            var self = this;
+            let self = this;
 
             this.keyName = "Id";
             this.dataSource = null;
@@ -70,7 +70,7 @@
         }
 
         refresh(): Promise<void> {
-            var self = this;
+            let self = this;
 
             return new Promise(function (resolve, reject) {
                 self._startRefresh();
@@ -99,12 +99,12 @@
             if (typeof filter !== "undefined")
                 this.setFilter(filter);
 
-            if (!this.component) {
+            if (!this._isComponentInitialized) {
                 // NOTE: The view model might not have a component at all, 
                 // or the component does not have a data source itself.
                 this.createView();
 
-                if (this.component)
+                if (this._isComponentInitialized)
                     alert("Applying filters before component was created.");
             }
 
@@ -148,9 +148,9 @@
         }
 
         private _fetchAuth(): Promise<void> {
-            var self = this;
+            let self = this;
 
-            var promise = Promise.resolve();
+            let promise = Promise.resolve();
 
             if (this._isAuthFetched)
                 return promise;
@@ -168,7 +168,7 @@
                 return promise;
             }
 
-            var queries = cmodo.componentRegistry.getById(this._options.id).getAuthQueries();
+            let queries = cmodo.componentRegistry.getById(this._options.id).getAuthQueries();
 
             return promise
                 .then(() => cmodo.getActionAuth(queries))
@@ -176,7 +176,7 @@
 
                     self._isAuthFetched = true;
 
-                    var part = manager.part(self._options.part, self._options.group);
+                    let part = manager.part(self._options.part, self._options.group);
                     self.auth.canView = part.can("View", self._options.role);
                     self.auth.canCreate = part.can("Create", "Editor");
                     self.auth.canModify = part.can("Modify", "Editor");
@@ -191,7 +191,7 @@
         }
 
         private _filterCore(): Promise<void> {
-            var self = this;
+            let self = this;
 
             if (!this.auth.canView)
                 return Promise.resolve();
@@ -203,13 +203,13 @@
                     return;
                 }
 
-                var filters = [];
+                let filters = [];
 
-                var baseFilters = self.getBaseFilters();
+                let baseFilters = self.getBaseFilters();
                 for (let x of baseFilters)
                     filters.push(x);
 
-                var customFilters = self.filters;
+                let customFilters = self.filters;
                 for (let x of customFilters)
                     filters.push(x);
 
@@ -224,7 +224,7 @@
                 }
                 else {
                     // The VM has an empty filter. Clear any filter on the data source.
-                    var activeFilter = self.dataSource.filter();
+                    let activeFilter = self.dataSource.filter();
                     if (activeFilter && activeFilter.filters && activeFilter.filters.length) {
                         // Clear active filter.
                         self.dataSource.filter([]);
@@ -247,7 +247,7 @@
             if (!this._options.dataModel)
                 return null;
 
-            var dataModel = this._options.dataModel({ sender: this });
+            let dataModel = this._options.dataModel({ sender: this });
 
             if (this._options.extendDataModel)
                 this._options.extendDataModel({ sender: this, data: { model: dataModel } });
@@ -273,14 +273,14 @@
             if (this.dataSource)
                 return this.dataSource;
 
-            var options = this.createDataSourceOptions();
+            let options = this.createDataSourceOptions();
 
             if (this.filters.length)
                 options.filter = { filters: this.filters };
 
             // Extend the data model with custom computed fields.
             if (this._options.computedFields) {
-                for (var prop in this._options.computedFields)
+                for (let prop in this._options.computedFields)
                     options.schema.model[prop] = this._options.computedFields[prop];
             }
 
@@ -298,7 +298,7 @@
         /**
             Called by the kendo.DataSource on event "requestStart".
         */
-        protected onDataSourceRequestStart(e) {
+        protected onDataSourceRequestStart(e: kendo.data.DataSourceRequestStartEvent) {
             if (this._isDebugLogEnabled)
                 console.debug("- EDITOR: DS.requestStart: type: '%s'", e.type);
         }
@@ -306,7 +306,7 @@
         /**
             Called by the kendo.DataSource on event "requestEnd".
         */
-        protected onDataSourceRequestEnd(e) {
+        protected onDataSourceRequestEnd(e: kendo.data.DataSourceRequestEndEvent) {
 
             if (typeof e.type === "undefined") {
                 // This happens when there was an error.
@@ -322,7 +322,7 @@
                     return;
                 }
 
-                var items = e.response.value;
+                let items = e.response.value;
                 if (!items.length)
                     return;
 
@@ -331,29 +331,24 @@
             }
         }
 
-        protected onDataSourceError(e): string {
+        protected onDataSourceError(e: kendo.data.DataSourceErrorEvent): string {
+            // DataSource error event: https://docs.telerik.com/kendo-ui/api/javascript/data/datasource/events/error
+
             if (this._isDebugLogEnabled)
                 console.debug("- ds.error");
 
-            // NOTE: On errors the data source will trigger "requestEnd" first and then "error".
+            // NOTE: On errors the Kendo DataSource will trigger "requestEnd" first and then "error".
 
-            // Displays server errors in the grid's pop up editor.
             // Data source error handler: http://demos.telerik.com/aspnet-mvc/grid/editing-popup
-            var message = cmodo.getResponseErrorMessage("odata", e.xhr);
-
-            var result = cmodo._tryCleanupHtml(message);
-            if (result.ok)
-                message = result.html;
-
+           
+            const message = cmodo.getODataErrorMessageFromJQueryXHR(e.xhr);
             cmodo.showError(message);
 
-            // KABU TODO: ELIMINATE and move into the view models.
-            var $errorBox = $("#validation-errors-box");
-            if ($errorBox) {
+            // TODO: This won't work with multiple editors.
+            const $errorBox = $("#validation-errors-box");
+            if ($errorBox.length) {
                 $errorBox.empty();
-                var template = result.ok
-                    ? kendo.template("<li>#=message #</li>")
-                    : kendo.template("<li>#:message #</li>");
+                const template = kendo.template("<li>#=message #</li>");
                 $errorBox.append(template({
                     message: message
                 }));
@@ -378,7 +373,7 @@
 
             let filters = this.getBaseFilters();
 
-            var filter = filters.find(x => x._filterId === id);
+            let filter = filters.find(x => x._filterId === id);
             if (!filter) {
                 filter = {
                     _filterId: id,
@@ -396,8 +391,8 @@
         }
 
         protected _removeBaseFilter(id: string): void {
-            var filters = this.getBaseFilters();
-            var idx = filters.findIndex(x => x._filterId === id);
+            let filters = this.getBaseFilters();
+            let idx = filters.findIndex(x => x._filterId === id);
             if (idx !== -1)
                 filters.splice(idx, 1);
         }
@@ -413,7 +408,7 @@
         // NOTE: Operates only on the first level of filters.
         protected removeFilterByFieldName(fieldName: string): void {
             for (let i = 0; i < this.filters.length; i++) {
-                var item = this.filters[i];
+                let item = this.filters[i];
                 if ((item as any).field === fieldName) {
                     this.filters.splice(i, 1);
 
@@ -423,7 +418,7 @@
         }
 
         private _fixFilters(filters: Array<any>) {
-            var item;
+            let item;
             for (let i = 0; i < filters.length; i++) {
                 item = filters[i];
                 // Set implicit "eq" operator.

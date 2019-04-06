@@ -2,7 +2,7 @@
 namespace cmodo {
 
     export function guid(): string {
-        // To be defined by the consumer app.
+        // Intended to be overriden by the consumer app.
         throw new Error("guid() not implemented.");
     }
 
@@ -22,19 +22,6 @@ namespace cmodo {
         return value ? moment(value).startOf("minute").toDate() : null;
     }
 
-    // KABU TODO: REMOVE? Not used
-    /*
-    function isPropPathNotNull (obj: any, path: string): boolean {
-
-        if (!obj || !path || typeof path !== "string" || !path.length)
-            return false;
-
-        var value = cmodo.getValueAtPropPath(obj, path);
-
-        return typeof value !== "undefined" && value !== null;
-    }
-    */
-
     export function isNullOrWhiteSpace(value: string): boolean {
         return !value || value.length === 0 || /^\s*$/.test(value);
     }
@@ -43,9 +30,9 @@ namespace cmodo {
         Sets all empty or whitespace-only strings to null.
      */
     export function whiteSpacePropsToNull(item: any, propInfos: any): void {
-        var propNames: string[] = Object.getOwnPropertyNames(propInfos),
-            name: string,
-            value: any;
+        const propNames: string[] = Object.getOwnPropertyNames(propInfos);
+        let name: string;
+        let value: any;
 
         for (let i = 0; i < propNames.length; i++) {
             name = propNames[i];
@@ -89,7 +76,7 @@ namespace cmodo {
             return null;
 
         // KABU TODO: moment tz type declaration.
-        var dateTime = (moment as any).tz(value, timezone);
+        const dateTime = (moment as any).tz(value, timezone);
 
         return encodeURIComponent(dateTime.toISOString());
     }
@@ -127,7 +114,7 @@ namespace cmodo {
         if (obj === null || !path.length)
             return null;
 
-        var steps = path.split('.');
+        const steps = path.split('.');
         do { obj = obj[steps.shift()]; } while (steps.length && typeof obj !== "undefined" && obj !== null);
 
         if (typeof obj === "undefined")
@@ -159,7 +146,7 @@ namespace cmodo {
     }
 
     export function firstCharToUpper(text: string): string {
-        var first = text.charAt(0).toUpperCase();
+        const first = text.charAt(0).toUpperCase();
         if (first === text.charAt(0))
             return text;
 
@@ -170,7 +157,7 @@ namespace cmodo {
     export function cloneDeep(obj: any | null | undefined): any {
         if (typeof obj === "undefined" || obj === null || "object" !== typeof obj) return obj;
 
-        var copy: any;
+        let copy: any;
 
         // Handle Date
         if (obj instanceof Date) {
@@ -191,7 +178,7 @@ namespace cmodo {
         // Handle Object
         if (obj instanceof Object) {
             copy = {};
-            for (var attr in obj) {
+            for (let attr in obj) {
                 if (obj.hasOwnProperty(attr)) copy[attr] = cloneDeep(obj[attr]);
             }
             return copy;
@@ -200,6 +187,31 @@ namespace cmodo {
         throw new Error("Unable to copy the object: its type is not supported.");
     }
 
+    export function fixupDataDeep(data: any) {
+        if (!data || typeof data !== "object") return;
+
+        if (Array.isArray(data)) {
+            for (let i = 0; i < data.length; i++)
+                fixupDataDeep(data[i]);
+
+            return;
+        }
+
+        // Parse time members by convention: time members end with "On" and do not start with "Is".
+        let value: any;
+        for (const member of Object.keys(data)) {
+            value = data[member];
+            if (typeof value === "string" && value) {
+                if ((member.endsWith("On") || member.endsWith("Time")) && !member.startsWith("Is")) {
+                    data[member] = new Date(value);
+                }
+            } else if (typeof value === "object")
+                fixupDataDeep(value);
+        }
+    }
+
+    // TODO: REMOVE
+    /*
     export function fixupDataDeep(data: any) {
         if (!data) return;
 
@@ -224,22 +236,22 @@ namespace cmodo {
             }
         });
     }
+    */
 
-    // KABU TODO: Not used.
-
+    // TODO: Not used.
     export function parseURL(url: string): any {
         // Source: http://www.abeautifulsite.net/parsing-urls-in-javascript/
 
-        var parser = document.createElement('a'),
-            searchObject = {},
-            queries, split, i;
+        const parser = document.createElement('a');
+        const searchObject: any = {};
 
         // Let the browser do the work
         parser.href = url;
 
-        // Convert query string to object
-        queries = parser.search.replace(/^\?/, '').split('&');
-        for (i = 0; i < queries.length; i++) {
+        // Convert query string to object        
+        const queries = parser.search.replace(/^\?/, '').split('&');
+        let split;
+        for (let i = 0; i < queries.length; i++) {
             split = queries[i].split('=');
             searchObject[split[0]] = split[1];
         }
@@ -256,7 +268,7 @@ namespace cmodo {
         };
     }
 
-    var _userAgent = {
+    const _userAgent = {
         isEdge: navigator.userAgent.toLowerCase().indexOf('edge') > -1,
         isChrome: navigator.userAgent.toLowerCase().indexOf('chrome') > -1,
         isSafari: navigator.userAgent.toLowerCase().indexOf('safari') > -1
@@ -265,27 +277,27 @@ namespace cmodo {
     // Source: http://pixelscommander.com/en/javascript/javascript-file-download-ignore-content-type/
     export function downloadFile(url: string, fileName: string): boolean {
 
-        //iOS devices do not support downloading. We have to inform user about this.
+        // iOS devices do not support downloading. We have to inform user about this.
         if (/(iP)/g.test(navigator.userAgent)) {
             alert('Your device do not support files downloading. Please try again in desktop browser.');
             return false;
         }
 
-        //If in Chrome or Safari - download via virtual link click
+        // If in Chrome or Safari - download via virtual link click
         if (_userAgent.isChrome || _userAgent.isSafari) {
-            //Creating new link node.
-            var link = document.createElement('a');
+            // Creating new link node.
+            const link = document.createElement('a');
             link.href = url;
 
             if (link.download !== undefined) {
-                //Set HTML5 download attribute. This will prevent file from opening if supported.
-                //var fileName = sUrl.substring(sUrl.lastIndexOf('/') + 1, sUrl.length);
+                // Set HTML5 download attribute. This will prevent file from opening if supported.
+                // const fileName = sUrl.substring(sUrl.lastIndexOf('/') + 1, sUrl.length);
                 link.download = fileName;
             }
 
             //Dispatching click event.
             if (document.createEvent) {
-                var e = document.createEvent('MouseEvents');
+                const e = document.createEvent('MouseEvents');
                 e.initEvent('click', true, true);
                 link.dispatchEvent(e);
                 return true;
@@ -293,21 +305,22 @@ namespace cmodo {
         }
 
         // Force file download (whether supported by server).
-        var query = '?download';
+        const query = '?download';
 
         window.open(url + query, '_self');
 
         return true;
     }
 
+    // TODO: ELIMINATE usage
     export function _tryCleanupHtml(text: string) {
         try {
-            var root = (new DOMParser()).parseFromString(text, "text/html").documentElement;
-            var body = Array.from(root.children).find(x => x.localName === "body");
+            const root = (new DOMParser()).parseFromString(text, "text/html").documentElement;
+            const body = Array.from(root.children).find(x => x.localName === "body");
             if (body) {
                 _tryCleanupHtmlCore(body);
 
-                var html = body.innerHTML.replace(/\n/g, "").trim();
+                const html = body.innerHTML.replace(/\n/g, "").trim();
 
                 return { ok: true, html: html };
             }
@@ -318,14 +331,14 @@ namespace cmodo {
             return { ok: false };
         }
     }
-
+    // TODO: ELIMINATE usage
     function _tryCleanupHtmlCore(parent: Element) {
         if (!parent.childNodes || !parent.childNodes.length)
             return;
-
-        var node, name;
-        var remove = [];
-        var i;
+       
+        const toRemove = [];
+        let node, name;
+        let i: number;
 
         for (i = 0; i < parent.childNodes.length; i++) {
             node = parent.childNodes[i];
@@ -334,10 +347,10 @@ namespace cmodo {
                 continue;
 
             if (node.nodeType !== Node.ELEMENT_NODE) {
-                remove.push(node);
+                toRemove.push(node);
             }
             else if (name === "br" || name === "hr") {
-                remove.push(node);
+                toRemove.push(node);
             }
             else {
                 if (name === "font")
@@ -347,8 +360,8 @@ namespace cmodo {
             }
         }
 
-        for (i = 0; i < remove.length; i++) {
-            parent.removeChild(remove[i]);
+        for (i = 0; i < toRemove.length; i++) {
+            parent.removeChild(toRemove[i]);
         }
     }
 }

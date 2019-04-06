@@ -27,7 +27,7 @@ namespace cmodo {
         };
 
         getValue(name: string) {
-            var vals = this.values;
+            const vals = this.values;
 
             if (!vals)
                 return undefined;
@@ -41,7 +41,7 @@ namespace cmodo {
         }
 
         getFilterValue(name: string) {
-            var vals = this.filters;
+            const vals = this.filters;
 
             if (!vals)
                 return undefined;
@@ -75,7 +75,7 @@ namespace cmodo {
         }
 
         consume(id: string): DialogArgs {
-            var item = this.get(id);
+            const item = this.get(id);
             if (item)
                 this.remove(item);
             return item;
@@ -83,14 +83,14 @@ namespace cmodo {
 
         remove(item: DialogArgs) {
             if (!item) return;
-            var index = this.items.indexOf(item);
+            const index = this.items.indexOf(item);
             if (index !== -1) {
                 this.items.splice(index, 1);
             }
         }
     }
 
-    export var dialogArgs = new DialogArgsContainer();
+    export const dialogArgs = new DialogArgsContainer();
 
     export class ComponentArgsContainer {
         private items: any[];
@@ -100,7 +100,7 @@ namespace cmodo {
         }
 
         add(id: string, paramName: string, value) {
-            var item = this.get(id);
+            let item = this.get(id);
             if (!item) {
                 item = { id: id };
                 this.items.push(item);
@@ -114,18 +114,18 @@ namespace cmodo {
         }
 
         consume(id: string) {
-            var item = this.get(id);
+            const item = this.get(id);
             if (!item)
                 return null;
 
-            var idx = this.items.indexOf(item);
+            const idx = this.items.indexOf(item);
             if (idx !== -1)
                 this.items.splice(idx, 1);
 
             return item;
         }
     }
-    export var componentArgs = new ComponentArgsContainer();
+    export const componentArgs = new ComponentArgsContainer();
 
     export class NavigationArgsContainer {
         private items: any[];
@@ -134,7 +134,7 @@ namespace cmodo {
             this.items = [];
 
             // Init with items of window.opener.
-            var prev = cmodo.getValueAtPropPath(window, "opener.cmodo.navigationArgs");
+            let prev = cmodo.getValueAtPropPath(window, "opener.cmodo.navigationArgs");
             if (prev) {
                 for (let i = 0; i < prev.items.length; i++) {
                     this.items.push(prev.items[i]);
@@ -153,16 +153,16 @@ namespace cmodo {
         };
 
         consume(id: string) {
-            var item = this.get(id);
+            const item = this.get(id);
             if (!item)
                 return null;
 
-            var idx = this.items.indexOf(item);
+            const idx = this.items.indexOf(item);
             if (idx !== -1)
                 this.items.splice(idx, 1);
 
             return item;
         }
     }
-    export var navigationArgs = new NavigationArgsContainer();
+    export const navigationArgs = new NavigationArgsContainer();
 }

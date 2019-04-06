@@ -49,7 +49,7 @@ namespace cmodo {
 
         public trigger(eventName: string, e?: any, source?: any | undefined): void {
 
-            var eve = this._get(eventName, false);
+            const eve = this._get(eventName, false);
             if (!eve)
                 return;
 
@@ -69,7 +69,7 @@ namespace cmodo {
             }
 
             for (let i = 0; i < eve.bindings.length; i++) {
-                var binding = eve.bindings[i];
+                const binding = eve.bindings[i];
 
                 if (binding.mode === EventListenerMode.Once) {
                     eve.bindings.splice(i, 1);
@@ -99,7 +99,7 @@ namespace cmodo {
         }
 
         private _get(eventName: string, createIfMissing: boolean): EventDefinition {
-            var eves = this.events;
+            const eves = this.events;
             for (let i = 0; i < eves.length; i++)
                 if (eves[i].name === eventName)
                     return eves[i];
@@ -107,7 +107,7 @@ namespace cmodo {
             if (!createIfMissing)
                 return null;
 
-            var eve = new EventDefinition(eventName);
+            const eve = new EventDefinition(eventName);
             eves.push(eve);
 
             return eve;

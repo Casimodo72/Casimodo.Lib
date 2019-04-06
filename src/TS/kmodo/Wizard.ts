@@ -4,24 +4,32 @@
         owner?: any;
         name: string;
         commands: WizardCommand[] | (() => WizardCommand[]);
-        enter?: any;
+        init?: () => void;
+        enter?: () => void;
+        leave?: () => void;
+        validate?: () => boolean;
         isEnabled?: boolean;
     }
 
-    export class WizardPageViewModel {
-        owner: any;
-        name: string;
-        commands: WizardCommand[] | (() => WizardCommand[]);
-        enter: any;
-        isEnabled: boolean;
-        tab: TabPage;
+    export class WizardPage {
+        owner: any = null;
+        name: string = "";
+        commands: WizardCommand[] | (() => WizardCommand[]) = null;
+        initialized = false;
+        init?: () => void = null;
+        enter: () => void = null;
+        leave?: () => void = null;
+        validate: () => boolean = null;
+        isEnabled = true;
+        tab: TabPage = null;
 
         constructor(options: WizardPageOptions) {
-
-            this.owner = null;
             this.name = options.name;
             this.commands = options.commands;
+            this.init = options.init;
             this.enter = options.enter;
+            this.leave = options.leave;
+            this.validate = options.validate;
             if (typeof options.isEnabled !== "undefined")
                 this.isEnabled = !!options.isEnabled;
             else
@@ -45,31 +53,31 @@
         close?: Function;
         cancel?: Function;
         finish: Function;
-        pages: WizardPageViewModel[];
+        pages: WizardPage[];
     }
 
     interface WizardCommand extends kmodo.ObservableObject {
         name: string;
         text?: string;
-        isEnabled?: boolean;
-        isVisible?: boolean;
+        enabled?: boolean;
+        visible?: boolean;
         onTriggered?: Function;
     }
 
-    export class WizardViewModel extends cmodo.ComponentBase {
+    export class Wizard extends cmodo.ComponentBase {
         $component: JQuery;
-        currentPage: any;
+        currentPage: WizardPage = null;
         _commonPageCommandHandlers: any;
-        _pages: WizardPageViewModel[];
-        _commands: WizardCommand[];
+        _pages: WizardPage[];
+        _commands: WizardCommand[] = [];
         _tabStrip: TabStrip;
         commandsViewModel: kendo.data.ObservableObject;
 
         constructor(options: WizardOptions) {
             super();
-            let self = this;
+
             this.$component = options.$component;
-            this.currentPage = null;
+
             this._commonPageCommandHandlers = {
                 close: function () {
                     window.close();
@@ -79,23 +87,25 @@
                 },
                 finish: null
             };
+
             if (options.close)
                 this._commonPageCommandHandlers.close = options.close;
             if (options.cancel)
                 this._commonPageCommandHandlers.cancel = options.cancel;
             if (options.finish)
                 this._commonPageCommandHandlers.finish = options.finish;
+
             this._pages = options.pages || [];
-            this._pages.forEach(function (x) {
-                x.owner = self;
-            });
+            for (const page of this._pages) {
+                page.owner = this;
+            }
 
             this._createCommands();
             this.createView(options);
         }
 
         start(): void {
-            let startPage = Enumerable.from(this._pages).firstOrDefault();
+            const startPage = Enumerable.from(this._pages).firstOrDefault();
             if (!startPage)
                 return;
 
@@ -103,7 +113,7 @@
         }
 
         setPageEnabled(name: string, value: boolean): void {
-            let page = this.getPage(name);
+            const page = this.getPage(name);
             if (!page)
                 return;
 
@@ -111,26 +121,40 @@
         }
 
         setPageCommandEnabled(name: string, value: boolean): void {
-            let cmd = this._getCommand(name);
+            const cmd = this._getCommand(name);
             if (!cmd)
                 return;
 
             cmd.set("isEnabled", !!value);
         }
 
-        moveToNextPage(): void {
-            this._moveToNextPage();
+        moveToNextPage(): boolean {
+            return this._moveToNextPage();
         }
 
-        private _moveToNextPage(): boolean {
+        private _canLeaveCurrentPage(): boolean {
             if (!this.currentPage)
                 return false;
 
-            let pages = Enumerable.from(this._pages);
+            if (this.currentPage.validate) {
+                if (!this.currentPage.validate()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private _moveToNextPage(): boolean {
+            if (!this._canLeaveCurrentPage()) {
+                return false;
+            }
+
+            const pages = Enumerable.from(this._pages);
             let idx = pages.indexOf(this.currentPage) + 1;
 
             // Get first enabled next page.
-            let nextPage: WizardPageViewModel;
+            let nextPage: WizardPage;
             while ((nextPage = pages.elementAtOrDefault(idx)) !== null && !nextPage.isEnabled)
                 idx++;
             if (!nextPage)
@@ -142,10 +166,11 @@
         }
 
         private _moveToPreviousPage(): boolean {
-            if (!this.currentPage)
+            if (!this._canLeaveCurrentPage()) {
                 return false;
+            }
 
-            let pages = Enumerable.from(this._pages);
+            const pages = Enumerable.from(this._pages);
             let idx = pages.indexOf(this.currentPage) - 1;
 
             // Get first enabled previous page.
@@ -161,24 +186,24 @@
         }
 
         private _moveToPage(name: string) {
-            let page = this.getPage(name);
+            const page = this.getPage(name);
             if (!page)
                 return;
 
             this._tabStrip.selectTab(name);
         }
 
-        private _executeCommand(name: string): void {
+        private _executeCommand(name: string): boolean {
             if (!this.currentPage)
-                return;
+                return false;
 
-            let cmd = this._getCommand(name);
+            const cmd = this._getCommand(name);
 
             if (cmd.name === "back") {
-                this._moveToPreviousPage();
+                return this._moveToPreviousPage();
             }
             else if (cmd.name === "next") {
-                this._moveToNextPage();
+                return this._moveToNextPage();
             }
             else if (cmd.name === "finish") {
                 if (this._commonPageCommandHandlers.finish)
@@ -192,17 +217,19 @@
                 if (this._commonPageCommandHandlers.close)
                     this._commonPageCommandHandlers.close({ sender: this });
             }
+
+            return true;
         }
 
-        getPage(name: string): WizardPageViewModel {
+        getPage(name: string): WizardPage {
             return this._pages.find((x) => x.name === name);
         }
 
         private _hideAllCommands(): void {
-            this._commands.forEach(function (x) {
-                x.set("isVisible", false);
-                x.set("isEnabled", false);
-            });
+            for (const cmd of this._commands) {
+                cmd.set("isVisible", false);
+                cmd.set("isEnabled", false);
+            }
         }
 
         private _getCommand(name: string): WizardCommand {
@@ -212,7 +239,7 @@
         private _createCommands(): void {
             this._commands = [];
 
-            let commands = {};
+            const commands = {};
             this._addCommand(commands, "back", "Zurück");
             this._addCommand(commands, "next", "Weiter");
             this._addCommand(commands, "finish", "Fertig stellen");
@@ -223,11 +250,11 @@
         }
 
         private _addCommand(commands: any, name: string, text: string): void {
-            let cmd = kmodo.ObservableHelper.observable<WizardCommand>({
+            const cmd = kmodo.ObservableHelper.observable<WizardCommand>({
                 name: name,
                 text: text,
-                isEnabled: name === "back" || name === "cancel" ? true : false,
-                isVisible: false,
+                enabled: name === "back" || name === "cancel" ? true : false,
+                visible: false,
                 onTriggered: () => this._executeCommand(name)
                 // KABU TODO: REMOVE?
                 //enable: function (value) {
@@ -244,20 +271,25 @@
         }
 
         _onPageActivated(name: string): void {
-            let self = this;
             this._hideAllCommands();
 
-            let page = this.getPage(name);
+            if (this.currentPage) {
+                if (this.currentPage.leave) {
+                    this.currentPage.leave();
+                }
+            }
+
+            const page = this.getPage(name);
             if (!page)
                 return;
 
             this.currentPage = page;
 
             if (typeof page.commands === "function") {
-                let commands = page.commands();
+                const commands = page.commands();
                 if (commands) {
-                    commands.forEach(function (x) {
-                        let cmd = self._getCommand(x.name);
+                    for (const x of commands) {
+                        const cmd = this._getCommand(x.name);
                         if (cmd) {
                             // Set text
                             if (typeof x.text !== "undefined") {
@@ -266,9 +298,9 @@
 
                             // Set enabled
                             let enabled = false;
-                            if (typeof x.isEnabled !== "undefined") {
+                            if (typeof x.enabled !== "undefined") {
                                 // Explicitely defined by the consumer.
-                                enabled = !!x.isEnabled;
+                                enabled = !!x.enabled;
                             }
                             else if (x.name === "back" || x.name === "cancel" || x.name === "close") {
                                 // Special commands are implicitely enabled by default.
@@ -279,11 +311,16 @@
                             // Set visibility
                             cmd.set("isVisible", true);
                         }
-                    });
+                    }
                 }
             }
 
-            if (typeof page.enter === "function") {
+            if (!page.initialized && page.init) {
+                page.initialized = true;
+                page.init();
+            }
+
+            if (page.enter) {
                 page.enter();
             }
 
@@ -291,29 +328,28 @@
         }
 
         private createView(options: WizardOptions) {
-            let self = this;
-
             // Init kendo tabstrip.
-            let $tabStripElem = options.$component.children("div.kendomodo-wizard-control").first();
+            const $tabStripElem = options.$component.children("div.kendomodo-wizard-control").first();
             if ($tabStripElem.length) {
                 this._tabStrip = new TabStrip({
                     $component: $tabStripElem,
                     tabs: this._pages.map(function (x) { return x.tab; })
                 });
 
-                this._tabStrip.on("currentTabChanged", function (e) {
-                    self._onPageActivated(e.tab.name);
+                this._tabStrip.on("currentTabChanged", (e) => {
+                    this._onPageActivated(e.tab.name);
                 });
 
                 this._tabStrip.hideTabStrip();
             }
 
             // Bind commands.
-            let $commands = this.$component.children("div.kendomodo-wizard-commands").first();
+            const $commands = this.$component.children("div.kendomodo-wizard-commands").first();
             if ($commands.length) {
-                this._commands.forEach(function (cmd) {
+                for (const cmd of this._commands) {
                     $commands.append('<a data-role="button" data-bind="visible:' + cmd.name + '.isVisible, enabled:' + cmd.name + '.isEnabled, events: { click:' + cmd.name + '.onTriggered }"><span data-bind="text:' + cmd.name + '.text"></span></a>');
-                });
+                }
+
                 kendo.bind($commands, this.commandsViewModel);
             }
         }

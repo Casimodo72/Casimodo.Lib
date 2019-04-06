@@ -28,7 +28,7 @@ namespace cmodo {
                     // which we'll use for error checking.
                     if (xhr.status >= 200 && xhr.status < 300) {
                         if (xhr.responseJSON) {
-                            var data = xhr.responseJSON;
+                            const data = xhr.responseJSON;
                             if (!options.isDataFixupDisabled)
                                 cmodo.fixupDataDeep(data);
                             resolve(data);
@@ -41,9 +41,10 @@ namespace cmodo {
                     // KABU TODO: VERY IMPORTANT: What to do exactly in this case?
                     reject();
                 },
-                error: function (err) {
-                    handleServerError("webapi", err);
-                    reject(err);
+                error: function (jqXHR: JQueryXHR) {
+                    const msg = getODataErrorMessageFromJQueryXHR(jqXHR);
+                    cmodo.showError(msg);
+                    reject(new Error(msg));
                 }
             });
         });
@@ -52,8 +53,8 @@ namespace cmodo {
     export function oDataQuery(url: string, options?: any): Promise<any> {
 
         return new Promise(function (resolve, reject) {
-            var headers = { "Content-Type": "application/json", Accept: "application/json" };
-            var request = {
+            const headers = { "Content-Type": "application/json", Accept: "application/json" };
+            const request = {
                 requestUri: url,
                 method: "GET",
                 headers: headers,
@@ -62,19 +63,17 @@ namespace cmodo {
 
             odatajs.oData.request(request, function (data) {
                 resolve(getODataResponseValue(data, options));
-            }, function (err) {
-                var msg = getResponseErrorMessage("odata", err.response);
-
+            }, function (err: odatajs.HttpOData.Error) {
+                const msg = getODataErrorMessageFromOlingo(err);
                 cmodo.showError(msg);
-
-                reject(msg);
+                reject(new Error(msg));
             });
 
         });
     }
 
     function getODataResponseValue(data: any, options?: any): any {
-        var value = data;
+        let value = data;
         if (!value)
             return null;
 
@@ -105,9 +104,9 @@ namespace cmodo {
     }
 
     function oDataFunctionOrAction(url: string, method: string, kind: string, id: string, args?: any | any[]): Promise<any> {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
             url = url + "/" + method;
-            var payload = null;
+            let payload = null;
 
             if (kind === "function") {
                 url += "(";
@@ -115,22 +114,18 @@ namespace cmodo {
                     if (!Array.isArray(args))
                         args = [args];
 
-                    url += args.map(function (x) { return x.name + "=" + x.value; }).join(",");
+                    url += args.map((x: { name: string; value: string; }) => x.name + "=" + x.value).join(",");
                 }
                 url += ")";
-            }
-            else {
+            } else {
                 url += "()";
                 if (args) {
                     if (!Array.isArray(args))
                         args = [args];
 
                     payload = {};
-                    for (let i = 0; i < args.length; i++) {
-                        payload[args[i].name] = args[i].value;
-                    }
-
-                    //url += "?" + args.map(function (x) { return x.name + "=" + x.value }).join("&");
+                    for (const arg of args)
+                        payload[arg.name] = arg.value;
                 }
             }
 
@@ -140,27 +135,25 @@ namespace cmodo {
         });
     }
 
-    export function executeODataRequestCore(httpMethod: string, url: string, data: any): Promise<any> {
+    export function executeODataRequestCore(httpMethod: string, url: string, data?: any): Promise<any> {
 
         return new Promise((resolve, reject) => {
 
-            var headers = { "Content-Type": "application/json", Accept: "application/json" };
-            var request = {
+            const headers = { "Content-Type": "application/json", Accept: "application/json" };
+            const request = {
                 requestUri: url,
                 method: httpMethod,
                 headers: headers,
-                data: data
+                data: data || null
             };
 
             odatajs.oData.request(request,
                 function (data) {
-                    resolve(getODataResponseValue(data, null));
-                }, function (err) {
-                    var msg = getResponseErrorMessage("odata", err.response);
-
+                    resolve(getODataResponseValue(data));
+                }, function (err: odatajs.HttpOData.Error) {
+                    const msg = getODataErrorMessageFromOlingo(err);
                     cmodo.showError(msg);
-
-                    reject(err);
+                    reject(new Error(msg));
                 });
         });
     }
@@ -217,7 +210,7 @@ namespace cmodo {
             ? (strategy === "use-model" ? { model: opts.data } : opts.data)
             : null
 
-        var request: odatajs.HttpOData.Request = {
+        const request: odatajs.HttpOData.Request = {
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             requestUri: url,
             method: httpMethod,
@@ -230,23 +223,17 @@ namespace cmodo {
     function _executeODataCore(request: odatajs.HttpOData.Request): Promise<any> {
 
         return new Promise(function (resolve, reject) {
-            var method = request.method;
+            const method = request.method;
 
             odatajs.oData.request(request, function (data) {
                 if (method === "PUT" || method === "DELETE")
                     resolve();
                 else if (method === "POST")
                     resolve(data);
-            }, function (err) {
-                var msg = "";
-                if (err.response)
-                    msg = getResponseErrorMessage("odata", err.response);
-                else
-                    msg = getResponseErrorMessage("odata", err);
-
+            }, function (err: odatajs.HttpOData.Error) {
+                const msg = getODataErrorMessageFromOlingo(err);
                 cmodo.showError(msg);
-
-                reject(msg);
+                reject(new Error(msg));
             });
 
         });
@@ -263,128 +250,130 @@ namespace cmodo {
 
     // Error helpers
 
-    function handleServerError(kind: string, err: any) {
-        var msg = "";
-        if (err.response)
-            msg = getResponseErrorMessage(kind, err.response);
-        else
-            msg = getResponseErrorMessage(kind, err);
+    export function getODataErrorMessageFromJQueryXHR(jqXhr: JQueryXHR): string {
+        const items: string[] = [];
+        const statusCode = jqXhr.status.toString();
 
-        cmodo.showError(msg);
+        // jqXHR: https://api.jquery.com/Types/#jqXHR   
+        if (jqXhr.response) {
+            items.push(getODataErrorMessage(statusCode, jqXhr.response));
+        } else if (jqXhr.responseText) {
+            items.push(getODataErrorMessage(statusCode, jqXhr.responseText));
+        }
+
+        return formatErrorMessageParts(statusCode, items);
     }
 
-    export function getResponseErrorMessage(kind: string, response: any) {
+    function getODataErrorMessageFromOlingo(error: odatajs.HttpOData.Error): string {
+        const items: string[] = [];
 
-        var responseStatus = "";
-        var message = "";
+        const statusCode = error.response ? error.response.statusCode : "";
 
-        if (typeof response === "string") {
-            return response;
-        }
-
-        if (response.status) {
-            responseStatus += response.status;
-        }
-        else if (response.statusCode && typeof response.statusCode !== "function") {
-            responseStatus += response.statusCode;
-        }
-
-        if (response.statusText)
-            responseStatus += " " + response.statusText;
-
-        if (kind === "webapi") {
-
-            if (response.responseJSON && response.responseJSON.Message) {
-                message += getWebApiResponseErrorMessage(response.responseJSON);
+        if (error.response) {
+            const body = error.response.body;
+            if (body) {
+                items.push(getODataErrorMessage(statusCode, body));
             }
         }
-        else {
 
-            var error = null;
+        if (items.length === 0 && error.message) {
+            // Fallback to the standard error message provided by olingo.
+            items.push(error.message);
+        }
 
-            if (response.responseJSON) {
-                if (response.responseJSON.error)
-                    error = response.responseJSON.error;
+        return formatErrorMessageParts(statusCode, items);
+    }
+
+    function getODataErrorMessage(statusCode: string, body: any): string {
+        return getAnyApiErrorMessage(statusCode, body);
+    }
+
+    const isErrorStackTraceEnabled = false;
+
+    function getAnyApiErrorMessage(statusCode: string, body: any): string {
+        const items: string[] = [];
+
+        let error: IAnyApiError = null;
+
+        if (typeof body === "string") {
+            if (!body.startsWith("{")) {
+                let msg = statusCode ? `(${statusCode}) ` : "";
+                msg += body as string;
+                // Just a string; no error object.
+                return msg;
             }
-            else if (response.body) {
-                // response.body is avaiable when using Olingo instead of Kendo-datasource.
 
-                try {
-                    error = JSON.parse(response.body).error;
+            // The error object must contain an "error" field.
+            error = JSON.parse(body).error || null;
+        } else {
+            error = body.error || null;
+        }
+
+        if (error) {
+            // Prefer details over main message.
+            //   We need that in case ASP Core returns model validation errors.
+            if (error.details && error.details.length) {
+                for (const errorDetail of error.details) {
+                    items.push(getErrorPartAsText(errorDetail));
                 }
-                catch (ex) {
-                    // TODO: The response body is HTML in this case?
-                    message += response.body;
+            } else if (error.message) {
+                items.push(getErrorPartAsText(error));
+            }           
+
+            if (isErrorStackTraceEnabled) {
+                for (let err = error.innererror; !!err; err = err.innererror) {
+                    items.push(">> " + getErrorPartAsText(err));
                 }
-            }
-
-            if (error) {
-                if (error.message)
-                    message += _fixErrorMessage(kind, error.message);
-
-                if (error.innererror) {
-                    message += ": " + _fixErrorMessage(kind, error.innererror.message);
-
-                    if (error.innererror.internalexception) {
-                        var ex;
-                        for (ex = error.innererror.internalexception; ex; ex = ex.internalexception) {
-                            if (ex.message)
-                                message += " <- " + _fixErrorMessage(kind, ex.message);
-                        }
-                    }
-                }
-            }
-            else if (response.responseText) {
-                // responseText is available when using Kendo-datasource.
-                // Use it as a last resort because OData will set responseText to just serialized error object,
-                // which is not really of any use to us.
-                message += response.responseText;
             }
         }
 
-        if (!message)
-            return responseStatus;
-
-        return message;
+        return formatErrorMessageParts(statusCode, items);
     }
 
-    function getWebApiResponseErrorMessage(error) {
-        var message = "";
-
-        if (error.ExceptionMessage)
-            message += error.ExceptionMessage;
-        else if (error.Message)
-            message += error.Message;
-
-        if (error.MessageDetail)
-            message += " " + error.MessageDetail;
-
-        while (error.InnerException) {
-            error = error.InnerException;
-
-            if (error.ExceptionMessage)
-                message += " << " + error.ExceptionMessage;
-            else if (error.Message)
-                message += " << " + error.Message;
+    function formatErrorMessageParts(statusCode: string, items: string[]): string {
+        if (items.length) {
+            return items.join("\n");
         }
 
-        return message;
+        return `(${statusCode}) [Error message not available]`;
     }
 
-    var _rexODataMessageFix1 = new RegExp("^model : !.+?!");
-    var _rexODataMessageFix2 = new RegExp("( Ploc| Plo)[!]*", "g");
-
-    // Removes OData's annoying trailing Ploc's and leading error identifiers from error messages.
-    function _fixErrorMessage(kind, message) {
-        if (typeof message === "undefined" || message === null)
-            return "";
-        if (kind !== "odata")
-            return message;
-
-        message = message.replace(_rexODataMessageFix1, "").replace(_rexODataMessageFix2, "");
-
-        return message;
+    interface IAnyApiErrorDetails {
+        code: string;
+        message: string;
+        target?: string;
     }
+
+    interface IAnyApiError extends IAnyApiErrorDetails {
+        details?: IAnyApiErrorDetails[];
+        innererror?: IAnyApiInnerError;
+    }
+
+    // OData spec: "The value for the innererror name/value pair MUST be an object.
+    //   The contents of this object are service-defined"
+    interface IAnyApiInnerError {
+        trace?: string;
+        // NOTE: .NET ODataError also has a "Message" and "TypeName" property
+        // which are not part of the OData spec.
+        innererror?: IAnyApiInnerError;
+        message?: string;
+        typeName?: string;
+    }
+
+    function getErrorPartAsText(error: any): string {
+        let text = "";
+        if (error.code) text += `(${error.code}) `;
+        if (error.target) text += `${error.target}: `;
+        if (error.message) text += `${error.message}`;
+
+        if (isErrorStackTraceEnabled) {
+            if (error.typeName) text += `[${error.typeName}]: `;
+            if (error.trace) text += `\nStack trace: ${error.trace.replace("\r\n", "\n")})`;
+        }
+
+        return text;
+    }
+
 
     export class UrlBuilder {
         path: string;
@@ -395,7 +384,7 @@ namespace cmodo {
         }
 
         param(name: string, value: string) {
-            if (value != null) {
+            if (typeof value !== "undefined" && value !== null) {
                 if (this.params)
                     this.params += "&";
                 this.params += name + "=" + value;
@@ -410,6 +399,10 @@ namespace cmodo {
                 result += "?" + this.params;
 
             return result;
+        }
+
+        toString(): string {
+            return this.get();
         }
     }
 }

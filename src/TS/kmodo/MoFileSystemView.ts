@@ -116,11 +116,11 @@ namespace kmodo {
         }
 
         getFolderPath(folderId: string): string {
-            var item = this._containerDict[folderId] as MoFolderTreeEntity;
+            let item = this._containerDict[folderId] as MoFolderTreeEntity;
             if (!item)
                 return null;
 
-            var path: string = null;
+            let path: string = null;
 
             do {
                 path = item.Name + (path ? "/" + path : "");
@@ -181,28 +181,24 @@ namespace kmodo {
         }
 
         refreshFolders(selection): Promise<void> {
+            return new Promise((resolve, reject) => {
 
-            var self = this;
-
-            return new Promise(function (resolve, reject) {
-
-                _saveTreeViewState(self, self._folderKendoTreeView);
+                _saveTreeViewState(this, this._folderKendoTreeView);
 
                 if (selection) {
 
-                    var selectId = typeof selection === "string" ? selection : selection.Id;
+                    const selectId = typeof selection === "string" ? selection : selection.Id;
 
                     if (selectId) {
-                        self.selectedKeys = {};
-                        self.selectedKeys[selectId] = true;
+                        this.selectedKeys = {};
+                        this.selectedKeys[selectId] = true;
                     }
                 }
 
-                //self._root = null;
-                self._items = null;
+                this._items = null;
 
-                var query = "/odata/Mos/";
-                if (self.options.isRecycleBinEnabled)
+                let query = "/odata/Mos/";
+                if (this.options.isRecycleBinEnabled)
                     query += "QueryWithRecycleBin()";
                 else
                     query += "Query()";
@@ -210,22 +206,22 @@ namespace kmodo {
                 query += "?$select=Id,Name,ParentId,TypeId,IsContainer,Role,ModifiedOn,CreatedOn,IsDeleted,IsNotDeletable,IsReadOnly";
                 query += "&$expand=Permissions($select=RoleId)";
                 //query += "&$orderby=Name&";
-                query += "&$filter=OwnerId eq " + self.owner.Id;
+                query += "&$filter=OwnerId eq " + this.owner.Id;
 
-                if (self._filterTagIds && self._filterTagIds.length) {
-                    var tagsExpression = self._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
+                if (this._filterTagIds && this._filterTagIds.length) {
+                    const tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
                     query += " and (IsContainer eq true or (" + tagsExpression + "))";
                 }
 
                 cmodo.oDataQuery(query)
-                    .then(function (rawItems) {
+                    .then((rawItems) => {
 
-                        self._items = rawItems as MoFolderTreeEntity[];
+                        this._items = rawItems as MoFolderTreeEntity[];
 
                         // Add internal sort property in order to have
                         // the management and recycle bin displayed at last positions.
                         // KABU TODO: Add a dedicated sort property to the Mo class.
-                        for (let x of self._items as any[]) {
+                        for (let x of this._items as any[]) {
                             if (x.Role === "RecycleBin")
                                 x._sortValue = 2;
                             else if (x.Role === "ManagementDocRoot")
@@ -234,35 +230,35 @@ namespace kmodo {
                                 x._sortValue = 0;
                         }
 
-                        self._items = self._buildMoTreeViewHierarchy(self._items);
-                        self._items = self._restoreTreeViewState(self._items, self.isInitialLoad);
+                        this._items = this._buildMoTreeViewHierarchy(this._items);
+                        this._items = this._restoreTreeViewState(this._items, this.isInitialLoad);
 
-                        self._folderKendoTreeView.setDataSource(self.createDataSource(self._items));
+                        this._folderKendoTreeView.setDataSource(this.createDataSource(this._items));
 
                         // Select node on right mouse click.
-                        self._folderKendoTreeView.wrapper.on('mousedown', '.k-item', (e) => {
+                        this._folderKendoTreeView.wrapper.on('mousedown', '.k-item', (e) => {
                             if (e.which === 3) {
                                 e.stopPropagation();
-                                self._folderKendoTreeView.select(e.currentTarget);
+                                this._folderKendoTreeView.select(e.currentTarget);
                             }
                         });
 
                         // Ensure selection.
-                        if (!self.select()) {
+                        if (!this.select()) {
                             // Select first node.
-                            var nodes = self._folderKendoTreeView.dataSource.data();
+                            const nodes = this._folderKendoTreeView.dataSource.data();
                             if (nodes.length)
-                                self._folderKendoTreeView.select(self._folderKendoTreeView.findByUid(nodes[0].uid));
+                                this._folderKendoTreeView.select(this._folderKendoTreeView.findByUid(nodes[0].uid));
                         }
 
-                        if (self.isInitialLoad) {
-                            self.isInitialLoad = false;
-                            if (self.options.isExpandAllOnLoadedEnabled) {
-                                self._folderKendoTreeView.expand(".k-item");
+                        if (this.isInitialLoad) {
+                            this.isInitialLoad = false;
+                            if (this.options.isExpandAllOnLoadedEnabled) {
+                                this._folderKendoTreeView.expand(".k-item");
                             }
                         }
 
-                        self.changed();
+                        this.changed();
 
                         resolve();
                     })
@@ -281,7 +277,7 @@ namespace kmodo {
 
             this.moFileCollectionViewModel._resetFileUpload();
 
-            var folder = (e ? this.selectByNode(e.node) : this.select()) as MoFolderTreeEntity;
+            const folder = (e ? this.selectByNode(e.node) : this.select()) as MoFolderTreeEntity;
             if (!folder) {
                 // Hide upload component if no container is selected.
                 this.moFileCollectionViewModel.clear();
@@ -290,18 +286,18 @@ namespace kmodo {
                 return;
             }
 
-            var isInRecycleBin = this.isInRecycleBin(folder);
+            const isInRecycleBin = this.isInRecycleBin(folder);
 
             // Hide upload-component if in recycle-bin.
             this.moFileCollectionViewModel._setFileUploadVisible(!isInRecycleBin);
 
-            var filters: kendo.data.DataSourceFilterItem[] = [
+            const filters: kendo.data.DataSourceFilterItem[] = [
                 { field: "ParentId", operator: "eq", value: folder.Id },
                 { field: "IsContainer", operator: "eq", value: false }
             ];
 
             if (this._filterTagIds && this._filterTagIds.length) {
-                var tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
+                const tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
                 (filters as any[]).push({ customExpression: tagsExpression });
             }
 
@@ -320,69 +316,64 @@ namespace kmodo {
             if (this._isComponentInitialized) return;
             this._isComponentInitialized = true;
 
-            var self = this;
-
             // Refresh-all button.    
-            this.options.$area.find(".mo-file-system-refresh-all-command").on("click", function () {
-                self.refresh();
+            this.options.$area.find(".mo-file-system-refresh-all-command").on("click", () => {
+                this.refresh();
             });
 
             // Folder treeview
-            var $folderTree = this.options.$area.find("div.mo-folder-tree");
+            const $folderTree = this.options.$area.find("div.mo-folder-tree");
 
             this._folderKendoTreeView = $folderTree.kendoTreeView({
                 template: cmodo.templates.get("MoTreeView"),
-                select: $.proxy(self.onSelectionChanged, self),
+                select: (e) => this.onSelectionChanged(e),
                 dataTextField: "Name",
-                dataSource: self.createDataSource([]),
+                dataSource: this.createDataSource([]),
                 dataBound: (e) => {
-                    if (self.options.isExpandAllOnLoadedEnabled && e.node)
+                    if (this.options.isExpandAllOnLoadedEnabled && e.node)
                         e.sender.expand(e.node.find(".k-item"));
                 }
             }).data("kendoTreeView");
 
             // Folder context menu.
-            var $folderContextMenu = this.options.$area.find("ul.mo-folder-context-menu");
-
+            const $folderContextMenu = this.options.$area.find("ul.mo-folder-context-menu");
             if ($folderContextMenu.length) {
                 //this._kendoContextMenu =
                 $folderContextMenu.kendoContextMenu({
                     target: $folderTree,
                     filter: ".k-in",
                     animation: kmodo.getDefaultContextMenuAnimation(),
-                    open: function (e) {
-
-                        var folder = self.select() as MoFolderTreeEntity;
-                        if (!folder || self.isInRecycleBin(folder)) {
+                    open: (e) => {
+                        const folder = this.select() as MoFolderTreeEntity;
+                        if (!folder || this.isInRecycleBin(folder)) {
                             e.preventDefault();
                             return;
                         }
 
-                        var isroot = self.isRoot(folder);
+                        const isroot = this.isRoot(folder);
 
-                        var $menu = e.sender.wrapper;
-                        var $addChildAction = $menu.find("li[data-name='AddChildFolder']");
-                        var $renameAction = $menu.find("li[data-name='RenameFolder']");
-                        var $deleteAction = $menu.find("li[data-name='MoveFolderToRecycleBin']");
-                        var $selectFileSystemTemplateAction = $menu.find("li[data-name='SelectFileSystemTemplate']");
+                        const $menu = e.sender.wrapper;
+                        const $addChildAction = $menu.find("li[data-name='AddChildFolder']");
+                        const $renameAction = $menu.find("li[data-name='RenameFolder']");
+                        const $deleteAction = $menu.find("li[data-name='MoveFolderToRecycleBin']");
+                        const $selectFileSystemTemplateAction = $menu.find("li[data-name='SelectFileSystemTemplate']");
 
-                        _enableContextMenuItem($addChildAction, self.isAddEnabled);
-                        _enableContextMenuItem($renameAction, !isroot && self.isRenameEnabled && !folder.IsReadOnly);
+                        _enableContextMenuItem($addChildAction, this.isAddEnabled);
+                        _enableContextMenuItem($renameAction, !isroot && this.isRenameEnabled && !folder.IsReadOnly);
                         // TODO: Can't use IsNotDeletable, due to a bug. I.e. IsNotDeletable is always true.
                         // TODO: VERY IMPORTANT: FIX IsNotDeletable states in DB.
-                        _enableContextMenuItem($deleteAction, !isroot /* && !folder.IsNotDeletable */ && self.isDeleteEnabled && !folder.IsReadOnly);
-                        _enableContextMenuItem($selectFileSystemTemplateAction, self.options.isFileSystemTemplateEnabled && isroot);
+                        _enableContextMenuItem($deleteAction, !isroot /* && !folder.IsNotDeletable */ && this.isDeleteEnabled && !folder.IsReadOnly);
+                        _enableContextMenuItem($selectFileSystemTemplateAction, this.options.isFileSystemTemplateEnabled && isroot);
                     },
-                    select: function (e) {
-
-                        var folder = self.select() as MoFolderTreeEntity;
+                    select: (e) => {
+                        const folder = this.select() as MoFolderTreeEntity;
                         if (!folder) {
                             // KABU TODO: Can this really happen or is this superfluous?
                             e.preventDefault();
                             return;
                         }
 
-                        var name = $(e.item).data("name") as string;
+                        const name = $(e.item).data("name") as string;
 
                         if (name === "RenameFolder") {
 
@@ -395,8 +386,8 @@ namespace kmodo {
                                 // KABU TODO: LOCALIZE
                                 title: "Umbennen",
                                 errorMessage: "Der Ordner konnte nicht umbenannt werden.",
-                                success: function (result) {
-                                    self.refresh(result.Id);
+                                success: (result) => {
+                                    this.refresh(result.Id);
                                 }
                             });
                         }
@@ -407,40 +398,39 @@ namespace kmodo {
                                 itemId: null,
 
                                 operation: "AddPlainFolder",
-                                owner: self.owner,
+                                owner: this.owner,
                                 parentId: folder.Id,
                                 // KABU TODO: LOCALIZE
                                 title: "Neuer Ordner",
                                 errorMessage: "Der Ordner konnte nicht erstellt werden.",
-                                success: function (result) {
-                                    self.refresh(result.Id);
+                                success: (result) => {
+                                    this.refresh(result.Id);
                                 }
                             });
                         }
                         else if (name === "MoveFolderToRecycleBin") {
-
-                            var node = self._folderKendoTreeView.select();
+                            const node = this._folderKendoTreeView.select();
 
                             // Confirm deletion and delete.
                             kmodo.openDeletionConfirmationDialog(
                                 "Wollen Sie den Ordner '" + folder.Name + "' und dessen Inhalt wirklich löschen?")
-                                .then(function (result) {
+                                .then((result) => {
 
                                     if (result !== true)
                                         return;
 
                                     _executeServerMoOperation({
                                         operation: "MoveToRecycleBin",
-                                        owner: self.owner,
+                                        owner: this.owner,
                                         item: folder,
                                         errorMessage: "Der Ordner konnte nicht in den Papierkorb verschoben werden.",
-                                        success: function (result) {
+                                        success: (result) => {
 
-                                            var prev = self.getByNode($(node).prev());
-                                            var next = self.getByNode($(node).next());
-                                            var parent = self.getByNode(self._folderKendoTreeView.parent(node));
+                                            const prev = this.getByNode($(node).prev());
+                                            const next = this.getByNode($(node).next());
+                                            const parent = this.getByNode(this._folderKendoTreeView.parent(node));
 
-                                            self.refresh(prev || next || parent);
+                                            this.refresh(prev || next || parent);
                                         }
                                     });
                                 });
@@ -449,19 +439,19 @@ namespace kmodo {
 
                             kmodo.openById("8f25bf5c-c20f-4337-8072-1e397cdcf976", {
                                 title: "Dateisystem-Vorlage wählen",
-                                filters: [{ field: "ApplicableToOwnerId", operator: "eq", value: self.owner.TypeId }],
+                                filters: [{ field: "ApplicableToOwnerId", operator: "eq", value: this.owner.TypeId }],
                                 width: 600,
                                 minHeight: 500,
-                                finished: function (result) {
+                                finished: (result) => {
                                     if (result.isOk) {
                                         _executeServerMoOperation({
                                             operation: "ApplyFileSystemTemplate",
-                                            owner: self.owner,
+                                            owner: this.owner,
                                             item: folder,
                                             templateId: result.value,
                                             errorMessage: "Das Dateisystem konnte nicht erstellt werden.",
-                                            success: function (result) {
-                                                self.refresh();
+                                            success: (result) => {
+                                                this.refresh();
                                             }
                                         });
                                     }
@@ -474,11 +464,9 @@ namespace kmodo {
         }
 
         private _buildMoTreeViewHierarchy(mos: Object[]) {
-
-            var containers = [];
-            var roots = [];
-            var mo, parent;
-            //this._root = null;
+            const containers = [];
+            const roots = [];
+            let mo, parent;
             this._containerDict = {};
 
             for (let i = 0; i < mos.length; i++) {
@@ -491,8 +479,6 @@ namespace kmodo {
                     if (mo.Name === "Dokumente")
                         mo.Name = "Dateien";
 
-                    //this._root = mo;
-
                     roots.push(mo);
                 }
 
@@ -501,7 +487,6 @@ namespace kmodo {
                 this._containerDict[mo.Id] = mo;
                 containers.push(mo);
                 mo.folders = [];
-                //mo.hasChildren = false;
                 mo.files = [];
             }
 
@@ -527,7 +512,7 @@ namespace kmodo {
 
             // Sort folders.
             for (let parent of containers) {
-                parent.folders.sort(function (x, y) {
+                parent.folders.sort((x, y) => {
                     if (x._sortValue > y._sortValue) return 1;
                     if (x._sortValue < y._sortValue) return -1;
 
@@ -540,8 +525,7 @@ namespace kmodo {
         }
 
         private _restoreTreeViewState(items: any[], expandAll: boolean): any[] {
-
-            var context = {
+            const context = {
                 schema: this.schema,
                 expandedKeys: this.expandedKeys || {},
                 expandedCount: this.expandedKeys ? Object.keys(this.expandedKeys).length : 0,
@@ -559,10 +543,10 @@ namespace kmodo {
             if (!items || !items.length)
                 return false;
 
-            var isPathSelected = false;
-            var item, children;
+            let isPathSelected = false;
+            let item;
+            let children;
             for (let i = 0; i < items.length; i++) {
-
                 item = items[i];
 
                 if (context.expandedCount && context.expandedKeys[item[context.schema.key]]) {
@@ -648,7 +632,7 @@ namespace kmodo {
                 //   We don't want to reset in this case. Thus skip.
                 return;
 
-            var $elem = this._kendoUpload.wrapper;
+            const $elem = this._kendoUpload.wrapper;
             $elem.find(".k-upload-files").remove();
             $elem.find(".k-upload-status").remove();
             $elem.find(".k-upload.k-header").addClass("k-upload-empty");
@@ -662,8 +646,7 @@ namespace kmodo {
         }
 
         onUploading(e): void {
-
-            var folder = this.trySelectFolder(e);
+            const folder = this.trySelectFolder(e);
             if (!folder) {
                 cmodo.showError("Wählen Sie zuerst einen Ordner bevor Sie Dateien hochladen.");
 
@@ -676,10 +659,9 @@ namespace kmodo {
             e.sender.options.async.saveUrl = this._baseUrl + folder.Id + "?mode=" + this._uploadMode;
 
             // Validate
-            var files = e.files;
-            var file: any;
+            const files = e.files;
             for (let i = 0; i < files.length; i++) {
-                file = files[i];
+                const file = files[i];
 
                 if (this._uploadMode === UPLOAD_MODE_EMAIL) {
                     if (!file.extension || file.extension.toLowerCase() !== ".msg") {
@@ -707,7 +689,7 @@ namespace kmodo {
         }
 
         trySelectFolder(e): MoFolderTreeEntity {
-            var folder = this.options.moFileCollectionViewModel.selectFolder();
+            const folder = this.options.moFileCollectionViewModel.selectFolder();
             if (!folder || !folder.Id) {
                 e.preventDefault();
 
@@ -720,31 +702,30 @@ namespace kmodo {
         }
 
         onCompleted(e): void {
-            var self = this;
             this.showResetButton(true);
 
             this._isRefreshingAfterUpload = true;
             try {
-                var refreshFunc = null;
+                let refreshFunc = null;
                 // Refresh collection of files.
                 if (this.options.moFileCollectionViewModel._moFolderTreeViewModel)
-                    refreshFunc = function () { return self.options.moFileCollectionViewModel._moFolderTreeViewModel.refresh(); };
+                    refreshFunc = () => this.options.moFileCollectionViewModel._moFolderTreeViewModel.refresh();
                 else
-                    refreshFunc = function () { return self.options.moFileCollectionViewModel.refresh(); };
+                    refreshFunc = () => this.options.moFileCollectionViewModel.refresh();
 
                 refreshFunc()
-                    .finally(function () {
-                        self._isRefreshingAfterUpload = false;
+                    .finally(() => {
+                        this._isRefreshingAfterUpload = false;
                     });
             }
-            catch (ex) {
+            catch (err) {
                 this._isRefreshingAfterUpload = false;
             }
         }
 
         _onUploadModeChanged(): void {
             // TODO: Show options panel for mode "email-extraction".
-            var $emailModeProps = this.options.$area.find("div.mo-file-upload-mode-email-prop");
+            const $emailModeProps = this.options.$area.find("div.mo-file-upload-mode-email-prop");
             if (this._uploadMode === UPLOAD_MODE_EMAIL)
                 $emailModeProps.show(100);
             else
@@ -752,8 +733,7 @@ namespace kmodo {
         }
 
         showResetButton(visible: boolean): void {
-            var self = this;
-            var $btn = this.options.$area.find(".kmodo-upload-reset-command");
+            let $btn = this.options.$area.find(".kmodo-upload-reset-command");
 
             if (visible && !$btn.length) {
                 // Add reset button
@@ -761,8 +741,8 @@ namespace kmodo {
                     .find(".k-dropzone")
                     .append('<button type="button" class="k-button k-upload-action kmodo-upload-reset-command" aria-label="Bereinigen"><span class="k-icon k-i-close k-i-x" title="Bereinigen"></span></button>');
 
-                $btn.on("click", function () {
-                    self.reset();
+                $btn.on("click", () => {
+                    this.reset();
                 });
             }
 
@@ -784,10 +764,8 @@ namespace kmodo {
             if (this._isComponentInitialized) return;
             this._isComponentInitialized = true;
 
-            var self = this;
-
             this._$uploadArea = this.options.$area.find(".mo-file-upload-area");
-            var $upload = this._$uploadArea.find("input.mo-file-upload");
+            const $upload = this._$uploadArea.find("input.mo-file-upload");
 
             if (!this.options.moFileCollectionViewModel.isAddEnabled) {
                 $upload.remove();
@@ -806,12 +784,12 @@ namespace kmodo {
                     saveUrl: this._baseUrl,
                     autoUpload: true
                 },
-                success: function (e) {
+                success: (e) => {
                     // Hide the irritating warning (or info) icon on success.
                     //$upload.find(".k-icon.k-warning").hide();
                 },
-                error: function (e) {
-                    var $status = e.sender.wrapper.find(".k-upload-status-total");
+                error: (e) => {
+                    const $status = e.sender.wrapper.find(".k-upload-status-total");
                     // Remove any messages added by Kendo from the DOM.
                     cmodo.jQueryRemoveContentTextNodes($status);
                     $status.append("Fehler");
@@ -830,10 +808,10 @@ namespace kmodo {
                     autoBind: true,
                     valuePrimitive: true,
                     dataSource: [{ mode: UPLOAD_MODE_DEFAULT, displayName: "Standard" }, { mode: UPLOAD_MODE_EMAIL, displayName: "E-Mail" }],
-                    change: function (e) {
+                    change: (e) => {
                         // The user selected an upload mode.
-                        self._uploadMode = e.sender.value();
-                        self._onUploadModeChanged();
+                        this._uploadMode = e.sender.value();
+                        this._onUploadModeChanged();
                     }
                 }).data("kendoDropDownList");
             this._modeSelector.select(0);
@@ -879,11 +857,10 @@ namespace kmodo {
         }
 
         private _bindCoreEvents(): void {
-            var self = this;
-            this.filesGridViewModel.on("dataBound", function (e) { self.trigger("dataBound", e); });
-            this.filesGridViewModel.selectionManager.on("selectionChanged", function (e) { self.trigger("selectionChanged", e); });
-            this.filesGridViewModel.selectionManager.on("selectionItemAdded", function (e) { self.trigger("selectionItemAdded", e); });
-            this.filesGridViewModel.selectionManager.on("selectionItemRemoved", function (e) { self.trigger("selectionItemRemoved", e); });
+            this.filesGridViewModel.on("dataBound", (e) => { this.trigger("dataBound", e); });
+            this.filesGridViewModel.selectionManager.on("selectionChanged", (e) => { this.trigger("selectionChanged", e); });
+            this.filesGridViewModel.selectionManager.on("selectionItemAdded", (e) => { this.trigger("selectionItemAdded", e); });
+            this.filesGridViewModel.selectionManager.on("selectionItemRemoved", (e) => { this.trigger("selectionItemRemoved", e); });
         }
         // TODO: REMOVE: 
         //setTagsFilter(tagIds: string[]): void {
@@ -895,7 +872,7 @@ namespace kmodo {
         }
 
         getKendoGrid(): kendo.ui.Grid {
-            return this.filesGridViewModel.component;
+            return this.filesGridViewModel.getKendoGrid();
         }
 
         setOwner(owner: any): void {
@@ -933,21 +910,20 @@ namespace kmodo {
 
         // Reloads data.
         refresh(selectId?: string): Promise<void> {
-            var self = this;
+            return new Promise((resolve, reject) => {
 
-            return new Promise(function (resolve, reject) {
-
-                self.getDataSource().read()
-                    .then(function () {
+                this.getDataSource().read()
+                    .then(() => {
 
                         if (!selectId) return;
 
                         // Selected the file with the provided ID.
 
-                        var item = self.getDataSource().get(selectId);
-                        if (!item) return;
+                        const item = this.getDataSource().get(selectId);
+                        if (!item)
+                            return;
 
-                        var filesKendoGrid = self.getKendoGrid();
+                        const filesKendoGrid = this.getKendoGrid();
                         // KABU TODO: VERY IMPORTANT: Check if selectable exists on kendo grid.
                         if (typeof (filesKendoGrid as any).selectable !== "undefined")
                             filesKendoGrid.select(filesKendoGrid.tbody.find("tr[data-uid='" + item.uid + "']"));
@@ -976,51 +952,47 @@ namespace kmodo {
             if (this._isComponentInitialized) return;
             this._isComponentInitialized = true;
 
-            var self = this;
-
             // File context menu widget
-            var $fileList = this.$area.find("div.mo-file-list");
-            var $fileContextMenu = this.$area.find("ul.mo-file-context-menu");
+            const $fileList = this.$area.find("div.mo-file-list");
+            const $fileContextMenu = this.$area.find("ul.mo-file-context-menu");
             if ($fileList.length && $fileContextMenu.length) {
                 // this._kendoContextMenu =
                 $fileContextMenu.kendoContextMenu({
                     target: $fileList,
                     filter: "div.file-tile",
                     animation: kmodo.getDefaultContextMenuAnimation(),
-                    open: function (e) {
-
-                        var file = self.select(e);
+                    open: (e) => {
+                        const file = this.select(e);
                         if (!file || file.IsDeleted) {
                             e.preventDefault();
                             return;
                         }
 
-                        self.filesGridViewModel.gridSelectByItem(file);
+                        this.filesGridViewModel.gridSelectByItem(file);
 
-                        var $menu = e.sender.wrapper;
-                        var renameAction = $menu.find("li[data-name='RenameFile']");
-                        var deleteAction = $menu.find("li[data-name='DeleteFile']");
-                        //var downloadAction = $menu.find("li[data-name='DownloadFile']");
-                        //var tagAction = $menu.find("li[data-name='EditFileTags']");
-                        var $copyImageToPdfAction = $menu.find("li[data-name='CopyImageToPdf']");
+                        const $menu = e.sender.wrapper;
+                        const renameAction = $menu.find("li[data-name='RenameFile']");
+                        const deleteAction = $menu.find("li[data-name='DeleteFile']");
+                        // const downloadAction = $menu.find("li[data-name='DownloadFile']");
+                        // const tagAction = $menu.find("li[data-name='EditFileTags']");
+                        const $copyImageToPdfAction = $menu.find("li[data-name='CopyImageToPdf']");
 
-                        _enableContextMenuItem(renameAction, self.isRenameEnabled && !file.IsReadOnly);
+                        _enableContextMenuItem(renameAction, this.isRenameEnabled && !file.IsReadOnly);
                         // TODO: Can't use IsNotDeletable, due to a bug. I.e. IsNotDeletable is always true.
                         // TODO: VERY IMPORTANT: FIX IsNotDeletable in DB.
-                        _enableContextMenuItem(deleteAction, self.isDeleteEnabled && /* !file.IsNotDeletable && */ !file.IsReadOnly);
+                        _enableContextMenuItem(deleteAction, this.isDeleteEnabled && /* !file.IsNotDeletable && */ !file.IsReadOnly);
 
-                        var extension = file.File.FileExtension;
+                        const extension = file.File.FileExtension;
                         _enableContextMenuItem($copyImageToPdfAction, extension === "png" || extension === "jpg");
                     },
-                    select: function (e) {
-
-                        var file = self.select(e);
+                    select: (e) => {
+                        const file = this.select(e);
                         if (!file) {
                             e.preventDefault();
                             return;
                         }
 
-                        var name = $(e.item).data("name");
+                        const name = $(e.item).data("name");
 
                         if (name === "DownloadFile") {
                             cmodo.downloadFile(file.File.fileDownloadUrl, file.File.FileName);
@@ -1037,8 +1009,8 @@ namespace kmodo {
                                 // KABU TODO: LOCALIZE
                                 title: "Umbennen",
                                 errorMessage: "Die Datei konnte nicht umbenannt werden.",
-                                success: function (result) {
-                                    self.refresh(result.Id);
+                                success: (result) => {
+                                    this.refresh(result.Id);
                                 }
                             });
                         }
@@ -1047,21 +1019,21 @@ namespace kmodo {
                             // Confirm deletion and delete.
                             kmodo.openDeletionConfirmationDialog(
                                 "Wollen Sie die Datei '" + file.Name + "' wirklich löschen?")
-                                .then(function (result) {
+                                .then((result) => {
 
                                     if (result !== true)
                                         return;
 
                                     _executeServerMoOperation({
                                         operation: "MoveToRecycleBin",
-                                        owner: self.owner,
+                                        owner: this.owner,
                                         item: file,
                                         // KABU TODO: LOCALIZE
                                         title: "Löschen",
                                         errorMessage: "Die Datei konnte nicht in den Papierkorb verschoben werden.",
-                                        success: function (result) {
+                                        success: (result) => {
 
-                                            self._moFolderTreeViewModel.refresh();
+                                            this._moFolderTreeViewModel.refresh();
                                         }
                                     });
 
@@ -1073,16 +1045,16 @@ namespace kmodo {
                             kmodo.openById("27325a97-268c-4064-aebd-46b74474bcbd",
                                 {
                                     // TODO: MAGIC Mo file type ID.
-                                    filters: buildTagsDataSourceFilters("6773cd3a-2179-4c88-b51f-d22a139b5c60", self.owner.CompanyId),
+                                    filters: buildTagsDataSourceFilters("6773cd3a-2179-4c88-b51f-d22a139b5c60", this.owner.CompanyId),
                                     itemId: file.Id,
                                     title: "Datei-Tags bearbeiten",
                                     message: file.File.FileName,
                                     minWidth: 400,
                                     minHeight: 500,
 
-                                    finished: function (result) {
+                                    finished: (result) => {
                                         if (result.isOk) {
-                                            self._moFolderTreeViewModel.refresh();
+                                            this._moFolderTreeViewModel.refresh();
                                         }
                                     }
                                 });
@@ -1095,9 +1067,9 @@ namespace kmodo {
                                 // KABU TODO: LOCALIZE
                                 title: "PDF aus Bild-Datei erzeugen",
                                 errorMessage: "Das Erzeugen der PDF Datei schlug fehl.",
-                                success: function (result) {
+                                success: (result) => {
 
-                                    self._moFolderTreeViewModel.refresh();
+                                    this._moFolderTreeViewModel.refresh();
                                 }
                             });
                         }
@@ -1185,7 +1157,7 @@ namespace kmodo {
 
             this._$fileSystemInitiatorBtn = null;
 
-            // NOTE: _initComponent() will be called on demand via initComponent().
+            // createView will be called on-demand.
         }
 
         private _setOptions(options: MoFileExplorerOptions): void {
@@ -1275,7 +1247,7 @@ namespace kmodo {
         }
 
         getIsCurrentOwnerValid(): boolean {
-            var owner = this._getCurrentOwner();
+            const owner = this._getCurrentOwner();
             return !!owner && !!owner.Id;
         }
 
@@ -1288,7 +1260,7 @@ namespace kmodo {
         }
 
         setOwnerValues(ownerKind: string, value: MoFileTreeOwnerSetting): void {
-            var owner = this._getDisplayedOwners().find(x => x.Kind === ownerKind);
+            const owner = this._getDisplayedOwners().find(x => x.Kind === ownerKind);
             if (!owner)
                 return;
 
@@ -1302,7 +1274,7 @@ namespace kmodo {
         }
 
         _onCurrentOwnerChanged(): void {
-            var owner = this._getCurrentOwner();
+            const owner = this._getCurrentOwner();
 
             // Clear the folders tree view model. This will also enable
             // expansion of all folders after the next refresh.
@@ -1313,7 +1285,7 @@ namespace kmodo {
             // Don't refresh initially, but always refresh subsequently, so that the
             // consumer can have control over the first refresh.
             if (this._isComponentInitialized) {
-                this._refreshTreeView();                  
+                this._refreshTreeView();
             }
 
             // Update available tags.
@@ -1328,11 +1300,6 @@ namespace kmodo {
                 );
             }
         }
-
-        // TODO: REMOVE
-        //_onTagFilterChanged(): void {
-        //    // KABU TODO: NOP? var tagFilter = this._componentModels.tags.current;
-        //}
 
         getCurrentFolder(): MoFolderTreeEntity {
             return this._treeView.select();
@@ -1351,12 +1318,10 @@ namespace kmodo {
         }
 
         saveExistingFilesToFolder(folderId: string, fileInfos: FileWithTagsInfo[]): void {
-            var self = this;
-
             // Confirm and save.
-            var owner = this.getCurrentOwner();
-            var ownerName = owner.Name;
-            var path = this.getFoldersViewModel().getFolderPath(folderId);
+            const owner = this.getCurrentOwner();
+            const ownerName = owner.Name;
+            const path = this.getFoldersViewModel().getFolderPath(folderId);
 
             kmodo.openConfirmationDialog(
                 "Ziel: " + ownerName + " \"" + path + "\"\n\n" +
@@ -1367,7 +1332,7 @@ namespace kmodo {
                     title: "Dateien speichern",
                     kind: "warning"
                 })
-                .then(function (result) {
+                .then((result) => {
 
                     if (result !== true)
                         return;
@@ -1378,8 +1343,8 @@ namespace kmodo {
                         folderId: folderId,
                         files: fileInfos,
                         errorMessage: "Fehler beim Speichern. Der Vorgang wurde abgebrochen. Es wurde nichts gespeichert.",
-                        success: function (result) {
-                            self._refreshTreeView();
+                        success: (result) => {
+                            this._refreshTreeView();
                             kmodo.openInfoDialog("Die Dateien wurden im Verzeichnis \"" + path + "\" gespeichert.");
                         }
                     });
@@ -1390,8 +1355,6 @@ namespace kmodo {
             if (this._isComponentInitialized)
                 return;
             this._isComponentInitialized = true;
-
-            var self = this;
 
             // Folder tree view for Mo folders to select from.
             this._treeView = new MoFolderTreeViewModel({
@@ -1413,9 +1376,9 @@ namespace kmodo {
                 current: null,
                 items: this.options.owners,
                 // KABU TODO: VERY IMPORTANT: Eval if changed is really called.
-                changed: function (e) {
-                    //var item = e.sender.dataItem();
-                    self._onCurrentOwnerChanged();
+                changed: (e) => {
+                    // const item = e.sender.dataItem();
+                    this._onCurrentOwnerChanged();
                 }
             }) as MoFileTreeOnwersModel;
             kendo.bind(options.$area.find("input.mo-file-system-owner-selector"), this.owners);
@@ -1436,16 +1399,16 @@ namespace kmodo {
 
             this._$tagSelectorIcon = options.$area.find(".mo-file-system-tag-icon");
 
-            var $selector = options.$area.find("input.mo-file-system-tag-filter-selector");
+            const $selector = options.$area.find("input.mo-file-system-tag-filter-selector");
             if ($selector.length) {
                 this._tagFilterSelector = createMoTagFilterSelector(
                     $selector,
                     {
                         // KABU TODO: MAGIC Mo file type ID.
                         filters: buildTagsDataSourceFilters("6773cd3a-2179-4c88-b51f-d22a139b5c60"),
-                        changed: function (tagIds) {
-                            self._treeView.setTagsFilter(tagIds);
-                            self._refreshTreeView();
+                        changed: (tagIds) => {
+                            this._treeView.setTagsFilter(tagIds);
+                            this._refreshTreeView();
                         }
                     }
                 );
@@ -1468,8 +1431,7 @@ namespace kmodo {
         }
 
         _createFilesGrid(options: InternalMoFileExplorerOptions): GridComponent {
-
-            var filesViewOptions: any = {
+            const filesViewOptions: any = {
                 $component: this.options.$area.find("div.mo-file-list"),
                 selectionMode: this.options.areFileSelectorsVisible ? "multiple" : undefined,
                 // KABU TODO: IMPORTANT: Use selectionMode only. Don't operate on the kendo grid here.
@@ -1479,7 +1441,7 @@ namespace kmodo {
             };
 
             // This is the generated grid view model for the kendo grid.
-            var filesGrid = cmodo.componentRegistry.getById("4f846a0e-fe28-451a-a5bf-7a2bcb9f3712").vm(filesViewOptions);
+            const filesGrid = cmodo.componentRegistry.getById("4f846a0e-fe28-451a-a5bf-7a2bcb9f3712").vm(filesViewOptions);
 
             if (options.areFileSelectorsVisible)
                 filesGrid.selectionManager.showSelectors();
@@ -1507,8 +1469,7 @@ namespace kmodo {
         vm.selectedKeys = Object.create(null);
 
         treeview.wrapper.find(".k-item").each((idx, elem) => {
-
-            var item = treeview.dataItem(elem) as MoFolderTreeEntity;
+            const item = treeview.dataItem(elem) as MoFolderTreeEntity;
 
             if (item.expanded)
                 vm.expandedKeys[item[vm.schema.key]] = true;
@@ -1532,7 +1493,7 @@ namespace kmodo {
                 minWidth: 600,
                 minHeight: 100,
 
-                finished: function (result) {
+                finished: (result) => {
                     if (result.isOk) {
                         _executeServerMoOperation(context, {
                             item: result.item
@@ -1543,9 +1504,8 @@ namespace kmodo {
     }
 
     function _executeServerMoOperation(context: any, edit?: any) {
-
-        var oDataMethod = context.operation;
-        var params = [];
+        const oDataMethod = context.operation;
+        let params = [];
 
         if (context.operation === "Rename") {
             params = [
@@ -1591,22 +1551,18 @@ namespace kmodo {
         }
         else throw new MoFileSystemException("Unexpected MoFileSystem operation '" + context.operation + "'.");
 
-        var errorMessage = context.errorMessage || "Fehler. Der Vorgang wurde abgebrochen.";
+        const errorMessage = context.errorMessage || "Fehler. Der Vorgang wurde abgebrochen.";
 
         kmodo.progress(true);
 
         return cmodo.oDataAction("/odata/Mos", oDataMethod, params)
-            .then(function (result) {
-                // KABU TODO: REMOVE
-                //if (!result || !result.Id)
-                //    kmodo.showErrorDialog(errorMessage);
-                //else
+            .then((result) => {
                 context.success(result);
             })
-            .catch(function (ex) {
+            .catch((err) => {
                 kmodo.openErrorDialog(errorMessage);
             })
-            .finally(function () {
+            .finally(() => {
                 kmodo.progress(false);
             });
     }
@@ -1618,7 +1574,7 @@ namespace kmodo {
                 model: {
                     id: "Id",
                     children: "folders",
-                    hasChildren: function (item) {
+                    hasChildren: (item) => {
                         return item.folders && item.folders.length;
                     },
                     fields: {

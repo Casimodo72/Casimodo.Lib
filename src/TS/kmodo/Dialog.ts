@@ -15,14 +15,14 @@ namespace kmodo {
 
     export function openErrorDialog(message: string, options?: SimpleDialogOptions): Promise<boolean> {
         options = options || {};
-        var opts: InternalDialogOptions = {
+        const opts: InternalDialogOptions = {
             title: options.title || "Fehler",
             kind: options.kind || "error",
             ok: true,
             cancel: false
         };
 
-        var result = cmodo._tryCleanupHtml(message);
+        const result = cmodo._tryCleanupHtml(message);
         if (result.ok)
             message = result.html;
 
@@ -30,7 +30,7 @@ namespace kmodo {
     }
 
     export function openWarningDialog(message: string): Promise<boolean> {
-        var opts: InternalDialogOptions = {
+        const opts: InternalDialogOptions = {
             title: "Warnung",
             kind: "warning",
             ok: true,
@@ -42,7 +42,7 @@ namespace kmodo {
 
     export function openInfoDialog(message: string, options?: SimpleDialogOptions): Promise<boolean> {
         options = options || {};
-        var opts: InternalDialogOptions = {
+        const opts: InternalDialogOptions = {
             title: options.title || "Info",
             kind: options.kind || "info",
             ok: true,
@@ -54,7 +54,7 @@ namespace kmodo {
 
     export function openInstructionDialog(message: string, options?: SimpleDialogOptions): Promise<boolean> {
         options = options || {};
-        var opts: InternalDialogOptions = {
+        const opts: InternalDialogOptions = {
             title: options.title || "Info",
             kind: options.kind || "warning",
             ok: true,
@@ -66,7 +66,7 @@ namespace kmodo {
 
     export function openDeletionConfirmationDialog(message: string, options?: SimpleDialogOptions): Promise<boolean> {
         options = options || {};
-        var opts: InternalDialogOptions = {
+        const opts: InternalDialogOptions = {
             title: options.title || "Löschen bestätigen",
             kind: options.kind || "warning",
             ok: true,
@@ -78,7 +78,7 @@ namespace kmodo {
 
     export function openConfirmationDialog(message: string, options?: SimpleDialogOptions): Promise<boolean> {
         options = options || {};
-        var opts: InternalDialogOptions = {
+        const opts: InternalDialogOptions = {
             title: options.title || "Bestätigen",
             kind: options.kind || "",
             ok: true,
@@ -92,14 +92,14 @@ namespace kmodo {
 
         return new Promise(function (resolve, reject) {
 
-            var dialogResult = false;
+            let dialogResult = false;
 
             // If this is just an info confirmation dialog then the dialog-result is always true.
             if (!options.cancel)
                 dialogResult = true;
 
-            var kind = options.kind;
-            var style = "";
+            const kind = options.kind;
+            let style = "";
 
             if (kind === 'info')
                 style += "background-color:skyblue;";
@@ -108,7 +108,7 @@ namespace kmodo {
             else if (kind === 'error')
                 style += "background-color:orange;font-weight:bold;";
 
-            var wnd = $('<div/>')
+            const wnd = $('<div/>')
                 .kendoWindow({
                     title: options.title,
                     modal: true,
@@ -128,7 +128,7 @@ namespace kmodo {
 
             message = message.replace(/\n/g, "<br/>");
 
-            var content = "<div class='confirmation-dialog-content'>" +
+            let content = "<div class='confirmation-dialog-content'>" +
                 "<div class='confirmation-dialog-message'" +
                 (style !== "" ? " style='" + style + "'" : "") +
                 ">" +
@@ -165,11 +165,11 @@ namespace kmodo {
 
     // KABU TODO: Only used in OwnedJobList yet.
     export function showFileDownloadDialog(info): void {
-        var args = new cmodo.DialogArgs('7a516302-3fbc-48ed-91fc-422351c10b9f');
+        const args = new cmodo.DialogArgs('7a516302-3fbc-48ed-91fc-422351c10b9f');
         args.item = info;
         cmodo.dialogArgs.add(args);
 
-        var wnd = $('<div/>')
+        const wnd = $('<div/>')
             .kendoWindow({
                 animation: kmodo.getDefaultDialogWindowAnimation(),
                 modal: true,
@@ -185,11 +185,9 @@ namespace kmodo {
         wnd.refresh({ url: "/Mos/FileDownloadDialog", cache: true });
     }
 
-
-
     export function createUploadComponent($elem: JQuery, text: string, url: string, success: Function): kendo.ui.Upload {
 
-        var upload = $elem.kendoUpload({
+        const upload = $elem.kendoUpload({
             localization: {
                 select: text
             },
@@ -210,7 +208,7 @@ namespace kmodo {
                 success();
             },
             error: function (e) {
-                var $status = e.sender.wrapper.find(".k-upload-status");
+                const $status = e.sender.wrapper.find(".k-upload-status");
 
                 // Remove any messages added by Kendo from the DOM.
                 cmodo.jQueryRemoveContentTextNodes($status);
@@ -276,7 +274,7 @@ namespace kmodo {
     /*
     function findDialogContainer($context) {
         if ($context && $context.length) {
-            var $container = $context.closest(".dialog-container");
+            const $container = $context.closest(".dialog-container");
             if ($container.length)
                 return $container;
         }

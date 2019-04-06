@@ -32,11 +32,11 @@
             if (this._options.isCustomSave)
                 return Promise.resolve();
 
-            var baseUrl = this._options.saveBaseUrl;
-            var method = this._options.saveMethod;
-            var key = this.keyName;
-            var itemIds = this.targetGridViewModel.dataSource.data().map(x => x[key]);
-            var params = [
+            const baseUrl = this._options.saveBaseUrl;
+            const method = this._options.saveMethod;
+            const key = this.keyName;
+            const itemIds = this.targetGridViewModel.dataSource.data().map(x => x[key]);
+            const params = [
                 { name: "id", value: this.args.itemId },
                 { name: "itemIds", value: itemIds }
 
@@ -45,10 +45,8 @@
         }
 
         start(): void {
-            var self = this;
-
-            this.args.buildResult = function () {
-                self.args.items = self.targetGridViewModel.dataSource.data();
+            this.args.buildResult = () => {
+                this.args.items = this.targetGridViewModel.dataSource.data();
             };
 
             if (this.args.filters)
@@ -64,25 +62,24 @@
 
             if (!this._options.isLocalTargetData) {
                 cmodo.oDataQuery(this._options.targetContainerQuery + "&$filter=" + this.keyName + " eq " + this.args.itemId)
-                    .then(function (items) {
-                        var item = items[0];
+                    .then((items) => {
+                        const item = items[0];
                         if (!item)
                             return;
 
-                        self.targetGridViewModel.dataSource.data(item[self._options.targetContainerListField]);
-                        self.connector.processInitialTargetItems();
+                        this.targetGridViewModel.dataSource.data(item[this._options.targetContainerListField]);
+                        this.connector.processInitialTargetItems();
                     });
             }
             else {
                 this.targetGridViewModel.refresh()
-                    .then(function () {
-                        self.connector.processInitialTargetItems();
+                    .then(() => {
+                        this.connector.processInitialTargetItems();
                     });
             }
         }
 
         private _createGrids(): void {
-            var self = this;
 
             this.sourceGridViewModel = cmodo.componentRegistry.getById(this._options.sourceListId).vmOnly({
                 $component: this.$view.find(".indylist-source-view").first(),
@@ -110,8 +107,8 @@
             //    this.targetGridViewModel.optionsSetLocalData(this._options.localTargetData || []);
             //this.targetGridViewModel.optionsUseItemRemoveCommand();
 
-            this.targetGridViewModel.on("item-remove-command-fired", function (e) {
-                self.connector.remove(e.item);
+            this.targetGridViewModel.on("item-remove-command-fired", (e) => {
+                this.connector.remove(e.item);
             });
 
             this.connector = new SelectableFromCollectionConnector({
@@ -139,11 +136,10 @@
             this._createGrids();
 
             if (this._options.isDialog)
-                this._initComponentAsDialog();
+                this._initViewAsDialog();
         }
 
-        _initComponentAsDialog(): void {
-            var self = this;
+        _initViewAsDialog(): void {
 
             // Get dialog arguments and set them on the view model.
             if (!this.args)
@@ -152,10 +148,10 @@
             this._dialogWindow = kmodo.findKendoWindow(this.$view);
             this._initDialogWindowTitle();
 
-            var $dialogCommands = $('#dialog-commands-' + this.getViewId()).first();
+            const $dialogCommands = $('#dialog-commands-' + this.getViewId()).first();
 
             // Init OK/Cancel buttons.
-            var $okBtn = $dialogCommands.find('button.ok-button').first();
+            const $okBtn = $dialogCommands.find('button.ok-button').first();
             if (this._options.isLocalTargetData) {
                 // Change save button text to "OK" because the text "Save" might
                 // indicate to the consumer that the result will be automatically
@@ -166,31 +162,31 @@
                 $okBtn.text("Speichern");
             }
             // $okBtn.off("click.dialog-ok").on("click.dialog-ok", function () {
-            $okBtn.on("click", function () {
+            $okBtn.on("click", () => {
                 kmodo.progress(true);
-                self.save()
-                    .then(function () {
-                        self.args.buildResult();
-                        self.args.isCancelled = false;
-                        self.args.isOk = true;
+                this.save()
+                    .then(() => {
+                        this.args.buildResult();
+                        this.args.isCancelled = false;
+                        this.args.isOk = true;
 
-                        self._dialogWindow.close();
+                        this._dialogWindow.close();
                     })
-                    .finally(function () {
+                    .finally(() => {
                         kmodo.progress(false);
                     });
             });
-            // $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-            $dialogCommands.find('button.cancel-button').first().on("click", function () {
-                self.args.isCancelled = true;
-                self.args.isOk = false;
 
-                self._dialogWindow.close();
+            $dialogCommands.find('button.cancel-button').first().on("click", () => {
+                this.args.isCancelled = true;
+                this.args.isOk = false;
+
+                this._dialogWindow.close();
             });
         }
 
         private _initDialogWindowTitle(): void {
-            var title = "";
+            let title = "";
             if (!this._dialogWindow)
                 return;
             if (this.args.title) {
@@ -228,28 +224,29 @@
         }
 
         init(): void {
-            var self = this;
-            var selectionManager = this._getSourceSelectionManager();
-            var targetDataSource = this._getTargetDataSource();
-            var key = this.keyName;
+            const selectionManager = this._getSourceSelectionManager();
+            const targetDataSource = this._getTargetDataSource();
+            const key = this.keyName;
 
             // Handle source selection changes.
-            selectionManager.on("selectionChanged", function (e) {
+            selectionManager.on("selectionChanged", (e) => {
                 targetDataSource.data(e.items);
             });
 
-            selectionManager.on("selectionItemAdded", function (e) {
+            selectionManager.on("selectionItemAdded", (e) => {
                 // Add file to target.
-                var item = self.getTargetItemById(e.item[key]);
-                if (!item)
+                const item = this.getTargetItemById(e.item[key]);
+                if (!item) {
                     targetDataSource.insert(0, e.item);
+                }
             });
 
-            selectionManager.on("selectionItemRemoved", function (e) {
+            selectionManager.on("selectionItemRemoved", (e) => {
                 // Remove file from target.
-                var item = self.getTargetItemById(e.item[key]);
-                if (item)
+                const item = this.getTargetItemById(e.item[key]);
+                if (item) {
                     targetDataSource.remove(item);
+                }
             });
         }
 
@@ -261,8 +258,8 @@
         processInitialTargetItems(): void {
             // Add the initially existing data items to the selectionManager of the source items view model.
 
-            var selectionManager = this._getSourceSelectionManager();
-            var targetDataSource = this._getTargetDataSource();
+            const selectionManager = this._getSourceSelectionManager();
+            const targetDataSource = this._getTargetDataSource();
 
             targetDataSource.data().forEach(function (item) {
                 selectionManager._addDataItem(item);
@@ -270,7 +267,7 @@
         }
 
         private getTargetItemById(id: string): any {
-            var key = this.keyName;
+            const key = this.keyName;
             return this._getTargetDataSource().data().find(function (x) { return x[key] === id; });
         }
 

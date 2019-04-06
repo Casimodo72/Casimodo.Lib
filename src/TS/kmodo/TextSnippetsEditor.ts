@@ -5,13 +5,14 @@
     // which is not TypeScript and thus will break silently otherwise.
 
     // See issue: https://www.telerik.com/forums/defining-a-kendo-model-in-typescript
-    var SnippetItem = kendo.data.Model.define({
+    const SnippetItem = kendo.data.Model.define({
         fields: {
             index: { type: "number" },
             selected: { type: "boolean" },
             value: { type: "string" },
         },
         onChanged: function (e) {
+            // NOTE: this is the observable
             if (e.field === "selected") {
                 this.trigger("change", { field: "background" });
                 this.trigger("change", { field: "borderWidth" });
@@ -72,8 +73,6 @@
         constructor(options: kmodo.ViewComponentOptions) {
             super(options);
 
-            var self = this;
-
             this._options = {
                 id: "64dcc132-7123-4855-a38f-864cb97d6a27",
                 isDialog: true,
@@ -94,14 +93,14 @@
                     });
                 },
                 onValueClicked: function (e) {
-                    var wasSelected = e.data.selected;
+                    const wasSelected = e.data.selected;
                     this.deselectAllValues();
 
                     if (!wasSelected)
                         e.data.set("selected", true);
                 },
                 deleteSelectedValue: function (e) {
-                    var selected = this.values.find(x => x.selected);
+                    const selected = this.values.find(x => x.selected);
                     if (selected) {
                         this.values.splice(selected.index, 1);
                         if (this.values.length) {
@@ -112,7 +111,7 @@
                             }
 
                             // Select the next or previous sibling.
-                            var index = selected.index;
+                            let index = selected.index;
                             while (index >= this.values.length)
                                 index--;
                             this.values[index].set("selected", true);
@@ -128,12 +127,12 @@
                     this.container.set("selected", true);
                 },
                 deselectAllContainers: function () {
-                    this.containers.forEach(function (x) {
+                    this.containers.forEach((x) => {
                         x.set("selected", false);
                     });
                 },
-                onUseSnippet: function (e) {
-                    self.insertSnippetValue(e.data.value);
+                onUseSnippet: (e) => {
+                    this.insertSnippetValue(e.data.value);
                 },
                 onDeleteSnippet: function (e) {
                     alert("onDeleteSnippet");
@@ -156,13 +155,12 @@
         }
 
         private buildResult(): void {
-            var self = this;
-            var value: string = "";
-            var values: string[] = this.getModel().values.map(function (x) { return x.value });
+            let value: string = "";
+            const values: string[] = this.getModel().values.map(x => x.value);
 
-            values.forEach(function (val) {
+            values.forEach((val) => {
                 value += val;
-                if (self.args.mode === "List") {
+                if (this.args.mode === "List") {
                     value += "\r\n";
                 }
                 else {
@@ -181,16 +179,16 @@
 
             if (this.args.mode === "List") {
                 // Split text into list items
-                this.addValueList(value.match(/[^\r\n]+/g).map(function (val) { return val.trim() }));
+                this.addValueList(value.match(/[^\r\n]+/g).map(val => val.trim()));
 
             }
             else {
                 // Try to split into snippet items.
-                var snippets = this.getAllSnippetStrings()
+                const snippets = this.getAllSnippetStrings()
                     // Longer snippets first
-                    .sort(function (a, b) { return -1 * (a.length - b.length) });
+                    .sort((a, b) => -1 * (a.length - b.length));
 
-                var values: string[] = [];
+                const values: string[] = [];
 
                 this.initValuesCore(value, values, snippets);
 
@@ -199,22 +197,20 @@
         }
 
         private initValuesCore(value: string, values: string[], snippets: string[]): void {
-            var self = this;
-            var matches = snippets.some((snippet) => {
-
-                var index = value.indexOf(snippet);
+            const matches = snippets.some((snippet) => {
+                const index = value.indexOf(snippet);
                 if (index !== -1) {
 
-                    var pre = value.substring(0, index).trim();
+                    const pre = value.substring(0, index).trim();
                     if (pre.length) {
-                        self.initValuesCore(pre, values, snippets);
+                        this.initValuesCore(pre, values, snippets);
                     }
 
                     values.push(snippet);
 
-                    var tail = value.substring(index + snippet.length).trim();
+                    const tail = value.substring(index + snippet.length).trim();
                     if (tail.length) {
-                        self.initValuesCore(tail, values, snippets);
+                        this.initValuesCore(tail, values, snippets);
                     }
 
                     // Stop at first hit.
@@ -226,23 +222,20 @@
 
             if (!matches) {
                 // Add whitespace separated tokens.
-                value.match(/\S+/g).forEach(function (x) {
-                    values.push(x);
-                });
+                value.match(/\S+/g).forEach(x => values.push(x));
             }
         }
 
         private addValueList(values: string[]): void {
-            var self = this;
             this.getModel().deselectAllValues();
-            values.forEach(function (value) {
-                self.getModel().values.push(self.createValue(value, false));
+            values.forEach((value) => {
+                this.getModel().values.push(this.createValue(value, false));
             });
         }
 
         private insertSnippetValue(value: string): void {
-            var selected = this.getModel().values.find((x) => x.selected);
-            var newItem = this.createValue(value, false);
+            const selected = this.getModel().values.find((x) => x.selected);
+            const newItem = this.createValue(value, false);
             if (selected) {
                 this.getModel().values.splice(selected.index, 0, newItem);
                 // Set new indexes
@@ -256,7 +249,7 @@
         }
 
         private createValue(value: string, selected: boolean): any /* SnippetItem */ {
-            var item = new SnippetItem({
+            const item = new SnippetItem({
                 id: kendo.guid(),
                 index: this.getModel().values.length,
                 selected: selected,
@@ -268,7 +261,7 @@
         }
 
         private getAllSnippetStrings(): string[] {
-            var list: string[] = [];
+            const list: string[] = [];
             // NOTE: kendo.data.ObservableArray is *not* iterable. We can't use a for..of loop.
             this.getModel().containers.forEach(container =>
                 container.items.forEach(item =>
@@ -283,8 +276,6 @@
         }
 
         refresh(): Promise<void> {
-            let self = this;
-
             let url = "/odata/TextItems/Query()?$select=Id,Value1,IsContainer,ContainerId&$orderby=Index";
             url += "&$filter=TypeId+eq+" + this.args.params.typeId;
 
@@ -300,15 +291,15 @@
 
             return new Promise((resolve, reject) => {
 
-                ds.query().then(function () {
+                ds.query().then(() => {
 
-                    let items: TextItemEntity[] = ds.data().map(x => x as TextItemEntity);
+                    const items: TextItemEntity[] = ds.data().map(x => x as TextItemEntity);
 
                     // Find containers
-                    let containers: TextItemContainerLiteral[] = items
-                        .filter(function (x) { return x.IsContainer })
-                        .map(function (x) {
-                            let container: TextItemContainerLiteral = {
+                    const containers: TextItemContainerLiteral[] = items
+                        .filter((x) => x.IsContainer)
+                        .map((x) => {
+                            const container: TextItemContainerLiteral = {
                                 id: x.Id,
                                 value: x.Value1.trim(),
                                 selected: false,
@@ -318,7 +309,8 @@
                         });
 
                     // Fill containers
-                    let item, container;
+                    let item;
+                    let container;
                     for (let i = 0; i < items.length; i++) {
                         item = items[i];
                         for (let k = 0; k < containers.length; k++) {
@@ -332,18 +324,18 @@
                         }
                     }
 
-                    let viewModel = self.getModel();
+                    const viewModel = this.getModel();
 
                     for (let x of containers)
                         viewModel.containers.push(x as any);
 
                     if (viewModel.containers.length) {
-                        let first = viewModel.containers[0];
+                        const first = viewModel.containers[0];
                         first.set("selected", true);
                         viewModel.set("container", first);
                     }
 
-                    self.initValue(self.args.value);
+                    this.initValue(this.args.value);
 
                     resolve();
                 })
@@ -371,12 +363,10 @@
 
             kendo.bind(this.$view, this.getModel());
 
-            this._initComponentAsDialog();
+            this._initViewAsDialog();
         }
 
-        private _initComponentAsDialog(): void {
-            var self = this;
-
+        private _initViewAsDialog(): void {
             this._dialogWindow = kmodo.findKendoWindow(this.$view);
 
             this._initDialogWindowTitle();
@@ -385,27 +375,26 @@
             //   decorator for dialog functionality. That's why the view model
             //   itself has to take care of the dialog commands which are located
             //   *outside* the widget.
-            var $dialogCommands = $('#dialog-commands-' + this._options.id);
+            const $dialogCommands = $('#dialog-commands-' + this._options.id);
             // Init OK/Cancel buttons.
-            $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", function () {
+            $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", () => {
+                this.args.buildResult();
+                this.args.isCancelled = false;
+                this.args.isOk = true;
 
-                self.args.buildResult();
-                self.args.isCancelled = false;
-                self.args.isOk = true;
-
-                self._dialogWindow.close();
+                this._dialogWindow.close();
             });
 
-            $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-                self.args.isCancelled = true;
-                self.args.isOk = false;
+            $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", () => {
+                this.args.isCancelled = true;
+                this.args.isOk = false;
 
-                self._dialogWindow.close();
+                this._dialogWindow.close();
             });
         }
 
         private _initDialogWindowTitle(): void {
-            var title = "";
+            let title = "";
 
             if (this.args.title) {
                 title = this.args.title;

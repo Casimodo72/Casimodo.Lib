@@ -30,10 +30,10 @@
             if (this._options.isCustomSave)
                 return Promise.resolve();
 
-            var baseUrl = this._options.saveBaseUrl;
-            var method = this._options.saveMethod;
-            var itemIds = this.targetGridViewModel.dataSource.data().map(x => x[this.keyName]);
-            var params = [
+            const baseUrl = this._options.saveBaseUrl;
+            const method = this._options.saveMethod;
+            const itemIds = this.targetGridViewModel.dataSource.data().map(x => x[this.keyName]);
+            const params = [
                 { name: "id", value: this.args.itemId },
                 { name: "itemIds", value: itemIds }
 
@@ -42,10 +42,8 @@
         }
 
         start(): void {
-            var self = this;
-
-            this.args.buildResult = function () {
-                self.args.items = self.targetGridViewModel.dataSource.data();
+            this.args.buildResult = () => {
+                this.args.items = this.targetGridViewModel.dataSource.data();
             };
 
             if (this.args.filters)
@@ -61,32 +59,30 @@
 
             if (!this._options.isLocalTargetData) {
                 cmodo.oDataQuery(this._options.targetContainerQuery + "&$filter=" + this.keyName + " eq " + this.args.itemId)
-                    .then(function (items) {
-                        let item = items[0];
+                    .then(items => {
+                        const item = items[0];
                         if (!item)
                             return;
 
-                        let steps = self._options.targetContainerListField.split(".");
+                        const steps = this._options.targetContainerListField.split(".");
                         // First step points to the "ToTags" list.
                         let list = item[steps[0]];
                         // Second step points to the Tag itself. Select all tags from list.
                         list = list.map(x => x[steps[1]]);
 
-                        self.targetGridViewModel.dataSource.data(list);
-                        self.connector.processInitialTargetItems();
+                        this.targetGridViewModel.dataSource.data(list);
+                        this.connector.processInitialTargetItems();
                     });
             }
             else {
                 this.targetGridViewModel.refresh()
-                    .then(function () {
-                        self.connector.processInitialTargetItems();
+                    .then(() => {
+                        this.connector.processInitialTargetItems();
                     });
             }
         }
 
         private _createGrids(): void {
-            var self = this;
-
             this.sourceGridViewModel = cmodo.componentRegistry.getById(this._options.sourceListId).vmOnly({
                 $component: this.$view.find(".indylist-source-view").first(),
                 selectionMode: "multiple",
@@ -113,8 +109,8 @@
             //    this.targetGridViewModel.optionsSetLocalData(this._options.localTargetData || []);
             //this.targetGridViewModel.optionsUseItemRemoveCommand();
 
-            this.targetGridViewModel.on("item-remove-command-fired", function (e) {
-                self.connector.remove(e.item);
+            this.targetGridViewModel.on("item-remove-command-fired", (e) => {
+                this.connector.remove(e.item);
             });
 
             this.connector = new SelectableFromCollectionConnector({
@@ -146,8 +142,6 @@
         }
 
         _initComponentAsDialog(): void {
-            var self = this;
-
             // Get dialog arguments and set them on the view model.
             if (!this.args)
                 this.setArgs(cmodo.dialogArgs.consume(this._options.id));
@@ -155,10 +149,10 @@
             this._dialogWindow = kmodo.findKendoWindow(this.$view);
             this._initDialogWindowTitle();
 
-            var $dialogCommands = $('#dialog-commands-' + this.getViewId()).first();
+            const $dialogCommands = $('#dialog-commands-' + this.getViewId()).first();
 
             // Init OK/Cancel buttons.
-            var $okBtn = $dialogCommands.find('button.ok-button').first();
+            const $okBtn = $dialogCommands.find('button.ok-button').first();
             if (this._options.isLocalTargetData) {
                 // Change save button text to "OK" because the text "Save" might
                 // indicate to the consumer that the result will be automatically
@@ -168,32 +162,31 @@
             else {
                 $okBtn.text("Speichern");
             }
-            // $okBtn.off("click.dialog-ok").on("click.dialog-ok", function () {
-            $okBtn.on("click", function () {
+            $okBtn.on("click", () => {
                 kmodo.progress(true);
-                self.save()
-                    .then(function () {
-                        self.args.buildResult();
-                        self.args.isCancelled = false;
-                        self.args.isOk = true;
+                this.save()
+                    .then(() => {
+                        this.args.buildResult();
+                        this.args.isCancelled = false;
+                        this.args.isOk = true;
 
-                        self._dialogWindow.close();
+                        this._dialogWindow.close();
                     })
-                    .finally(function () {
+                    .finally(() => {
                         kmodo.progress(false);
                     });
             });
-            // $dialogCommands.find('button.cancel-button').first().off("click.dialog-cancel").on("click.dialog-cancel", function () {
-            $dialogCommands.find('button.cancel-button').first().on("click", function () {
-                self.args.isCancelled = true;
-                self.args.isOk = false;
 
-                self._dialogWindow.close();
+            $dialogCommands.find('button.cancel-button').first().on("click", () => {
+                this.args.isCancelled = true;
+                this.args.isOk = false;
+
+                this._dialogWindow.close();
             });
         }
 
         private _initDialogWindowTitle(): void {
-            var title = "";
+            let title = "";
             if (!this._dialogWindow)
                 return;
             if (this.args.title) {

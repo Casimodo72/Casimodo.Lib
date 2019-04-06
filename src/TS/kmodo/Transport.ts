@@ -1,32 +1,10 @@
-﻿namespace kmodo {
+﻿// TODO: DELETE FILE
+/*
+namespace kmodo {
 
-    export function odataQueryFirstOrDefault(url: string, parameter): Promise<any> {
+    function createReadDataSource(url: string, parameter?: any, options?: any): kendo.data.DataSource {
 
-        return new Promise(function (resolve, reject) {
-            var ds = createReadDataSource(url, parameter);
-
-            ds.fetch()
-                .then(function () {
-                    var items = ds.data();
-                    // Clear the data source.
-                    ds.data([]);
-                    if (items.length)
-                        resolve(items[0]);
-                    else
-                        resolve(null);
-                }, function (err) {
-                    var msg = cmodo.getResponseErrorMessage("odata", err);
-
-                    cmodo.showError(msg);
-
-                    reject(err);
-                });
-        });
-    }
-
-    function createReadDataSource(url: string, parameter: any, options?: any): kendo.data.DataSource {
-
-        var dsoptions: kendo.data.DataSourceOptions = {
+        const dsoptions: kendo.data.DataSourceOptions = {
             type: "odata-v4",
             transport: {
                 parameterMap: function (data, type) { return kmodo.parameterMapForOData(data, type, null); },
@@ -60,3 +38,4 @@
         return new kendo.data.DataSource(dsoptions);
     }
 }
+*/

@@ -76,7 +76,7 @@
 
         add(options: ComponentRegItemOptions): void {
 
-            var item = new ComponentRegItem();
+            const item = new ComponentRegItem();
             item.registry = this;
             item.id = options.id;
             item.part = options.part;
@@ -104,7 +104,7 @@
         }
 
         getById(id: string, options?: any): ComponentRegItem {
-            var item = this.items.find(x => x.id === id);
+            let item = this.items.find(x => x.id === id);
 
             if (item && options) {
                 // KABU TODO: IMPORTANT: Will this work with ES6 class instances?
@@ -120,7 +120,7 @@
         }
 
         getAuthQueries(item: ComponentRegItem): AuthQuery[] {
-            var result: AuthQuery[] = [];
+            const result: AuthQuery[] = [];
 
             result.push({
                 Part: item.part,
@@ -129,7 +129,7 @@
             });
 
             if (item.editorId) {
-                var editor = this.getById(item.editorId);
+                const editor = this.getById(item.editorId);
                 result.push({
                     Part: editor.part,
                     Group: editor.group,
@@ -152,10 +152,10 @@
                 return new item.vmType({ id: item.id, isDialog: item.isDialog, isLookup: item.isLookup });
             }
             else {
-                var typeName = this._buidTypeName(item);
+                const typeName = this._buidTypeName(item);
 
                 // TypeScript:
-                //var myClassInstance = Object.create(window["MyClass"].prototype);
+                //const myClassInstance = Object.create(window["MyClass"].prototype);
                 //myClassInstance.constructor.apply(greeter, new Array(myContructorArg));
 
                 return this.getComponentFactory(typeName).create(options);
@@ -174,7 +174,7 @@
                 return new item.vmType({ id: item.id, isDialog: item.isDialog, isLookup: item.isLookup });
             }
             else {
-                var typeName = this._buidTypeName(item);
+                const typeName = this._buidTypeName(item);
                 return this.getComponentFactory(typeName).createViewModel(options);
             }
         }
@@ -184,5 +184,5 @@
         }
     }
 
-    export var componentRegistry = new ComponentRegistry();
+    export let componentRegistry = new ComponentRegistry();
 }
