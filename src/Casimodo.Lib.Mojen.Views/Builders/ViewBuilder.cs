@@ -772,21 +772,6 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        /// <summary>
-        /// KABU TODO: ELIMINATE: This is a temporary hack for the generation of
-        /// factories for JS component spaces, because previously such component spaces
-        /// were page singletons, but now we need multiple of such components on a page.
-        /// It was a mistake to design all JS component spaces as singletons. For
-        /// lookup views it makes sense but no for all components.
-        /// </summary>
-        /// <returns></returns>
-        public MojViewBuilder Factory()
-        {
-            View.HasFactory = true;
-
-            return this;
-        }
-
         public MojViewBuilder Alias(string alias)
         {
             View.Alias = alias;

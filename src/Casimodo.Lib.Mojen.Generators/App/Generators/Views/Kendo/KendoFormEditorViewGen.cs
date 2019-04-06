@@ -468,8 +468,8 @@ namespace Casimodo.Lib.Mojen
             O($"// Lookup view for {propPath}");
             OnSelectorButtonClick(context, () =>
             {
-                O($"var $container = {JQuerySelectEditorContainer()};");
-                O($"var item = $container.find('input').first().prop('kendoBindingTarget').source;");
+                O($"const $container = {JQuerySelectEditorContainer()};");
+                O($"const item = $container.find('input').first().prop('kendoBindingTarget').source;");
 
                 throw new MojenException("modo.addEntityToObservableArray does not exist yet.");
 #pragma warning disable
@@ -554,11 +554,11 @@ namespace Casimodo.Lib.Mojen
 
             OMvcScriptBegin();
             O($"// Sequence value generator for {propPath}");
-            O($"var inputs = $(\"input[name='{propPath}']\");");
+            O($"const inputs = $(\"input[name='{propPath}']\");");
             OnSelectorButtonClick(context, () =>
             {
-                O($"var item = inputs.first().prop('kendoBindingTarget').source;");
-                O($"var args = [];");
+                O($"const item = inputs.first().prop('kendoBindingTarget').source;");
+                O($"const args = [];");
                 foreach (var per in sprop.DbAnno.Unique.GetParams())
                 {
                     O($"args.push({{ name: '{per.Prop.Name}', value: item.{per.Prop.Name} }});");
@@ -617,9 +617,9 @@ namespace Casimodo.Lib.Mojen
 
             OnSelectorButtonClick(context, () =>
             {
-                O($"var $container = {JQuerySelectEditorContainer()};");
-                O($"var model = $container.find(\"input[name = '{propPath}']\").first().prop('kendoBindingTarget').source;");
-                O($"var info = new kmodo.GeoPlaceEditorInfo(model);");
+                O($"const $container = {JQuerySelectEditorContainer()};");
+                O($"const model = $container.find(\"input[name = '{propPath}']\").first().prop('kendoBindingTarget').source;");
+                O($"const info = new kmodo.GeoPlaceEditorInfo(model);");
                 if (geoConfig.SourcePropMap != null)
                 {
                     OB("info.map(");
@@ -715,16 +715,16 @@ namespace Casimodo.Lib.Mojen
 
             OnSelectorButtonClick(context, () =>
             {
-                O($"var $inputs = $(\"input[name='{propPath}']\");");
-                O($"var $container = {JQuerySelectEditorContainer()};");
-                O("var options = {};");
+                O($"const $inputs = $(\"input[name='{propPath}']\");");
+                O($"const $container = {JQuerySelectEditorContainer()};");
+                O("const options = {};");
 
                 // Arguments to be passed to the lookup dialog.
                 if (cascadeFromInfos?.Any() == true)
                 {
                     O($"options.filters = [];");
                     O($"options.filterCommands = [];");
-                    O("var cascadeFromVal = '';");
+                    O("let cascadeFromVal = '';");
                     O();
                     foreach (var cascadeFromInfo in cascadeFromInfos)
                     {
@@ -774,7 +774,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     // Filter using a property in the view model scope.
                     // Get the view model.
-                    O($"var vm = $container.data('viewModel');");
+                    O($"const vm = $container.data('viewModel');");
 
                     // Get target info
                     var targetType = vprop.FormedNavigationTo.TargetType;
@@ -800,7 +800,7 @@ namespace Casimodo.Lib.Mojen
                     O("return;");
                     End();
 
-                    O($"var filter = {{ field: '{targetPath}', " +
+                    O($"const filter = {{ field: '{targetPath}', " +
                         "value: cascadeFromVal, operator: 'eq', " +
                         $"targetType: '{targetType}', targetTypeId: '{targetType.Id}', " +
                         $"deactivatable: {Moj.JS(false)} }};");
@@ -1040,7 +1040,7 @@ namespace Casimodo.Lib.Mojen
             O($"// Snippet editor for {propPath}");
             OnSelectorButtonClick(context, () =>
             {
-                O($"var input = $(\"textarea[name='{propPath}'], input[name='{propPath}']\").first();");
+                O($"const input = $(\"textarea[name='{propPath}'], input[name='{propPath}']\").first();");
 
                 KendoGen.OOpenDialogView(context, snippetsEditorView,
                     options: new Action(() =>

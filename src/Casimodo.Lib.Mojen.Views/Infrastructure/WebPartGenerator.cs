@@ -325,10 +325,6 @@ namespace Casimodo.Lib.Mojen
         {
             while (context.Next())
             {
-                // KABU TODO: REMOVE
-                //if (context.Index == 0)
-                //    O($"var {context.Current};");
-
                 var absoluteNs = context.Previous != null ? context.Previous + "." + context.Current : "window." + context.Current;
                 OB($"(function({context.Current})");
                 O();

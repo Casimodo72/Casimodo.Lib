@@ -137,7 +137,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OBeginComponentViewModelFactory(WebViewGenContext context)
         {
-            O($"export let {context.ViewModelFactoryName} = cmodo.createComponentViewModelFactory();");
+            O($"export const {context.ViewModelFactoryName} = cmodo.createComponentViewModelFactory();");
             OB($"{context.ViewModelFactoryName}.createCore = function (options)");
 
             //OJsImmediateBegin("factory");

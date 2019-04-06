@@ -304,8 +304,6 @@ namespace Casimodo.Lib.Mojen
 
         public ViewTemplate Template { get; private set; } = new ViewTemplate();
 
-        public bool HasFactory { get; set; }
-
         public string Group { get; set; }
 
         public bool IsPartial { get; set; }
