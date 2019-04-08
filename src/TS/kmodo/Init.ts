@@ -1,6 +1,4 @@
 ﻿
-// NOTE: Cannot move the following to TypeScript: our TS Kendo UI version does not support some of this stuff yet.
-
 // Kendo MVVM binders ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // visibleWithFade
