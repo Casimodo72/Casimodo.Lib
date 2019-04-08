@@ -17,8 +17,8 @@
         protected _options: IndyCollectionEditorFormOptions;
         dataSource: kendo.data.DataSource = null;
         connector: SelectableFromCollectionConnector = null;
-        sourceGridViewModel: GridComponent;
-        targetGridViewModel: GridComponent;
+        sourceGridViewModel: Grid;
+        targetGridViewModel: Grid;
         private _dialogWindow: kendo.ui.Window;
 
         constructor(options: IndyCollectionEditorFormOptions) {
@@ -95,17 +95,10 @@
                 isDialog: false, isLookup: false, isDetailsEnabled: false,
                 editor: null,
                 // KABU TODO: VERY IMPORTANT: Eval if those new options work as expected.
-                useLocalDataSource: this._options.isLocalTargetData,
+                isLocalData: this._options.isLocalTargetData,
                 localData: this._options.localTargetData || null,
                 useRemoveCommand: true
             });
-
-            // KABU TODO: REMOVE:
-            // this.targetGridViewModel.initComponentOptions();
-            // this.targetGridViewModel.optionsUseLocalDataSource(this._options.localTargetData);            
-            // if (this._options.isLocalTargetData)
-            //    this.targetGridViewModel.optionsSetLocalData(this._options.localTargetData || []);
-            //this.targetGridViewModel.optionsUseItemRemoveCommand();
 
             this.targetGridViewModel.on("item-remove-command-fired", (e) => {
                 this.connector.remove(e.item);
@@ -205,15 +198,15 @@
 
     interface SelectableFromCollectionConnectorOptions {
         keyName?: string;
-        source: GridComponent;
-        target: GridComponent;
+        source: Grid;
+        target: Grid;
     }
 
     export class SelectableFromCollectionConnector extends cmodo.ComponentBase {
 
         keyName: string;
-        sourceGridViewModel: GridComponent;
-        targetGridViewModel: GridComponent;
+        sourceGridViewModel: Grid;
+        targetGridViewModel: Grid;
 
         constructor(options: SelectableFromCollectionConnectorOptions) {
             super();

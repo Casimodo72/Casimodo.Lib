@@ -299,11 +299,15 @@
                 //    //wnd.center();
                 //}
                 if (!reg.isCached) {
-                    const componentRoot = wnd.wrapper.find(".component-root").first();
-                    if (ownd.maxWidth)
-                        componentRoot.css("max-width", ownd.maxWidth);
-                    if (ownd.minWidth && (ownd.maxWidth === null || ownd.minWidth <= ownd.maxWidth))
-                        componentRoot.css("min-width", ownd.minWidth);
+                    // TODO: REMOVE: width min/max must be now provided by the view itself.
+                    // const componentRoot = wnd.wrapper.find(".component-root").first();                   
+                    // if (ownd.maxWidth)
+                    //    componentRoot.css("max-width", ownd.maxWidth);
+                    // TODO: REMOVE: min-width because this could make the view
+                    //   too wide for bootstrap's min screen width layout.
+                    //   responsive layout.
+                    // if (ownd.minWidth && (ownd.maxWidth === null || ownd.minWidth <= ownd.maxWidth))
+                    //    componentRoot.css("min-width", ownd.minWidth);
                 }
 
                 _centerKendoWindowHorizontally(wnd);

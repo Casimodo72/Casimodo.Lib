@@ -33,6 +33,7 @@
         private _$toolbar: JQuery = null;
         private _editors: CustomPropViewComponentInfo[] = [];
         private _$saveCmd: JQuery;
+        private kendoEditable: KendoUIEditable = null;
 
         constructor(options: EditorFormOptions) {
             super(options);
@@ -205,6 +206,10 @@
             this._save();
         }
 
+        getCurrentAsObject() {
+            return this.getCurrentItem().toJSON();
+        }
+
         createSaveableDataItem() {
             // Transform data item from Kendo ObservableObject to simple object.
             const item = this.getCurrentItem().toJSON();
@@ -293,27 +298,26 @@
                 this._initViewAsDialog();
         }
 
-        private _initViewAsDialog(): void {          
+        private _initViewAsDialog(): void {
             // KABU TODO: Move to "initAsDialog" section.
             this._editorWindow = kmodo.findKendoWindow(this.$view);
             this._editorWindow.element.css("overflow", "visible");
         }
 
         private _getErrorTemplate(): string {
-            return `<a href="\\#" class="km-form-field-error-tooltip" data-tooltip="#:message#"><span class='icon-prop-validation-error'></a>`;
+            return `<a href="\\#" class="km-form-control-error-tooltip" data-tooltip="#:message#"><span class='icon-prop-validation-error'></a>`;
         }
 
         validate(): EditorValidationResult {
-            const editable = this._getKendoEditable(this.getCurrentItem());
             const result: EditorValidationResult = {
-                valid: editable.validatable.validate(),
-                errors: editable.validatable.errors().map(x => ({ prop: "", message: x }))
+                valid: this.kendoEditable.validatable.validate(),
+                errors: this.kendoEditable.validatable.errors().map(x => ({ prop: "", message: x }))
             };
 
             return result;
         }
 
-        private _getKendoEditable(dataItem: any): KendoUIEditable {
+        private _createKendoEditable(dataItem: any): KendoUIEditable {
 
             const editableOptions: KendoUIEditableOptions = {
                 model: dataItem,
@@ -334,7 +338,7 @@
 
             const dataItem = this.getCurrentItem();
 
-            const editable = this._getKendoEditable(dataItem);
+            this.kendoEditable = this._createKendoEditable(dataItem);
 
             let saveAttempted = false;
 
@@ -360,7 +364,7 @@
                 }
 
                 // Save only if modified and valid.
-                if (dataItem.dirty && editable.validatable.validate()) {
+                if (dataItem.dirty && this.kendoEditable.validatable.validate()) {
                     this._save();
                 }
 
@@ -374,32 +378,71 @@
                 return false;
             });
 
-            editable.bind("change", (e) => {
+            dataItem.bind("change", (e) => {
+                const fieldName = e.field;
 
                 if (saveAttempted) {
                     // Validate all if a save was already attempted.
-                    editable.validatable.validate();
+                    this.kendoEditable.validatable.validate();
                 }
                 else {
-                    const field = Object.keys(e.values)[0];
-                    const value = e.values[field];
-                    const input = this._findInputElement(field, value);
+                    // const fieldValue = e.values[fieldName];
+                    const input = this._findInputElement(fieldName);
 
                     // NOTE: if we don't find the specific input element
                     //   then this might be a hidden field or a complex type field.
                     //   We will ignore such fields if a save was not attempted yet.
 
                     if (input && input.length === 1) {
-                        const valid = editable.validatable.validateInput(input);
+                        const valid = this.kendoEditable.validatable.validateInput(input);
 
                         // If a save was not attempted yet then enable the
                         //   save button when there are changes.
                         this._updateSaveCommand(dataItem.dirty && valid);
                     }
                 }
+
+                this.trigger("fieldChange", {
+                    sender: this, field: fieldName
+                });
             });
 
-            editable.validatable.bind("validate", (e) => {
+            // NOTE: Don't subscribe to kendo editable "change" because
+            //   this will be triggered when a new value is "attempted" to
+            //   be set.
+            // this.kendoEditable
+            /*
+            this.kendoEditable.bind("change", (e) => {
+                const fieldName = Object.keys(e.values)[0];
+
+                if (saveAttempted) {
+                    // Validate all if a save was already attempted.
+                    this.kendoEditable.validatable.validate();
+                }
+                else {                   
+                    const fieldValue = e.values[fieldName];
+                    const input = this._findInputElement(fieldName);
+
+                    // NOTE: if we don't find the specific input element
+                    //   then this might be a hidden field or a complex type field.
+                    //   We will ignore such fields if a save was not attempted yet.
+
+                    if (input && input.length === 1) {
+                        const valid = this.kendoEditable.validatable.validateInput(input);
+
+                        // If a save was not attempted yet then enable the
+                        //   save button when there are changes.
+                        this._updateSaveCommand(dataItem.dirty && valid);
+                    }                  
+                }
+
+                this.trigger("fieldChange", {
+                    sender: this, field: fieldName
+                });
+            });
+            */
+
+            this.kendoEditable.validatable.bind("validate", (e) => {
                 this._updateSaveCommand(e.valid && dataItem.dirty);
 
                 // Just for debug purposes.
@@ -417,7 +460,7 @@
                 this._$saveCmd.addClass("k-state-disabled");
         }
 
-        private _findInputElement(fieldName: string, fieldValue: any) {
+        private _findInputElement(fieldName: string) {
             // KABU TODO: Unfortunately Kendo's editable change event does
             //   not give us the input element. Thus we need find it
             //   in the same way Kendo does.

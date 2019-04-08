@@ -824,7 +824,7 @@ namespace kmodo {
 
     class MoFileCollectionViewModel extends cmodo.ComponentBase {
         private $area: JQuery;
-        private filesGridViewModel: GridComponent;
+        private filesGridViewModel: Grid;
         _moFolderTreeViewModel: MoFolderTreeViewModel;
         private _fileUploadViewModel: MoFileUploadComponent;
         //private _kendoContextMenu: kendo.ui.ContextMenu;
@@ -1144,7 +1144,7 @@ namespace kmodo {
         private _treeView: MoFolderTreeViewModel;
         _filesView: MoFileCollectionViewModel;
         private _tagFilterSelector: kendo.ui.MultiSelect;
-        private _filesGrid: GridComponent;
+        private _filesGrid: Grid;
         private _lastCompanyId: string;
         private owners: MoFileTreeOnwersModel;
         private _$fileSystemInitiatorBtn: JQuery;
@@ -1430,7 +1430,7 @@ namespace kmodo {
             });
         }
 
-        _createFilesGrid(options: InternalMoFileExplorerOptions): GridComponent {
+        _createFilesGrid(options: InternalMoFileExplorerOptions): Grid {
             const filesViewOptions: any = {
                 $component: this.options.$area.find("div.mo-file-list"),
                 selectionMode: this.options.areFileSelectorsVisible ? "multiple" : undefined,

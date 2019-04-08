@@ -128,31 +128,31 @@ namespace kmodo {
 
             message = message.replace(/\n/g, "<br/>");
 
-            let content = "<div class='confirmation-dialog-content'>" +
-                "<div class='confirmation-dialog-message'" +
+            let content = "<div class='km-confirmation-dialog-content'>" +
+                "<div class='km-confirmation-dialog-message'" +
                 (style !== "" ? " style='" + style + "'" : "") +
                 ">" +
                 message +
-                "</div><hr/><div class='confirmation-dialog-actions'>";
+                "</div><hr/><div class='km-confirmation-dialog-commands'>";
 
             if (options.ok)
-                content += "<button class='k-button confirmation-ok'></button>";
+                content += "<button class='k-button km-dialog-ok-btn'></button>";
 
             if (options.cancel)
-                content += "<button class='k-button confirmation-cancel'></button>";
+                content += "<button class='k-button km-dialog-cancel-btn'></button>";
 
             content += "</div></div>";
 
             wnd.content(content);
 
-            wnd.wrapper.find("button.confirmation-ok").text("OK").on("click", (e) => {
+            wnd.wrapper.find("button.km-dialog-ok-btn").text("OK").on("click", (e) => {
                 dialogResult = true;
                 wnd.close();
                 return false;
             });
 
             if (options.cancel)
-                wnd.wrapper.find("button.confirmation-cancel").text("Abbrechen").on("click", (e) => {
+                wnd.wrapper.find("button.km-dialog-cancel-btn").text("Abbrechen").on("click", (e) => {
                     dialogResult = false;
                     wnd.close();
                     return false;

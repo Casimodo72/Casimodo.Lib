@@ -345,7 +345,9 @@
             cmodo.showError(message);
 
             // TODO: This won't work with multiple editors.
-            const $errorBox = $("#validation-errors-box");
+            let $errorBox = this.$view.find(".km-validation-errors-box").first();
+            if (!$errorBox.length)
+                $errorBox = this.$view.closest(".km-validation-errors-box");
             if ($errorBox.length) {
                 $errorBox.empty();
                 const template = kendo.template("<li>#=message #</li>");

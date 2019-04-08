@@ -163,8 +163,9 @@
                 }, (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
 
                     if (status !== google.maps.GeocoderStatus.OK) {
-                        cmodo.showError("Ich kann diesen Ort nicht finden. " + status);
-                        reject();
+                        const msg = "Ich kann diesen Ort nicht finden. " + status;
+                        cmodo.showError(msg);
+                        reject(new Error(msg));
                     }
                     else {
                         this._activateContextPlace(results[0], options);
@@ -843,7 +844,7 @@
 
         protected initBasicComponents(): void {
             this._$googleMap = this.$view.find(".google-map");
-            this._$addressInfo = this.$view.find("div.address-info");
+            this._$addressInfo = this.$view.find(".geo-map-address-info");
             this._$coordinatesDisplay = this.$view.find(".map-coordinates");
             this._$mapContainer = this.$view.find(".google-map");
             this._$searchInput = this.$view.find(".pac-input");

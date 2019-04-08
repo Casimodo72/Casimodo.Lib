@@ -51,7 +51,7 @@
 
             this.initBasicComponents();
 
-            this._$addressInfo = this.$view.find("div.address-info");
+            this._$addressInfo = this.$view.find(".geo-map-address-info");
             kendo.bind(this._$addressInfo, this.getModel());
 
             if (this._options.isDialog)

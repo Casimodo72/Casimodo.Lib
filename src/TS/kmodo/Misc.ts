@@ -169,8 +169,8 @@
         cmodo.showError(message);
 
         // KABU TODO: ELIMINATE and move into the view models.
-        const $errorBox = $("#validation-errors-box");
-        if ($errorBox) {
+        const $errorBox = $(".km-validation-errors-box").first();
+        if ($errorBox.length) {
             $errorBox.empty();
             const template = kendo.template("<li>#:message #</li>");
             $errorBox.append(template({
@@ -189,9 +189,9 @@
 
     export function toggleButton($btn: JQuery, active: boolean): void {
         if (active)
-            $btn.addClass("active-toggle-button");
+            $btn.addClass("km-active-toggle-button");
         else
-            $btn.removeClass("active-toggle-button");
+            $btn.removeClass("km-active-toggle-button");
         $btn.removeClass("k-state-focused");
     }
 

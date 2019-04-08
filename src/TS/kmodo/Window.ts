@@ -37,7 +37,7 @@ namespace kmodo {
         _modalWindowsCount++;
 
         if (_modalWindowsCount > 1) {
-            $(document.body).addClass("opening-modal-window");
+            $(document.body).addClass("km-opening-modal-window");
         }
     }
 
@@ -45,7 +45,7 @@ namespace kmodo {
         // Used for setting of opacity of the overlay used for modal windows.
         // This avoids an ugly flashing effect when opening modal windows.
         if (_modalWindowsCount > 1) {
-            $(document.body).removeClass("opening-modal-window");
+            $(document.body).removeClass("km-opening-modal-window");
         }
     }
 

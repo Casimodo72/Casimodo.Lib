@@ -97,7 +97,7 @@
             }
 
             this.scope = kendo.observable({ item: null });
-            this.scope.bind("change", $.proxy(this._onScopeChanged, this));
+            this.scope.bind("change", (e) => this._onScopeChanged(e));
         }
 
         refresh(): Promise<void> {

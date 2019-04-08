@@ -166,10 +166,6 @@
         }
 
         private _moveToPreviousPage(): boolean {
-            if (!this._canLeaveCurrentPage()) {
-                return false;
-            }
-
             const pages = Enumerable.from(this._pages);
             let idx = pages.indexOf(this.currentPage) - 1;
 
