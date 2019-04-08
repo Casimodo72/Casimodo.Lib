@@ -9,6 +9,15 @@ using System.Xml.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    public class MojXAttribute : XAttribute
+    {
+        public MojXAttribute(XName name, object value)
+            : base(name, value)
+        { }
+
+        public string Target { get; set; }
+    }
+
     public static class MojenGeneratorExtensions
     {
         //public static T Parent<T>(this T generator, MojenGeneratorBase gen)
@@ -561,6 +570,11 @@ namespace Casimodo.Lib.Mojen
             O("   This is a GENERATED file. Manual changes will be overwritten. *@");
         }
 
+        public void ORazorComment(string comment)
+        {
+            O($"@* {comment} *@");
+        }
+
         public void ORazorStyleSection(Action content)
         {
             ORazorSection("Styles", content);
@@ -801,9 +815,9 @@ namespace Casimodo.Lib.Mojen
         }
 #endif
 
-        public XAttribute XA(string name, object value)
+        public MojXAttribute XA(string name, object value)
         {
-            return new XAttribute(name, value);
+            return new MojXAttribute(name, value);
         }
 
         public XElement XEl(string name, object content)

@@ -884,7 +884,7 @@ namespace Casimodo.Lib.Mojen
             // KABU TODO: Move logic into MojViewProp
             if (vprop.Width != null && !isEffectField)
             {
-                O("width: {0},", vprop.Width.Value);
+                O("width: {0},", vprop.Width);
             }
 
             // See http://www.telerik.com/forums/client-template-%28hyper-link%29-on-foreign-key-column

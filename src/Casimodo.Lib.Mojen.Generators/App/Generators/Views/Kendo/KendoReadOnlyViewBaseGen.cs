@@ -29,9 +29,7 @@ namespace Casimodo.Lib.Mojen
             // Uses HTML encoding to display values: #: #
             // Execute arbitrary JavaScript code: # if(...){# ... #}#
 
-            XB("<div class='form-horizontal'{0}{1}>",
-                GetViewCssStyle(context),
-                GetViewHtmlId(context));
+            XB($"<div class='form-horizontal'{GetStyleAttr(GetViewStyles(context))}{GetViewHtmlId(context)}>");
         }
 
         public override void EndView(WebViewGenContext context)
@@ -63,6 +61,20 @@ namespace Casimodo.Lib.Mojen
             return false;
         }
 
+        public override void OPropLabel(WebViewGenContext context)
+        {
+            var vitem = context.PropInfo;
+
+            ElemClass(LabelClass, target: "label");
+
+            // Oo($"<label for='{vitem.PropPath}' class='{GetElemAttrs("label")}'>");
+            Oo($"<label{GetElemAttrs("label")}>");
+
+            o(GetDisplayNameFor(context));
+
+            oO("</label>");
+        }
+
         public override void OProp(WebViewGenContext context)
         {
             OReadOnlyProp(context);
@@ -75,6 +87,11 @@ namespace Casimodo.Lib.Mojen
             binding = binding ?? GetBinding(context);
 
             CustomElemStyle(context);
+
+            if (vprop.Width != null)
+                ElemStyle($"width:{vprop.Width}px !important");
+            if (vprop.MaxWidth != null)
+                ElemStyle($"max-width:{vprop.MaxWidth}px !important");
 
             if (prop.Type.IsBoolean)
             {

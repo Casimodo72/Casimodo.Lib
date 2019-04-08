@@ -29,6 +29,7 @@ namespace Casimodo.Lib.Mojen
     {
         public MojFormedType FromType { get; set; }
         public string Title { get; set; }
+        public string FromPropDisplayName { get; set; }
         public bool IsDeactivatable { get; set; }
     }
 }

@@ -329,6 +329,7 @@ namespace Casimodo.Lib.Mojen
         public int Position { get; set; }
 
         public int? Width { get; set; }
+        public int? MaxWidth { get; set; }
 
         // TODO: REMOVE: public MojProp ColorProp { get; set; }
 
@@ -383,6 +384,8 @@ namespace Casimodo.Lib.Mojen
         public bool NoLabel { get; set; }
 
         public MojFontWeight FontWeight { get; set; }
+
+        public bool? IsAutocomplete { get; set; }
 
         public int VisiblePosition { get; set; }
 

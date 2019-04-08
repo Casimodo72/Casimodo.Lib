@@ -37,7 +37,7 @@ namespace Casimodo.Lib.Mojen
             var item = new ViewTemplateItem();
             item.Directive = directive;
             if (prop != null)
-                item.Prop = UseProp(prop);
+                item.Prop = prop;
 
             if (Cur.IsContainer && !Cur.IsContainerEnd)
             {
@@ -143,27 +143,53 @@ namespace Casimodo.Lib.Mojen
             Cur.TextValue = label;
             StartRun();
             return this;
-        }        
+        }
 
-        public ViewTemplate Label(MojProp prop)
+        public ViewTemplate Label(MojViewProp prop)
         {
             Add("label");
-            Cur.Prop = UseProp(prop);
+            Cur.Prop = prop;
             StartRun();
             return this;
         }
 
-        public ViewTemplate oO(MojProp prop, bool readOnly = false)
+        public ViewTemplate oO() // MojProp prop, bool readOnly = false)
         {
-            o(prop, readOnly: readOnly);
+            // oCore(prop, readOnly: readOnly);
             EndRun();
             return this;
         }
 
-        public ViewTemplate o(MojProp prop, bool readOnly = false)
+        internal ViewTemplate o(MojViewProp prop)
         {
-            Add("append", UseProp(prop, readOnly: readOnly));
+            Add("append", prop);
             StartRun();
+            return this;
+        }
+
+        public ViewTemplate o(MojProp prop)
+        {
+            return oCore(prop);
+        }
+
+        public ViewTemplate o(MojProp prop, bool readOnly)
+        {
+            return oCore(prop, readOnly: readOnly);
+        }
+
+        public ViewTemplate o(MojProp prop, Action<MojViewPropBuilder> build = null)
+        {
+            return oCore(prop, build: build);
+        }
+
+        ViewTemplate oCore(MojProp prop, bool readOnly = false, Action<MojViewPropBuilder> build = null)
+        {
+            var builder = BuildViewProp(prop, readOnly: readOnly);
+            Add("append", builder.Prop);
+            StartRun();
+
+            build?.Invoke(builder);
+
             return this;
         }
 
@@ -173,12 +199,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        MojViewProp UseProp(MojProp prop, bool readOnly = false)
+        MojViewPropBuilder BuildViewProp(MojProp prop, bool readOnly = false)
         {
-            if (prop is MojViewProp)
-                return (MojViewProp)prop;
+            if (prop.GetType() != typeof(MojProp))
+                throw new ArgumentException($"A prop of type {nameof(MojProp)} was expected.", nameof(prop));
 
-            return ViewBuilder.SimplePropCore(prop, readOnly: readOnly).Prop;
+            return ViewBuilder.SimplePropCore(prop, readOnly: readOnly);
         }
 
         void StartRun()

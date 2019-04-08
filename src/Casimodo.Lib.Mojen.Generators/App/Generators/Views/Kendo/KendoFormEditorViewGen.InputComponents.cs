@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
             min = min ?? dprop.Rules.Min;
             max = max ?? dprop.Rules.Max;
 
-            XB("<div class='input-control-container'>");
+            // TODO:REMOVE? XB("<div class='km-input-control-container'>");
 
             Oo("<input");
             oAttr("data-role", "numerictextbox");
@@ -92,7 +92,7 @@ namespace Casimodo.Lib.Mojen
                 // OValidationMessageElem(context.PropInfo.PropPath);
             }
 
-            XE("</div>"); // custom input group container
+            // TODO:REMOVE? XE("</div>"); // custom km-input-control-container
         }
 
         void OKendoColorPicker(WebViewGenContext context)
@@ -172,6 +172,7 @@ namespace Casimodo.Lib.Mojen
                 if (dprop.RowCount != 0) ElemAttr("rows", dprop.RowCount);
                 if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
                 // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+               
                 OHtmlElemAttrs();
                 OHtmlRequiredttrs(context, dprop);
                 OHtmlDataBindValue(context);

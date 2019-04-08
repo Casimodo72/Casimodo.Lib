@@ -27,6 +27,10 @@ namespace Casimodo.Lib.Mojen
     {
         readonly TsXClassGenOptions _options;
 
+        public TsXClassGen()
+            : this(new TsXClassGenOptions())
+        { }
+
         public TsXClassGen(TsXClassGenOptions options = null)
         {
             _options = options;
@@ -40,7 +44,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             WebConfig = App.Get<WebDataLayerConfig>();
-            var outputDirPath = _options?.OutputDirPath ?? WebConfig.TypeScriptModuleEntitiesDirPath;
+            var outputDirPath = _options?.OutputDirPath ?? WebConfig.TypeScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 

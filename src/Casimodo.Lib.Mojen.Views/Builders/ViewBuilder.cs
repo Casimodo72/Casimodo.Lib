@@ -951,9 +951,13 @@ namespace Casimodo.Lib.Mojen
             return View.Template.CustomView(name, showOn);
         }
 
-        public ViewTemplate Label(string label = null)
+        public ViewTemplate Label(string label = null, string tag = null)
         {
-            return View.Template.Label(label);
+            var result = View.Template.Label(label);
+            if (tag != null)
+                result.Cur._tag = tag;
+
+            return result;
         }
 
         public void EndRun()

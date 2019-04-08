@@ -11,8 +11,8 @@ namespace Casimodo.Lib.Mojen
         public string FormGroupClass { get; set; } = "form-group";
         public string FormGroupReadOnlyClass { get; set; } = "form-group readonly";
         public string LabelContainerClass { get; set; } = "";
-        public string LabelClass { get; set; } = "col-sm-3 col-xs-12 control-label"; // k-label label-field
-        public string PropContainerClass { get; set; } = "col-sm-9 col-xs-12"; // k-edit-field editor-field
+        public string LabelClass { get; set; } = "control-label"; // "col-sm-3 col-xs-12 control-label";
+        public string PropContainerClass { get; set; } = "col-sm-9 col-xs-12";
 
         public void GenerateView(WebViewGenContext context)
         {
@@ -33,9 +33,9 @@ namespace Casimodo.Lib.Mojen
             // NOP
         }
 
-        public string DataViewModelAccessor { get; set; }
+        
 
-        public List<XAttribute> Attributes { get; set; } = new List<XAttribute>();
+        
 
         public virtual void Define(WebViewGenContext context)
         {
@@ -43,160 +43,7 @@ namespace Casimodo.Lib.Mojen
             OPropContainerEnd = (c) => XE("</div>");
         }
 
-        public void ORazorModel(string className)
-        {
-            O($"@model {App.Get<WebAppBuildConfig>().WebDataViewModelNamespace}.{className}");
-        }
-
-        public void ORazorModel(MojType type)
-        {
-            type = type.RequiredStore;
-            O($"@model {App.GetDataLayerConfig(type.DataContextName).DataNamespace}.{type.ClassName}");
-        }
-
-        public void CustomElemStyle(WebViewGenContext context)
-        {
-            var vprop = context.PropInfo.ViewProp;
-
-            if (vprop.FontWeight == MojFontWeight.Bold)
-                ElemClass("strong");
-        }
-
-        public string GetElemAttrs()
-        {
-            string result = "";
-            if (Attributes.Any())
-                result = " " + Attributes.Select(x => $"{x.Name.LocalName}='{x.Value}'").Join(" ");
-
-            Attributes.Clear();
-
-            return result;
-        }
-
-        public void OHtmlElemAttrs()
-        {
-            if (Attributes.Any())
-            {
-                o(" ");
-                o(Attributes.Select(x => $"{x.Name.LocalName}='{x.Value}'").Join(" "));
-                o(" ");
-
-                // KABU TODO: IMPORTANT: Shouldn't this be cleared here?
-                Attributes.Clear();
-            }
-        }
-
-        public virtual void OMvcAttrs(bool kendo)
-        {
-            if (Attributes.Any())
-            {
-                var members = Attributes.Select(x => $"{ConvertAttrName(x.Name.LocalName)} = \"{x.Value}\"").Join(", ");
-                if (kendo)
-                    Oo($".HtmlAttributes(new {{ {members} }})");
-                else
-                    o($", new {{ {members} }}");
-
-                Attributes.Clear();
-            }
-        }
-
-        public string ConvertAttrName(string name)
-        {
-            if (name == "class")
-                return "@class";
-            else if (name == "readonly")
-                return "@readonly";
-
-            return name.Replace("-", "_");
-        }
-
-        public void ElemAttr(string name, object value)
-        {
-            Attributes.Add(XA(name, value));
-        }
-
-        /// <summary>
-        /// For HTML boolean attributes like "readonly" which don't have an attribute value.
-        /// </summary>
-        public void ElemFlag(string name)
-        {
-            Attributes.Add(XA(name, name));
-        }
-
-        public void ElemClass(params string[] values)
-        {
-            var attr = GetOrCreateAttr("class");
-            foreach (var value in values)
-            {                
-                attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + " " + value;
-            }
-        }
-
-        public void ElemStyle(string value)
-        {
-            var attr = GetOrCreateAttr("style");
-            attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + ";" + value;
-        }
-
-        public void ElemDataBindAttr(WebViewGenContext context)
-        {
-            if (context.View.UseMVVM)
-            {
-                GetOrCreateAttr("data-bind").Value = $"value:{GetBinding(context)}";
-            }
-        }
-
-        public void ElemDataBindAttr(string expression)
-        {
-            var attr = GetOrCreateAttr("data-bind");
-            attr.Value = string.IsNullOrEmpty(attr.Value) ? expression : attr.Value + ", " + expression;
-        }
-
-        public XAttribute GetOrCreateAttr(string name)
-        {
-            var attr = Attributes.FirstOrDefault(x => x.Name == name);
-            if (attr == null)
-            {
-                attr = XA(name, "");
-                Attributes.Add(attr);
-            }
-            return attr;
-        }
-
-        public string GetBinding(MojViewProp vprop)
-        {
-            string path = vprop.FormedTargetPath.ToString();
-
-            if (path == null)
-                throw new MojenException($"Failed to build property binding path for view prop.");
-
-            return $"{GetBindingPrefixObject()}{path}";
-        }
-
-        public string GetBinding(MojFormedType propTypePath, bool alias = false)
-        {
-            string path = alias ? propTypePath.FormedNavigationFrom.TargetAliasPath : propTypePath.FormedNavigationFrom.TargetPath;
-
-            if (path == null)
-                throw new MojenException($"Failed to build property binding path for formed type path.");
-
-            return $"{GetBindingPrefixObject()}{path}";
-        }
-
-        public string GetBinding(WebViewGenContext context, bool alias = false)
-        {
-            string path = alias ? context.PropInfo.PropAliasPath : context.PropInfo.PropPath;        
-            if (path == null)
-                throw new MojenException($"Failed to build property binding path.");
-
-            return $"{GetBindingPrefixObject()}{path}";
-        }
-
-        string GetBindingPrefixObject()
-        {
-            // E.g. "item.FirstName" or just "FirstName" if DataViewModelAccessor is not assigned.
-            return !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? DataViewModelAccessor : "";
-        }
+        
 
         IEnumerable<List<ViewTemplateItem>> FilterHiddenProps(IEnumerable<List<ViewTemplateItem>> runs, MojViewMode mode)
         {
@@ -359,9 +206,9 @@ namespace Casimodo.Lib.Mojen
                         {
                             // Output label                            
 
-                            OLabelContainerBegin(context);
+                            // TODO: REMOVE: OLabelContainerBegin(context);
                             ORunLabelCore(context, label.TextValue);
-                            OLabelContainerEnd(context);
+                            // TODO: REMOVE: OLabelContainerEnd(context);
 
                             label = null;
                         }
@@ -576,7 +423,7 @@ namespace Casimodo.Lib.Mojen
 
         public virtual void ORunLabel(WebViewGenContext context, string text)
         {
-            O($"<label class='{LabelClass}'>{text}</label>");  //  class='k-label'
+            O($"<label class='{LabelClass}'>{text}</label>");
         }
 
         public void ORunLabelCore(WebViewGenContext context, string text)
@@ -588,6 +435,7 @@ namespace Casimodo.Lib.Mojen
             OLabelContainerEnd(context);
         }
 
+        // TODO: REMOVE? Not used
         void OPropLabelCore(WebViewGenContext context, ViewTemplateItem cur)
         {
             var prop = cur.Prop;
@@ -615,7 +463,9 @@ namespace Casimodo.Lib.Mojen
         {
             var vitem = context.PropInfo;
 
-            Oo($"<label for='{vitem.PropPath}' class='{LabelClass}'>");
+            ElemClass(LabelClass, target: "label");
+
+            Oo($"<label for='{vitem.PropPath}'{GetElemAttrs("label")}>");
 
             o(GetDisplayNameFor(context));
 

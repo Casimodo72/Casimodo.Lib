@@ -103,13 +103,11 @@ namespace Casimodo.Lib.Mojen
 
                 XB("<div class='details-view-content'>");
 
-                XB($"<div class='form-horizontal'{GetViewCssStyle(context)}> ");
+                XB($"<div class='form-horizontal'{GetStyleAttr(GetViewStyles(context))}>");
             }
             else
             {
-                XB("<div class='form-horizontal'{0}{1}>",
-                    GetViewCssStyle(context),
-                    GetViewHtmlId(context));
+                XB($"<div class='form-horizontal'{GetStyleAttr(GetViewStyles(context))}{GetViewHtmlId(context)}>");
             }
         }
 

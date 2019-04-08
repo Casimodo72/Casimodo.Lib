@@ -88,18 +88,21 @@ namespace Casimodo.Lib.Mojen
             LabelContainerClass = "col-sm-3 col-xs-12";
             OLabelContainerBegin = (c) =>
             {
-                if (c.IsRunEditable) XB($"<div class='{c.Cur.GetGroupLabelStyle() ?? LabelContainerClass}'>");
+                // if (c.IsRunEditable)
+                XB($"<div class='{c.Cur.GetGroupLabelStyle() ?? LabelContainerClass}'>");
             };
             OLabelContainerEnd = (c) =>
             {
-                if (c.IsRunEditable) XE("</div>");
+                // if (c.IsRunEditable)
+                XE("</div>");
             };
 
             OPropContainerBegin = (c) =>
             {
                 XB($"<div class='{c.Cur.GetGroupPropStyle() ?? PropContainerClass}'>");
+                XB($"<div class='km-input-group-container'>");
             };
-            OPropContainerEnd = (c) => XE("</div>");
+            OPropContainerEnd = (c) => { XE("</div>"); XE("</div>"); };
         }
 
         bool IsEffectiveStandaloneView(WebViewGenContext context)
@@ -118,19 +121,23 @@ namespace Casimodo.Lib.Mojen
 
             CheckViewId(context.View);
 
+            // NOTE: ignore min-width because this could make the view
+            //   too wide for bootstrap's min screen width layout.
+            //   responsive layout 
+            var style = GetStyleAttr(GetViewStyles(context, (name) => name != "min-width"));
+
             if (IsEffectiveStandaloneView(context))
             {
-                XB("<div class='k-edit-form-container'{0}>", GetViewHtmlId(context));
-                XB("<div class='form-horizontal component-root'>"); // container-fluid // style='width:95%;float:left'
+                XB("<div class='km-edit-form-container'{0}>", GetViewHtmlId(context));
+                XB($"<div class='form-horizontal component-root'{style}>");
             }
             else
             {
-                XB("<div class='form-horizontal component-root'{0}>",
-                    GetViewHtmlId(context)); // container-fluid // style='width:95%;float:left'
+                XB($"<div class='form-horizontal component-root'{style}{GetViewHtmlId(context)}>");
             }
 
             // Validation error box.
-            O("<ul class='validation-errors-box' id='validation-errors-box'></ul>");
+            O("<ul class='km-validation-errors-box'></ul>");
 
             // External fields. Those fields need to be included in the UsedViewPropInfos
             //  because they are intended to be edited via a user-provided custom template.
@@ -204,11 +211,13 @@ namespace Casimodo.Lib.Mojen
                     // Labels of check-boxes are display right hand side of the check-box.
                     return;
 
+                // ElemClass("km-readonly-prop-label", target: "label");
                 base.OPropLabel(context);
             }
             else
             {
                 // Read-only property label.
+                // ReadOnlyGen.ElemClass("km-readonly-prop-label", target: "label");
                 ReadOnlyGen.OPropLabel(context);
             }
         }
@@ -229,17 +238,25 @@ namespace Casimodo.Lib.Mojen
         public override void OProp(WebViewGenContext context)
         {
             var info = context.PropInfo;
+            var vprop = info.ViewProp;
 
             UsedViewPropInfos.Add(info);
 
             if (info.ViewProp.IsEditable)
             {
                 // Editor
+
+                if (vprop.Width != null)
+                    ElemStyle($"width:{vprop.Width}px !important");
+                if (vprop.MaxWidth != null)
+                    ElemStyle($"max-width:{vprop.MaxWidth}px !important");
+
                 OPropEditable(context);
             }
             else
             {
                 // Read-only property.
+                ReadOnlyGen.ElemClass("km-readonly-form-control");
                 ReadOnlyGen.OProp(context);
             }
         }
@@ -278,6 +295,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OPropEditable(WebViewGenContext context)
         {
+
             if (OPropSelector(context))
                 return;
 
@@ -309,6 +327,9 @@ namespace Casimodo.Lib.Mojen
             {
                 ElemClass("form-control");
             }
+
+            if (vprop.IsAutocomplete == false)
+                ElemAttr("autocomplete", "false");
 
             // Enable MVC's unobtrusive jQuery validation.
             ElemAttr("data-val", true);
@@ -410,7 +431,7 @@ namespace Casimodo.Lib.Mojen
                 $"view-action-{context.View.Id}-{context.CurControlAction.ControlIndex.ToString().PadLeft(2, '0')}-for-{propPath}";
 
             XB("<span class='input-group-btn'>");
-            XB($"<button class='btn btn-default selector-btn' id='{context.CurControlAction.CurrentId}'{GetElemAttrs()}>");
+            XB($"<button class='btn btn-default km-selector-btn' id='{context.CurControlAction.CurrentId}'{GetElemAttrs()}>");
             //if (!string.IsNullOrEmpty(text)) O($"<span>{text}</span>");
             O("<span class='glyphicon glyphicon-search'></span>");
             XE("</button>");
@@ -435,6 +456,11 @@ namespace Casimodo.Lib.Mojen
             oO(" />");
         }
 
+        void XBInputGroup()
+        {
+            XB("<div class='input-group' style='flex-grow:1'>");
+        }
+
         public bool OPropTagsSelector(WebViewGenContext context)
         {
             var type = context.View.TypeConfig;
@@ -448,7 +474,7 @@ namespace Casimodo.Lib.Mojen
             var targetType = vprop.Reference.ToType;
             var dialog = vprop.LookupDialog;
 
-            XB("<div class='input-group'>");
+            XBInputGroup();
 
             //XB("<div class='kmodo-tags-container'>");
 
@@ -533,7 +559,7 @@ namespace Casimodo.Lib.Mojen
                 throw new MojenException("Sequence value selectors do not support property navigation.");
 
             // Input group with sequence value (read-only) and a button.
-            XB("<div class='input-group'>");
+            XBInputGroup();
 
             // Readonly value display.
             //ElemClass("form-control");
@@ -602,9 +628,9 @@ namespace Casimodo.Lib.Mojen
             var geoConfig = vprop.GeoPlaceLookup;
 
             // Input group
-            XB("<div class='input-group'>");
+            XBInputGroup();
 
-            ElemClass("with-selector");
+            ElemClass("km-with-selector");
             OPropEditableCore(context);
 
             // Button for popping up the lookup dialog.
@@ -654,7 +680,7 @@ namespace Casimodo.Lib.Mojen
             CustomElemStyle(context);
             // TODO: We need Bootstrap 4 to use class "text-truncate".
             //   Currently I have to add that CSS selector explicitely in my apps.
-            ElemClass("form-control", "text-form-control", "text-truncate");
+            ElemClass("form-control km-lookup-display-form-control");
             var binding = GetBinding(vprop);
             O($@"<div data-bind='text:{binding},attr:{{title:{binding}}}'{GetElemAttrs()}></div>");
         }
@@ -685,18 +711,18 @@ namespace Casimodo.Lib.Mojen
             var dialog = vprop.LookupDialog;
 
             // Input group
-            XB("<div class='input-group'>");
+            XBInputGroup();
 
             // TODO: REVISIT: Add a custom container.
             //   Couldn't make the outcome look nice without an additional custom flexbox container.
-            XB("<div class='input-control-container'>");
+            // TODO: REMOVE? XB("<div class='km-input-control-container'>");
 
             OLookupSelectorReadOnlyText(context);
 
             // Invisible input for binding & validation.
             OSelectorControlInvisibleInput(context);
 
-            XE("</div>"); // custom input-control-container
+            // TODO: REMOVE? XE("</div>"); // custom km-input-control-container
 
             // Button for popping up the lookup dialog.
             OSelectorControlButton(context);
@@ -743,8 +769,11 @@ namespace Casimodo.Lib.Mojen
                         OB("if (!cascadeFromVal)");
                         // Notify
                         // KABU TODO: LOCALIZE
+                        var fromPropDisplayName = cascadeFromInfo.Config.FromPropDisplayName ??
+                            cascadeFromInfo.ForeignKey.DisplayLabel;
+
                         O($"kmodo.openInstructionDialog(\"" +
-                        $"Zuerst muss '{cascadeFromInfo.ForeignKey.DisplayLabel}' gesetzt werden, " +
+                        $"Zuerst muss '{fromPropDisplayName}' gesetzt werden, " +
                         $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
                         // Exit
                         O("return;");
@@ -1023,11 +1052,11 @@ namespace Casimodo.Lib.Mojen
             var snippetsEditorView = App.Get<MojSnippetEditorConfig>().View;
 
             // Input group with text editor and button.
-            XB("<div class='input-group'>");
+            XBInputGroup();
 
             // Text editor            
             ElemClass("form-control");
-            ElemClass("with-selector");
+            ElemClass("km-with-selector");
             CustomElemStyle(context);
             OKendoTextInput(context);
 

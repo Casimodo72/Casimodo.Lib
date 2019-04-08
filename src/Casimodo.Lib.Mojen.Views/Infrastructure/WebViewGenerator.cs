@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -9,8 +11,16 @@ namespace Casimodo.Lib.Mojen
         Post
     }
 
+    public class HtmlStyleProp
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
     public abstract class WebViewGenerator : WebPartGenerator
     {
+        public List<MojXAttribute> Attributes { get; set; } = new List<MojXAttribute>();
+
         public void OHiddenInputFor(string name)
         {
             O($"<input type='hidden' name='{name}' />");
@@ -71,5 +81,127 @@ namespace Casimodo.Lib.Mojen
             content();
             XE("</script>");
         }
+
+        public void ORazorModel(string className)
+        {
+            O($"@model {App.Get<WebAppBuildConfig>().WebDataViewModelNamespace}.{className}");
+        }
+
+        public void ORazorModel(MojType type)
+        {
+            type = type.RequiredStore;
+            O($"@model {App.GetDataLayerConfig(type.DataContextName).DataNamespace}.{type.ClassName}");
+        }
+
+        public void CustomElemStyle(WebViewGenContext context)
+        {
+            var vprop = context.PropInfo.ViewProp;
+
+            if (vprop.FontWeight == MojFontWeight.Bold)
+                ElemClass("strong");
+        }
+
+        public string GetElemAttrs(string target = null)
+        {
+            string result = "";
+            if (Attributes.Any())
+            {
+                result = " " + Attributes
+                    .Where(x => x.Target == target)
+                    .Select(x => $"{x.Name.LocalName}='{x.Value}'")
+                    .Join(" ");
+            }
+
+            foreach (var attr in Attributes.Where(x => x.Target == target).ToArray())
+                Attributes.Remove(attr);
+
+            return result;
+        }
+
+        public void OHtmlElemAttrs()
+        {
+            if (Attributes.Any())
+            {
+                o(" ");
+                o(Attributes.Select(x => $"{x.Name.LocalName}='{x.Value}'").Join(" "));
+                o(" ");
+
+                // KABU TODO: IMPORTANT: Shouldn't this be cleared here?
+                Attributes.Clear();
+            }
+        }
+
+        public virtual void OMvcAttrs(bool kendo)
+        {
+            if (Attributes.Any())
+            {
+                var members = Attributes.Select(x => $"{ConvertAttrName(x.Name.LocalName)} = \"{x.Value}\"").Join(", ");
+                if (kendo)
+                    Oo($".HtmlAttributes(new {{ {members} }})");
+                else
+                    o($", new {{ {members} }}");
+
+                Attributes.Clear();
+            }
+        }
+
+        public string ConvertAttrName(string name)
+        {
+            if (name == "class")
+                return "@class";
+            else if (name == "readonly")
+                return "@readonly";
+
+            return name.Replace("-", "_");
+        }
+
+        public void ElemAttr(string name, object value)
+        {
+            Attributes.Add(XA(name, value));
+        }
+
+        /// <summary>
+        /// For HTML boolean attributes like "readonly" which don't have an attribute value.
+        /// </summary>
+        public void ElemFlag(string name)
+        {
+            Attributes.Add(XA(name, name));
+        }
+
+        public void ElemClass(string classes, string target = null)
+        {
+            var attr = GetOrCreateAttr("class", target);
+            attr.Value = string.IsNullOrEmpty(attr.Value) ? classes : attr.Value + " " + classes;
+        }
+
+        public void ElemStyle(string value)
+        {
+            var attr = GetOrCreateAttr("style");
+            attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + ";" + value;
+        }
+
+
+
+        public void ElemDataBindAttr(string expression)
+        {
+            var attr = GetOrCreateAttr("data-bind");
+            attr.Value = string.IsNullOrEmpty(attr.Value) ? expression : attr.Value + ", " + expression;
+        }
+
+        public MojXAttribute GetOrCreateAttr(string name, string target = null)
+        {
+            var attr = Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) as MojXAttribute;
+            if (attr == null)
+            {
+                attr = XA(name, "");
+                attr.Target = target;
+                Attributes.Add(attr);
+            }
+            return attr;
+        }
+
+      
+
+        
     }
 }

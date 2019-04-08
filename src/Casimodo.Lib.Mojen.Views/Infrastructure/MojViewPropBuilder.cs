@@ -236,7 +236,12 @@ namespace Casimodo.Lib.Mojen
         public MojViewPropBuilder Width(int width)
         {
             Prop.Width = width;
+            return this;
+        }
 
+        public MojViewPropBuilder MaxWidth(int width)
+        {
+            Prop.MaxWidth = width;
             return this;
         }
 
@@ -329,6 +334,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder NoAutocomplete()
+        {
+            Prop.IsAutocomplete = false;
+
+            return this;
+        }
+
         public MojViewPropBuilder Snippets(int type)
         {
             if (!Prop.Type.IsString)
@@ -360,7 +372,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewPropBuilder CascadeFrom(MojFormedType type, bool deactivatable = false, string title = null)
+        public MojViewPropBuilder CascadeFrom(MojFormedType type, bool deactivatable = false,
+            string fromPropDisplay = null,
+            string title = null)
         {
             if (!Prop.IsSelector)
                 throw new MojenException($"Cascade from is allowed for selectors only.");
@@ -373,9 +387,11 @@ namespace Casimodo.Lib.Mojen
 
             if (!Prop.CascadeFrom.Is)
                 Prop.CascadeFrom = new MojCascadeFromConfigCollection();
+
             Prop.CascadeFrom.Items.Add(new MojCascadeFromConfig
             {
                 FromType = type,
+                FromPropDisplayName = fromPropDisplay,
                 IsDeactivatable = deactivatable,
                 Title = title
             });

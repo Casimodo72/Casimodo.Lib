@@ -25,10 +25,24 @@ namespace Casimodo.Lib.Mojen
         public bool IsContainerEnd;
         public object GroupObj;
         public object VisibilityCondition;
+        public string _tag;
 
         public override string ToString()
         {
             return $"{Directive ?? "(null)"} {Prop?.Name}";
+        }
+
+        public void Remove()
+        {
+            // TODO: IMPORTANT: Adjust runstart, etc.
+            if (Prev != null)
+                Prev.Next = Next;
+
+            if (Next != null)
+                Next.Prev = Prev;
+
+            if (Parent != null && Parent.Child == this)
+                Parent.Child = Prev != null ? Prev : Next;
         }
 
         public IEnumerable<ViewTemplateItem> GetChildren()
