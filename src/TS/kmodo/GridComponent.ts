@@ -34,12 +34,9 @@
         tagsEditorId?: string;
         filters?: ViewComponentFilter[],
         editor?: EditorInfo;
-
         isTaggable?: boolean;
         isTagsFilterEnabled?: boolean;
         $component?: JQuery;
-        isLocalData?: boolean;
-        localData?: any[];
         useRemoveCommand?: boolean;
         baseFilters?: kendo.data.DataSourceFilterItem[];
         bindRow?: boolean | Function;
@@ -48,6 +45,9 @@
 
     export interface GridEvent extends DataSourceViewEvent {
         sender: Grid;
+    }
+
+    interface NavigateToEditorFormOptions extends NavigateToViewOptions {
     }
 
     export class Grid extends DataSourceViewComponent {
@@ -98,20 +98,6 @@
             }
 
             this._tagsFilterSelector = null;
-        }
-
-        // override
-        protected createDataSourceOptions(): kendo.data.DataSourceOptions {
-            if (this._options.isLocalData) {
-                return {
-                    schema: {
-                        model: this.createDataModel()
-                    },
-                    data: this._options.localData || [],
-                    pageSize: 0
-                }
-            }
-            else return super.createDataSourceOptions();
         }
 
         private createGridOptions(): kendo.ui.GridOptions {
@@ -441,13 +427,19 @@
         protected _applyAuth(): void {
             // Show "add" button in toolbar based on authorization.
             // See http://www.telerik.com/forums/disable-toolbar-button-on-kendo-ui-grid
-            if (this.auth.canCreate) {
-                this.grid().element.find('.k-grid-toolbar .k-grid-add').removeClass("hide");
+            this._initAddCommand(this.auth.canCreate);
+        }
 
-                const $createBtn = this.grid().element.find('.k-grid-toolbar .k-grid-custom-add');
-                $createBtn.removeClass("hide");
+        private _initAddCommand(activate: boolean): void {
+            // TODO: REMOVE: this.grid().element.find('.k-grid-toolbar .k-grid-add').removeClass("hide");
 
-                $createBtn.on("click", e => {
+            const $btn = this._$toolbar.find(".k-grid-custom-add");
+            if (!$btn.length)
+                return;
+
+            if (activate) {
+                $btn.removeClass("hide");
+                $btn.on("click", e => {
                     if (this._state.isEditing)
                         return false;
 
@@ -455,6 +447,22 @@
 
                     return false;
                 });
+            } else {
+                $btn.remove();
+            }
+        }
+
+        private _initRefreshCommand(activate: boolean): void {
+            const $btn = this._$toolbar.find(".k-grid-refresh");
+            if (!$btn.length)
+                return;
+
+            if (activate) {
+                $btn.on("click", e => {
+                    this.refresh();
+                });
+            } else {
+                $btn.remove();
             }
         }
 
@@ -535,30 +543,69 @@
 
             this._state.isEditing = true;
 
-            kmodo.openById(this._options.editor.id,
-                {
-                    mode: mode,
-                    itemId: item ? item[this.keyName] : null,
-                    // Allow deletion if authorized.
-                    canDelete: true,
+            const editorOptions: NavigateToEditorFormOptions = {
+                mode: mode,
+                itemId: item ? item[this.keyName] : null,
+                // Allow deletion if authorized.
+                canDelete: true,
+                events: {
                     editing: e => {
                         this.trigger("editing", e);
-                    },
-                    finished: result => {
-                        this._state.isEditing = false;
-
-                        if (result.isOk) {
-                            this.refresh()
-                                .then(() => {
-                                    if (mode === "create" && result.value)
-                                        this._trySetCurrentItemById(result.value);
-                                });
-                        }
-                        else if (result.isDeleted) {
-                            this.refresh();
-                        }
                     }
-                });
+                },
+                finished2: e => {
+                    this._state.isEditing = false;
+
+                    if (e.result.isOk) {
+                        const item = (e.sender as EditorForm).getCurrent().toJSON();
+
+                        let postprocess: Promise<void> = null;
+
+                        if (this._options.isLocalData) {
+
+                            if (mode === "create") {
+                                this.dataSource.insert(0, item);
+                            } else {
+                                // TODO: Update on edited
+                                this.dataSource.pushUpdate(item);
+
+                            }
+                            postprocess = this.dataSource.sync() as unknown as Promise<void>;
+                            //this.dataSource.sync()
+                            //    .then(() => {
+                            //        // "e.result.value" will be the ID of the edited data item.
+                            //        if (mode === "create" && e.result.value)
+                            //            this._trySetCurrentItemById(e.result.value);
+                            //    });
+                        } else {
+                            postprocess = Promise.resolve();
+                        }
+
+                        postprocess
+                            .then(() => this.refresh())
+                            .then(() => {
+                                // "e.result.value" will be the ID of the edited data item.
+                                if (mode === "create" && e.result.value)
+                                    this._trySetCurrentItemById(e.result.value);
+                            });
+
+                    }
+                    else if (e.result.isDeleted) {
+                        this.refresh();
+                    }
+                }
+            };
+
+            // Pass on local data options.
+            if (this._options.isLocalData) {
+                editorOptions.options = {
+                    isLocalData: true,
+                    // Only a custom save makes sense in this scenario.
+                    isCustomSave: true
+                };
+            }
+
+            kmodo.openById(this._options.editor.id, editorOptions);
 
             return true;
         }
@@ -686,9 +733,9 @@
 
         private _updateTagFilterSelector(): void {
             if (this._tagsFilterSelector) {
-                let companyFilter = this._findBaseFilter(COMPANY_FILTER_ID);
-                let companyId = companyFilter ? companyFilter.value : null;
-                let filters = buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
+                const companyFilter = this._findBaseFilter(COMPANY_FILTER_ID);
+                const companyId = companyFilter ? companyFilter.value : null;
+                const filters = buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
 
                 this._tagsFilterSelector.dataSource.filter(filters);
             }
@@ -771,9 +818,12 @@
             const $toolbar = this._$toolbar = this.grid().wrapper.find(".km-grid-toolbar-content");
 
             // Refresh command
-            $toolbar.find(".k-grid-refresh").on("click", e => {
-                this.refresh();
-            });
+            this._initRefreshCommand(!this._options.isLocalData);
+
+            // Enable add command if local data.
+            if (this._options.isLocalData) {
+                this._initAddCommand(true);
+            }
 
             let initialCompanyId: string = null;
             if (this._options.isCompanyFilterEnabled) {
@@ -923,7 +973,7 @@
                 }
             }
 
-            this.grid().tbody.on("click", "span.page-navi", kmodo.onPageNaviEvent);
+            this.grid().tbody.on("click", "span.km-page-navi", kmodo.onPageNaviEvent);
 
             if (!this._options.isDialog && this.grid().options.scrollable === true) {
                 $(window).resize(e => {
@@ -931,8 +981,8 @@
                 });
             }
 
-            if (this._options.isLookup)
-                this._initViewAsLookup();
+            if (this._options.isDialog)
+                this._initViewAsDialog();
         }
 
         updateSize() {
@@ -954,7 +1004,7 @@
             $grid.find(".k-grid-content").first().height(contentHeight);
         }
 
-        _initViewAsLookup() {
+        private _initViewAsDialog() {
             // Get dialog arguments and set them on the view model.
             if (!this.args)
                 this.setArgs(cmodo.dialogArgs.consume(this._options.id));

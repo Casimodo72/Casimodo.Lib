@@ -169,13 +169,14 @@
         cmodo.showError(message);
 
         // KABU TODO: ELIMINATE and move into the view models.
-        const $errorBox = $(".km-validation-errors-box").first();
+        const $errorBox = $(".km-form-validation-summary").first();
         if ($errorBox.length) {
             $errorBox.empty();
             const template = kendo.template("<li>#:message #</li>");
             $errorBox.append(template({
                 message: message
             }));
+            $errorBox.show(100);
         }
     }
 

@@ -906,7 +906,7 @@
         }
 
         protected _formatEntityLink(entityType: string, entityId: string, content: string): string {
-            return "<span class='page-navi' data-navi-part='" + entityType + "' data-navi-id='" + entityId + "'>" +
+            return "<span class='km-page-navi' data-navi-part='" + entityType + "' data-navi-id='" + entityId + "'>" +
                 content +
                 "</span>";
         }

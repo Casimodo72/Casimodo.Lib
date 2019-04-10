@@ -34,17 +34,10 @@
         }
 
         protected createDataSourceOptions(): kendo.data.DataSourceOptions {
-            return {
-                type: 'odata-v4',
-                schema: {
-                    model: this.createDataModel()
-                },
-                transport: this.createDataSourceTransportOptions(),
-                pageSize: 1,
-                serverPaging: true,
-                serverSorting: true,
-                serverFiltering: true,
-            };
+            return Object.assign(super.createDataSourceOptions(),
+                {
+                    pageSize: 1
+                });
         }
 
         // override
@@ -83,7 +76,6 @@
             // Init edit button.
             const $editBtn = this.$toolbar.find(".edit-command");
             if (this.auth.canModify && this._options.editor) {
-
                 $editBtn.on("click", (e) => {
                     this._openEditor();
                 });

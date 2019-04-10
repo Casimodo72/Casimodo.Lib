@@ -11,6 +11,7 @@ namespace cmodo {
         Once
     }
 
+    // TODO: Do we need that?
     //interface Event {
     //    preventDefault: Function;
     //    isDefaultPrevented(): boolean;
@@ -53,10 +54,6 @@ namespace cmodo {
             if (!eve)
                 return;
 
-            //function isEvent(object: any): object is Event {
-            //    return 'fooProperty' in object;
-            //}
-
             if (e) {
                 if (typeof e._defaultPrevented === "undefined" && typeof e.defaultPrevented === "undefined")
                     e.defaultPrevented = false;
@@ -81,7 +78,7 @@ namespace cmodo {
                 }
                 catch (ex) {
                     console.error(ex);
-                    // KABU TODO: How to handle exceptions here? Suppress?
+                    // TODO: How to handle exceptions here? Suppress?
                 }
             }
         }

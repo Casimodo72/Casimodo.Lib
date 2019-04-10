@@ -12,8 +12,6 @@
     }
 
     export interface EditorFormOptions extends EditableDataSourceViewOptions {
-        isLocalData?: boolean;
-        localData?: any[];
         title?: string;
     }
 
@@ -157,7 +155,7 @@
             this.args.isCancelled = false;
             this._closeWindow();
 
-            this.trigger("saved");
+            this.trigger("saved", { sender: this, result: this.args });
         }
 
         protected _cancel() {
@@ -180,7 +178,6 @@
             if (!this.auth.canView) {
                 this.$view.children().remove();
                 this.$view.prepend("<div style='color:red'>This view is not permitted.</div>");
-                // this.component.wrapper.hide();
             }
         }
 
@@ -210,6 +207,8 @@
             return this.getCurrentItem().toJSON();
         }
 
+        // TODO: REMOVE?
+        /*
         createSaveableDataItem() {
             // Transform data item from Kendo ObservableObject to simple object.
             const item = this.getCurrentItem().toJSON();
@@ -223,6 +222,7 @@
 
             return item;
         }
+        */
 
         private _save() {
             // KABU TODO: IMPORTANT: When will isSaved be true exactly? Even if the server
@@ -232,25 +232,29 @@
 
             // Transform data item from Kendo ObservableObject to simple object.
             const item = this.getCurrentItem();
-            // Prepare domain object for saving.
-            //   E.g. this will set non-nested object references (aka navigation properties)
-            //   to NULL before the object is sent to the server.
-            // KABU TODO: IMPORTANT: This also means that
-            //   we don't support editing of non-nested collections yet.
-            kmodo.initDomainDataItem(item, this._options.dataTypeName, "saving");
+
+            // If localdata: do not modify anything.
+            if (!this._options.isLocalData) {
+                // Prepare domain object for saving.
+                //   E.g. this will set non-nested object references (aka navigation properties)
+                //   to NULL before the object is sent to the server.
+                // KABU TODO: IMPORTANT: This also means that
+                //   we don't support editing of non-nested collections yet.
+                kmodo.initDomainDataItem(item, this._options.dataTypeName, "saving");
+            }
 
             if (this._iedit.isSaving || (this._iedit.isSaved && this._iedit.mode === "create"))
                 return;
 
             this._iedit.isSaving = true;
 
-            if (this._options.isCustomSave) {
-                this._iedit.isSaving = false;
-                this._iedit.isSaved = true;
-                this._finish();
+            //if (this._options.isCustomSave) {
+            //    this._iedit.isSaving = false;
+            //    this._iedit.isSaved = true;
+            //    this._finish();
 
-                return;
-            }
+            //    return;
+            //}
 
             // KABU TODO: VERY IMPORTANT: If the saving fails then we are left
             //   with nulled navigation properties.

@@ -1,11 +1,54 @@
 ﻿namespace kmodo {
 
+    interface NavigateToViewEventOptions {
+        editing?: Function;
+        saved?: Function;
+    }
+
+    export interface NavigateToViewResultEvent {
+        sender: any;
+        result: any;
+    }
+
+    export interface NavigateToViewOptions {
+        itemId?: string;
+        item?: any;
+        mode?: string;
+        canDelete?: boolean;
+        events?: NavigateToViewEventOptions;
+        finished?: (result: any) => void;
+        finished2?: (e: NavigateToViewResultEvent) => void;
+        value?: any;
+        filters?: any;
+        filterCommands?: any;
+        params?: any;
+        title?: string;
+        message?: string;
+        vm?: any;
+
+        maximize?: boolean;
+        resizable?: boolean;
+        draggable?: boolean;
+        scrollable?: boolean;
+
+        width?: number;
+        minWidth?: number;
+        maxWidth?: number;
+        height?: number;
+        minHeight?: number;
+        maxHeight?: number;
+
+        options?: any;
+    }
+
     export function navigate(part: string, itemId: string) {
-        _openCore(cmodo.componentRegistry.items.find(x => x.part === part && x.role === "Page"), { itemId: itemId });
+        _openCore(cmodo.componentRegistry.items.find(x => x.part === part && x.role === "Page"),
+            { itemId: itemId } as NavigateToViewOptions,
+            null);
     }
 
     // KABU TODO: Can we narrow down the options type?
-    export function openById(viewId: string, options: any, finished?: Function) {
+    export function openById(viewId: string, options: NavigateToViewOptions, finished?: (result: any) => void) {
         _openCore(cmodo.componentRegistry.items.find(x => x.id === viewId), options, finished);
     }
 
@@ -30,10 +73,10 @@
 
     const _componentCache = new Array<CachedComponentInfo>();
 
-    function _openCore(reg: cmodo.ComponentRegItem, options: any, finished?: Function) {
+    function _openCore(reg: cmodo.ComponentRegItem, options: NavigateToViewOptions, finished?: (result: any) => void) {
         if (!reg) return;
 
-        options = options || {};
+        options = options || {} as NavigateToViewOptions;
 
         // KABU TODO: Only wlloe options.finished.
         finished = finished || null;
@@ -97,7 +140,7 @@
         }
     };
 
-    function _createViewModel(reg: cmodo.ComponentRegItem, options) {
+    function _createViewModel(reg: cmodo.ComponentRegItem, options: NavigateToViewOptions): any {
         let vm = null;
         let cachedEntry: CachedComponentInfo = null;
 
@@ -115,17 +158,25 @@
             _componentCache.push({ id: reg.id, vm: vm });
         }
 
-        if (typeof options.editing === "function") {
+        if (options.events) {
+            const eves = options.events;
             if (reg.isCached)
                 throw new Error("Event assignment not allowed for cached view models.");
 
-            vm.on("editing", options.editing);
+            if (eves.editing) {
+                vm.on("editing", eves.editing);
+            }
+
+            if (eves.saved) {
+                vm.on("saved", eves.saved);
+            }
         }
 
         return vm;
     };
 
-    function _openModalWindow(reg: cmodo.ComponentRegItem, options, args, loaded: Function) {
+    function _openModalWindow(reg: cmodo.ComponentRegItem, options: NavigateToViewOptions,
+        args: cmodo.DialogArgs, loaded: Function) {
 
         let wnd: kendo.ui.Window = null;
         let cachedEntry: CachedComponentInfo = null;
@@ -184,7 +235,7 @@
                 pinned: false,
 
                 width: null,
-                minWidth: null,
+                minWidth: ownd.minWidth,
                 maxWidth: null,
 
                 height: ownd.height,
@@ -213,8 +264,11 @@
                         // NOP
                     }
                     else {
-                        if (options.finished)
+                        if (options.finished) {
                             options.finished(args);
+                        }
+
+                        _triggerOptionsFinished2(options, args);
                     }
                 },
                 deactivate: (e) => {
@@ -237,7 +291,7 @@
             // Somehow the window is always too small for the content.
             //   Maybe it's an effect of using Bootstrap.
             //   We'll add a padding of 40px.
-            wnd = $("<div style='padding-right: 40px'></div>")
+            wnd = $("<div></div>") //  style='padding-right: 40px'
                 .kendoWindow(owindow)
                 .data('kendoWindow');
         }
@@ -257,6 +311,8 @@
                     }
 
                     options.finished(args);
+
+                    _triggerOptionsFinished2(options, args);
                 });
             }
         }
@@ -332,6 +388,17 @@
             });
 
             wnd.refresh({ url: reg.url, cache: false });
+        }
+    }
+
+    function _triggerOptionsFinished2(options: NavigateToViewOptions, args: cmodo.DialogArgs): void {
+        if (options.finished2) {
+            const eve: NavigateToViewResultEvent = {
+                sender: options.vm,
+                result: Object.assign({}, args)
+            };
+
+            options.finished2(eve);
         }
     }
 

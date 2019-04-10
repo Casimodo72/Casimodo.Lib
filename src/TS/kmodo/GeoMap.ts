@@ -44,12 +44,22 @@
         Latitude: string
     }
 
+    export interface GeoPlaceEditorValues extends Partial<kendo.data.ObservableObject> {
+        Street: string;
+        ZipCode: string;
+        City: string;
+        CountryStateId: string;
+        CountryId: string;
+        Longitude: string;
+        Latitude: string;
+    }
+
     export class GeoPlaceEditorInfo {
-        vm: kendo.data.ObservableObject;
+        vm: GeoPlaceEditorValues;
         PlaceInfo: GeoPlaceInfo;
         _map: GeoPlaceEditorPropMap;
 
-        constructor(vm: kendo.data.ObservableObject, map?: GeoPlaceEditorPropMappingSettings) {
+        constructor(vm: GeoPlaceEditorValues, map?: GeoPlaceEditorPropMappingSettings) {
             this.vm = vm;
             this.PlaceInfo = null;
             this._map = {
@@ -107,7 +117,7 @@
             this._apply(vm, m.Latitude, place);
         }
 
-        private _set(source: kendo.data.ObservableObject, sourceProp: string, target: GeoPlaceInfo, targetProp: any, converter?: Function): void {
+        private _set(source: Partial<kendo.data.ObservableObject>, sourceProp: string, target: GeoPlaceInfo, targetProp: any, converter?: Function): void {
 
             const sourceValue = cmodo.getValueAtPropPath(source, sourceProp);
 
@@ -119,7 +129,7 @@
                         : sourceValue);
         }
 
-        private _apply(target: kendo.data.ObservableObject, targetProp: string, source: GeoPlaceInfo, sourceProp?: string, converter?: Function) {
+        private _apply(target: Partial<kendo.data.ObservableObject>, targetProp: string, source: GeoPlaceInfo, sourceProp?: string, converter?: Function) {
             // If the target obj references props from a referenced obj: Don't change values of the referenced object.
             if (targetProp.indexOf(".") !== -1)
                 return;

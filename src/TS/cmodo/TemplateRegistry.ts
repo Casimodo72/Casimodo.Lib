@@ -9,8 +9,13 @@ namespace cmodo {
             this.addDefaultTemplates();
         }
 
-        get(name: string): (data: any) => string {
+        render(name: string, value: any): string {
+            return this.get(name)({
+                value: value === undefined ? null : value
+            });
+        }
 
+        get(name: string): (data: any) => string {
             let compiledTemplateFunc = this.compiledTemplates[name];
             if (typeof compiledTemplateFunc === "function")
                 return compiledTemplateFunc;

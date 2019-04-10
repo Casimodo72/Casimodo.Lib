@@ -88,11 +88,9 @@
         constructor(options: ViewComponentOptions) {
             super(options);
 
-            // TODO: REMOVE: this._options = super._options as ViewComponentOptions;
-
             // Extend with extra options.
             if (this._options.extra) {
-                for (let prop in this._options.extra)
+                for (const prop in this._options.extra)
                     this._options[prop] = this._options.extra[prop];
             }
 

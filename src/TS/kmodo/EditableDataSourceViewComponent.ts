@@ -38,7 +38,7 @@
     }
 
     export interface EditableDataSourceViewOptions extends DataSourceViewOptions {
-        dataTemplate?: string;        
+        dataTemplate?: string;
         editing?: (e: EditableViewOnEditingEvent) => void;
     }
 
@@ -79,19 +79,10 @@
 
         // override
         protected createDataSourceOptions(): kendo.data.DataSourceOptions {
-            const dataSourceOptions: kendo.data.DataSourceOptions = {
-                type: 'odata-v4',
-                schema: {
-                    model: this.createDataModel()
-                },
-                transport: this.createDataSourceTransportOptions(),
-                pageSize: 1,
-                serverPaging: true,
-                serverSorting: true,
-                serverFiltering: true,
-            };
-
-            return dataSourceOptions;
+            return Object.assign(super.createDataSourceOptions(),
+                {
+                    pageSize: 1
+                });
         }
 
         // override

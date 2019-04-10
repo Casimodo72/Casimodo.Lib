@@ -18,6 +18,9 @@ namespace cmodo {
         buildResult: Function;
         initSpace: Function;
 
+        isOk?: boolean;
+        isCancelled?: boolean;
+
         constructor(id: string, value?: any) {
             this.id = id;
             this.value = value || null;
