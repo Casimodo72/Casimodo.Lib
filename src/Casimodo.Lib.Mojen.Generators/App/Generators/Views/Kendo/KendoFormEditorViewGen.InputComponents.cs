@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Mojen
 
             if (validationElem)
             {
-                OInvalidTooltip(context);
+                OInvalidPropPlaceholder(context);
                 // OValidationMessageElem(context.PropInfo.PropPath);
             }
 
@@ -152,8 +152,8 @@ namespace Casimodo.Lib.Mojen
             OKendoNumericInput(context, ppath: ppath + ".Minutes", min: 0, max: 59, validationElem: false);
             Pop();
             O("</div>");
-            OValidationMessageElem(ppath + ".Hours");
-            OValidationMessageElem(ppath + ".Minutes");
+            OInvalidPropPlaceholder(ppath + ".Hours");
+            OInvalidPropPlaceholder(ppath + ".Minutes");
         }
 
         public void OKendoTextInput(WebViewGenContext context)
@@ -172,7 +172,7 @@ namespace Casimodo.Lib.Mojen
                 if (dprop.RowCount != 0) ElemAttr("rows", dprop.RowCount);
                 if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
                 // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
-               
+
                 OHtmlElemAttrs();
                 OHtmlRequiredttrs(context, dprop);
                 OHtmlDataBindValue(context);
@@ -213,7 +213,7 @@ namespace Casimodo.Lib.Mojen
 
                 oO("/>");
             }
-        }      
+        }
 
         public void OKendoCheckbox(WebViewGenContext context)
         {

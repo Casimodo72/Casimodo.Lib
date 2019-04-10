@@ -140,10 +140,11 @@ namespace Casimodo.Lib.Mojen
                     context.View.Id);
         }
 
-        public void OValidationMessageElem(string propPath)
-        {
-            // Validation error message.
-            O($"<span class='field-validation-valid' data-valmsg-for='{propPath}' data-valmsg-replace='true'></span>");
-        }
+        // TODO: REMOVE
+        //public void OValidationMessageElem(string propPath)
+        //{
+        //    // Validation error message.
+        //    O($"<span class='field-validation-valid' data-valmsg-for='{propPath}' data-valmsg-replace='true'></span>");
+        //}
     }
 }

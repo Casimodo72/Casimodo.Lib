@@ -285,7 +285,8 @@ namespace Casimodo.Lib.Mojen
         Read = 1 << 1,
         Update = 1 << 2,
         CreateUpdate = Create | Update,
-        ReadEdit = Read | Update,
+        CreateRead = Create | Read,
+        EditRead = Read | Update,
         All = Create | Read | Update
     }
 

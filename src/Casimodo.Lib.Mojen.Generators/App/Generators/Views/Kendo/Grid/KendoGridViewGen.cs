@@ -262,7 +262,7 @@ namespace Casimodo.Lib.Mojen
             // Paging ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             if (Options.IsPagerVisible)
-            {              
+            {
                 OXP("pageable",
                     $"refresh: {Moj.JS(view.IsReloadable && Options.Pager.UseRefresh)}",
                     $"input: {Moj.JS(Options.Pager.UseInput)}",
@@ -363,7 +363,7 @@ namespace Casimodo.Lib.Mojen
                                     if (context.View.IsExportableToPdf)
                                         // TODO: LOCALIZE
                                         o("<li data-name='ExportToPdf'>Exportieren nach PDF</li>");
-                                    
+
                                     o("</ul></li>");
                                     o("</ul>");
                                 }
@@ -700,7 +700,7 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.IsLinkToInstance)
             {
-                template = $"<span class='page-navi' " +
+                template = $"<span class='km-page-navi' " +
                     $"data-navi-part='{dprop.DeclaringType.Name}' " +
                     $"data-navi-id='#:data.get('{dprop.GetFormedNavigationPropPathOfKey()}')#'>" +
                     $"{template ?? $"#: data.get('{propPath}') || '' #"}" +
@@ -891,11 +891,7 @@ namespace Casimodo.Lib.Mojen
 
             if (vprop.CustomTemplateName != null)
             {
-                var templateDataPropPath = "dataItem";
-                if (vprop.CustomTemplatePropPath != null)
-                    templateDataPropPath += "." + vprop.CustomTemplatePropPath;
-
-                template = $"function(dataItem) {{ return kmodo.templates.get('{vprop.CustomTemplateName}')({templateDataPropPath}); }}";
+                template = BuildCustomPropTemplate(vprop);
             }
 
             if (template != null)
@@ -920,6 +916,23 @@ namespace Casimodo.Lib.Mojen
             }
 
             End(","); // Column
+        }
+
+        string BuildCustomPropTemplate(MojViewProp vprop)
+        {
+            if (vprop.CustomTemplateName == null)
+                return null;
+
+            var valueGetter = "dataItem";
+            if (vprop.CustomTemplatePropPath != null)
+            {
+                valueGetter += ".get('" + vprop.CustomTemplatePropPath + "')";
+                return $"dataItem => kmodo.templates.render('{vprop.CustomTemplateName}', {valueGetter})";
+            }
+            else
+            {
+                return $"dataItem => kmodo.templates.get('{vprop.CustomTemplateName}')({valueGetter})";
+            }
         }
 
         string GetDistinctDataSourceReadUrl(WebViewGenContext context, MojType type, string propName)

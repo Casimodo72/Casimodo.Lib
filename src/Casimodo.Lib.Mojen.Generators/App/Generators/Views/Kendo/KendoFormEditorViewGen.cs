@@ -128,7 +128,8 @@ namespace Casimodo.Lib.Mojen
 
             if (IsEffectiveStandaloneView(context))
             {
-                XB("<div class='km-edit-form-container'{0}>", GetViewHtmlId(context));
+                // NOTE: "k-edit-form-container" is a Kendo class.
+                XB("<div class='k-edit-form-container'{0}>", GetViewHtmlId(context));
                 XB($"<div class='form-horizontal component-root'{style}>");
             }
             else
@@ -137,7 +138,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             // Validation error box.
-            O("<ul class='km-validation-errors-box'></ul>");
+            O("<ul class='km-form-validation-summary' style='display:none'></ul>");
 
             // External fields. Those fields need to be included in the UsedViewPropInfos
             //  because they are intended to be edited via a user-provided custom template.
@@ -395,7 +396,10 @@ namespace Casimodo.Lib.Mojen
 
             // Validation message
             if (validationBox)
-                OValidationMessageElem(ppath);
+            {
+                OInvalidPropPlaceholder(context);
+                // TODO: REMOVE: OValidationMessageElem(ppath);
+            }
         }
 
         // Selectors ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -440,6 +444,7 @@ namespace Casimodo.Lib.Mojen
 
         void OSelectorControlInvisibleInput(WebViewGenContext context)
         {
+            var vprop = context.PropInfo.ViewProp;
             var prop = context.PropInfo.Prop;
             var propPath = context.PropInfo.PropPath;
 
@@ -685,9 +690,14 @@ namespace Casimodo.Lib.Mojen
             O($@"<div data-bind='text:{binding},attr:{{title:{binding}}}'{GetElemAttrs()}></div>");
         }
 
-        public void OInvalidTooltip(WebViewGenContext context)
+        public void OInvalidPropPlaceholder(WebViewGenContext context)
         {
-            O($"<span class='k-invalid-msg' data-for='{context.PropInfo.PropPath}'></span>");
+            OInvalidPropPlaceholder(context.PropInfo.PropPath);
+        }
+
+        public void OInvalidPropPlaceholder(string propPath)
+        {
+            O($"<span class='k-invalid-msg' data-for='{propPath}'></span>");
         }
 
         public bool OPropLookupSelectorDialog(WebViewGenContext context)
@@ -727,10 +737,12 @@ namespace Casimodo.Lib.Mojen
             // Button for popping up the lookup dialog.
             OSelectorControlButton(context);
 
-            // Place the validation error tooltip after the button.
-            OInvalidTooltip(context);
-
             XE("</div>"); // input-group
+
+            // Place outside of input-group, otherwise the button won't become
+            //   visually attached to the text box.
+            // Note that this will still be inside the km-input-group-container.
+            OInvalidPropPlaceholder(context);
 
             OMvcScriptBegin();
             O($"// Lookup dialog for {propPath}");
@@ -950,7 +962,7 @@ namespace Casimodo.Lib.Mojen
 
             // Drop down list component
             // See http://demos.telerik.com/aspnet-mvc/dropdownlist/index
-#if (true)
+
             var displayName = GetDisplayNameFor(context);
             Oo($@"<input id='{propPath}' name='{propPath}' type='text'");
             o($@" class='form-control' data-display-name='{displayName}'");
@@ -958,6 +970,9 @@ namespace Casimodo.Lib.Mojen
             OHtmlRequiredttrs(context, prop);
             OHtmlElemAttrs();
             oO(" />");
+
+            OInvalidPropPlaceholder(context);
+            // TODO: REMOVE: OValidationMessageElem(propPath);
 
             OJsScript(() =>
             {
@@ -991,48 +1006,6 @@ namespace Casimodo.Lib.Mojen
                     }, ");");
                 });
             });
-
-            OValidationMessageElem(propPath);
-#else
-            O($"@(Html.Kendo().DropDownListFor(m => m.{propPath})");
-            Push();
-
-            O($".ValuePrimitive(true)"); // DONE
-
-            O($".DataValueField(\"{key}\").DataTextField(\"{display}\")"); // DONE
-
-            // KABU TODO: IMPORTANT: REMOVE? What's the point of having no NULL value in the UI?
-            O(".OptionLabel(\" \")"); // DONE
-
-            if (cascade)
-            {
-                O(".AutoBind(false)");// DONE
-                O(".Enable(false)");// DONE
-                O($".CascadeFrom(\"{cascadeParentComponentId}\")");// DONE
-                O($".CascadeFromField(\"{cascadeParentForeignKeyName}\")");// DONE
-            }
-
-            // Set Kendo data-source.
-            KendoGen.OMvcReadOnlyDataSource(odataQuery, cascadeQueryParameterFunc); // DONE
-
-            if (prop.IsRequiredOnEdit)//DONE
-                ElemFlag("required");
-
-            // KABU TODO: REMOVE: AddClassAttr("kendo-force-validation");
-            ElemClass("form-control"); //DONE
-            // KABU TODO: REVISIT: Kendo's MVC DropDownList wrapper does not output
-            //   the attribute "data-display-name" which is needed for the validation error message.
-            //   Why? Other Kendo MVC wrappers do output that attribute.
-            //   We have to add it manually.
-            ElemAttr("data-display-name", GetDisplayNameFor(context));//DONE
-            OMvcAttrs(context, kendo: true); // DONE
-
-            Pop();
-            oO(")"); // DropDownList
-
-            // Validation message
-            O($"@Html.ValidationMessageFor(m => m.{propPath})");//DONE
-#endif
 
             return true;
         }

@@ -104,18 +104,9 @@ namespace Casimodo.Lib.Mojen
             if (gen.WebConfig.OutputCache.IsEnabled)
             {
                 // This attribute is located in Casimodo.Lib.Web
-                if (gen.App.IsDotNetCore())
-                {
-                    gen.O("[CustomResponseCache(CacheProfileName = \"{0}\"{1})]",
-                        gen.WebConfig.OutputCache.CacheProfile,
-                        gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
-                }
-                else
-                {
-                    gen.O("[CustomOutputCache(CacheProfile = \"{0}\"{1})]",
-                        gen.WebConfig.OutputCache.CacheProfile,
-                        gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
-                }
+                gen.O("[CustomResponseCache(CacheProfileName = \"{0}\"{1})]",
+                    gen.WebConfig.OutputCache.CacheProfile,
+                    gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
             }
         }
     }
@@ -507,19 +498,10 @@ namespace Casimodo.Lib.Mojen
 
         public void OMvcPartialView(string virtualPath, bool kendoEscape = false)
         {
-            if (App.IsDotNetCore())
-            {
-                if (kendoEscape)
-                    O($@"@(await @Html.PartialAsync(""{virtualPath}"")).ToKendoTemplate()");
-                else
-                    O($@"<partial name=""{virtualPath}""/>");
-            }
+            if (kendoEscape)
+                O($@"@(await @Html.PartialAsync(""{virtualPath}"")).ToKendoTemplate()");
             else
-            {
-                O("@Html.Partial(\"{0}\"){1}",
-                    virtualPath,
-                    kendoEscape ? ".ToKendoTemplate()" : "");
-            }
+                O($@"<partial name=""{virtualPath}""/>");
         }
     }
 }

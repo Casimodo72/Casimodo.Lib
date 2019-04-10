@@ -114,10 +114,7 @@ namespace Casimodo.Lib.Mojen
                 "Casimodo.Lib",
                 "Casimodo.Lib.Data"});
 
-            if (App.IsDotNetCore())
-                ns.Add("Microsoft.EntityFrameworkCore");
-            else
-                ns.Add("System.Data.Entity");
+            ns.Add("Microsoft.EntityFrameworkCore");
 
             OUsing(ns.ToArray());
 

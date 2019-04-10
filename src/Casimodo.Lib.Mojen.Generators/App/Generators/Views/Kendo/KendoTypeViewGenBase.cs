@@ -31,9 +31,9 @@ namespace Casimodo.Lib.Mojen
             // NOP
         }
 
-        
 
-        
+
+
 
         public virtual void Define(WebViewGenContext context)
         {
@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
             OPropContainerEnd = (c) => XE("</div>");
         }
 
-        
+
 
         IEnumerable<List<ViewTemplateItem>> FilterHiddenProps(IEnumerable<List<ViewTemplateItem>> runs, MojViewMode mode)
         {
@@ -478,8 +478,14 @@ namespace Casimodo.Lib.Mojen
             if (info.CustomDisplayLabel != null)
                 return info.CustomDisplayLabel;
             else
-                // KABU TODO: This is never hit in our current project. 
+            {
+                throw new NotSupportedException("Display names via data attributes are not supported anymore.");
+                // TODO: REMOVE
+                // TODO: This is never hit in our current project. 
+#pragma warning disable CS0162 // Unreachable code detected
                 return $"@(Html.DisplayNameFor(m => m.{info.PropPath}))";
+#pragma warning restore CS0162 // Unreachable code detected
+            }
         }
 
         public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = (context) => { };

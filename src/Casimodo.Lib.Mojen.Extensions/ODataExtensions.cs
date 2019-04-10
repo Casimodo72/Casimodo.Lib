@@ -12,20 +12,14 @@ namespace Casimodo.Lib.Mojen
             if (!modelGens.Any(x => x.Type == typeof(ODataConfigGen)))
                 modelGens.Add(new MojUsingGeneratorConfig { Type = typeof(ODataConfigGen) });
 
-            if (builder.App.IsDotNetCore())
-                builder.Use<CoreODataControllerGen>(options);
-            else
-                builder.Use<ODataControllerGen>(options);
+            builder.Use<CoreODataControllerGen>(options);
 
             return builder;
         }
 
         public static MojControllerBuilder UseODataMvcController(this MojControllerBuilder builder)
         {
-            if (builder.App.IsDotNetCore())
-                builder.Use<CoreODataMvcControllerGen>();
-            else
-                builder.Use<MvcODataControllerGen>();
+            builder.Use<CoreODataMvcControllerGen>();
 
             return builder;
         }
