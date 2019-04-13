@@ -54,6 +54,8 @@ namespace Casimodo.Lib.Mojen
                 OTsNamespace(WebConfig.ScriptNamespace, () =>
                 {
                     var gen = new TsXClassGen();
+                    gen.Options.GenerateInterfaces = true;
+                    gen.Options.PrefixInterfaces = true;
                     gen.WebConfig = WebConfig;
                     gen.Use(Writer);
                     gen.Push();

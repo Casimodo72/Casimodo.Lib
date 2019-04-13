@@ -239,6 +239,12 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder AutoFitColumn()
+        {
+            Prop.IsColAutofit = true;
+            return this;
+        }
+
         public MojViewPropBuilder MaxWidth(int width)
         {
             Prop.MaxWidth = width;

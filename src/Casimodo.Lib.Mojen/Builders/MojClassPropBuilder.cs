@@ -39,6 +39,11 @@ namespace Casimodo.Lib.Mojen
             string backrefPropName = null);
     }
 
+    public class MojUnidirM2MBuildOptions
+    {
+
+    }
+
     public class MojClassPropBuilder<TClassBuilder, TPropBuilder> :
         MojPropBuilder<TClassBuilder, TPropBuilder>,
         IMojClassPropBuilder
@@ -80,25 +85,28 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TPropBuilder _UnidirManyToManyCollectionOf(MojType itemType, string linkTypeGuid, Action<MojModelBuilder> buildLinkType)
+        public TPropBuilder _UnidirManyToManyCollectionOf(MojType itemType,
+            string linkTypeGuid,
+            string ownerPropName = null,
+            Action<MojModelBuilder> buildLinkType = null)
         {
             if (true)
             {
                 var prop = PropConfig;
 
-                var type = MojClassBuilderHelper.BuildLinkTypeName(prop.DeclaringType, itemType);
+                var typeName = MojClassBuilderHelper.BuildLinkTypeName(prop.DeclaringType, itemType);
 
-                var atype = prop.DeclaringType; // e.g. Project
-                var aprop = prop.DeclaringType.Name; // e.g. Project
-                var aid = aprop + "Id"; // e.g. ProjectId
+                var fromType = prop.DeclaringType; // e.g. Project
+                var fromProp = ownerPropName ?? prop.DeclaringType.Name; // e.g. Project or given name (e.g. "Owner")
+                var fromForeignKey = fromProp + "Id"; // e.g. ProjectId
 
-                var btype = itemType; // e.g. MoTag
-                var bprop = prop.Name; // e.g. Tag
-                var btypePlural = itemType.PluralName; // e.g. MoTags
-                var bid = bprop + "Id"; // e.g. TagId
+                var toType = itemType; // e.g. MoTag
+                var toProp = prop.Name; // e.g. Tag
+                var toTypePlural = itemType.PluralName; // e.g. MoTags
+                var toForeignKey = toProp + "Id"; // e.g. TagId
 
                 // Add many-to-many link type.
-                var m = App.CurrentBuildContext.AddModel(type)
+                var m = App.CurrentBuildContext.AddModel(typeName)
                     .Id(linkTypeGuid);
 
                 m.TypeConfig.IsManyToManyLink = true;
@@ -108,27 +116,34 @@ namespace Casimodo.Lib.Mojen
                 m.Store();
 
                 m.Key();
-                // KABU TODO: When atype is deleted then the link entry must also be deleted.
-                //m.Prop(aprop).ToParent(atype, nullable: false).AsChildCollection();
-                // KABU TODO: When btype is deleted then the link entry must also be deleted.
-                m.Prop(bprop).ToParent(btype, nullable: false).AsChildCollection(hidden: true);
+
+                // TODO: When fromType is deleted then the link entry must also be deleted.
+                // m.Prop(aprop).ToParent(atype, nullable: false).AsChildCollection();
+
+                // When toType is deleted then the link entry must also be deleted.
+                m.Prop(toProp).ToParent(toType, nullable: false).AsChildCollection(hidden: true);
+
                 m.PropIndex().Store();
 
                 var linkType = m.Build();
 
                 prop.Name = "To" + prop.Name;
 
-                ChildCollectionOf(linkType, backrefNew: true, backrefPropName: aprop, backrefNavigation: true, backrefRequired: true);
+                ChildCollectionOf(linkType,
+                    backrefNew: true,
+                    backrefPropName: fromProp,
+                    backrefNavigation: true,
+                    backrefRequired: true);
 
                 m.Store(eb =>
                 {
-                    eb.UniqueIndex(aprop, bprop);
+                    eb.UniqueIndex(fromProp, toProp);
                 });
                 m.Build();
-
             }
             else
             {
+                // TODO: REVISIT Independent unidir M2M collections are not supported by EF Core (yet?).
 #pragma warning disable CS0162 // Unreachable code detected
                 IndependenCollectionOf(itemType);
 #pragma warning restore CS0162 // Unreachable code detected

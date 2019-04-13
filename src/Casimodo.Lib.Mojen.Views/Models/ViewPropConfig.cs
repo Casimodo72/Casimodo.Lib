@@ -332,6 +332,8 @@ namespace Casimodo.Lib.Mojen
         public int? Width { get; set; }
         public int? MaxWidth { get; set; }
 
+        public bool IsColAutofit { get; set; }
+
         // TODO: REMOVE: public MojProp ColorProp { get; set; }
 
         public bool IsHtml { get; set; }

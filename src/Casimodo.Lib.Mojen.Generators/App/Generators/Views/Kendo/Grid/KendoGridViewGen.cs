@@ -915,6 +915,13 @@ namespace Casimodo.Lib.Mojen
                 End(",");
             }
 
+            if (vprop.IsColAutofit)
+            {
+                // Need to use " " if we don't want a column label, otherwise Kendo will
+                // insist in displaying the field's name.
+                O($"autofit: true,");
+            }
+
             End(","); // Column
         }
 

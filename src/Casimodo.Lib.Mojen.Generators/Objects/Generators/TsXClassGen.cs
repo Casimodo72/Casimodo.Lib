@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
 
     public class TsXClassGen : DataLayerGenerator
     {
-        readonly TsXClassGenOptions _options;
+        public TsXClassGenOptions Options { get; set; }
 
         public TsXClassGen()
             : this(new TsXClassGenOptions())
@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
 
         public TsXClassGen(TsXClassGenOptions options = null)
         {
-            _options = options;
+            Options = options;
             Scope = "Context";
         }
 
@@ -44,20 +44,20 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             WebConfig = App.Get<WebDataLayerConfig>();
-            var outputDirPath = _options?.OutputDirPath ?? WebConfig.TypeScriptDataDirPath;
+            var outputDirPath = Options?.OutputDirPath ?? WebConfig.TypeScriptDataDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            IncludedTypeNames = _options?.IncludeTypes?.ToList();
+            IncludedTypeNames = Options?.IncludeTypes?.ToList();
 
             var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
                 .Where(x => !x.IsTenant)
                 .Where(x => IncludedTypeNames == null || IncludedTypeNames.Contains(x.Name))
                 .ToList();
 
-            if (_options?.OutputSingleFile == true)
+            if (Options?.OutputSingleFile == true)
             {
-                var fileName = _options?.SingleFileName ?? "DataTypes.generated";
+                var fileName = Options?.SingleFileName ?? "DataTypes.generated";
                 fileName += ".ts";
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
@@ -87,7 +87,7 @@ namespace Casimodo.Lib.Mojen
             {
                 foreach (var type in types)
                 {
-                    var fileName = _options?.FormatFileName?.Invoke(type) ?? type.Name + ".generated";
+                    var fileName = Options?.FormatFileName?.Invoke(type) ?? type.Name + ".generated";
                     fileName += ".ts";
 
                     PerformWrite(Path.Combine(outputDirPath, fileName), () =>
@@ -104,7 +104,7 @@ namespace Casimodo.Lib.Mojen
             if (type == null)
                 return;
 
-            string[] typeNames = _options.GenerateInterfaces && _options.PrefixInterfaces
+            string[] typeNames = Options.GenerateInterfaces && Options.PrefixInterfaces
                 ? typeNames = new[] { type.Name, "I" + type.Name }
                 : typeNames = new[] { type.Name };
 
@@ -163,12 +163,12 @@ namespace Casimodo.Lib.Mojen
 
             string iname = null;
 
-            if (_options.GenerateInterfaces)
+            if (Options.GenerateInterfaces)
             {
-                iname = _options.PrefixInterfaces ? "I" + type.Name : type.Name;
+                iname = Options.PrefixInterfaces ? "I" + type.Name : type.Name;
                 var ibaseName = !type.HasBaseClass
                     ? ""
-                    : _options.PrefixInterfaces ? "I" + type.BaseClass.Name : type.BaseClass.Name;
+                    : Options.PrefixInterfaces ? "I" + type.BaseClass.Name : type.BaseClass.Name;
 
                 OTsInterface(iname,
                     extends: ibaseName,
@@ -181,7 +181,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OTsClass(type.Name,
                 extends: type.HasBaseClass ? type.BaseClass.Name : null,
-                implements: _options.GenerateInterfaces ? new string[] { iname } : null,
+                implements: Options.GenerateInterfaces ? new string[] { iname } : null,
                 propertyInitializer: true,
                 constructor: () =>
                 {
@@ -243,7 +243,7 @@ namespace Casimodo.Lib.Mojen
 
                     string defaultValue = "null";
 
-                    if (_options?.UseDefaultValues == true)
+                    if (Options?.UseDefaultValues == true)
                     {
                         // Don't auto-generate GUIDs for IDs.
                         if (!prop.IsKey)
