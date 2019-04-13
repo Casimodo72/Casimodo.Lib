@@ -8,7 +8,7 @@
         enter?: () => void;
         leave?: () => void;
         validate?: () => boolean;
-        isEnabled?: boolean;
+        enabled?: boolean;
     }
 
     export class WizardPage {
@@ -20,7 +20,7 @@
         enter: () => void = null;
         leave?: () => void = null;
         validate: () => boolean = null;
-        isEnabled = true;
+        enabled = true;
         tab: TabPage = null;
 
         constructor(options: WizardPageOptions) {
@@ -30,10 +30,10 @@
             this.enter = options.enter;
             this.leave = options.leave;
             this.validate = options.validate;
-            if (typeof options.isEnabled !== "undefined")
-                this.isEnabled = !!options.isEnabled;
+            if (typeof options.enabled !== "undefined")
+                this.enabled = !!options.enabled;
             else
-                this.isEnabled = true;
+                this.enabled = true;
             this.tab = new TabPage({
                 name: options.name
             });
@@ -113,11 +113,11 @@
         }
 
         setPageEnabled(name: string, value: boolean): void {
-            const page = this.getPage(name);
+            const page = this.page(name);
             if (!page)
                 return;
 
-            page.isEnabled = !!value;
+            page.enabled = !!value;
         }
 
         setPageCommandEnabled(name: string, value: boolean): void {
@@ -125,7 +125,7 @@
             if (!cmd)
                 return;
 
-            cmd.set("isEnabled", !!value);
+            cmd.set("enabled", !!value);
         }
 
         moveToNextPage(): boolean {
@@ -155,7 +155,7 @@
 
             // Get first enabled next page.
             let nextPage: WizardPage;
-            while ((nextPage = pages.elementAtOrDefault(idx)) !== null && !nextPage.isEnabled)
+            while ((nextPage = pages.elementAtOrDefault(idx)) !== null && !nextPage.enabled)
                 idx++;
             if (!nextPage)
                 return false;
@@ -170,8 +170,8 @@
             let idx = pages.indexOf(this.currentPage) - 1;
 
             // Get first enabled previous page.
-            let prevPage;
-            while ((prevPage = pages.elementAtOrDefault(idx)) !== null && !prevPage.isEnabled)
+            let prevPage: WizardPage;
+            while ((prevPage = pages.elementAtOrDefault(idx)) !== null && !prevPage.enabled)
                 idx--;
             if (!prevPage)
                 return false;
@@ -182,7 +182,7 @@
         }
 
         private _moveToPage(name: string) {
-            const page = this.getPage(name);
+            const page = this.page(name);
             if (!page)
                 return;
 
@@ -217,14 +217,14 @@
             return true;
         }
 
-        getPage(name: string): WizardPage {
+        page(name: string): WizardPage {
             return this._pages.find((x) => x.name === name);
         }
 
         private _hideAllCommands(): void {
             for (const cmd of this._commands) {
-                cmd.set("isVisible", false);
-                cmd.set("isEnabled", false);
+                cmd.set("visible", false);
+                cmd.set("enabled", false);
             }
         }
 
@@ -254,10 +254,10 @@
                 onTriggered: () => this._executeCommand(name)
                 // KABU TODO: REMOVE?
                 //enable: function (value) {
-                //    this.set("isEnabled", value);
+                //    this.set("enabled", value);
                 //},
                 //show: function (value) {
-                //    this.set("isVisible", value);
+                //    this.set("enabled", value);
                 //}
             });
 
@@ -275,7 +275,7 @@
                 }
             }
 
-            const page = this.getPage(name);
+            const page = this.page(name);
             if (!page)
                 return;
 
@@ -302,10 +302,10 @@
                                 // Special commands are implicitely enabled by default.
                                 enabled = true;
                             }
-                            cmd.set("isEnabled", enabled);
+                            cmd.set("enabled", enabled);
 
                             // Set visibility
-                            cmd.set("isVisible", true);
+                            cmd.set("visible", true);
                         }
                     }
                 }
@@ -343,7 +343,7 @@
             const $commands = this.$component.children("div.kendomodo-wizard-commands").first();
             if ($commands.length) {
                 for (const cmd of this._commands) {
-                    $commands.append('<a data-role="button" data-bind="visible:' + cmd.name + '.isVisible, enabled:' + cmd.name + '.isEnabled, events: { click:' + cmd.name + '.onTriggered }"><span data-bind="text:' + cmd.name + '.text"></span></a>');
+                    $commands.append('<a data-role="button" data-bind="visible:' + cmd.name + '.visible, enabled:' + cmd.name + '.enabled, events: { click:' + cmd.name + '.onTriggered }"><span data-bind="text:' + cmd.name + '.text"></span></a>');
                 }
 
                 kendo.bind($commands, this.commandsViewModel);

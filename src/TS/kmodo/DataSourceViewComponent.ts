@@ -254,33 +254,7 @@
 
             return this._options.transport({ sender: this });
         }
-
-        private _createLocalDataTransport(data: any[]): kendo.data.DataSourceTransportWithFunctionOperations {
-
-            const transport: kendo.data.DataSourceTransportWithFunctionOperations = {
-                read: e => {
-                    alert("local read " + e.data);
-                    e.success(data);
-                },
-                update: e => {
-                    alert("local update " + e.data);
-                    // TODO: IMPL: update in data
-                    // e.success();
-                },
-                destroy: e => {
-                    alert("local destroy " + e.data);
-                    // TODO: IMPL: remove from data
-                    e.success();
-                },
-                create: e => {
-                    alert("local create " + e.data);
-                    e.success(e.data);
-                }
-            };
-
-            return transport;
-        }
-
+       
         protected createDataSourceOptions(): kendo.data.DataSourceOptions {
             if (this._options.isLocalData) {
                 // Return local data data source options.
@@ -290,7 +264,7 @@
                     schema: {
                         model: this.createDataModel()
                     },
-                    transport: this._createLocalDataTransport(this._options.localData || []),
+                    transport: createLocalDataSourceTransport(this._options.localData || []),
                     // data: this._options.localData || [],
                     pageSize: 20
                 }

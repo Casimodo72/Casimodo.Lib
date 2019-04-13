@@ -1,12 +1,12 @@
 ﻿namespace kmodo {
 
     export interface IndyCollectionEditorFormOptions extends ViewComponentOptions {
-        title?: string;
-        isCustomSave?: boolean;
+        title?: string;      
         saveBaseUrl: string;
         saveMethod: string;
-        isLocalTargetData?: string;
+        isLocalTargetData?: boolean;
         localTargetData?: any[];
+        isCustomSave?: boolean;
         sourceListId: string;
         targetListId: string;
         targetContainerQuery: string;

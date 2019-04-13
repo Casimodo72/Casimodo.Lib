@@ -96,8 +96,8 @@
             this._set(vm, m.Street, place, "Street");
             this._set(vm, m.ZipCode, place, "ZipCode");
             this._set(vm, m.City, place, "City");
-            this._set(vm, m.CountryStateId, place, "StateLong", this.getCountryStateDisplayName);
-            this._set(vm, m.CountryId, place, "CountryLong", this.getCountryDisplayName);
+            this._set(vm, m.CountryStateId, place, "StateLong", this.getDisplayNameByIdConverter("CountryState"));
+            this._set(vm, m.CountryId, place, "CountryLong", this.getDisplayNameByIdConverter("Country"));
             this._set(vm, m.Longitude, place, "Longitude");
             this._set(vm, m.Latitude, place, "Latitude");
         }
@@ -111,8 +111,8 @@
             this._apply(vm, m.Street, place);
             this._apply(vm, m.ZipCode, place);
             this._apply(vm, m.City, place);
-            this._apply(vm, m.CountryStateId, place, "StateShort", this.getCountryStateDisplayName);
-            this._apply(vm, m.CountryId, place, "CountryShort", this.getCountryDisplayName);
+            this._apply(vm, m.CountryStateId, place, "StateShort", this.getIdByCodeConverter("CountryState"));
+            this._apply(vm, m.CountryId, place, "CountryShort", this.getIdByCodeConverter("Country"));
             this._apply(vm, m.Longitude, place);
             this._apply(vm, m.Latitude, place);
         }
@@ -146,12 +146,14 @@
             target.set(targetProp, value !== "" ? value : null);
         }
 
-        private getCountryStateDisplayName(id: string): string {
-            return cmodo.entityMappingService.getDisplayNameById("CountryState", id);
+        private getDisplayNameByIdConverter(type: string)
+            : (id: string) => string {
+            return (id: string) => cmodo.entityMappingService.getDisplayNameById(type, id);
         }
 
-        private getCountryDisplayName(id: string): string {
-            return cmodo.entityMappingService.getDisplayNameById("Country", id);
+        private getIdByCodeConverter(type: string)
+            : (code: string) => string {
+            return (code: string) => cmodo.entityMappingService.getIdByCode(type, code);
         }
     }
 

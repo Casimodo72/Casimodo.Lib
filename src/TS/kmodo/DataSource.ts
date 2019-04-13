@@ -1,6 +1,34 @@
 ﻿
 namespace kmodo {
 
+    // KABU TODO: MAGIC Company type ID
+    export const COMPANY_TYPE_ID = "59a58131-960d-4197-a537-6fbb58d54b8a";
+
+    export function createLocalDataSourceTransport(data: any[]): kendo.data.DataSourceTransportWithFunctionOperations {
+
+        const transport: kendo.data.DataSourceTransportWithFunctionOperations = {
+            read: e => {
+                // alert("local read " + e.data);
+                e.success(data);
+            },
+            update: e => {
+                // alert("local update " + e.data);
+                // TODO:?
+                e.success();
+            },
+            destroy: e => {
+                // TODO:?
+                e.success();
+            },
+            create: e => {
+                e.success(e.data);
+            }
+        };
+
+        return transport;
+    }
+
+
     export function createReadDataSource(url: string, parameter?: any, extraDataSourceOptions?: Object) {
 
         const dsoptions: kendo.data.DataSourceOptions = {
@@ -94,7 +122,7 @@ namespace kmodo {
 
         const assignableFilter = { field: "AssignableToTypeId", operator: "eq", value: dataTypeId };
 
-        if (typeof companyId === "undefined")
+        if (!companyId)
             return assignableFilter as kendo.data.DataSourceFilterItem;
 
         return {
@@ -104,7 +132,7 @@ namespace kmodo {
                 {
                     logic: "or",
                     filters: [
-                        { field: "CompanyId", operator: "eq", value: companyId, targetTypeId: "59a58131-960d-4197-a537-6fbb58d54b8a", deactivatable: false },
+                        { field: "CompanyId", operator: "eq", value: companyId, targetTypeId: COMPANY_TYPE_ID, deactivatable: false },
                         { field: "CompanyId", operator: "eq", value: null }]
                 }
             ]

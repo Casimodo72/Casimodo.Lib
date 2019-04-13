@@ -28,10 +28,10 @@
     export class EditorForm extends EditableDataSourceViewComponent {
         protected _options: EditorFormOptions;
         private _editorWindow: kendo.ui.Window = null;
-        private _$toolbar: JQuery = null;
         private _editors: CustomPropViewComponentInfo[] = [];
-        private _$saveCmd: JQuery;
         private kendoEditable: KendoUIEditable = null;
+        private _$dialogEditCommands: JQuery = null;
+        private _$dialogSaveCmd: JQuery;
 
         constructor(options: EditorFormOptions) {
             super(options);
@@ -292,10 +292,13 @@
 
             this._initTextRenderers();
 
-            this._$toolbar = this.$view.find(".k-edit-buttons");
+            this._$dialogEditCommands = this.$view.find(".k-edit-buttons");
+            if (!this._options.isDialog) {
+                this._$dialogEditCommands.remove();
+            }
 
             this.dataSource.one("change", (e) => {
-                this._initCommitBehavior();
+                this._initDataChangeBehavior();
             });
 
             if (this._options.isDialog)
@@ -336,7 +339,7 @@
             return editable;
         }
 
-        private _initCommitBehavior() {
+        private _initDataChangeBehavior() {
             if (!this.dataSource.data().length)
                 return;
 
@@ -346,41 +349,38 @@
 
             let saveAttempted = false;
 
-            this._$saveCmd = this._$toolbar.find(".k-button.k-update").on("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+            if (this._options.isDialog) {
+                this._$dialogSaveCmd = this._$dialogEditCommands.find(".k-button.k-update").on("click", (e) => {
+                    if (this._iedit.isSaving)
+                        return false;
 
-                if (this._iedit.isSaving)
-                    return false;
+                    saveAttempted = true;
 
-                saveAttempted = true;
+                    for (const ed of this._editors) {
 
-                for (const ed of this._editors) {
-
-                    // Perform save() on code-mirror editor in order to
-                    //   populate the textarea with the current value.
-                    //   This is needed because code-mirror does not update
-                    //   the underlying textarea automatically.
-                    if (ed.type === "CodeMirror") {
-                        ed.component.save();
-                        ed.$el.change();
+                        // Perform save() on code-mirror editor in order to
+                        //   populate the textarea with the current value.
+                        //   This is needed because code-mirror does not update
+                        //   the underlying textarea automatically.
+                        if (ed.type === "CodeMirror") {
+                            ed.component.save();
+                            ed.$el.change();
+                        }
                     }
-                }
 
-                // Save only if modified and valid.
-                if (dataItem.dirty && this.kendoEditable.validatable.validate()) {
-                    this._save();
-                }
+                    // Save only if modified and valid.
+                    if (dataItem.dirty && this.kendoEditable.validatable.validate()) {
+                        this._save();
+                    }
 
-                return false;
-            });
+                    return false;
+                });
 
-            this._$toolbar.find(".k-button.k-cancel").on("click", () => {
-                //e.preventDefault();
-                //e.stopPropagation();
-                this._cancel();
-                return false;
-            });
+                this._$dialogEditCommands.find(".k-button.k-cancel").on("click", () => {
+                    this._cancel();
+                    return false;
+                });
+            }
 
             dataItem.bind("change", (e) => {
                 const fieldName = e.field;
@@ -446,22 +446,21 @@
             });
             */
 
-            this.kendoEditable.validatable.bind("validate", (e) => {
-                this._updateSaveCommand(e.valid && dataItem.dirty);
-
-                // Just for debug purposes.
-                // const errors = editable.validatable.errors();
-                // if (errors.length) {
-                //    alert("Got errors");
-                // }
-            });
+            if (this._options.isDialog) {
+                this.kendoEditable.validatable.bind("validate", (e) => {
+                    this._updateSaveCommand(e.valid && dataItem.dirty);
+                });
+            }
         }
 
         private _updateSaveCommand(saveable: boolean) {
+            if (!this._$dialogSaveCmd || !this._$dialogSaveCmd.length)
+                return;
+
             if (saveable)
-                this._$saveCmd.removeClass("k-state-disabled");
+                this._$dialogSaveCmd.removeClass("k-state-disabled");
             else
-                this._$saveCmd.addClass("k-state-disabled");
+                this._$dialogSaveCmd.addClass("k-state-disabled");
         }
 
         private _findInputElement(fieldName: string) {

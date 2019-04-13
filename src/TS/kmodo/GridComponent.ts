@@ -41,6 +41,7 @@
         baseFilters?: kendo.data.DataSourceFilterItem[];
         bindRow?: boolean | Function;
         gridOptions?: (e: DataSourceViewEvent) => kendo.ui.GridOptions;
+        companyId?: string;
     }
 
     export interface GridEvent extends DataSourceViewEvent {
@@ -176,7 +177,16 @@
             if (this._isDebugLogEnabled)
                 console.debug("- data bound");
 
+            const grid = this.grid();
+
             const action = this._state.gridDataBindAction;
+
+            // Autofit columns.
+            if (this._autofitColIndexes.length) {
+                for (const icol of this._autofitColIndexes) {
+                    grid.autoFitColumn(icol);
+                }
+            }
 
             this._initGridRows();
 
@@ -207,7 +217,7 @@
                 // after the grid has been refreshed. Otherwise we would always
                 // jump to the top of the grid after a refresh.
 
-                this.grid().content[0].scrollTop = this._state.gridLastScrollTop;
+                grid.content[0].scrollTop = this._state.gridLastScrollTop;
             }
 
             this.trigger('dataBound', e);
@@ -654,8 +664,18 @@
                 this._isItemRemoveCommandEnabled = true;
             }
 
+            let icol = 0;
+            for (const col in options.columns) {
+                if (col["autofit"] === true) {
+                    this._autofitColIndexes.push(icol);
+                }
+                icol++;
+            }
+
             return options;
         }
+
+        private _autofitColIndexes: number[] = [];
 
         private _gridGetRowByContent($el: JQuery): JQuery {
             return $el.closest("tr[role=row]");
@@ -725,8 +745,7 @@
         private _hasNonRemovableCompanyFilter(): boolean {
             return null !== kmodo.findDataSourceFilter(this._getAllConsumerFilters(),
                 filter => {
-                    // KABU TODO: MAGIC Company type ID
-                    return filter.targetTypeId === "59a58131-960d-4197-a537-6fbb58d54b8a" &&
+                    return filter.targetTypeId === COMPANY_TYPE_ID &&
                         !filter.deactivatable;
                 });
         }
@@ -825,66 +844,68 @@
                 this._initAddCommand(true);
             }
 
-            let initialCompanyId: string = null;
-            if (this._options.isCompanyFilterEnabled) {
-                const $companySelector = $toolbar.find(".km-grid-company-filter-selector");
-                if ($companySelector.length) {
-                    if (!isCompanyChangeable) {
-                        // The component was instructed to operate on a specific Company.
-                        // Do not allow changing that Company.
-                        $companySelector.remove();
+            let initialCompanyId: string = this._options.companyId || null;
+
+            const $companyFilter = $toolbar.find(".km-grid-company-filter-selector");
+            if (!this._options.isCompanyFilterEnabled || !isCompanyChangeable) {
+                // Remove company filter.
+                // NOTE: isCompanyChangeable === false means
+                //   that the component was instructed to operate on a specific Company.
+                //   Do not allow changing that Company.
+                $companyFilter.closest(".km-grid-tool-filter").remove();
+            }
+            else if ($companyFilter.length) {
+                // Use the globally provided current Company if configured to do so.
+                initialCompanyId =
+                    (this._options.isGlobalCompanyFilterEnabled &&
+                        // Don't filter by global company if navigating to a specific entity.
+                        !this._hasBaseFilter(KEY_FILTER_ID))
+                        ? cmodo.getGlobalInitialCompanyId()
+                        : null;
+
+                kmodo.createCompanySelector(
+                    $companyFilter,
+                    {
+                        companyId: initialCompanyId,
+                        changed: companyId => {
+                            if (companyId)
+                                this._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
+                            else
+                                this._removeBaseFilter(COMPANY_FILTER_ID);
+
+                            this.refresh();
+
+                            this._updateTagFilterSelector();
+                        }
                     }
-                    else {
-                        // Use the globally provided current Company if configured to do so.
-                        initialCompanyId =
-                            (this._options.isGlobalCompanyFilterEnabled &&
-                                // Don't filter by global company if navigating to a specific entity.
-                                !this._hasBaseFilter(KEY_FILTER_ID))
-                                ? cmodo.getGlobalInitialCompanyId()
-                                : null;
-
-                        kmodo.createCompanySelector(
-                            $companySelector,
-                            {
-                                companyId: initialCompanyId,
-                                changed: companyId => {
-                                    if (companyId)
-                                        this._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
-                                    else
-                                        this._removeBaseFilter(COMPANY_FILTER_ID);
-
-                                    this.refresh();
-
-                                    this._updateTagFilterSelector();
-                                }
-                            }
-                        );
-                    }
-                }
+                );
             }
 
-            if (this._options.isTagsFilterEnabled) {
-                const $selector = $toolbar.find(".km-grid-tags-filter-selector");
-                if ($selector.length) {
-                    this._tagsFilterSelector = kmodo.createMoTagFilterSelector(
-                        $selector,
-                        {
-                            // TODO: VERY IMPORTANT: Needs to be updated
-                            //  when the company filter changes.
-                            filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, initialCompanyId),
-                            changed: tagIds => {
-                                if (tagIds && tagIds.length) {
-                                    const expression = tagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
-                                    this._setBaseFilter(TAGS_FILTER_ID, { expression: expression });
-                                }
-                                else
-                                    this._removeBaseFilter(TAGS_FILTER_ID);
-
-                                this.refresh();
+            const $tagsFilter = $toolbar.find(".km-grid-tags-filter-selector");
+            if (!this._options.isTagsFilterEnabled) {
+                // Remove that filter
+                $tagsFilter.closest(".km-grid-tool-filter").remove();
+            }
+            else if ($tagsFilter.length) {
+                // Init tags filter.
+                this._tagsFilterSelector = kmodo.createMoTagFilterSelector(
+                    $tagsFilter,
+                    {
+                        // TODO: VERY IMPORTANT: Needs to be updated
+                        //  when the company filter changes.
+                        filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, initialCompanyId),
+                        changed: tagIds => {
+                            if (tagIds && tagIds.length) {
+                                const expression = tagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
+                                this._setBaseFilter(TAGS_FILTER_ID, { expression: expression });
                             }
+                            else
+                                this._removeBaseFilter(TAGS_FILTER_ID);
+
+                            this.refresh();
                         }
-                    );
-                }
+                    }
+                );
             }
 
             // Export menu
@@ -923,25 +944,24 @@
                     return false;
                 });
 
-                // EditTags context menu action.
+                // Edit tags context menu action.
                 if (this._options.hasRowContextMenu) {
                     const $contextMenu = $component.parent().find("#row-context-menu-grid-" + this._options.id);
                     $contextMenu.kendoContextMenu({
                         target: $component,
                         filter: "tr[role=row]",
                         open: e => {
-                            // TODO: REMOVE?
-                            // let menu = e.sender;
-                            // let name = $(e.item).data("name");
-                            // let dataItem = this.grid().dataItem(e.target);
+                            // const menu = e.sender;
+                            // const name = $(e.item).data("name");
+                            // const dataItem = this.grid().dataItem(e.target);
 
-                            // KABU TODO: IMPORTANT: Apply auth.
+                            // TODO: IMPORTANT: Apply auth.
                             // kmodo.enableContextMenuItems(menu, "EditTags", xyz);
                         },
                         select: e => {
-                            // let menu = e.sender;
-                            let name = $(e.item).data("name");
-                            let dataItem = this.grid().dataItem(e.target) as any;
+                            // const menu = e.sender;
+                            const name = $(e.item).data("name");
+                            const dataItem = this.grid().dataItem(e.target);
 
                             // KABU TODO: This may be just a temporary hack.
                             //   We could/should use a service instead in the future.
@@ -950,15 +970,33 @@
                                 kmodo.openById(this._options.tagsEditorId,
                                     {
                                         itemId: dataItem[this.keyName],
-                                        filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, dataItem.CompanyId as string),
+                                        filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, dataItem["CompanyId"]),
                                         // TODO: LOCALIZE
-                                        title: "Markierungen bearbeiten",
+                                        title: "Tags bearbeiten",
 
                                         minWidth: 400,
                                         minHeight: 500,
 
-                                        finished: result => {
-                                            if (result.isOk) {
+                                        options: {
+                                            isLocalTargetData: !!this._options.isLocalData,
+                                            isCustomSave: !!this._options.isLocalData
+                                        },
+
+                                        finished2: e => {
+                                            if (e.result.isOk) {
+                                                // TODO: IMPORTANT: MAGIC ToTags. Move to entity mapping service somehow.
+                                                if (this._options.isLocalData &&
+                                                    typeof dataItem["ToTags"] !== "undefined" &&
+                                                    e.result.items &&
+                                                    e.result.items.length) {
+
+                                                    // Local data: add tags to entity.
+                                                    const tags = e.result.items.map(x => x.toJSON());
+                                                    const tagLinks = cmodo.entityMappingService.createLinksForTags(this._options.dataTypeId, dataItem[this.keyName], tags);
+
+                                                    dataItem.set("ToTags", tagLinks);
+                                                }
+
                                                 this.refresh();
                                             }
                                         }

@@ -14,4 +14,11 @@ namespace kmodo {
             return (kendo.observable(item) as any) as TModel;
         }
     }
+
+    // TODO: REMOVE?
+    // interface KendoUIObservableArray<TModel> extends kendo.data.ObservableArray {
+    //    [index: number]: TModel;
+    //    push(...items: TModel[]): number;
+    //    remove(item: TModel): void;
+    // }
 }
