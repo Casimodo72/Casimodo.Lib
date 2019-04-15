@@ -52,7 +52,7 @@
         $component: JQuery;
         close?: Function;
         cancel?: Function;
-        finish: Function;
+        finish?: Function;
         pages: WizardPage[];
     }
 
@@ -325,7 +325,7 @@
 
         private createView(options: WizardOptions) {
             // Init kendo tabstrip.
-            const $tabStripElem = options.$component.children("div.kendomodo-wizard-control").first();
+            const $tabStripElem = options.$component.children("div.km-wizard-control").first();
             if ($tabStripElem.length) {
                 this._tabStrip = new TabStrip({
                     $component: $tabStripElem,
@@ -340,7 +340,7 @@
             }
 
             // Bind commands.
-            const $commands = this.$component.children("div.kendomodo-wizard-commands").first();
+            const $commands = this.$component.children("div.km-wizard-commands").first();
             if ($commands.length) {
                 for (const cmd of this._commands) {
                     $commands.append('<a data-role="button" data-bind="visible:' + cmd.name + '.visible, enabled:' + cmd.name + '.enabled, events: { click:' + cmd.name + '.onTriggered }"><span data-bind="text:' + cmd.name + '.text"></span></a>');

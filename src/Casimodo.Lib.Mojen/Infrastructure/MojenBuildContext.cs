@@ -31,10 +31,10 @@ namespace Casimodo.Lib.Mojen
 
         public DataViewModelLayerConfig CurrentModelContext { get; set; }
 
-        public MojModelBuilder AddModel(string name)
+        public MojModelBuilder AddModel(string name, string pluralName = null)
         {
             var context = GetDataContext();
-            var type = MojType.CreateModel(name);
+            var type = MojType.CreateModel(name, pluralName);
             type.ClassName = type.Name + "Model";
             type.DataContextName = context.Name;
             Items.Add(type);

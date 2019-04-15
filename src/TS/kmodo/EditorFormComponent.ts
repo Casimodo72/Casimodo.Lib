@@ -463,7 +463,29 @@
                 this._$dialogSaveCmd.addClass("k-state-disabled");
         }
 
-        private _findInputElement(fieldName: string) {
+        setFieldReadonly(fieldName: string, value: boolean): void {
+            const $input = this._findInputElement(fieldName);
+            if (!$input.length) {
+                cmodo.showError(`Input for field '${fieldName}' not found.`);
+                return;
+            }
+
+            if ($input.length > 1) {
+                cmodo.showError(`More than one input elements found for field '${fieldName}'.`);
+                return;
+            }
+            if (value)
+                $input.attr("readonly", "readonly");
+            else
+                $input.removeAttr("readonly");
+
+            const widget = kendo.widgetInstance($input, kendo.ui) as any;
+            if (widget && typeof widget.readonly !== "undefined") {
+                (widget as any).readonly(value);
+            }
+        }
+
+        private _findInputElement(fieldName: string): JQuery {
             // KABU TODO: Unfortunately Kendo's editable change event does
             //   not give us the input element. Thus we need find it
             //   in the same way Kendo does.

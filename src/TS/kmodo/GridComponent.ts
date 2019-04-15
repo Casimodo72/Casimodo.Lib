@@ -665,7 +665,7 @@
             }
 
             let icol = 0;
-            for (const col in options.columns) {
+            for (const col of options.columns) {
                 if (col["autofit"] === true) {
                     this._autofitColIndexes.push(icol);
                 }

@@ -53,9 +53,9 @@ namespace Casimodo.Lib.Mojen
             set { Parent.EnumEntity = value; }
         }
 
-        public MojModelBuilder AddModel(string name)
+        public MojModelBuilder AddModel(string name, string pluralName = null)
         {
-            return Parent.AddModel(name);
+            return Parent.AddModel(name, pluralName);
         }
 
         public MojModelBuilder BuildModel(MojType type)

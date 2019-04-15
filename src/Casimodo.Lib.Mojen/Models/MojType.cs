@@ -79,9 +79,11 @@ namespace Casimodo.Lib.Mojen
             return entity;
         }
 
-        public static MojType CreateModel(string name)
+        public static MojType CreateModel(string name, string pluralName = null)
         {
             var entity = new MojType(name);
+            if (pluralName != null)
+                entity.InitPluralName(pluralName);
             entity.Kind = MojTypeKind.Model;
             entity.NoDataContract = true;
 

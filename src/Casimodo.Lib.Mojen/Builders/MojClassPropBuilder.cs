@@ -11,6 +11,11 @@ namespace Casimodo.Lib.Mojen
     {
         public static string BuildLinkTypeName(MojType source, MojType target)
         {
+            return source.Name + "2" + target.Name;
+        }
+
+        public static string BuildLinkTypeDbTableName(MojType source, MojType target)
+        {
             return source.PluralName + "2" + target.PluralName;
         }
     }
@@ -95,6 +100,7 @@ namespace Casimodo.Lib.Mojen
                 var prop = PropConfig;
 
                 var typeName = MojClassBuilderHelper.BuildLinkTypeName(prop.DeclaringType, itemType);
+                var typePluralName = MojClassBuilderHelper.BuildLinkTypeDbTableName(prop.DeclaringType, itemType);
 
                 var fromType = prop.DeclaringType; // e.g. Project
                 var fromProp = ownerPropName ?? prop.DeclaringType.Name; // e.g. Project or given name (e.g. "Owner")
@@ -106,7 +112,7 @@ namespace Casimodo.Lib.Mojen
                 var toForeignKey = toProp + "Id"; // e.g. TagId
 
                 // Add many-to-many link type.
-                var m = App.CurrentBuildContext.AddModel(typeName)
+                var m = App.CurrentBuildContext.AddModel(typeName, typePluralName)
                     .Id(linkTypeGuid);
 
                 m.TypeConfig.IsManyToManyLink = true;
@@ -773,21 +779,21 @@ namespace Casimodo.Lib.Mojen
         }
 
         IMojClassPropBuilder IMojClassPropBuilder.ReferenceCore(MojType to,
-            MojReferenceAxis axis = MojReferenceAxis.None,
-            bool navigation = false,
-            bool? navigationOnModel = null,
-            bool nullable = true,
-            bool? required = null,
-            bool nested = false,
-            bool owned = false,
-            Action<MexConditionBuilder> condition = null,
-            bool storename = false,
-            string suffix = "Id",
-            bool hiddenNavigation = false,
-            MojProp ownedByProp = null,
-            bool backref = false,
-            IMojClassPropBuilder backrefProp = null,
-            string backrefPropName = null)
+            MojReferenceAxis axis,
+            bool navigation,
+            bool? navigationOnModel,
+            bool nullable,
+            bool? required,
+            bool nested,
+            bool owned,
+            Action<MexConditionBuilder> condition,
+            bool storename,
+            string suffix,
+            bool hiddenNavigation,
+            MojProp ownedByProp,
+            bool backref,
+            IMojClassPropBuilder backrefProp,
+            string backrefPropName)
         {
             return ReferenceCore(to, axis,
                  navigation: navigation,

@@ -25,6 +25,7 @@ namespace Casimodo.Lib.Mojen
             {
                 PerformWrite(Path.Combine(App.Get<DataLayerConfig>().DataPrimitiveDirPath, item.KeysContainerName + ".generated.cs"), () =>
                 {
+                    OComment($"Generator: {nameof(PrimitiveKeysGen)}");
                     GeneratePrimitiveDefinition(item);
                 });
             }

@@ -69,10 +69,10 @@ namespace Casimodo.Lib.Mojen
         {
             ORazorGeneratedFileComment();
 
-            XB($"<div class='casimodo-dialog-toolbar' id='dialog-commands-{context.View.Id}'>");
+            XB($"<div class='km-dialog-toolbar' id='dialog-commands-{context.View.Id}'>");
 
-            O("<button class='k-button cancel-button casimodo-dialog-button'>Abbrechen</button>");
-            O("<button class='k-button ok-button casimodo-dialog-button'>OK</button>");
+            O("<button class='k-button cancel-button km-dialog-btn'>Abbrechen</button>");
+            O("<button class='k-button ok-button km-dialog-btn'>OK</button>");
 
             XE("</div>");
 
