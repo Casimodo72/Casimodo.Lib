@@ -1,37 +1,41 @@
 ﻿using Casimodo.Lib.Data;
-using System;
-using System.Net;
-using System.Net.Http;
 using Microsoft.AspNet.OData;
-using Casimodo.Lib.ComponentModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using Microsoft.OData;
+using System;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Web
 {
     [Serializable]
     public class ServerException : Exception
     {
-        public ServerException() { }
+        public ServerException()
+        { }
+
         public ServerException(HttpStatusCode code, string message)
             : base(message)
         {
             StatusCode = code;
         }
+
         public ServerException(HttpStatusCode code, string message, Exception inner)
             : base(message, inner)
         {
             StatusCode = code;
         }
-        protected ServerException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
-        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.InternalServerError;
+        protected ServerException(
+            System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        { }
+
+        public HttpStatusCode StatusCode { get; private set; } = HttpStatusCode.InternalServerError;
     }
 
     public abstract class StandardODataControllerBase<TDbRepository, TDbContext, TEntity, TKey> : ODataControllerBase
@@ -56,10 +60,15 @@ namespace Casimodo.Lib.Web
 
         protected async Task<IActionResult> CreateCore(TEntity model)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // TODO: REMOVE for NET Core
             _repo.ReferenceLoading(false);
 
-            if (OnCreatingExtended != null) await OnCreatingExtended(model);
+            if (OnCreatingExtended != null)
+                await OnCreatingExtended(model);
+
             var item = _repo.Add(model);
 
             await _repo.SaveChangesAsync();
@@ -71,10 +80,17 @@ namespace Casimodo.Lib.Web
 
         protected async Task<IActionResult> UpdateCore(TKey id, TEntity model, MojDataGraphMask mask, string group = null)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // TODO: REMOVE for NET Core
             _repo.ReferenceLoading(false);
+
             var item = _repo.Update(id, model, mask);
-            if (OnUpdatedExtended != null) await OnUpdatedExtended(item, group);
+
+            if (OnUpdatedExtended != null)
+                await OnUpdatedExtended(item, group);
+
             await _repo.SaveChangesAsync();
 
             return Updated(item);
