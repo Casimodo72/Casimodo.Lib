@@ -104,31 +104,49 @@ namespace Casimodo.Lib.Mojen
         public string GetElemAttrs(string target = null)
         {
             string result = "";
-            if (Attributes.Any())
+            var attrs = GetElemAttrsByTarget(target);
+            if (attrs.Any())
             {
-                result = " " + Attributes
-                    .Where(x => x.Target == target)
+                result = " " + attrs
                     .Select(x => $"{x.Name.LocalName}='{x.Value}'")
                     .Join(" ");
             }
 
-            foreach (var attr in Attributes.Where(x => x.Target == target).ToArray())
-                Attributes.Remove(attr);
+            ClearElemAttrs(target);
 
             return result;
         }
 
-        public void OHtmlElemAttrs()
+        public void oElemAttrs(string target = null)
         {
-            if (Attributes.Any())
+            var result = GetElemAttrs(target);
+            if (result != null)
             {
+                o(result);
                 o(" ");
-                o(Attributes.Select(x => $"{x.Name.LocalName}='{x.Value}'").Join(" "));
-                o(" ");
-
-                // KABU TODO: IMPORTANT: Shouldn't this be cleared here?
-                Attributes.Clear();
             }
+
+            // TODO: REMOVE
+            //var attrs = GetElemAttrsByTarget(target);
+            //if (attrs.Any())
+            //{
+            //    o(" ");
+            //    o(attrs.Select(x => $"{x.Name.LocalName}='{x.Value}'").Join(" "));
+            //    o(" ");
+
+            //    ClearElemAttrs(target);
+            //}
+        }
+
+        MojXAttribute[] GetElemAttrsByTarget(string target)
+        {
+            return Attributes.Where(x => x.Target == target).ToArray();
+        }
+
+        public void ClearElemAttrs(string target = null)
+        {
+            foreach (var attr in GetElemAttrsByTarget(target))
+                Attributes.Remove(attr);
         }
 
         public virtual void OMvcAttrs(bool kendo)
@@ -200,8 +218,8 @@ namespace Casimodo.Lib.Mojen
             return attr;
         }
 
-      
 
-        
+
+
     }
 }

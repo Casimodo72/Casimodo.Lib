@@ -60,7 +60,7 @@ namespace Casimodo.Lib.Mojen
             oAttr("data-restrict-decimals", "true");
             oAttr("data-format", format);
             oAttr("data-spinners", Moj.JS(spinners));
-            OHtmlElemAttrs();
+            oElemAttrs();
             // KABU TODO: IMPORTANT: Do we need a required validation error message?
             if (dprop.IsRequiredOnEdit)
                 oAttr("required", "");
@@ -103,7 +103,7 @@ namespace Casimodo.Lib.Mojen
             //ElemClass("k-input");
             Oo($@"<input id='{ppath}', name='{ppath}' data-role='colorpicker'");
             oAttr("data-opacity", Moj.JS(dprop.IsColorWithOpacity));
-            OHtmlElemAttrs();
+            oElemAttrs();
             OHtmlDataBindValue(context, ppath);
             oO("/>");
 #if (false)
@@ -133,7 +133,7 @@ namespace Casimodo.Lib.Mojen
             oAttr("id", ppath);
             oAttr("name", ppath);
             oAttr("data-display-name", vprop.DisplayLabel);
-            OHtmlElemAttrs();
+            oElemAttrs();
             // KABU TODO: IMPORTANT: Do we need a require dvalidation error message?
             if (dprop.IsRequiredOnEdit)
                 oAttr("required", "");
@@ -146,7 +146,7 @@ namespace Casimodo.Lib.Mojen
             var vprop = context.PropInfo.ViewProp;
             var dprop = context.PropInfo.TargetDisplayProp;
             var ppath = context.PropInfo.PropPath;
-            Oo("<div"); OHtmlElemAttrs(); oO(">");
+            Oo("<div"); oElemAttrs(); oO(">");
             Push();
             OKendoNumericInput(context, ppath: ppath + ".Hours", min: 0, max: 23, validationElem: false);
             OKendoNumericInput(context, ppath: ppath + ".Minutes", min: 0, max: 59, validationElem: false);
@@ -173,7 +173,7 @@ namespace Casimodo.Lib.Mojen
                 if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
                 // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
 
-                OHtmlElemAttrs();
+                oElemAttrs();
                 OHtmlRequiredttrs(context, dprop);
                 OHtmlDataBindValue(context);
                 if (vprop.UseCodeRenderer != null)
@@ -197,7 +197,7 @@ namespace Casimodo.Lib.Mojen
                 Oo($@"<input id='{ppath}' name='{ppath}'");
                 //  spellcheck='false'
                 // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
-                OHtmlElemAttrs();
+                oElemAttrs();
                 OHtmlRequiredttrs(context, dprop);
                 OHtmlDataBindValue(context);
 
@@ -221,7 +221,7 @@ namespace Casimodo.Lib.Mojen
 
             Oo($@"<input id='{ppath}' name='{ppath}' type='checkbox'");
             ElemClass("k-checkbox");
-            OHtmlElemAttrs();
+            oElemAttrs();
             OHtmlDataBindValue(context, "checked");
             oO("/>");
             // Checkbox label

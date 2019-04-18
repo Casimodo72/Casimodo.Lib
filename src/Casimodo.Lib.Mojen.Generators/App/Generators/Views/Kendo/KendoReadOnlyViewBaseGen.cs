@@ -1,18 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Lib.Mojen
 {
     public abstract class KendoReadOnlyViewGenBase : KendoTypeViewGenBase
     {
+        public string FormClass { get; set; } = "form-horizontal km-form-readonly";
+
         public override void Define(WebViewGenContext context)
         {
             base.Define(context);
 
             FormGroupClass = "form-group readonly";
+
+            OLabelContainerBegin = (c) =>
+            {
+                ElemClass(LabelContainerClass, target: "label");
+            };
+
+            OPropContainerBegin = (c) =>
+            {
+                XB($"<div class='{PropContainerClass}'>");
+                ElemClass("km-readonly-form-control");
+            };
         }
 
         public override void BeginView(WebViewGenContext context)
@@ -29,7 +36,7 @@ namespace Casimodo.Lib.Mojen
             // Uses HTML encoding to display values: #: #
             // Execute arbitrary JavaScript code: # if(...){# ... #}#
 
-            XB($"<div class='form-horizontal'{GetStyleAttr(GetViewStyles(context))}{GetViewHtmlId(context)}>");
+            XB($"<div class='{FormClass}'{GetStyleAttr(GetViewStyles(context))}{GetViewHtmlId(context)}>");
         }
 
         public override void EndView(WebViewGenContext context)
@@ -67,7 +74,7 @@ namespace Casimodo.Lib.Mojen
 
             ElemClass(LabelClass, target: "label");
 
-            // Oo($"<label for='{vitem.PropPath}' class='{GetElemAttrs("label")}'>");
+            // TODO: REMOVE? Oo($"<label for='{vitem.PropPath}' class='{GetElemAttrs("label")}'>");
             Oo($"<label{GetElemAttrs("label")}>");
 
             o(GetDisplayNameFor(context));

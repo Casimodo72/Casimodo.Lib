@@ -8,9 +8,10 @@ namespace Casimodo.Lib.Mojen
     {
         public string FormGroupClass { get; set; } = "form-group";
         public string FormGroupReadOnlyClass { get; set; } = "form-group readonly";
-        public string LabelContainerClass { get; set; } = "";
-        public string LabelClass { get; set; } = "control-label"; // "col-sm-3 col-xs-12 control-label";
+        public string LabelContainerClass { get; set; } = "col-sm-3 col-xs-12";
+        public string LabelClass { get; set; } = "control-label";
         public string PropContainerClass { get; set; } = "col-sm-9 col-xs-12";
+        public string RunTextClass { get; set; } = "km-run-text";
 
         public void GenerateView(WebViewGenContext context)
         {
@@ -31,17 +32,11 @@ namespace Casimodo.Lib.Mojen
             // NOP
         }
 
-
-
-
-
         public virtual void Define(WebViewGenContext context)
         {
             OPropContainerBegin = (c) => XB($"<div class='{PropContainerClass}'>");
             OPropContainerEnd = (c) => XE("</div>");
         }
-
-
 
         IEnumerable<List<ViewTemplateItem>> FilterHiddenProps(IEnumerable<List<ViewTemplateItem>> runs, MojViewMode mode)
         {
@@ -220,7 +215,7 @@ namespace Casimodo.Lib.Mojen
                     if (cur.TextValue != null)
                     {
                         // Output text
-                        OText(context, cur);
+                        ORunText(context, cur);
                     }
                     else
                     {
@@ -419,43 +414,54 @@ namespace Casimodo.Lib.Mojen
                     prop.IsSelector);
         }
 
-        public virtual void ORunLabel(WebViewGenContext context, string text)
-        {
-            O($"<label class='{LabelClass}'>{text}</label>");
-        }
-
         public void ORunLabelCore(WebViewGenContext context, string text)
         {
+            ClearElemAttrs("label");
             context.PropInfo = null;
             OLabelContainerBegin(context);
-            Attributes.Clear();
             ORunLabel(context, text);
             OLabelContainerEnd(context);
+            ClearElemAttrs("label");
         }
 
-        // TODO: REMOVE? Not used
+        public virtual void ORunLabel(WebViewGenContext context, string text)
+        {
+            ElemClass(LabelClass, target: "label");
+
+            Oo($"<label{GetElemAttrs("label")}>{text}</label>");
+        }
+
         void OPropLabelCore(WebViewGenContext context, ViewTemplateItem cur)
         {
-            var prop = cur.Prop;
+            var vprop = cur.Prop;
             bool inGroupBox = cur.Parent != null && cur.Parent.Directive == "group-box";
+
+            ClearElemAttrs("label");
 
             OLabelContainerBegin(context);
 
             context.PropInfo = CreateViewPropInfo(context, cur);
 
-            Attributes.Clear();
             OPropLabel(context);
 
             context.PropInfo = null;
 
-            OLabelContainerEnd(context);
+            ClearElemAttrs("label");
 
+            OLabelContainerEnd(context);
         }
+
+        public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = (context) => { };
+        public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = (context) => { };
+
+        public Action<WebViewGenContext> OPropContainerBegin { get; set; } = (context) => { };
+        public Action<WebViewGenContext> OPropContainerEnd { get; set; } = (context) => { };
+
+        public virtual void OProp(WebViewGenContext context)
+        { }
 
         public Action<WebViewGenContext> OBlockBegin { get; set; } = (context) => { };
         public Action<WebViewGenContext> OBlockEnd { get; set; } = (context) => { };
-
-        public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = (context) => { };
 
         public virtual void OPropLabel(WebViewGenContext context)
         {
@@ -488,17 +494,9 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = (context) => { };
-
-        public Action<WebViewGenContext> OPropContainerBegin { get; set; } = (context) => { };
-        public virtual void OProp(WebViewGenContext context)
-        { }
-
-        public Action<WebViewGenContext> OPropContainerEnd { get; set; } = (context) => { };
-
-        public virtual void OText(WebViewGenContext context, ViewTemplateItem cur)
+        public virtual void ORunText(WebViewGenContext context, ViewTemplateItem cur)
         {
-            O($"<span>{cur.TextValue}</span>");
+            O($"<span class='{RunTextClass}'>{cur.TextValue}</span>");
 
 #if (false)
             var run = cur.GetRunRangeBefore(x => x.Prop != null).ToArray();

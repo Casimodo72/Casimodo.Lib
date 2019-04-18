@@ -84,12 +84,11 @@ namespace Casimodo.Lib.Mojen
             ReadOnlyGen.Define(context);
             ReadOnlyGen.DataViewModelAccessor = null;
 
-            LabelClass = "control-label";
-            LabelContainerClass = "col-sm-3 col-xs-12";
             OLabelContainerBegin = (c) =>
             {
                 // if (c.IsRunEditable)
-                XB($"<div class='{c.Cur.GetGroupLabelStyle() ?? LabelContainerClass}'>");
+                var style = c.Cur.GetGroupLabelStyle();
+                XB($"<div class='{style ?? LabelContainerClass}'>");
             };
             OLabelContainerEnd = (c) =>
             {
@@ -968,7 +967,7 @@ namespace Casimodo.Lib.Mojen
             o($@" class='form-control' data-display-name='{displayName}'");
             OHtmlDataBindValue(context);
             OHtmlRequiredttrs(context, prop);
-            OHtmlElemAttrs();
+            oElemAttrs();
             oO(" />");
 
             OInvalidPropPlaceholder(context);

@@ -5,7 +5,6 @@ namespace Casimodo.Lib.Mojen
     public class KendoFormReadOnlyViewGen : KendoReadOnlyViewGenBase
     {
         public string ScriptFilePath { get; set; }
-        //public string ScriptVirtualFilePath { get; set; }
 
         protected override void GenerateCore()
         {
@@ -24,7 +23,6 @@ namespace Casimodo.Lib.Mojen
                 });
 
                 ScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
-                //ScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
 
                 PerformWrite(view, () => GenerateView(context));
 
@@ -57,11 +55,6 @@ namespace Casimodo.Lib.Mojen
         public override void BeginView(WebViewGenContext context)
         {
             ORazorGeneratedFileComment();
-
-            // KABU TODO: REMOVE: E.g. the view does not have any properties
-            //    in used for PW entry.
-            //if (context.View.Template.IsEmpty)
-            //    return;
 
             ORazorUsing("Casimodo.Lib.Web", context.View.TypeConfig.Namespace);
 
@@ -103,21 +96,16 @@ namespace Casimodo.Lib.Mojen
 
                 XB("<div class='details-view-content'>");
 
-                XB($"<div class='form-horizontal'{GetStyleAttr(GetViewStyles(context))}>");
+                XB($"<div class='{FormClass}'{GetStyleAttr(GetViewStyles(context))}>");
             }
             else
             {
-                XB($"<div class='form-horizontal'{GetStyleAttr(GetViewStyles(context))}{GetViewHtmlId(context)}>");
+                XB($"<div class='{FormClass}'{GetStyleAttr(GetViewStyles(context))}{GetViewHtmlId(context)}>");
             }
         }
 
         public override void EndView(WebViewGenContext context)
         {
-            // KABU TODO: REMOVE: E.g. the view does not have any properties
-            //    in used for PW entry.
-            //if (context.View.Template.IsEmpty)
-            //    return;
-
             base.EndView(context);
 
             if (context.View.Standalone.Is)
@@ -125,8 +113,6 @@ namespace Casimodo.Lib.Mojen
                 XE($"</div>"); // standalone details view content
                 XE($"</div>"); // standalone details view
             }
-
-            // KABU TODO: REMOVE: OScriptReference(ScriptVirtualFilePath, async: true);
         }
 
         public override void OProp(WebViewGenContext context)
