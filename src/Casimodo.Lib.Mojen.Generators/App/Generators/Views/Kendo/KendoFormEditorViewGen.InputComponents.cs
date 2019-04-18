@@ -37,11 +37,11 @@ namespace Casimodo.Lib.Mojen
             }
             else if (dprop.Type.IsDecimal)
             {
-
                 // Format: http://docs.telerik.com/kendo-ui/framework/globalization/numberformatting
                 // Format: http://stackoverflow.com/questions/15241603/formatting-kendo-numeric-text-box
-                format = "#.##"; // "{0:#.##}";
+                
                 decimals = dprop.Attrs.Find<MojPrecisionAttr>()?.Scale ?? 2;
+                format = "#." + new string('#', decimals.Value); // "{0:#.##}";
                 oAttr("step", "any");
             }
             else
