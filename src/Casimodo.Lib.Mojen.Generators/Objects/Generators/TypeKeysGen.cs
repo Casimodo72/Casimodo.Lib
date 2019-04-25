@@ -13,12 +13,8 @@ namespace Casimodo.Lib.Mojen
             Scope = "Context";
         }
 
-        public DataLayerConfig DataConfig { get; set; }
-
         protected override void GenerateCore()
         {
-            DataConfig = App.Get<DataLayerConfig>();
-
             PerformWrite(Path.Combine(DataConfig.DataPrimitiveDirPath, "TypeKeys.generated.cs"),
                 () => GenerateTypeKeys());
         }

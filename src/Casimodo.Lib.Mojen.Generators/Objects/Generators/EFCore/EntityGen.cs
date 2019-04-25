@@ -27,13 +27,18 @@ namespace Casimodo.Lib.Mojen
             Scope = "Context";
         }
 
+       
+
         protected override void GenerateCore()
         {
-            if (string.IsNullOrEmpty(App.Get<DataLayerConfig>().EntityDirPath)) return;
+            DataConfig = App.Get<DataLayerConfig>();
+
+            if (string.IsNullOrEmpty(DataConfig.EntityDirPath))
+                return;
 
             foreach (var entity in App.AllEntities.Where(x => !x.WasGenerated))
             {
-                PerformWrite(Path.Combine(App.Get<DataLayerConfig>().EntityDirPath, entity.ClassName + ".generated.cs"),
+                PerformWrite(Path.Combine(DataConfig.EntityDirPath, entity.ClassName + ".generated.cs"),
                     () => Generate(entity));
             }
         }

@@ -115,11 +115,11 @@ namespace Casimodo.Lib.Mojen
     {
         public WebPartGenerator()
         {
-            ClassGen = AddSub<JsClassGen>();
+            ClassGen = AddSub<WebClassGen>();
             ClassGen.SetParent(this);
         }
 
-        public JsClassGen ClassGen { get; private set; }
+        public WebClassGen ClassGen { get; private set; }
 
         public WebAppBuildConfig WebConfig { get; set; }
 

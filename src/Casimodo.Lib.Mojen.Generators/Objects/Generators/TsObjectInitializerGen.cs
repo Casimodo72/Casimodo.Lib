@@ -24,9 +24,11 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            var items = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
-                .Where(x => !x.WasGenerated)
-                .Where(x => !x.IsAbstract && !x.IsTenant).ToArray();
+            var items = App.GetTypes(MojTypeKind.Entity)
+                // TODO: REMOVE: , MojTypeKind.Complex)
+                // TODO: REMOVE: .Where(x => !x.WasGenerated)
+                .Where(x => !x.IsAbstract && !x.IsTenant)
+                .ToArray();
 
             PerformWrite(Path.Combine(outputDirPath, "DataInitializers.generated.ts"), () =>
             {
@@ -61,11 +63,8 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateOnEditing(MojType type)
         {
-            // NOTE: We use the Name not the ClassName here. Otherwise
-            //   we would create lots of TS classes ending with "Entity",
-            //   which would be ugly.
             O();
-            OB($"Init{ type.Name}OnEditing (item: any): void");
+            OB($"Init{type.Name}OnEditing (item: any): void");
 
             // Process nested object references.
             var nestedProps = type.GetProps()
@@ -99,17 +98,21 @@ namespace Casimodo.Lib.Mojen
         public void GenerateOnSaving(MojType type)
         {
             O();
-            OB($"Init{ type.Name}OnSaving (item: any): void");
+            OB($"Init{type.Name}OnSaving (item: any): void");
 
             var referenceProps = type.GetProps().Where(x => x.IsNavigation);
 
             foreach (var prop in referenceProps)
             {
+                if (prop.IsHiddenCollectionNavigationProp)
+                    continue;
+
                 if (prop.Reference.IsToMany)
                 {
-                    // KABU TODO: IMPORTANT: REVISIT: Currently we only support saving 
-                    //   of independent collection props.
+                    // TODO: Currently we only support saving of independent collection props.
                     //   Neither nested or loose collections are saved currently.
+                    // TODO: EF Core: we don't use intependent collections in EF Core
+                    //   because they are not supported (yet?).
                     if (!prop.Reference.Independent)
                     {
                         // NOTE: We delete the property in this case.
@@ -119,7 +122,8 @@ namespace Casimodo.Lib.Mojen
                 else if (prop.Reference.IsToOne)
                 {
                     // Set all navigation properties of non-nested references to null,
-                    //  because we don't want to send them to the server as they might be only partially expanded.
+                    //  because we don't want to send them to the server.
+                    //  We need the foreign keys only.
 
                     if (prop.Reference.IsLoose)
                     {

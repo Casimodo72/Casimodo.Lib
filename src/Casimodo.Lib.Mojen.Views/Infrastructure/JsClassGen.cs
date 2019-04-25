@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class JsClassGen : MojenGenerator
+    public class WebClassGen : MojenGenerator
     {
         public void OTsClass(string name, string extends = null,
                 IEnumerable<string> implements = null,

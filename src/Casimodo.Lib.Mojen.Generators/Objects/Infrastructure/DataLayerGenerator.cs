@@ -8,11 +8,19 @@ namespace Casimodo.Lib.Mojen
     {
         public DataLayerGenerator()
         {
-            ClassGen = AddSub<JsClassGen>();
+            ClassGen = AddSub<WebClassGen>();
             ClassGen.SetParent(this);
         }
 
-        public JsClassGen ClassGen { get; private set; }
+        public WebClassGen ClassGen { get; private set; }
+
+        public DataLayerConfig DataConfig { get; set; }
+
+        public override void Prepare()
+        {
+            base.Prepare();
+            DataConfig = App.Get<DataLayerConfig>();
+        }
 
         public void OTsNamespace(string ns, Action action)
         {

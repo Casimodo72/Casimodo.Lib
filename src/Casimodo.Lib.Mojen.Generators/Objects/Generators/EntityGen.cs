@@ -26,12 +26,12 @@ namespace Casimodo.Lib.Mojen
         {
             Scope = "Context";
             Lang = "C#";
-            ;
         }
 
         protected override void GenerateCore()
         {
-            if (string.IsNullOrEmpty(App.Get<DataLayerConfig>().EntityDirPath)) return;
+            if (string.IsNullOrEmpty(App.Get<DataLayerConfig>().EntityDirPath))
+                return;
 
             foreach (var entity in App.AllEntities.Where(x => !x.WasGenerated))
             {

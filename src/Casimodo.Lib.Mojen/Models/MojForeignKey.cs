@@ -56,19 +56,25 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsSoftDeleteCascadeDisabled { get; set; }
 
-        // Loose or Nested
+        /// <summary>
+        /// (group: Loose or Nested)
+        /// </summary>
         public bool IsLoose
         {
             get { return Is && Binding.HasFlag(MojReferenceBinding.Loose); }
         }
 
-        // Loose or Nested
+        /// <summary>
+        /// (group: Loose or Nested)
+        /// </summary>
         public bool IsNested
         {
             get { return Is && Binding.HasFlag(MojReferenceBinding.Nested); }
         }
 
-        // Associated or Owned or Independent
+        /// <summary>
+        /// (group: Associated or Owned or Independent)
+        /// </summary>        
         public bool IsOwned
         {
             get { return Is && Binding.HasFlag(MojReferenceBinding.Owned); }
@@ -77,12 +83,17 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojProp OwnedByProp { get; set; }
 
-        // Associated or Owned or Independent
+        /// <summary>
+        /// (group: Associated or Owned or Independent)
+        /// </summary>  
         public bool IsAssotiated
         {
             get { return Is && Binding.HasFlag(MojReferenceBinding.Associated); }
         }
 
+        /// <summary>
+        /// (group: Associated or Owned or Independent)
+        /// </summary>  
         public bool Independent
         {
             get { return Is && Binding.HasFlag(MojReferenceBinding.Independent); }

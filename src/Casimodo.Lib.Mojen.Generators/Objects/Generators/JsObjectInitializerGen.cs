@@ -100,6 +100,9 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var prop in referenceProps)
             {
+                if (prop.IsHiddenCollectionNavigationProp)
+                    continue;
+
                 if (prop.Reference.IsToMany)
                 {
                     // KABU TODO: IMPORTANT: REVISIT: Currently we only support saving 

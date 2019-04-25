@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
-using System.Data;
 using System.Data.Common;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
-    public abstract class CustomDbContext : DbContext
+    public abstract class CustomDbContext<TDbContext> : DbContext
+        where TDbContext : CustomDbContext<TDbContext>
     {
         protected DbConnection _connection;
 
@@ -39,7 +38,7 @@ namespace Casimodo.Lib.Data
 
         // Transactions: https://docs.microsoft.com/en-us/ef/core/saving/transactions
 
-        public void PerformTransaction(Action<DbTransactionContext> action)
+        public void PerformTransaction(Action<DbTransactionContext<TDbContext>> action)
         {
             // KABU TODO: EF Core's BeginTransaction does 
             //   not have an isolation level parameter (i.e. IsolationLevel.ReadCommitted).
@@ -48,7 +47,7 @@ namespace Casimodo.Lib.Data
             {
                 try
                 {
-                    action(new DbTransactionContext(this, trans));
+                    action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
 
                     trans.Commit();
                 }
@@ -60,13 +59,13 @@ namespace Casimodo.Lib.Data
             }
         }
 
-        public async Task PerformTransactionAsync(Func<DbTransactionContext, Task> action)
+        public async Task PerformTransactionAsync(Func<DbTransactionContext<TDbContext>, Task> action)
         {
             using (var trans = Database.BeginTransaction())
             {
                 try
                 {
-                    await action(new DbTransactionContext(this, trans));
+                    await action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
 
                     trans.Commit();
                 }

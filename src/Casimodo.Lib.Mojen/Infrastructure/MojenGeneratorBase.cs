@@ -604,10 +604,15 @@ namespace Casimodo.Lib.Mojen
                 O($"@using {ns}");
         }
 
-        public void ONamespace(string ns)
+        public void ONamespace(string ns, Action content = null)
         {
             O($"namespace {ns}");
             Begin();
+            if (content != null)
+            {
+                content();
+                End();
+            }
         }
 
         public void OSummary(IEnumerable<string> text)

@@ -70,9 +70,9 @@ namespace Casimodo.Lib.Data
 
         public IDbContextTransaction Transaction { get; private set; }
 
-        public DbContext GetContext()
+        public DbContext BaseContext
         {
-            return _db;
+            get { return _db; }
         }
 
         public void EnlistTransaction(DbContext dbcontext)
@@ -80,18 +80,11 @@ namespace Casimodo.Lib.Data
             Guard.ArgNotNull(dbcontext, nameof(dbcontext));
             dbcontext.Database.UseTransaction(Transaction.GetDbTransaction());
         }
-
-        //public TDbContext CreateDbContext<TDbContext>()
-        //    where TDbContext : CustomDbContext, new()
-        //{
-        //    var db = (TDbContext)Activator.CreateInstance(typeof(TDbContext), new object[] { GetContext().Database.GetDbConnection() });
-        //    db.Database.UseTransaction(Transaction.GetDbTransaction());
-        //    return db;
-        //}
     }
 
     public static class DbRepositoryExtensions
     {
+        // TODO: REMOVE?
         //public static TRepo Use<TRepo>(this TRepo repository, DbContext context)
         //    where TRepo : IDbRepository
         //{

@@ -45,12 +45,6 @@ namespace Casimodo.Lib.Mojen
         public string InlineDetailsViewVirtualFilePath { get; set; }
 
         public string GridScriptFilePath { get; set; }
-        //public string GridScriptVirtualFilePath { get; set; }
-
-        public override void Prepare()
-        {
-            base.Prepare();
-        }
 
         protected override void GenerateCore()
         {
