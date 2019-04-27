@@ -36,13 +36,11 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(App.Get<DataLayerConfig>().DataNamespace);
 
-            string accessModifier = "public ";
-
             foreach (var type in types)
             {
                 var db = App.GetDataLayerConfig(type.DataContextName);
                 var name = GetRepositoryName(type);
-                OB(accessModifier + "class {0} : {1}<{2}, {3}>",
+                OB("public partial class {0} : {1}<{2}, {3}>",
                     name,
                     context.DbRepositoryName,
                     type.ClassName,
