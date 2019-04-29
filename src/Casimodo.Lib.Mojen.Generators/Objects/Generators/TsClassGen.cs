@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
     {
         public TsClassGen()
         {
-            Scope = "Context";
+            Scope = "App";
         }
 
         public WebDataLayerConfig WebConfig { get; set; }

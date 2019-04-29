@@ -64,7 +64,7 @@ namespace Casimodo.Lib.Mojen
         public void GenerateOnEditing(MojType type)
         {
             O();
-            OB($"Init{type.Name}OnEditing (item: any): void");
+            OB($"Init{type.Name}OnEditing (item: Partial<{type.Name}>): Partial<{type.Name}>");
 
             // Process nested object references.
             var nestedProps = type.GetProps()
@@ -92,13 +92,15 @@ namespace Casimodo.Lib.Mojen
                 O($"if (!item.{prop.Name}) item.{prop.Name} = [];");
             }
 
+            O("return item;");
+
             End();
         }
 
         public void GenerateOnSaving(MojType type)
         {
             O();
-            OB($"Init{type.Name}OnSaving (item: any): void");
+            OB($"Init{type.Name}OnSaving (item: Partial<{type.Name}>): Partial<{type.Name}>");
 
             var referenceProps = type.GetProps().Where(x => x.IsNavigation);
 
@@ -138,7 +140,9 @@ namespace Casimodo.Lib.Mojen
                 }
             }
 
-            End(";");
+            O("return item;");
+
+            End();
         }
     }
 }

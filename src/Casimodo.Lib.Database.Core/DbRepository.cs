@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Data
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity, MojDataGraphMask mask = null);
         void Delete(TEntity entity, DbRepoOperationContext ctx = null, bool? isPhysicalDeletionAuthorized = null);
-        IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> expression);
+        IQueryable<TEntity> LocalAndDbQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true);
         int SaveChanges();
         Task<int> SaveChangesAsync();
@@ -292,18 +292,23 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        public IQueryable<TEntity> LocalAndQuery(Expression<Func<TEntity, bool>> predicate)
+        public IQueryable<TEntity> LocalQuery(bool includeDeleted = false)
         {
-            return LocalAndQuery(includeDeleted: false, predicate: predicate);
+            return ApplyDefaultFilters(includeDeleted, EntitySet.Local.AsQueryable());
         }
 
-        public IQueryable<TEntity> LocalAndQuery(bool includeDeleted, Expression<Func<TEntity, bool>> predicate)
+        public IQueryable<TEntity> LocalAndDbQuery(Expression<Func<TEntity, bool>> predicate)
+        {
+            return LocalAndDbQuery(includeDeleted: false, predicate: predicate);
+        }
+
+        public IQueryable<TEntity> LocalAndDbQuery(bool includeDeleted, Expression<Func<TEntity, bool>> predicate)
         {
             // TODO: EF Core's Local is slow because it is a view over the state manager.
             //   See https://github.com/aspnet/EntityFrameworkCore/issues/14231
             //   Do we want to use ToObservableCollection here?
-            // TODO: Not tenant safe.
-            var localItems = FilterByIsDeleted(includeDeleted, EntitySet.Local.AsQueryable().Where(predicate));
+            var localQuery = EntitySet.Local.AsQueryable().Where(predicate);
+            var localItems = ApplyDefaultFilters(includeDeleted, localQuery);
 
             if (!localItems.Any())
                 return Query(includeDeleted).Where(predicate);
@@ -338,9 +343,7 @@ namespace Casimodo.Lib.Data
             if (!trackable)
                 query = query.AsNoTracking();
 
-            query = FilterByTenant(query);
-
-            query = FilterByIsDeleted(includeDeleted, query);
+            query = ApplyDefaultFilters(includeDeleted, query);
 
             return query;
         }
@@ -494,6 +497,11 @@ namespace Casimodo.Lib.Data
         protected void OnDeleting(DbRepoOperationContext ctx)
         {
             Core().OnDeleting(ctx);
+        }
+
+        protected IQueryable<TEntity> ApplyDefaultFilters(bool includeDeleted, IQueryable<TEntity> query)
+        {
+            return FilterByIsDeleted(includeDeleted, FilterByTenant(query));
         }
 
         protected IQueryable<TEntity> FilterByTenant(IQueryable<TEntity> query)
