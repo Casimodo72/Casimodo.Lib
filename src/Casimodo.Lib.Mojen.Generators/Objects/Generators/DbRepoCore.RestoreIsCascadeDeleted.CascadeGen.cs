@@ -97,7 +97,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (prop.Reference.IsToMany)
             {
-                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => x.{prop.Reference.ForeignBackrefProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
+                O($"foreach (var {target} in ctx.Repos.{targetRepo}.LocalAndDbQuery(true, x => x.{prop.Reference.ForeignBackrefProp.ForeignKey.Name} == {item}.{type.Key.Name}))");
                 O($"    if (IsCascadeDeletedByOrigin({target}, ctx))");
                 O($"        RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation({target}));");
 
@@ -122,7 +122,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     O($"// Soft child collection of {targetType.ClassName}: {reference.Axis}, {reference.Binding}, {reference.Multiplicity}");
 
-                    O($"foreach (var child in ctx.Repos.{targetRepo}.LocalAndQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}))");
+                    O($"foreach (var child in ctx.Repos.{targetRepo}.LocalAndDbQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}))");
                     O($"    if (IsCascadeDeletedByOrigin(child, ctx))");
                     O($"        RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation(child));");
                 }
@@ -132,7 +132,7 @@ namespace Casimodo.Lib.Mojen
 
                     var target = targetType.VName;
 
-                    O($"var {target} = ctx.Repos.{targetRepo}.LocalAndQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}).FirstOrDefault();");
+                    O($"var {target} = ctx.Repos.{targetRepo}.LocalAndDbQuery(true, x => {Mex.ToLinqPredicate(reference.Condition)}).FirstOrDefault();");
                     O($"if (IsCascadeDeletedByOrigin({target}, ctx))");
                     O($"    RestoreCascadeDeleted(ctx.CreateSubRestoreCascadeDeletedOperation({target}));");
                 }

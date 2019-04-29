@@ -754,12 +754,16 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"const $inputs = $(\"input[name='{propPath}']\");");
                 O($"const $container = {JQuerySelectEditorContainer()};");
-                O("const options = {};");
+                O("const options = { filters: [] };");
+
+                if (vprop.Lookup.QueryFilter != null)
+                {
+                    O($"options.filters = [{KendoDataSourceMex.ToKendoDataSourceFilters(vprop.Lookup.QueryFilter)}];");
+                }
 
                 // Arguments to be passed to the lookup dialog.
                 if (cascadeFromInfos?.Any() == true)
                 {
-                    O($"options.filters = [];");
                     O($"options.filterCommands = [];");
                     O("let cascadeFromVal = '';");
                     O();

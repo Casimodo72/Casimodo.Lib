@@ -93,9 +93,15 @@ namespace Casimodo.Lib.Mojen
             };
         }
 
-        public static MexExpressionNode BuildCondition(Action<MexConditionBuilder> build)
+        public static MexExpressionNode BuildCondition(Action<MexConditionBuilder> build, bool required = true)
         {
-            Guard.ArgNotNull(build, nameof(build));
+            if (build == null)
+            {
+                if (required)
+                    Guard.ArgNotNull(build, nameof(build));
+                else
+                    return null;
+            }            
 
             var conditionBuilder = new MexConditionBuilder();
             build(conditionBuilder);

@@ -429,6 +429,8 @@ namespace Casimodo.Lib.Mojen
         public string ViewGroup { get; set; }
 
         public string ViewAlias { get; set; }
+
+        public MexExpressionNode QueryFilter { get; set; }
     }
 
     public class MojLookupCascadeFromScopeViewPropConfig : MojBase

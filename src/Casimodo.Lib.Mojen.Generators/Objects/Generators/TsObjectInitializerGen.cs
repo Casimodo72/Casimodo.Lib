@@ -7,6 +7,8 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    // TODO: Generate lower-case class methods.
+
     public class TsObjectInitializerGen : DataLayerGenerator
     {
         public TsObjectInitializerGen()
@@ -79,6 +81,8 @@ namespace Casimodo.Lib.Mojen
                 O($"if (!item.{prop.Name}) item.{prop.Name} = new {ModuleName}.{prop.Reference.ToType.Name}();");
             }
 
+            // TODO: REVISIT: REMOVE?
+#if (false)
             // Process independent associations (collections).
             var independentCollectionProps = type.GetProps()
                 .Where(x =>
@@ -91,6 +95,7 @@ namespace Casimodo.Lib.Mojen
             {
                 O($"if (!item.{prop.Name}) item.{prop.Name} = [];");
             }
+#endif
 
             O("return item;");
 
@@ -100,7 +105,7 @@ namespace Casimodo.Lib.Mojen
         public void GenerateOnSaving(MojType type)
         {
             O();
-            OB($"Init{type.Name}OnSaving (item: Partial<{type.Name}>): Partial<{type.Name}>");
+            OB($"Init{type.Name}OnSaving (item: Partial<{type.Name}>, deleteOwned: boolean = true): Partial<{type.Name}>");
 
             var referenceProps = type.GetProps().Where(x => x.IsNavigation);
 
@@ -113,12 +118,29 @@ namespace Casimodo.Lib.Mojen
                 {
                     // TODO: Currently we only support saving of independent collection props.
                     //   Neither nested or loose collections are saved currently.
-                    // TODO: EF Core: we don't use intependent collections in EF Core
+                    // TODO: EF Core: we don't use independent collections in EF Core
                     //   because they are not supported (yet?).
                     if (!prop.Reference.Independent)
                     {
-                        // NOTE: We delete the property in this case.
-                        O($"if (typeof item.{prop.Name} !== 'undefined') delete item.{prop.Name};");
+                        if (prop.Reference.IsOwned)
+                        {    
+                            // Delete property or initialize.
+                            OB($"if (typeof item.{prop.Name} !== 'undefined')");
+
+                            OB("if (deleteOwned)");
+                            O($"delete item.{prop.Name};");
+                            End();
+                            OB($"else if (item.{prop.Name} !== null)");
+                            O($"for (const o of item.{prop.Name}) this.Init{prop.Type.CollectionElementTypeConfig.Name}OnSaving(o, false);");
+                            End();
+
+                            End();
+                        }
+                        else
+                        {
+                            // Delete property
+                            O($"if (typeof item.{prop.Name} !== 'undefined') delete item.{prop.Name};");
+                        }
                     }
                 }
                 else if (prop.Reference.IsToOne)
