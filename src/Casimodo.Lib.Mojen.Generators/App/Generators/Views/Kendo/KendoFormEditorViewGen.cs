@@ -744,11 +744,11 @@ namespace Casimodo.Lib.Mojen
             OInvalidPropPlaceholder(context);
 
             OMvcScriptBegin();
-            O($"// Lookup dialog for {propPath}");
+            OComment($"Lookup dialog for {propPath}");
 
             var cascadeFromInfos = BuildCascadeFromInfos(info);
             if (cascadeFromInfos != null)
-                O($"// Cascading from fields");
+                OComment($"Cascading from fields");
 
             OnSelectorButtonClick(context, () =>
             {
@@ -769,46 +769,80 @@ namespace Casimodo.Lib.Mojen
                     O();
                     foreach (var cascadeFromInfo in cascadeFromInfos)
                     {
-                        O($"// Cascading from {cascadeFromInfo.ForeignKey.Name}");
+                        var cascadeConfig = cascadeFromInfo.Config;
+
+                        OComment($"Cascading from {cascadeFromInfo.ForeignKey.Name}");
 
                         // There must be a reference in the lookup target type which references the same type.
-                        var cascadeType = cascadeFromInfo.ForeignKey.Reference.ToType;
-                        var reference = info.TargetType.FindReferenceWithForeignKey(to: cascadeType);
+                        var cascadeFromType = cascadeFromInfo.ForeignKey.Reference.ToType;
+                        var reference = info.TargetType.FindReferenceWithForeignKey(to: cascadeFromType);
                         if (reference == null)
                             throw new MojenException("Lookup with cascade-from mismatch: " +
-                                $"There is no reference to type '{cascadeType.ClassName}' in type '{info.TargetType.ClassName}' to be used for cascade-from.");
+                                $"There is no reference to type '{cascadeFromType.ClassName}' " +
+                                $"in type '{info.TargetType.ClassName}' to be used for cascade-from.");
 
                         O($"cascadeFromVal = $inputs.first().prop('kendoBindingTarget').source.{cascadeFromInfo.ForeignKey.Name};");
 
-                        // Notify & exit if the cascade-from field has not been assigned yet.                    
                         OB("if (!cascadeFromVal)");
-                        // Notify
-                        // KABU TODO: LOCALIZE
-                        var fromPropDisplayName = cascadeFromInfo.Config.FromPropDisplayName ??
+
+                        if (cascadeConfig.IsOptional)
+                        {
+                            // Optional cascade-from.
+                            OComment("NOP - optional cascade");
+                        }
+                        else
+                        {
+                            // Required cascade-from.
+                            // Notify & exit if the cascade-from field has not been assigned yet.  
+                            // KABU TODO: LOCALIZE
+                            var fromPropDisplayName = cascadeConfig.FromPropDisplayName ??
                             cascadeFromInfo.ForeignKey.DisplayLabel;
 
-                        O($"kmodo.openInstructionDialog(\"" +
-                        $"Zuerst muss '{fromPropDisplayName}' gesetzt werden, " +
-                        $"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann.\");");
-                        // Exit
-                        O("return;");
-                        End();
+                            O($@"kmodo.openInstructionDialog(""" +
+                                $"Zuerst muss '{fromPropDisplayName}' gesetzt werden, " +
+                                $@"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann."");");
+                            // Exit
+                            O("return;");
+                        }
+                        End(); // if (!cascadeFromVal)
 
-                        var targetType = reference.ForeignKey.Reference.ToType;
-                        var isDeactivatable = cascadeFromInfo.Config.IsDeactivatable;
-                        // Filter by the cascade-from field & value.
-                        O($"options.filters.push({{ field: '{reference.ForeignKey.Name}', " +
-                        "value: cascadeFromVal, operator: 'eq', " +
-                        $"targetType: '{targetType.Name}', " +
-                        $"targetTypeId: '{targetType.Id}', " +
-                        $"deactivatable: {Moj.JS(isDeactivatable)} }});");
+                        var filterTargetType = reference.ForeignKey.Reference.ToType;
+                        var filterIsDeactivatable = cascadeConfig.IsDeactivatable;
+                        var filterCmdBehavior = cascadeConfig.CommandBehavior;
+                        var filterCmdHideOnDeactivated = filterCmdBehavior.HasFlag(MojFilterCommandBehavior.HideOnDeactivated);
 
-                        if (cascadeFromInfo.Config.IsDeactivatable)
+                        // Filter by the cascade-from field & value.                     
+                        if (filterIsDeactivatable)
                         {
-                            O($"options.filterCommands.push({{ field: '{reference.ForeignKey.Name}', " +
+                            if (string.IsNullOrWhiteSpace(cascadeConfig.CommandTitle))
+                                throw new MojenException("A deactivatable cascade-from filter must have a title.");
+
+                            // NOTE: add command (button) only if deactivatable.
+                            O("options.filterCommands.push({" +
+                                $"title: '{cascadeConfig.CommandTitle}', " +
+                                $"group: {Moj.JS(cascadeConfig.CommandGroup)}, " +
+                                $"deactivatable: {Moj.JS(filterIsDeactivatable)}, " +
+                                $"hideOnDeactivated: {Moj.JS(filterCmdHideOnDeactivated)}, " +
+                                "filter: { " +
+                                    $"field: '{reference.ForeignKey.Name}', " +
+                                    $"value: cascadeFromVal, " +
+                                    // Add an ID for easy removal of that filter.
+                                    $"_id: '{Guid.NewGuid()}', " +
+                                    $"_deactivatable: {Moj.JS(filterIsDeactivatable)}, " +                                   
+                                    $"_targetTypeId: '{filterTargetType.Id}', " +
+                                    // TODO: REMOVE: _targetTypeName if the future
+                                    $"_targetTypeName: '{filterTargetType.Name}', " +
+                                "});");
+                        }
+                        else
+                        {
+                            // If not deactivatable: add filter without command.
+                            O($"options.filters.push({{" +
+                                $"field: '{reference.ForeignKey.Name}', " +
+                                $"operator: 'eq', " +
                                 $"value: cascadeFromVal, " +
-                                $"deactivatable: {Moj.JS(isDeactivatable)}, " +
-                                $"title: '{cascadeFromInfo.Config.Title}'}});");
+                                $"targetType: '{filterTargetType.Name}', " +
+                                $"targetTypeId: '{filterTargetType.Id}' }});");
                         }
                         O();
                     }

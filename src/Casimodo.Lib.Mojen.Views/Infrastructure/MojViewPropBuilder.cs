@@ -378,7 +378,11 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewPropBuilder CascadeFrom(MojFormedType type, bool deactivatable = false,
+        public MojViewPropBuilder CascadeFrom(MojFormedType type,
+            bool optional = false,
+            bool deactivatable = false,
+            bool hideOnDeactivated = true,
+            string group = null,
             string fromPropDisplay = null,
             string title = null)
         {
@@ -398,8 +402,13 @@ namespace Casimodo.Lib.Mojen
             {
                 FromType = type,
                 FromPropDisplayName = fromPropDisplay,
+                IsOptional = optional,
                 IsDeactivatable = deactivatable,
-                Title = title
+                CommandGroup = group,
+                CommandBehavior = hideOnDeactivated
+                    ? MojFilterCommandBehavior.HideOnDeactivated
+                    : MojFilterCommandBehavior.None,
+                CommandTitle = title
             });
 
             return this;
