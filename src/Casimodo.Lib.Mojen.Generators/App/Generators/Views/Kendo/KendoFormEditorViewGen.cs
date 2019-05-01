@@ -803,8 +803,10 @@ namespace Casimodo.Lib.Mojen
                                 $@"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann."");");
                             // Exit
                             O("return;");
-                        }
+                        }                       
                         End(); // if (!cascadeFromVal)
+                        OB("else");
+                        // Don't add filter/command if the cascade-from value is null.
 
                         var filterTargetType = reference.ForeignKey.Reference.ToType;
                         var filterIsDeactivatable = cascadeConfig.IsDeactivatable;
@@ -832,18 +834,20 @@ namespace Casimodo.Lib.Mojen
                                     $"_targetTypeId: '{filterTargetType.Id}', " +
                                     // TODO: REMOVE: _targetTypeName if the future
                                     $"_targetTypeName: '{filterTargetType.Name}', " +
-                                "});");
+                                "}});");
                         }
                         else
                         {
                             // If not deactivatable: add filter without command.
-                            O($"options.filters.push({{" +
+                            O("options.filters.push({" +
                                 $"field: '{reference.ForeignKey.Name}', " +
                                 $"operator: 'eq', " +
                                 $"value: cascadeFromVal, " +
-                                $"targetType: '{filterTargetType.Name}', " +
-                                $"targetTypeId: '{filterTargetType.Id}' }});");
+                                $"_targetTypeId: '{filterTargetType.Id}', " +
+                                // TODO: REMOVE: _targetTypeName if the future
+                                $"_targetTypeName: '{filterTargetType.Name}' }});");
                         }
+                        End();
                         O();
                     }
                 }
