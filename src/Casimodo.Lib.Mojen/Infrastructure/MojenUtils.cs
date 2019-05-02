@@ -224,7 +224,7 @@ namespace Casimodo.Lib.Mojen
             return ToJsValueCore(value, type, parse, verbatim, quote: quote);
         }
 
-        const string jsQuote = "\""; // "'"
+        static readonly string jsQuote = "\""; // "'"
 
         static string ToJsValueCore(object value, Type type, bool parse = true, bool verbatim = false, bool quote = true)
         {
@@ -238,9 +238,16 @@ namespace Casimodo.Lib.Mojen
 
             if (type == typeof(string))
             {
-                // KABU: TODO: How to handle varbatim strings in JS?
+                // TODO: How to handle varbatim strings in JS?
+                //   Should we use template strings?
                 if (quote)
-                    return jsQuote + value + jsQuote;
+                {
+                    if (jsQuote == "\"")
+                        return $"\"{((string)value).Replace("\"", @"\""")}\"";
+                    else if (jsQuote == "'")
+                        return $"\"{((string)value).Replace("'", @"\'")}\"";
+                    else throw new MojenException($"Unexpected JS string quotation strategy using {jsQuote}");
+                }
                 else
                     return (string)value;
             }

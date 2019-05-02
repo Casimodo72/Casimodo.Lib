@@ -220,7 +220,9 @@ namespace Casimodo.Lib.Mojen
                         else if (@default.Value is string[])
                         {
                             // Multiline text.
-                            string multilineText = (@default.Value as string[]).Join("\\n");
+                            // TODO: We need to escape quotes in strings.
+                            string multilineText = (@default.Value as string[])
+                                .Join("\\n");
                             O($"defaultValue: \"{multilineText}\",");
                         }
                         else
