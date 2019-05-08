@@ -192,19 +192,19 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+            OTsNamespace(WebConfig.ScriptUINamespace, nscontext =>
             {
                 KendoGen.OBeginComponentViewModelFactory(context);
                 OB("return new kmodo.Grid(");
                 KendoGen.OViewModelOptions(context, isList: true,
                     extend: () =>
                     {
-                        O($"baseFilters: {KendoGen.BuildBaseFiltersArrayLiteral(context)},");
+                        O($"coreFilters: {KendoGen.BuildCoreFiltersArrayLiteral(context)},");
 
                         // OData read query URL
                         O($"readQuery: {Moj.JS(TransportConfig.ODataSelectUrl)},");
 
-                        OB("dataSourceOptions: (e) =>");
+                        OB("dataSourceOptions: e =>");
                         OB("return");
                         KendoGen.ODataSourceListOptions(context,
                             TransportConfig,
@@ -220,13 +220,13 @@ namespace Casimodo.Lib.Mojen
                         End(";");
                         End(",");
 
-                        OB("dataModel: (e) =>");
+                        OB("dataModel: e =>");
                         OB("return");
                         KendoGen.ODataSourceModelOptions(context, TransportConfig.ModelProps);
                         End(";");
                         End(",");
 
-                        OB("gridOptions: (e) =>");
+                        OB("gridOptions: e =>");
                         OB("return");
                         GenGridOptions(context);
                         End(";");

@@ -10,12 +10,12 @@
 
             FormGroupClass = "form-group readonly";
 
-            OLabelContainerBegin = (c) =>
+            OLabelContainerBegin = c =>
             {
                 ElemClass(LabelContainerClass, target: "label");
             };
 
-            OPropContainerBegin = (c) =>
+            OPropContainerBegin = c =>
             {
                 XB($"<div class='{PropContainerClass}'>");
                 ElemClass("km-readonly-form-control");

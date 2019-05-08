@@ -84,24 +84,24 @@ namespace Casimodo.Lib.Mojen
             ReadOnlyGen.Define(context);
             ReadOnlyGen.DataViewModelAccessor = null;
 
-            OLabelContainerBegin = (c) =>
+            OLabelContainerBegin = c =>
             {
                 // if (c.IsRunEditable)
                 var style = c.Cur.GetGroupLabelStyle();
                 XB($"<div class='{style ?? LabelContainerClass}'>");
             };
-            OLabelContainerEnd = (c) =>
+            OLabelContainerEnd = c =>
             {
                 // if (c.IsRunEditable)
                 XE("</div>");
             };
 
-            OPropContainerBegin = (c) =>
+            OPropContainerBegin = c =>
             {
                 XB($"<div class='{c.Cur.GetGroupPropStyle() ?? PropContainerClass}'>");
                 XB($"<div class='km-input-group-container'>");
             };
-            OPropContainerEnd = (c) => { XE("</div>"); XE("</div>"); };
+            OPropContainerEnd = c => { XE("</div>"); XE("</div>"); };
         }
 
         bool IsEffectiveStandaloneView(WebViewGenContext context)
@@ -123,7 +123,7 @@ namespace Casimodo.Lib.Mojen
             // NOTE: ignore min-width because this could make the view
             //   too wide for bootstrap's min screen width layout.
             //   responsive layout 
-            var style = GetStyleAttr(GetViewStyles(context, (name) => name != "min-width"));
+            var style = GetStyleAttr(GetViewStyles(context, name => name != "min-width"));
 
             if (IsEffectiveStandaloneView(context))
             {

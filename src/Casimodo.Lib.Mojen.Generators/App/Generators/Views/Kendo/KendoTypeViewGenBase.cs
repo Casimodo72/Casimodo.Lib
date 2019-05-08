@@ -34,8 +34,8 @@ namespace Casimodo.Lib.Mojen
 
         public virtual void Define(WebViewGenContext context)
         {
-            OPropContainerBegin = (c) => XB($"<div class='{PropContainerClass}'>");
-            OPropContainerEnd = (c) => XE("</div>");
+            OPropContainerBegin = c => XB($"<div class='{PropContainerClass}'>");
+            OPropContainerEnd = c => XE("</div>");
         }
 
         IEnumerable<List<ViewTemplateItem>> FilterHiddenProps(IEnumerable<List<ViewTemplateItem>> runs, MojViewMode mode)
@@ -451,17 +451,17 @@ namespace Casimodo.Lib.Mojen
             OLabelContainerEnd(context);
         }
 
-        public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = (context) => { };
-        public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = (context) => { };
+        public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = context => { };
+        public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = context => { };
 
-        public Action<WebViewGenContext> OPropContainerBegin { get; set; } = (context) => { };
-        public Action<WebViewGenContext> OPropContainerEnd { get; set; } = (context) => { };
+        public Action<WebViewGenContext> OPropContainerBegin { get; set; } = context => { };
+        public Action<WebViewGenContext> OPropContainerEnd { get; set; } = context => { };
 
         public virtual void OProp(WebViewGenContext context)
         { }
 
-        public Action<WebViewGenContext> OBlockBegin { get; set; } = (context) => { };
-        public Action<WebViewGenContext> OBlockEnd { get; set; } = (context) => { };
+        public Action<WebViewGenContext> OBlockBegin { get; set; } = context => { };
+        public Action<WebViewGenContext> OBlockEnd { get; set; } = context => { };
 
         public virtual void OPropLabel(WebViewGenContext context)
         {

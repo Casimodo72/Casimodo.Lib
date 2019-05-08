@@ -75,7 +75,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var type in types)
             {
                 var isseedAsync = type.Seedings.Any(x => x.IsAsync);
-                O($@"Items.Add(""{type.PluralName}"", {(isseedAsync ? "async " : "")}(seed) => {(isseedAsync ? "await " : "")}(seed as {className}).Seed{type.PluralName}());");
+                O($@"Items.Add(""{type.PluralName}"", {(isseedAsync ? "async " : "")}seed => {(isseedAsync ? "await " : "")}(seed as {className}).Seed{type.PluralName}());");
             }
             End();
             End();

@@ -13,13 +13,13 @@ namespace Casimodo.Lib.Mojen
 
             Name = "OnSaving.Misc";
 
-            AnyTypeMethodCall = (o) => $"void OnSavingMiscAny({o.DataConfig.DbRepoOperationContextName} ctx)";
+            AnyTypeMethodCall = o => $"void OnSavingMiscAny({o.DataConfig.DbRepoOperationContextName} ctx)";
             TypeMethodCall = (o, type) => $"OnSavingMisc(ctx.Item as {type.ClassName}, ctx);";
             TypeMethod = (o, type, item) => $"bool OnSavingMisc({type.ClassName} {item}, {o.DataConfig.DbRepoOperationContextName} ctx)";
             UseRepositoriesContext = false;            
             ItemName = "item";
 
-            SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
+            SelectTypes = types => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(x =>
                     x.IsCurrentLoggedInPerson)

@@ -124,7 +124,7 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateViewModel(WebViewGenContext context)
         {
-            OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
+            OTsNamespace(WebConfig.ScriptUINamespace, nscontext =>
             {
                 KendoGen.OBeginComponentViewModelFactory(context);
                 O();

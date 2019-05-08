@@ -381,10 +381,10 @@ namespace Casimodo.Lib.Mojen
             if (TypeConfig.Kind == MojTypeKind.Model ||
                 TypeConfig.Kind == MojTypeKind.Complex)
             {
-                TypeConfig.ChangeTrackingProps.AddRangeDistinctBy(TypeConfig.GetLocalTrackedProps(), (x) => x.Name);
+                TypeConfig.ChangeTrackingProps.AddRangeDistinctBy(TypeConfig.GetLocalTrackedProps(), x => x.Name);
 
                 if (TypeConfig.BaseClass != null)
-                    TypeConfig.ChangeTrackingProps.AddRangeDistinctBy(TypeConfig.BaseClass.ChangeTrackingProps, (x) => x.Name);
+                    TypeConfig.ChangeTrackingProps.AddRangeDistinctBy(TypeConfig.BaseClass.ChangeTrackingProps, x => x.Name);
 
                 ComputeUIHint();
             }

@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
                 O("public override void Configure()");
                 Begin();
 
-                //Func<WebResultComponentInfo, int> roleToInt = (x) =>
+                //Func<WebResultComponentInfo, int> roleToInt = x =>
                 //{
                 //    if (x.View.MainRoleName == "Page") return 1;
                 //    if (x.View.MainRoleName == "List") return 2;

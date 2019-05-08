@@ -24,7 +24,7 @@ namespace Casimodo.Lib.Mojen
                         // OData read query URL
                         O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
 
-                        OB("transport: (e) =>");
+                        OB("transport: e =>");
                         OB("return");
                         ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport,
                             create: context.View.CanCreate,
@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
                         End(";");
                         End(",");
 
-                        OB("dataModel: (e) =>");
+                        OB("dataModel: e =>");
                         OB("return");
                         ODataSourceModelOptions(context, transport.ModelProps);
                         End(";");
@@ -65,13 +65,13 @@ namespace Casimodo.Lib.Mojen
                         // OData read query URL
                         O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
 
-                        OB("transport: (e) =>");
+                        OB("transport: e =>");
                         OB("return");
                         ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport));
                         End(";");
                         End(",");
 
-                        OB("dataModel: (e) =>");
+                        OB("dataModel: e =>");
                         OB("return");
                         ODataSourceModelOptions(context, transport.ModelProps);
                         End(";");
@@ -269,7 +269,7 @@ namespace Casimodo.Lib.Mojen
         }
 
 
-        public string BuildBaseFiltersArrayLiteral(WebViewGenContext context)
+        public string BuildCoreFiltersArrayLiteral(WebViewGenContext context)
         {
             if (!context.View.HasFilters)
                 return Moj.JS(null);
@@ -281,7 +281,7 @@ namespace Casimodo.Lib.Mojen
                 sb.Append(
                     $"{{ field: '{context.View.FilteredByLoogedInPersonProp}', " +
                     "operator: 'eq', " +
-                    "value: cmodo.run.authInfo.PersonId },");
+                    "value: cmodo.run.authInfo.userId },");
 
             if (context.View.SimpleFilter != null)
                 sb.Append((KendoDataSourceMex.ToKendoDataSourceFilters(context.View.SimpleFilter)));

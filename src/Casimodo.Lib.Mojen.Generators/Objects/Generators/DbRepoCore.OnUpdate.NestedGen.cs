@@ -16,13 +16,13 @@ namespace Casimodo.Lib.Mojen
 
             Name = "OnUpdate.Nested";
 
-            AnyTypeMethodCall = (o) => $"void OnUpdateNestedAny({o.DataConfig.DbRepoOperationContextName} ctx)";
+            AnyTypeMethodCall = o => $"void OnUpdateNestedAny({o.DataConfig.DbRepoOperationContextName} ctx)";
 
             TypeMethodCall = (o, type) => $"OnUpdateNested(ctx.Item as {type.ClassName}, ctx);";
             TypeMethod = (o, type, item) => $"bool OnUpdateNested({type.ClassName} {item}, {o.DataConfig.DbRepoOperationContextName} ctx)";
             UseRepositoriesContext = false;
 
-            SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
+            SelectTypes = types => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(x =>
                     x.IsNavigation &&
@@ -70,8 +70,8 @@ namespace Casimodo.Lib.Mojen
 
                 Oo($"    UpdateNestedCollection<{targetType.ClassName}, {targetType.Key.Type.NameNormalized}>(");
                 o($"{item}.{prop.Name}, ");
-                o($"(x) => x.{prop.Reference.ForeignBackrefProp.ForeignKey.Name} == {item}.{type.Key.Name}, ");
-                o($"(x) => x.{targetType.Key.Name}, ");
+                o($"x => x.{prop.Reference.ForeignBackrefProp.ForeignKey.Name} == {item}.{type.Key.Name}, ");
+                o($"x => x.{targetType.Key.Name}, ");
                 oO($"{targetRepo}, ctx);");
             }
 

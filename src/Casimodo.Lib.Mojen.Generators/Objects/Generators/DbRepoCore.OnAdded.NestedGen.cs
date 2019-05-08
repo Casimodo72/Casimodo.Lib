@@ -16,13 +16,13 @@ namespace Casimodo.Lib.Mojen
 
             Name = "OnAdded.Nested";
 
-            AnyTypeMethodCall = (o) => $"void OnAddedNestedAny({o.DataConfig.DbRepoOperationContextName} ctx)";
+            AnyTypeMethodCall = o => $"void OnAddedNestedAny({o.DataConfig.DbRepoOperationContextName} ctx)";
 
             TypeMethodCall = (o, type) => $"OnAddedNested(ctx.Item as {type.ClassName}, ctx);";
             TypeMethod = (o, type, item) => $"bool OnAddedNested({type.ClassName} {item}, {o.DataConfig.DbRepoOperationContextName} ctx)";
             UseRepositoriesContext = false;
 
-            SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
+            SelectTypes = types => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(x =>
                     x.IsNavigation &&

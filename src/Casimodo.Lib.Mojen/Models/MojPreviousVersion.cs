@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Mojen
             if (!source.Is)
                 return;
 
-            IgnoreSourceProps.AddRangeDistinctBy(source.IgnoreSourceProps, (x) => x);
+            IgnoreSourceProps.AddRangeDistinctBy(source.IgnoreSourceProps, x => x);
         }
 
         public static MojVersionMapping CloneFrom(MojVersionMapping source)

@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
             OnAnyTypeMethodName = "OnDeletedCascadeAny";
             OnTypeMethodName = "OnDeletedCascade";
 
-            SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
+            SelectTypes = types => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(x =>
                       x.Reference.Binding.HasFlag(MojReferenceBinding.Owned) &&

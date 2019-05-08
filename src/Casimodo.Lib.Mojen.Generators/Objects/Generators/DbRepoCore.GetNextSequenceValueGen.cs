@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
             ItemName = "item";
 
             // Select types which have sequence props with parameterized constraints or start value selectors.
-            SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
+            SelectTypes = types => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(prop =>
                     prop.DbAnno.Sequence.Is &&

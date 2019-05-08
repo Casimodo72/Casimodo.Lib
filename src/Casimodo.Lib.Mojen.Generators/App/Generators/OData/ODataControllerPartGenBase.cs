@@ -18,9 +18,9 @@ namespace Casimodo.Lib.Mojen
 
         public WebODataBuildConfig ODataConfig { get; set; }
 
-        public Func<MojProp, bool> SelectProp { get; set; } = (prop) => true;
+        public Func<MojProp, bool> SelectProp { get; set; } = prop => true;
 
-        public Func<IEnumerable<MojControllerConfig>, IEnumerable<MojControllerConfig>> SelectControllers { get; set; } = (controllers) => controllers;
+        public Func<IEnumerable<MojControllerConfig>, IEnumerable<MojControllerConfig>> SelectControllers { get; set; } = controllers => controllers;
 
         protected override void GenerateCore()
         {

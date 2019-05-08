@@ -85,7 +85,7 @@ namespace Casimodo.Lib.Mojen
                 Br();
                 if (model.IsODataOpenTypeEffective)
                 {
-                    Oo("    .ForMember(s => s.DynamicProperties, (o) => o.Ignore())");
+                    Oo("    .ForMember(s => s.DynamicProperties, o => o.Ignore())");
                     Br();
                 }
                 Oo("    .AfterMap((s, d) => core.OnLoaded(d))");

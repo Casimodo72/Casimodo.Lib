@@ -15,11 +15,11 @@ namespace Casimodo.Lib.Mojen
             // Process types which have sequence props with Unique.PerTypes.
 
             // NOTE: DB annotations reside on store properties only.
-            SelectProp = (prop) =>
+            SelectProp = prop =>
                 prop.StoreOrSelf.DbAnno.Sequence.Is &&
                 prop.StoreOrSelf.DbAnno.Unique.HasParams;
 
-            SelectControllers = (controllers) => controllers.Where(c =>
+            SelectControllers = controllers => controllers.Where(c =>
                 c.TypeConfig.GetProps().Any(SelectProp));
         }
 

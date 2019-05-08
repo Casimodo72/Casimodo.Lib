@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
             OnAnyTypeMethodName = "OnEventAny";
             OnTypeMethodName = "OnEvent";
 
-            SelectTypes = (types) => types
+            SelectTypes = types => types
                 .Where(t => FilterTriggers(t.Triggers).Count() != 0)
                 .Select(t => new DbRepoCoreGenItem(t));
         }

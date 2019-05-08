@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Mojen
             UseRepositoriesContext = false;
 
             // Select types which have sequence props with Unique.PerTypes.
-            SelectTypes = (types) => types.Select(t => new DbRepoCoreGenItem(t)
+            SelectTypes = types => types.Select(t => new DbRepoCoreGenItem(t)
             {
                 Props = SelectProps(t).Where(prop =>
                      prop.DbAnno.Sequence.Is &&

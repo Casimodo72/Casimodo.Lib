@@ -142,6 +142,14 @@ namespace Casimodo.Lib.Data
             References = new List<MojReferenceDataGraphMask>();
         }
 
+        public static MojDataGraphMask CreateFor(Type type, params string[] props)
+        {
+            var mask = new MojDataGraphMask();
+            mask.TypeName = type.FullName;
+            mask.Properties.AddRange(props);
+            return mask;
+        }
+
         public static MojDataGraphMask ParseXml(string xml)
         {
             return new MojDataGraphMask().Parse(XElement.Parse(xml));

@@ -73,7 +73,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool UseRepositoriesContext { get; set; } = true;
 
-        public Func<IEnumerable<MojType>, IEnumerable<DbRepoCoreGenItem>> SelectTypes { get; set; } = (types) => Enumerable.Empty<DbRepoCoreGenItem>();
+        public Func<IEnumerable<MojType>, IEnumerable<DbRepoCoreGenItem>> SelectTypes { get; set; }
+            = types => Enumerable.Empty<DbRepoCoreGenItem>();
 
         protected override void GenerateCore()
         {

@@ -25,7 +25,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojType Type { get; set; }
 
-        public Func<string, string> GetDbContextSaveChangesExpression { get; set; } = (db) => $"await {db}.SaveChangesAsync()";
+        public Func<string, string> GetDbContextSaveChangesExpression { get; set; }
+            = db => $"await {db}.SaveChangesAsync()";
 
         public override void ProcessOnUse(object usedBy)
         {

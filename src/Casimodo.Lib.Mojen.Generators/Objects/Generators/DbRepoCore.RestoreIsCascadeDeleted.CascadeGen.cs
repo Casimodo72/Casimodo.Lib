@@ -13,7 +13,7 @@ namespace Casimodo.Lib.Mojen
             Scope = "DataContext";
             Name = "RestoreCascadeDeleted.Cascade";
 
-            AnyTypeMethodCall = (o) => $"void OnRestoreCascadeDeletedAny({o.DataConfig.DbRepoOperationContextName} ctx)";            
+            AnyTypeMethodCall = o => $"void OnRestoreCascadeDeletedAny({o.DataConfig.DbRepoOperationContextName} ctx)";            
 
             TypeMethodCall = (o, type) => $"OnRestoreCascadeDeleted(ctx.Item as {type.ClassName}, ctx);";
             TypeMethod = (o, type, item) => $"bool OnRestoreCascadeDeleted({type.ClassName} {item}, {o.DataConfig.DbRepoOperationContextName} ctx)";

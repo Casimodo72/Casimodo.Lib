@@ -13,7 +13,7 @@ namespace Casimodo.Lib.Mojen
             Scope = "DataContext";
             Name = "OnIsDeleted.Cascade";
 
-            AnyTypeMethodCall = (o) => $"void OnCascadeAny({o.DataConfig.DbRepoOperationContextName} ctx)";
+            AnyTypeMethodCall = o => $"void OnCascadeAny({o.DataConfig.DbRepoOperationContextName} ctx)";
             AnyTypeMethodFilter = () => "if (!GetProp(ctx.Item, \"IsDeleted\", false)) return;";
 
             TypeMethodCall = (o, type) => $"OnCascade(ctx.Item as {type.ClassName}, ctx);";

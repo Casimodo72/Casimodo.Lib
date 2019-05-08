@@ -10,7 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         public void OViewModelOnEditingOption(MojViewConfig view, bool canCreate)
         {
-            OB("editing: (e) =>");
+            OB("editing: e =>");
 
             GenOnEditing_OnPropChanged(view);
             GenOnEditing_ExtendEditModel(view);
@@ -29,7 +29,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OB("if (e.isNew)");
             foreach (var prop in loggedInPersonProps)
-                O($"e.item.set('{prop.Reference.ForeignKey.Name}', cmodo.run.authInfo.PersonId);");
+                O($"e.item.set('{prop.Reference.ForeignKey.Name}', cmodo.run.authInfo.userId);");
             End();
         }
 
