@@ -25,7 +25,7 @@
         _fileExplorer: MoFileExplorerViewModel;
         _attachmentsKendoListView: kendo.ui.ListView;
         _attachmentsKendoPager: kendo.ui.Pager;
-        private _isComponentInitialized: boolean = false;
+        private _isViewInitialized: boolean = false;
 
         constructor(options: EmailAttachmentsViewOptions) {
             super();
@@ -66,7 +66,7 @@
         }
 
         clearSelection(): void {
-            if (!this._isComponentInitialized)
+            if (!this._isViewInitialized)
                 return;
             this._getFilesSelectionManager().clearSelection();
             this._attachmentsDataSource.data([]);
@@ -123,9 +123,9 @@
         }
 
         private _initComponent(options: InternalEmailAttachmentsViewOptions): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             // Init attachment list view.
             this._attachmentsKendoListView = options.$area
@@ -136,7 +136,7 @@
                 }).data("kendoListView");
 
             // Init "remove attachment" buttons on attachment tiles.
-            this._attachmentsKendoListView.wrapper.on('click', ".list-item-remove-command", (e) => {
+            this._attachmentsKendoListView.wrapper.on('click', ".list-item-remove-command", e => {
                 const uid = $(e.currentTarget).closest("div[data-uid]").first().data("uid");
                 this._removeAttachment(this.getAttachmentByUid(uid));
             });
@@ -163,18 +163,18 @@
             const filesView = this._fileExplorer._filesView;
 
             // Handle file selection changes.
-            filesView.on("selectionChanged", (e) => {
+            filesView.on("selectionChanged", e => {
                 this._attachmentsDataSource.data(e.items);
             });
 
-            filesView.on("selectionItemAdded", (e) => {
+            filesView.on("selectionItemAdded", e => {
                 // Add file to attachments.
                 const item = this.getAttachmentById(e.item.Id);
                 if (!item)
                     this._attachmentsDataSource.insert(0, e.item);
             });
 
-            filesView.on("selectionItemRemoved", (e) => {
+            filesView.on("selectionItemRemoved", e => {
                 // Remove file from attachments.
                 const item = this.getAttachmentById(e.item.Id);
                 if (item)

@@ -138,17 +138,17 @@ namespace kmodo {
                 views: this.views,
                 // Show overview intially.
                 currentView: this.views[0] as VicinityPaneInfo,
-                generateDocument: (e) => {
+                generateDocument: e => {
                     this._generateDocumentAsync();
                 },
-                generateDocumentHtmlPreview: (e) => {
+                generateDocumentHtmlPreview: e => {
                     this._generateDocumentHtmlPreviewAsync();
                 },
-                refresh: (e) => {
+                refresh: e => {
                     this.refreshCore();
                 }
             });
-            this.getModel().bind("change", (e) => {
+            this.getModel().bind("change", e => {
                 if (e.field === "currentView") {
                     // Activate category or show overview.
                     this._activateView(this.getModel().currentView.name);
@@ -872,7 +872,7 @@ namespace kmodo {
         }
 
         private _vicinityPlaceAttachEvents(vicinityPlace: VicinityPlaceModel): void {
-            vicinityPlace.bind("change", (e) => {
+            vicinityPlace.bind("change", e => {
                 if (e.field === "isCandidate") {
                     if (vicinityPlace.isCandidate && !vicinityPlace._wasDetailsSet) {
                         // Query details (phone number).
@@ -920,7 +920,7 @@ namespace kmodo {
             vicinityPlace.marker = marker;
 
             // On marker click: show info window and route.
-            google.maps.event.addListener(marker, 'click', (e) => {
+            google.maps.event.addListener(marker, 'click', e => {
                 this._selectVicinityPlace(this._getMarkerVicinityPlace(marker));
             });
         }
@@ -1048,8 +1048,8 @@ namespace kmodo {
         }
 
         createView(): void {
-            if (this._isComponentInitialized) return;
-            this._isComponentInitialized = true;
+            if (this._isViewInitialized) return;
+            this._isViewInitialized = true;
 
             this.$view = $("#geo-map-view-" + this._options.id);
 
@@ -1079,12 +1079,12 @@ namespace kmodo {
                     field: "name",
                     title: ""
                 }],
-                change: (e) => {
+                change: e => {
                     let $row = e.sender.select();
                     let dataItem = e.sender.dataItem($row) as VicinityPlaceModel;
                     this._selectVicinityPlace(dataItem);
                 },
-                dataBound: (e) => {
+                dataBound: e => {
                     // Data-bind all rows.
                     kmodo.foreachGridRow(e.sender, ($row, dataItem) => {
                         kendo.bind($row, dataItem);

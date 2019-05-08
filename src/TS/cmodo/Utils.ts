@@ -10,6 +10,10 @@ namespace cmodo {
         return "00000000-0000-0000-0000-000000000000";
     }
 
+    export function clearArray(items: Array<any>): void {
+        items.splice(0, items.length);
+    }
+
     export function last(array: Array<any>): any {
         if (!Array.isArray(array))
             throw new Error("Invalid argument: The given value must be an array.");
@@ -335,7 +339,7 @@ namespace cmodo {
     function _tryCleanupHtmlCore(parent: Element) {
         if (!parent.childNodes || !parent.childNodes.length)
             return;
-       
+
         const toRemove = [];
         let node, name;
         let i: number;
@@ -363,5 +367,26 @@ namespace cmodo {
         for (i = 0; i < toRemove.length; i++) {
             parent.removeChild(toRemove[i]);
         }
+    }
+
+    export function getUrlParameter(name: string): string {
+        return parseUrlParameters()[name];
+    }
+
+    export function parseUrlParameters(): Object {
+        const result = {};
+
+        let query = window.location.search.substring(1);
+        if (!query)
+            return result;
+
+        let params = decodeURIComponent(query).split("&");
+
+        for (var i = 0; i < params.length; i++) {
+            let nameValuePair = params[i].split("=");
+            result[nameValuePair[0]] = nameValuePair[1];
+        }
+
+        return result;
     }
 }

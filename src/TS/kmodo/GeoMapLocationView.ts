@@ -1,4 +1,4 @@
-﻿namespace kmodo {
+﻿namespace kmodo {    
 
     export class GeoMapLocationView extends GeoMapViewBase {
         constructor(options: GeoMapViewOptions) {
@@ -8,23 +8,32 @@
 
             this.scope = kendo.observable({
                 sizeMode: "standard",
-                refresh: (e) => {
+                refresh: e => {
                     this.refreshCore();
                 },
-                undo: (e) => {
+                undo: e => {
                     this.undoOperation();
                 },
+                isPlacingTextBox: false,
+                addTextBox: e => {
+                    kmodo.setScopeCommandActive(e, this.getModel(), "isPlacingTextBox", true);
+                    this.addEditableTextBox(() => {
+                        kmodo.setScopeCommandActive(e, this.getModel(), "isPlacingTextBox", false);
+                    });
+                },
                 isFreehandDrawingEnabled: false,
-                toggleFreehandDrawing: (e) => {
+                toggleFreehandDrawing: e => {
                     this.onFreehandDrawingEnabledChanged(kmodo.toggleScopeOption(e, this.getModel(), "isFreehandDrawingEnabled"));
                 }
             });
 
-            this.getModel().bind("change", (e) => {
+            this.getModel().bind("change", e => {
                 if (e.field === "sizeMode") {
                     this.setMapSizeMode(this.getModel().get("sizeMode"));
                 }
             });
+
+            // GeoMapLocationView.initCommuneList();
         }
 
         private onFreehandDrawingEnabledChanged(enabled: boolean): void {
@@ -122,9 +131,9 @@
         }
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             this.$view = $("#geo-map-view-" + this._options.id);
 
@@ -134,5 +143,7 @@
 
             this._initMap();
         }
+
+
     }
 }

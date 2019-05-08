@@ -43,16 +43,16 @@
         // override
         protected extendDataSourceOptions(options) {
             // Attach event handlers.
-            options.change = this._eve(this.onDataSourceChanged);
-            options.error = this._eve(this.onDataSourceError);
-            options.requestStart = this._eve(this.onDataSourceRequestStart);
-            options.requestEnd = this._eve(this.onDataSourceRequestEnd);
+            options.change = e => this.onDataSourceChanged(e);
+            options.error = e => this.onDataSourceError(e);
+            options.requestStart = e => this.onDataSourceRequestStart(e);
+            options.requestEnd = e => this.onDataSourceRequestEnd(e);
         }
 
         private onDataSourceChanged(e) {
             const item = this.dataSource.data()[0] || null;
 
-            this.setCurrentItem(item);
+            this.setCurrent(item);
 
             for (const ed of this._renderers) {
 
@@ -76,7 +76,7 @@
             // Init edit button.
             const $editBtn = this.$toolbar.find(".edit-command");
             if (this.auth.canModify && this._options.editor) {
-                $editBtn.on("click", (e) => {
+                $editBtn.on("click", e => {
                     this._openEditor();
                 });
                 $editBtn.show();
@@ -94,7 +94,7 @@
             if (!this._options.editor || !this._options.editor.url)
                 return;
 
-            const item = this.getCurrentItem();
+            const item = this.getCurrent();
             if (item === null)
                 return;
 
@@ -133,8 +133,8 @@
 
         // override
         createView() {
-            if (this._isComponentInitialized) return
-            this._isComponentInitialized = true;
+            if (this._isViewInitialized) return
+            this._isViewInitialized = true;
 
             this.$view = $("#details-view-" + this._options.id);
 
@@ -145,7 +145,7 @@
             // Toolbar commands.
             this.$toolbar = this.$view.find(".details-view-toolbar");
             // Refresh command.
-            this.$toolbar.find(".refresh-command").on("click", (e) => {
+            this.$toolbar.find(".refresh-command").on("click", e => {
                 kmodo.progress(true, this.$view);
                 this.refresh()
                     .finally(() => {
@@ -153,7 +153,7 @@
                     });
             });
             // Custom commands.
-            this.$toolbar.find(".custom-command").on("click", (e) => {
+            this.$toolbar.find(".custom-command").on("click", e => {
                 const commandName = $(e.currentTarget).attr("data-command-name");
                 this._executeCustomCommand(commandName);
             });

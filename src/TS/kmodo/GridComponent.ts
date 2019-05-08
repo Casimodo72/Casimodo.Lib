@@ -1,10 +1,6 @@
 ﻿namespace kmodo {
     // kendo.ui.Grid:    https://docs.telerik.com/kendo-ui/api/javascript/ui/grid
-    // kendo.DataSource: https://docs.telerik.com/kendo-ui/api/javascript/data/datasource
-
-    const KEY_FILTER_ID = "5883120a-b1a6-4ac8-81a2-1d23028daebe";
-    const COMPANY_FILTER_ID = "b984dd7b-5d7a-48bf-b7f1-db26522c63df";
-    const TAGS_FILTER_ID = "2bd9e0d8-7b2d-4c1e-90c0-4d7eac6d01a4";
+    // kendo.DataSource: https://docs.telerik.com/kendo-ui/api/javascript/data/datasource      
 
     // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -26,19 +22,18 @@
 
     export interface GridOptions extends DataSourceViewOptions {
         title?: string;
-
         selectionMode?: string;
         hasRowContextMenu?: boolean;
         isRowAlwaysExpanded?: boolean;
         isDetailsEnabled?: boolean;
         tagsEditorId?: string;
-        filters?: ViewComponentFilter[],
+        filters?: DataSourceFilterNode[],
         editor?: EditorInfo;
         isTaggable?: boolean;
         isTagsFilterEnabled?: boolean;
         $component?: JQuery;
         useRemoveCommand?: boolean;
-        baseFilters?: kendo.data.DataSourceFilterItem[];
+       
         bindRow?: boolean | Function;
         gridOptions?: (e: DataSourceViewEvent) => kendo.ui.GridOptions;
         companyId?: string;
@@ -55,6 +50,7 @@
         private _kendoGrid: kendo.ui.Grid;
         protected _options: GridOptions;
         private expandedKeys: string[];
+        private _filterCommands: CustomFilterCommandInfo[] = [];
         private _customCommands: CustomCommand[];
         private _customRowCommands: any[];
         private _state: InternalGridState;
@@ -111,8 +107,8 @@
         // override
         protected extendDataSourceOptions(options: kendo.data.DataSourceOptions) {
             // Attach event handlers.
-            options.error = this._eve(this.onDataSourceError);
-            options.requestEnd = this._eve(this.onDataSourceRequestEnd);
+            options.error = e => this.onDataSourceError(e);
+            options.requestEnd = e => this.onDataSourceRequestEnd(e);
         }
 
         private grid(): kendo.ui.Grid {
@@ -161,9 +157,9 @@
                 }
 
                 // Save current item. It will be restored after the refresh.
-                const item = this.getCurrentItem();
+                const item = this.getCurrent();
                 this._state.lastCurrentItemId = item ? item[this.keyName] : null;;
-                this.setCurrentItem(null);
+                this.setCurrent(null);
             }
 
             this.trigger('dataBinding', e);
@@ -223,8 +219,12 @@
             this.trigger('dataBound', e);
         }
 
-        private _trySetCurrentItemById(id) {
-            let item = this.getCurrentItem();
+        trySetCurrentById(id: string): boolean {
+            return this._trySetCurrentItemById(id);
+        }
+
+        private _trySetCurrentItemById(id: string): boolean {
+            let item = this.getCurrent();
             if (item && item[this.keyName] === id)
                 // This item is already the current item.
                 return true;
@@ -243,23 +243,23 @@
             return false;
         }
 
-        gridSelectByItem(item) {
+        gridSelectByItem(item: any): void {
             this._gridSelectByItem(item);
         }
 
-        _gridSelectByItem(item) {
+        _gridSelectByItem(item: any): void {
             this.grid().select(this._gridGetRowByItem(item));
         }
 
-        _gridGetRowByItem(item) {
+        _gridGetRowByItem(item: any): JQuery {
             return this.grid().tbody.find("tr[role=row][data-uid='" + item.uid + "']");
         }
 
-        _gridSelectByRow($row: JQuery) {
+        _gridSelectByRow($row: JQuery): void {
             this.grid().select($row);
         }
 
-        getItemByRow($row: JQuery) {
+        getItemByRow($row: JQuery): kendo.data.ObservableObject {
             return this.grid().dataItem($row);
         }
 
@@ -268,14 +268,14 @@
             Triggered when the grid's row(s) selection changed.
             @param {any} e - Event 
         */
-        private onComponentChanged(e) {
+        private onComponentChanged(e): void {
             if (this._isDebugLogEnabled)
                 console.debug("- changed");
 
             this.trigger('changed', e);
 
             if (this.selectionMode === "single")
-                this.setCurrentItem(this.grid().dataItem(this.grid().select()));
+                this.setCurrent(this.grid().dataItem(this.grid().select()));
         }
 
         /**
@@ -292,7 +292,7 @@
         /**
             Handler for kendo.ui.Grid's event "detailExpand".
         */
-        private onComponentDetailExpanding(e) {
+        private onComponentDetailExpanding(e): void {
             // KABU TODO: Animation doesn't work, although advertised by Telerik.
             // let detailRow = e.detailRow;
             // kendo.fx(detailRow).fadeIn().play();               
@@ -311,7 +311,7 @@
         /**
             Handler for kendo.ui.Grid's event "detailCollapse".
         */
-        private onComponentDetailCollapsing(e) {
+        private onComponentDetailCollapsing(e): void {
             if (!this._state.isRestoringExpandedRows) {
                 const id = this.grid().dataItem(e.masterRow)[this.keyName];
                 const idx = this.expandedKeys.indexOf(id);
@@ -483,11 +483,12 @@
            item using "cmodo.navigationArgs".
            This will process such navigational arguments, filter the data and modify the UI.
         */
-        processNavigation(): any {
-            if (!this._hasBaseFilter(KEY_FILTER_ID))
-                return this;
+        // override
+        processNavigation(): void {
+            if (!this._hasCoreFilterNode(KEY_FILTER_ID))
+                return;
 
-            this.one("dataBound", (e) => {
+            this.one("dataBound", e => {
                 // Select the single row.
                 this.grid().select(this.grid().items().first());
             });
@@ -503,7 +504,7 @@
             // Views can be called with a item GUID filter which loads only a single specific object.
             // This is used for navigation from other views to a specific object.
             // In order to remove that filter, a "Clear GUID filter" command is placed on the toolbar.      
-            $command.on("click", (e) => {
+            $command.on("click", e => {
                 // Hide the command button.
                 $(e.currentTarget).hide(100);
 
@@ -512,7 +513,7 @@
                     .show(100);
 
                 // Remove single entity filter and reload.
-                this._removeBaseFilter(KEY_FILTER_ID);
+                this._removeCoreFilterNode(KEY_FILTER_ID);
                 this.refresh();
             });
 
@@ -521,7 +522,7 @@
             $command.addClass("km-active-toggle-button")
                 .show();
 
-            return this;
+            return;
         }
 
         add(): boolean {
@@ -539,7 +540,7 @@
             if (!this._options.editor || !this._options.editor.url)
                 return false;
 
-            const item = this.getCurrentItem();
+            const item = this.getCurrent();
 
             if (mode === "create") {
                 if (!this.auth.canCreate)
@@ -641,14 +642,14 @@
                 delete options.detailTemplate;
 
             // Attach event handlers.
-            options.dataBinding = this._eve(this.onComponentDataBinding);
-            options.dataBound = this._eve(this.onComponentDataBound);
-            options.change = this._eve(this.onComponentChanged);
+            options.dataBinding = e => this.onComponentDataBinding(e);
+            options.dataBound = e => this.onComponentDataBound(e);
+            options.change = e => this.onComponentChanged(e);
 
             if (options.detailTemplate) {
-                options.detailInit = this._eve(this.onComponentDetailInit);
-                options.detailExpand = this._eve(this.onComponentDetailExpanding);
-                options.detailCollapse = this._eve(this.onComponentDetailCollapsing);
+                options.detailInit = e => this.onComponentDetailInit(e);
+                options.detailExpand = e => this.onComponentDetailExpanding(e);
+                options.detailCollapse = e => this.onComponentDetailCollapsing(e);
             }
 
             if (this._options.useRemoveCommand) {
@@ -728,31 +729,15 @@
                 this.grid().saveAsPDF();
         }
 
-        private _getAllConsumerFilters(): ViewComponentFilter[] {
-            let filters = this._options.filters || [];
-
-            // Add filters of args.
-            if (this.args &&
-                this.args.filters &&
-                this.args.filters !== this._options.filters) {
-
-                filters = filters.concat(this.args.filters);
-            }
-
-            return filters;
-        }
-
-        private _hasNonRemovableCompanyFilter(): boolean {
-            return null !== kmodo.findDataSourceFilter(this._getAllConsumerFilters(),
-                filter => {
-                    return filter.targetTypeId === COMPANY_TYPE_ID &&
-                        !filter.deactivatable;
-                });
+        private _hasPersistentCompanyFilter(): boolean {
+            return !!kmodo.findDataSourceFilter(
+                this._getEffectiveFilters(),
+                filter => filter._id === COMPANY_FILTER_ID && filter._persistent === true);
         }
 
         private _updateTagFilterSelector(): void {
             if (this._tagsFilterSelector) {
-                const companyFilter = this._findBaseFilter(COMPANY_FILTER_ID);
+                const companyFilter = this._findCoreFilterNode(COMPANY_FILTER_ID);
                 const companyId = companyFilter ? companyFilter.value : null;
                 const filters = buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
 
@@ -761,39 +746,26 @@
         }
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
-
-            // Add base filters from options.
-            if (this._options.baseFilters) {
-                const baseFilters = this._baseFilters;
-                const optionFilters = this._options.baseFilters;
-                for (const x of optionFilters) {
-                    if (Array.isArray(x))
-                        baseFilters.push(...x);
-                    else
-                        baseFilters.push(x);
-                }
-
-            }
-
-            // Evaluate navigation args
+            this._isViewInitialized = true;
+            
+            // Process navigation args
             const naviArgs = cmodo.navigationArgs.consume(this._options.id);
             if (naviArgs && naviArgs.itemId) {
-                this._setBaseFilter(KEY_FILTER_ID, { field: this.keyName, value: naviArgs.itemId });
+                this._setCoreFilterNode(KEY_FILTER_ID, { field: this.keyName, value: naviArgs.itemId });
             }
 
-            const isCompanyChangeable = !this._hasNonRemovableCompanyFilter();
+            const isCompanyChangeable = !this._hasPersistentCompanyFilter();
 
             if (this._options.isGlobalCompanyFilterEnabled &&
                 isCompanyChangeable &&
                 // Don't filter by global company if navigating to a specific entity.
-                !this._hasBaseFilter(KEY_FILTER_ID)) {
+                !this._hasCoreFilterNode(KEY_FILTER_ID)) {
 
                 const companyId = cmodo.getGlobalInitialCompanyId();
                 if (companyId)
-                    this._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
+                    this._setCoreFilterNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
             }
 
             let $component = this._options.$component || null;
@@ -806,7 +778,7 @@
 
             // Create the Kendo Grid.
             this._kendoGrid = $component.kendoGrid(kendoGridOptions).data('kendoGrid');
-            this.setDataSource(this._kendoGrid.dataSource);
+            this.dataSource = this._kendoGrid.dataSource;
 
             if (kendoGridOptions.selectable === "row") {
                 this.grid().tbody.on("mousedown", "tr[role=row]", e => {
@@ -848,7 +820,7 @@
 
             const $companyFilter = $toolbar.find(".km-grid-company-filter-selector");
             if (!this._options.isCompanyFilterEnabled || !isCompanyChangeable) {
-                // Remove company filter.
+                // Remove company filter UI.
                 // NOTE: isCompanyChangeable === false means
                 //   that the component was instructed to operate on a specific Company.
                 //   Do not allow changing that Company.
@@ -859,7 +831,7 @@
                 initialCompanyId =
                     (this._options.isGlobalCompanyFilterEnabled &&
                         // Don't filter by global company if navigating to a specific entity.
-                        !this._hasBaseFilter(KEY_FILTER_ID))
+                        !this._hasCoreFilterNode(KEY_FILTER_ID))
                         ? cmodo.getGlobalInitialCompanyId()
                         : null;
 
@@ -869,9 +841,9 @@
                         companyId: initialCompanyId,
                         changed: companyId => {
                             if (companyId)
-                                this._setBaseFilter(COMPANY_FILTER_ID, { field: "CompanyId", value: companyId });
+                                this._setCoreFilterNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
                             else
-                                this._removeBaseFilter(COMPANY_FILTER_ID);
+                                this._removeCoreFilterNode(COMPANY_FILTER_ID);
 
                             this.refresh();
 
@@ -896,11 +868,11 @@
                         filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, initialCompanyId),
                         changed: tagIds => {
                             if (tagIds && tagIds.length) {
-                                const expression = tagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
-                                this._setBaseFilter(TAGS_FILTER_ID, { expression: expression });
+                                const expression = tagIds.map(x => "ToTags/any(totag: totag/TagId eq " + x + ")").join(" and ");
+                                this._setCoreFilterNode(TAGS_FILTER_ID, { customExpression: expression });
                             }
                             else
-                                this._removeBaseFilter(TAGS_FILTER_ID);
+                                this._removeCoreFilterNode(TAGS_FILTER_ID);
 
                             this.refresh();
                         }
@@ -970,7 +942,7 @@
                                 kmodo.openById(this._options.tagsEditorId,
                                     {
                                         itemId: dataItem[this.keyName],
-                                        filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, dataItem["CompanyId"]),
+                                        filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, dataItem[COMPANY_REF_FIELD]),
                                         // TODO: LOCALIZE
                                         title: "Tags bearbeiten",
 
@@ -1057,7 +1029,7 @@
             const $dialogCommands = $('#dialog-commands-' + this._options.id);
             // Init OK/Cancel buttons.
             $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", e => {
-                if (!this.getCurrentItem())
+                if (!this.getCurrent())
                     return false;
 
                 this.args.buildResult();
@@ -1078,36 +1050,7 @@
             });
 
             const $toolbarLeft = this._$toolbar.find(".km-grid-tools").first();
-
-            const filterCommands = this.args.filterCommands;
-            if (filterCommands && filterCommands.length) {
-
-                // Add deactivatable filter buttons to the grid's toolbar.
-                // Those represent initially active filters as defined by the caller.
-                // The filter/button will be removed by pressing the button.
-
-                for (let i = 0; i < filterCommands.length; i++) {
-                    const cmd = filterCommands[i];
-
-                    if (cmd.deactivatable) {
-                        const $btn = $("<button class='k-button km-active-toggle-button'>" + cmd.title + "</button>");
-                        $btn.on("click", e => {
-
-                            // Remove that filter by field name.
-                            // KABU TODO: This means that we can't remove custom/complex filter expressions.
-                            this.removeFilterByFieldName(cmd.field);
-
-                            // Hide the command button.
-                            $(e.currentTarget).hide(100);
-
-                            // Refresh since filter has changed.
-                            this.refresh();
-                        });
-                        // Append button to grid's toolbar.
-                        $toolbarLeft.append($btn);
-                    }
-                }
-            }
+            this._initFilterCommands($toolbarLeft);
 
             // On row double-click: set dialog result and close the window.
             this.grid().tbody.on("dblclick", "tr[role=row]", e => {
@@ -1146,7 +1089,7 @@
                     if (typeof fieldName === "undefined")
                         return;
 
-                    // KABU TODO: Should we remove those cells instead of just hiding them?
+                    // TODO: Should we remove those cells instead of just hiding them?
                     //   Dunno, maybe the kendo.ui.Grid uses this UI in order to construct its
                     //   filter expression. Experiment with it.
 
@@ -1161,6 +1104,96 @@
                         .css("visibility", "hidden");
                 }
             }
+        }
+
+        private _initFilterCommands($toolbarLeft: JQuery): void {
+            // Add deactivatable filter buttons to the grid's toolbar.
+
+            const commands: CustomFilterCommand[] = this.args.filterCommands;
+            if (!commands)
+                return;
+
+            // Ensure group prop.
+            for (const cmd of commands) {
+                if (!cmd.group)
+                    cmd.group = null;
+            }
+
+            // Group by group.
+            const commandGroups = Enumerable.from(commands).groupBy(x => x.group).toArray();
+
+            for (const group of commandGroups) {
+                const groupName = group.key;
+                const groupCommands = group.getSource();
+
+                // TODO: Multiple commands in group: Use radio buttons instead.
+
+                let index = -1;
+                for (const cmd of groupCommands) {
+                    index++;
+
+                    // If multiple filter commands in group: Add only the first.
+                    const isInitiallyActive = !groupName || index === 0;
+
+                    if (isInitiallyActive) {
+                        this._addCommandFilter(cmd);
+                    }
+
+                    // Init filter command UI.
+                    const $btn = this._createFilterCommandUI(cmd, isInitiallyActive);
+
+                    const icmd: CustomFilterCommandInfo = {
+                        command: cmd,
+                        $btn: $btn
+                    };
+
+                    this._filterCommands.push(icmd);
+
+                    $btn.on("click", e => {
+                        const newActive = !this._hasCoreFilterNode(cmd.filter._id);
+
+                        this._setFilterCommandActive(icmd, newActive);
+
+                        // Deactivate other commands in same group.
+                        if (newActive && cmd.group) {
+                            for (const otherICmd of this._filterCommands
+                                .filter(x => x !== icmd && x.command.group === cmd.group)) {
+
+                                this._setFilterCommandActive(otherICmd, false);
+                            }
+                        }
+
+                        this.refresh();
+                    });
+
+                    // Append button to toolbar.
+                    $toolbarLeft.append($btn);
+                }
+            }
+        }
+
+        private _setFilterCommandActive(icmd: CustomFilterCommandInfo, active: boolean): void {
+            if (active) {
+                this._addCommandFilter(icmd.command);
+                // Activate command button.
+                kmodo.toggleButton(icmd.$btn, active);
+            } else {
+                // Deactivate filter & button.
+                this._removeCommandFilter(icmd.command);
+
+                if (icmd.command.hideOnDeactivated) {
+                    // Hide the command button.
+                    icmd.$btn.hide(100);
+                } else {
+                    // Deactivate command button.
+                    kmodo.toggleButton(icmd.$btn, false);
+                }
+            }
+        }
+
+        private _createFilterCommandUI(cmd: CustomFilterCommand, active: boolean): JQuery {
+            const activeClass = active ? " km-active-toggle-button" : "";
+            return $(`<button class='k-button${activeClass}'>${cmd.title}</button>`);
         }
 
         _initDialogWindowTitle() {

@@ -22,6 +22,7 @@
         group?: string;
         role?: string;
         computedFields?: any[];
+        coreFilters?: DataSourceFilterNode[];
         isGlobalCompanyFilterEnabled?: boolean;
         isCompanyFilterEnabled?: boolean;
         extra?: any; // Extra options.
@@ -35,16 +36,21 @@
 
     export interface CustomCommand {
         name: string;
+        group?: string;
         execute: Function;
     }
 
     export interface CustomFilterCommand extends CustomCommand {
-        field: string;
-        title: string; // KABU TODO: Rename to "displayName".
+        title: string;
         deactivatable?: boolean;
+        hideOnDeactivated?: boolean;
+        filter: DataSourceFilterNode;
     }
 
-    export type ViewComponentFilter = kendo.data.DataSourceFilters | kendo.data.DataSourceFilterItem;
+    export interface CustomFilterCommandInfo {
+        command: CustomFilterCommand;
+        $btn: JQuery;
+    }
 
     export interface ViewComponentArgs {
         mode?: string; // Used for edit mode.
@@ -54,7 +60,7 @@
         value?: any;
         item?: any;
         itemId?: string;
-        filters?: ViewComponentFilter[];
+        filters?: DataSourceFilterNode[];
         filterCommands?: CustomFilterCommand[];
         isCancelled?: boolean;
         isOk?: boolean;
@@ -73,16 +79,23 @@
         refresh(): Promise<void>;
         clear(): void;
         getModel(): any;
-        setFilter(filter: kendo.data.DataSourceFilter | kendo.data.DataSourceFilter[]): void;
+        setFilter(filter: DataSourceFilterOneOrMany): void;
     }
+
+    type ComponentFilterSlot = "core" | "internal" | "default";
 
     export abstract class ViewComponent extends cmodo.ViewComponent implements IViewComponent {
         protected _options: ViewComponentOptions;
         $view: JQuery = null;
         scope: any = null;
-        protected filters: kendo.data.DataSourceFilter[] = [];
+        // Core filters are provided via options.
+        private readonly _coreFilters: DataSourceFilterNode[] = [];
+        // Internal filters are filters handled by the component itself.
+        protected readonly _internalFilters: DataSourceFilterNode[] = [];
+        // Filters are externally provided filters.
+        private readonly _filters: DataSourceFilterNode[] = [];
         protected args: ViewComponentArgs = null;
-        protected _isComponentInitialized = false;
+        protected _isViewInitialized = false;
         protected _isDebugLogEnabled = false;
 
         constructor(options: ViewComponentOptions) {
@@ -94,20 +107,18 @@
                     this._options[prop] = this._options.extra[prop];
             }
 
+            // Set core filters.
+            if (this._options.coreFilters) {
+                this._coreFilters.push(...this._options.coreFilters);
+            }
+
             this.scope = kendo.observable({ item: null });
-            this.scope.bind("change", (e) => this._onScopeChanged(e));
+            this.scope.bind("change", e => this._onScopeChanged(e));
         }
 
         refresh(): Promise<void> {
+            this._ensureViewInitialized();
             return super.refresh();
-        }
-
-        setFilter(filter: kendo.data.DataSourceFilter | kendo.data.DataSourceFilter[]): void {
-            this.filters = filter
-                ? (Array.isArray(filter)
-                    ? filter
-                    : [filter])
-                : [];
         }
 
         getModel(): ViewComponentModel {
@@ -116,22 +127,20 @@
 
         // override
         clear(): void {
-            this.filters = [];
+            cmodo.clearArray(this._filters);
             super.clear();
         }
 
-        public setArgs(args) {
+        setArgs(args: ViewComponentArgs): void {
             this.args = args || null;
 
             if (!args)
                 return;
 
-            this.onArgValues(args.values);
-
-            // KABU TODO: Move to filterable data component view model?
-            if (args.filters && typeof this.setFilter === "function") {
-                this.setFilter(args.filters);
-            }
+            // TODO: REMOVE:
+            //if (args.filters) {
+            //    this.setFilter(args.filters);
+            //}
 
             // Dialog result builder function.
             if (this._options.isDialog) {
@@ -148,8 +157,15 @@
             this.onArgs();
         }
 
-        private onArgValues(values: any) {
-            // NOP
+        protected _ensureViewInitialized(): void {
+            if (this._isViewInitialized)
+                return;
+
+            this.createView();
+            // Actually ensureInitialized() shouldn't be needed to be called.
+            //   If the view was not initialized then something went wrong.
+            if (this._isViewInitialized)
+                alert("Accessing component before its view was initialized.");
         }
 
         private onArgs() {
@@ -160,10 +176,94 @@
             this.trigger("scopeChanged", e);
         }
 
-        // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Filters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        protected _eve(handler: any) {
-            return $.proxy(handler, this);
+        setFilter(filter: DataSourceFilterOneOrMany): void {
+            this._setFilterCore(filter, "default");
+        }
+
+        protected _getFilterSlot(name: ComponentFilterSlot): DataSourceFilterNode[] {
+            if (name === "core")
+                return this._coreFilters;
+            else if (name === "internal")
+                return this._internalFilters;
+            else return this._filters;
+        }
+
+        protected _getEffectiveFilters(): DataSourceFilterNode[] {
+            const filters: DataSourceFilterNode[] = [];
+            filters.push(...this._coreFilters);
+            filters.push(...this._internalFilters);
+            filters.push(...this._filters);
+            if (this.args && this.args.filters) {
+                filters.push(...this.args.filters);
+            }
+
+            return filters;
+        }
+
+        protected _setFilterCore(filter: DataSourceFilterOneOrMany, slot: ComponentFilterSlot): void {
+            this._fixFilter(filter);
+
+            const filters = filter
+                ? (Array.isArray(filter)
+                    ? filter
+                    : [filter])
+                : [];
+
+            let filterSlot = this._getFilterSlot(slot);
+            cmodo.clearArray(filterSlot);
+            filterSlot.push(...filters);
+        }
+        
+        protected _clearFilterCore(slot: ComponentFilterSlot): void {
+            cmodo.clearArray(this._getFilterSlot(slot));
+        }
+
+        protected _setCoreFilterNode(id: string, filter: DataSourceFilterNode): void {
+            filter._id = id;
+            this._removeCoreFilterNode(id);
+            this._fixFilterNode(filter);
+            this._coreFilters.push(filter);
+        }
+
+        protected _removeCoreFilterNode(id: string): void {
+            const idx = this._coreFilters.findIndex(x => x._id === id);
+            if (idx !== -1)
+                this._coreFilters.splice(idx, 1);
+        }
+
+        protected _hasCoreFilterNode(id: string): boolean {
+            return !!this._findCoreFilterNode(id);
+        }
+
+        protected _findCoreFilterNode(id: string): DataSourceFilterNode {
+            return this._coreFilters.find(x => x._id === id);
+        }
+
+        protected _fixFilter(filter: DataSourceFilterOneOrMany): void {
+            if (Array.isArray(filter)) {
+                // TODO: traverse deep
+                for (const f of filter)
+                    this._fixFilterNode(f);
+            } else {
+                this._fixFilterNode(filter);
+            }
+        }
+
+        protected _fixFilterNode(filter: DataSourceFilterNode): DataSourceFilterNode {
+            if (filter.logic) {
+                if (filter.filters) {
+                    for (const f of filter.filters)
+                        this._fixFilterNode(f);
+                }
+            } else if (filter.field) {
+                // Set implicit "eq" operator.
+                if (!filter.operator && !filter.customExpression)
+                    filter.operator = "eq";
+            }
+
+            return filter;
         }
     }
 }

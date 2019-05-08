@@ -58,17 +58,17 @@
         deselectAllValues: Function;
     }
 
-    interface ViewArgsParams {
+    interface TextSnippetsEditorArgsParams {
         typeId: string;
     }
 
-    interface ViewArgs extends kmodo.ViewComponentArgs {
-        params: ViewArgsParams;
+    interface TextSnippetsEditorArgs extends kmodo.ViewComponentArgs {
+        params: TextSnippetsEditorArgsParams;
     }
 
     export class TextSnippetsEditor extends kmodo.ViewComponent {
         private _dialogWindow: kendo.ui.Window;
-        protected args: ViewArgs;
+        protected args: TextSnippetsEditorArgs;
 
         constructor(options: kmodo.ViewComponentOptions) {
             super(options);
@@ -131,7 +131,7 @@
                         x.set("selected", false);
                     });
                 },
-                onUseSnippet: (e) => {
+                onUseSnippet: e => {
                     this.insertSnippetValue(e.data.value);
                 },
                 onDeleteSnippet: function (e) {
@@ -144,7 +144,7 @@
             return super.getModel() as ViewModel;
         }
 
-        setArgs(args: ViewArgs): void {
+        setArgs(args: TextSnippetsEditorArgs): void {
 
             this.args = args;
 
@@ -346,9 +346,9 @@
         // Create component ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             this.$view = $("#view-" + this._options.id);
 

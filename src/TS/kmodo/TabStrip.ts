@@ -27,24 +27,26 @@ namespace kmodo {
         canShow?: boolean;
         vm?: TabPageContentComponent | (() => TabPageContentComponent);
         name?: string;
-        master?: boolean;
-        filters?: (e: TabPageEvent) => kendo.data.DataSourceFilterItem[];
+        master?: boolean;       
         init?: (e: TabPageEvent) => void;
-        enter?: (e: TabPageEvent) => void;
-        clear?: (e: TabPageEvent) => void;
+        filtering?: (e: TabPageEvent) => void;
+        filters?: (e: TabPageEvent) => DataSourceFilterNode[];
+        enter?: (e: TabPageEvent) => void;        
         leave?: (e: TabPageEvent) => void;
         leaveOrClear?: (e: TabPageEvent) => void;
+        clear?: (e: TabPageEvent) => void;
         isEnabled?: boolean;
         isMasterAffected?: boolean;
     }
 
-    export interface DetailTabPageOptions extends TabPageOptions {
-        filters?: (e: DetailTabPageEvent) => kendo.data.DataSourceFilterItem[];
+    export interface DetailTabPageOptions extends TabPageOptions {      
         init?: (e: DetailTabPageEvent) => void;
-        enter?: (e: DetailTabPageEvent) => void;
-        clear?: (e: DetailTabPageEvent) => void;
+        filtering?: (e: DetailTabPageEvent) => void;
+        filters?: (e: DetailTabPageEvent) => DataSourceFilterNode[];
+        enter?: (e: DetailTabPageEvent) => void;       
         leave?: (e: DetailTabPageEvent) => void;
         leaveOrClear?: (e: DetailTabPageEvent) => void;
+        clear?: (e: DetailTabPageEvent) => void;
     }
 
     export class TabPage extends cmodo.ComponentBase {
@@ -54,20 +56,19 @@ namespace kmodo {
         vm: TabPageContentComponent;
         name: string;
         master: boolean;
-        filters: any;
-        init: Function;
-        enter: Function;
-        clear: Function;
-        leave: Function;
-        leaveOrClear: Function;
+        init: (e: any) => void;
+        filtering: (e: any) => void;
+        filters: (e: any) => DataSourceFilterNode[];
+        enter: (e: any) => void;
+        clear: (e: any) => void;
+        leave: (e: any) => void;
+        leaveOrClear: (e: any) => void;
         isEnabled: boolean;
         isMasterAffected: boolean;
         _isInitPerformed: boolean;
         _isRefreshPending: boolean;
         _getVmOnDemand: Function;
         _canShow: boolean;
-        // KABU TODO: REMOVE becase the index will change anyway if tabs are removed/added/moved.
-        //index: number;
 
         constructor(options: TabPageOptions) {
             super();
@@ -82,12 +83,9 @@ namespace kmodo {
             else
                 this.vm = options.vm || null;
 
-            //this.enabled = typeof options.enabled !== "undefined" ? options.enabled : true;
-            //this.visible = typeof options.visible !== "undefined" ? options.visible : true;
             this._canShow = typeof options.canShow !== "undefined" ? !!options.canShow : true;
-            // KABU TODO: REMOVE becase the index will change anyway if tabs are removed/added/moved.
-            //this.index = options.index || null;
             this.master = !!options.master || false;
+            this.filtering = options.filtering || null;
             this.filters = options.filters || null;
             this.init = options.init || null;
             this.enter = options.enter || null;
@@ -170,7 +168,7 @@ namespace kmodo {
             if (options.hideAll)
                 this.hideAllTabs();
 
-            cmodo.authContext.one("read", (e) => this._onAuthContextRead(e));
+            cmodo.authContext.one("read", e => this._onAuthContextRead(e));
         }
 
         _bindMaster(tab: TabPage): void {
@@ -206,7 +204,7 @@ namespace kmodo {
 
         private _initComponent(options: TabStripOptions): void {
             this.component = options.$component.kendoTabStrip({
-                show: (e) => this.onTabActivated(e),
+                show: e => this.onTabActivated(e),
                 animation: getDefaultTabControlAnimation()
             }).data("kendoTabStrip");
 
@@ -323,7 +321,6 @@ namespace kmodo {
         }
 
         getTab(nameOrIndex: number | string): TabPage {
-
             if (typeof nameOrIndex === "string") {
                 for (let i = 0; i < this.tabs.length; i++) {
                     if (this.tabs[i].name === nameOrIndex)
@@ -360,8 +357,7 @@ namespace kmodo {
             this._onTabActivatedCore(name);
         }
 
-        private _onTabActivatedCore(name: string): boolean {
-
+        private async _onTabActivatedCore(name: string): Promise<boolean> {
             const tab = this.getTab(name);
             if (!tab)
                 return false;
@@ -369,20 +365,22 @@ namespace kmodo {
             if (!this._canEnterTab(tab))
                 return false;
 
-            // Enter tab.
+            // Enter tab page.
+
             const prevTab = this._currentTab;
             this._currentTab = tab;
 
+            // Init tag page once.
             if (!tab._isInitPerformed)
                 this._initTab(tab);
 
             const tabEvent = this._createTabEvent(tab);
 
-            if (tab.vm && typeof tab.filters === "function" && typeof tab.vm["applyFilter"] === "function") {
-                tab.vm["applyFilter"](tab.filters(tabEvent));
-            }
+            // Apply filters
+            await this._applyTabFilter(tab, tabEvent);
 
-            if (typeof tab.enter === "function")
+            // Trigger enter event
+            if (tab.enter)
                 tab.enter(tabEvent);
 
             this.trigger("currentTabChanged", tabEvent);
@@ -394,10 +392,10 @@ namespace kmodo {
                 if (this._canClearTab(prevTab) && prevTab.vm && prevTab.vm.clear)
                     prevTab.vm.clear();
 
-                if (typeof prevTab.leave === "function")
+                if (prevTab.leave)
                     prevTab.leave(this._createTabEvent(prevTab));
 
-                if (typeof prevTab.leaveOrClear === "function")
+                if (prevTab.leaveOrClear)
                     prevTab.leaveOrClear(this._createTabEvent(prevTab));
             }
 
@@ -410,13 +408,28 @@ namespace kmodo {
             return true;
         }
 
+        protected async _applyTabFilter(tab: TabPage, event: any): Promise<void> {
+            if (!tab.vm || (!tab.filters && !tab.filtering))
+                return;
+
+            if (tab.filtering) {
+                tab.filtering(event);
+            }
+
+            if (tab.filters) {
+                tab.vm.setFilter(tab.filters(event));
+            }
+           
+            await tab.vm.refresh();
+        }
+
         protected _initTab(tab: TabPage): void {
             if (tab._isInitPerformed)
                 return;
 
             tab._isInitPerformed = true;
 
-            if (typeof tab.init === "function")
+            if (tab.init)
                 tab.init(this._createTabEvent(tab));
         }
 
@@ -448,7 +461,7 @@ namespace kmodo {
 
         constructor(options: MasterDetailTabStripOptions) {
 
-            if (typeof options.hideAll === "undefined")
+            if (options.hideAll === true)
                 options.hideAll = true;
 
             super(options);
@@ -481,7 +494,7 @@ namespace kmodo {
             //   because after we add new item, no item is selected, but the current
             //   item still references the last selected item.
 
-            this.mvm.on("currentItemChanged", (e) => {
+            this.mvm.on("currentChanged", e => {
 
                 // On selected master item changed.
                 // Show/hide tabs if the master item is selected/not selected.
@@ -500,11 +513,11 @@ namespace kmodo {
                     if (tab.vm && tab.vm.clear)
                         tab.vm.clear();
 
-                    if (typeof tab.clear === "function")
+                    if (tab.clear)
                         tab.clear(this._createTabEvent(tab));
 
-                    if (typeof tab.leaveOrClear === "function")
-                        tab.leaveOrClear();
+                    if (tab.leaveOrClear)
+                        tab.leaveOrClear(this._createTabEvent(tab));
                 }
             });
         }
@@ -533,12 +546,12 @@ namespace kmodo {
                 // If the component affects the master then
                 // refresh the master component whenever some data
                 // is saved.
-                tab.vm.on("saved", (e) => {
+                tab.vm.on("saved", e => {
                     this.mtab._isRefreshPending = true;
                 });
             }
 
-            if (typeof tab.init === "function")
+            if (tab.init)
                 tab.init(this._createTabEvent(tab));
         }
 

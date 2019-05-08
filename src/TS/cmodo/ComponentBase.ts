@@ -33,9 +33,6 @@ namespace cmodo {
         trigger(eventName: string, e?: any): void {
             this._events.trigger(eventName, e);
         }
-
-        //    trigger(eventType: string, extraParameters?: any[] | Object) {
-        //    }
     }
 
     export abstract class ObservableObject extends ComponentBase {

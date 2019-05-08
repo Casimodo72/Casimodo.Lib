@@ -38,18 +38,17 @@ namespace cmodo {
             this.userRoles = data.UserRoles;
         }
 
-        hasUserRole(role: string) {
+        hasUserRole(role: string): boolean {
             return this.userRoles.indexOf(role) !== -1;
         }
 
-        part(name: string, group?: string) {
+        part(name: string, group?: string): AuthPart {
             group = group || null;
             return new AuthPart(this, this.items.find(x => x.Part === name && (group === "*" || x.Group === group)));
         }
     }
 
     export class AuthPart {
-
         public container: AuthActionManager;
         public part: AuthPartData;
 
@@ -58,7 +57,7 @@ namespace cmodo {
             this.part = part;
         }
 
-        can(action, vrole?: string) {
+        can(action: string, vrole?: string): boolean {
             if (!this.part)
                 return false;
 

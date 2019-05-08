@@ -1,20 +1,5 @@
 ﻿namespace kmodo {
 
-    export function progress(isbusy: boolean, $el?: JQuery) {
-        if (!$el || !$el.length)
-            $el = $(window.document.body);
-
-        kendo.ui.progress($el, isbusy);
-    }
-
-    export interface DataSourceFilterOptions {
-        _filterId?: string;
-        field?: string;
-        operator?: string;
-        value?: any;
-        expression?: string;
-    }
-
     export interface DataSourceViewEvent extends ViewComponentEvent {
         sender: DataSourceViewComponent;
         data?: any;
@@ -31,13 +16,12 @@
         dataSourceOptions?: (e: DataSourceViewEvent) => kendo.data.DataSourceOptions;
         transport?: (e: DataSourceViewEvent) => kendo.data.DataSourceTransport;
         isCustomSave?: boolean;
-
     }
 
     export abstract class DataSourceViewComponent extends ViewComponent {
         protected _options: DataSourceViewOptions;
-        dataSource: kendo.data.DataSource;
-        protected _baseFilters: ExtKendoDataSourceFilterItem[];
+        dataSource: kendo.data.DataSource = null;
+
         private _isAuthFetched = false;
         protected selectionMode: string;
 
@@ -45,28 +29,27 @@
             super(options);
 
             this.keyName = "Id";
-            this.dataSource = null;
-            this._baseFilters = [];
             this.auth.canView = false;
 
             this.on("clear", e => {
                 if (this.dataSource)
                     this.dataSource.data([]);
 
-                this.setCurrentItem(null);
+                this.setCurrent(null);
             });
 
             this.on("scopeChanged", e => {
                 if (e.field === "item")
-                    this.onCurrentItemChanged();
+                    this.onCurrentChanged();
             });
         }
 
-        getSelectionMode() {
+        getSelectionMode(): string {
             return this.selectionMode;
         }
 
         async refresh(): Promise<void> {
+            this._ensureViewInitialized();
             this._startRefresh();
             try {
                 await this._fetchAuth();
@@ -83,34 +66,16 @@
             return new kendo.data.ObservableArray([]);
         }
 
-        setFilter(filter: kendo.data.DataSourceFilter | kendo.data.DataSourceFilter[]): void {
-            super.setFilter(filter);
-            this._fixFilters(this.filters);
+        itemById(id: string): kendo.data.ObservableObject {
+            return this.dataSource.get(id);
         }
 
-        applyFilter(filter?: kendo.data.DataSourceFilter | kendo.data.DataSourceFilter[]): Promise<void> {
-            if (typeof filter !== "undefined")
-                this.setFilter(filter);
-
-            if (!this._isComponentInitialized) {
-                // NOTE: The view model might not have a component at all, 
-                // or the component does not have a data source itself.
-                this.createView();
-
-                if (this._isComponentInitialized)
-                    alert("Applying filters before component was created.");
-            }
-
-            return this.refresh();
+        itemsAsJSON(): any[] {
+            return this.items().map(x => (x as kendo.data.ObservableObject).toJSON());
         }
 
-        processNavigation() {
-            // NOP
-            return this;
-        }
-
-        protected setCurrentItem(value) {
-            if (this.getModel().get("item") === value)
+        protected setCurrent(value: any): void {
+            if (this.getCurrent() === value)
                 return;
 
             // NOTE: onCurrentItemChanged will be called
@@ -118,25 +83,22 @@
             this.getModel().set("item", value ? kendo.observable(value) : null);
         }
 
-        getCurrent(): any | null {
+        getCurrent(): any {
+            // TODO: Think about renaming "item" to "current".
             return this.getModel().get("item") || null;
         }
 
-        protected getCurrentItem(): any {
-            return this.getModel().get("item");
-        }
-
-        private onCurrentItemChanged() {
+        private onCurrentChanged(): void {
             if (this.selectionMode === "single") {
-                this.trigger("currentItemChanged", { sender: this, item: this.getCurrentItem() });
+                this.trigger("currentChanged", { sender: this, item: this.getCurrent() });
             }
         }
 
-        protected _startRefresh() {
+        protected _startRefresh(): void {
             kmodo.progress(true, this.$view);
         }
 
-        protected _endRefresh() {
+        protected _endRefresh(): void {
             kmodo.progress(false, this.$view);
         }
 
@@ -176,8 +138,8 @@
                 });
         }
 
-        protected _applyAuth() {
-            // NOP
+        protected _applyAuth(): void {
+            // NOP - stub
         }
 
         private _filterCore(): Promise<void> {
@@ -190,15 +152,7 @@
                     return;
                 }
 
-                const filters = [];
-
-                const baseFilters = this.getBaseFilters();
-                for (const x of baseFilters)
-                    filters.push(x);
-
-                const customFilters = this.filters;
-                for (const x of customFilters)
-                    filters.push(x);
+                const filters = this._getEffectiveFilters();
 
                 this.dataSource.one('change', e => {
                     resolve();
@@ -210,19 +164,27 @@
                     this.dataSource.filter(filters);
                 }
                 else {
+                    // No filter. Clear currently active filter on the data source.
+
+                    // TODO: REVISIT: Do we want to modify the data source's existing behavior
+                    //   w.r.t. filter events?
+                    //   See https://www.telerik.com/forums/any-filtering-event
+                    //   See https://stackoverflow.com/questions/20446071/i-want-to-display-the-applied-filter-criteria-on-the-kendo-ui-grid
+
                     if (this._options.isLocalData) {
                         // Clear active filter.
+                        // This will automatically trigger a read.
                         this.dataSource.filter([]);
                     }
                     else {
-                        // The VM has an empty filter. Clear any filter on the data source.
                         const activeFilter = this.dataSource.filter();
                         if (activeFilter && activeFilter.filters && activeFilter.filters.length) {
                             // Clear active filter.
+                            // This will automatically trigger a read.
                             this.dataSource.filter([]);
                         }
                         else {
-                            // The data source's filter is alreay empty. Just read.
+                            // The data source's filter is already empty. Just read.
                             this.dataSource.read();
                         }
                     }
@@ -254,25 +216,24 @@
 
             return this._options.transport({ sender: this });
         }
-       
+
         protected createDataSourceOptions(): kendo.data.DataSourceOptions {
             if (this._options.isLocalData) {
                 // Return local data data source options.
-                // TODO: IMPORTANT: We have to define local data transport.
+                // NOTE: We define a local data transport in this case.
                 //   See https://docs.telerik.com/kendo-ui/framework/datasource/crud#local-or-custom-transport-crud-operations
                 return {
                     schema: {
                         model: this.createDataModel()
                     },
                     transport: createLocalDataSourceTransport(this._options.localData || []),
-                    // data: this._options.localData || [],
                     pageSize: 20
                 }
             } else if (this._options.dataSourceOptions) {
-                // Try to use data source options factory.
+                // Use provided data source options factory.
                 return this._options.dataSourceOptions({ sender: this });
             } else {
-                // Return default options + data model and transport factories.
+                // Return default options using data model and transport factories.
                 return {
                     type: 'odata-v4',
                     schema: {
@@ -288,54 +249,35 @@
             }
         }
 
-        // TODO: REMOVE
-        /*
-        private _initDataSourceOptionsAsLocal(dsopts: kendo.data.DataSourceOptions): kendo.data.DataSourceOptions {
-            if (!this._options.isLocalData)
-                return dsopts;
- 
-            // Modify data source related options.
-            delete dsopts.type;
-            delete dsopts.transport;
-            delete dsopts.serverPaging;
-            delete dsopts.serverSorting;
-            delete dsopts.serverFiltering;
-            dsopts.data = this._options.localData || [];
- 
-            return dsopts;
-        }
-        */
-
         createDataSource(): kendo.data.DataSource {
             if (this.dataSource)
                 return this.dataSource;
 
-            const options = this.createDataSourceOptions();
+            const dataSourceOptions = this.createDataSourceOptions();
 
-            if (this.filters.length)
-                options.filter = { filters: this.filters };
+            dataSourceOptions.filter = { filters: this._getEffectiveFilters() };
 
             // Extend the data model with custom computed fields.
             if (this._options.computedFields) {
                 for (const prop in this._options.computedFields)
-                    options.schema.model[prop] = this._options.computedFields[prop];
+                    dataSourceOptions.schema.model[prop] = this._options.computedFields[prop];
             }
 
-            this.extendDataSourceOptions(options);
+            this.extendDataSourceOptions(dataSourceOptions);
 
-            this.dataSource = new kendo.data.DataSource(options);
+            this.dataSource = new kendo.data.DataSource(dataSourceOptions);
 
             return this.dataSource;
         }
 
-        protected extendDataSourceOptions(options: kendo.data.DataSourceOptions) {
+        protected extendDataSourceOptions(options: kendo.data.DataSourceOptions): void {
             // NOP
         }
 
         /**
             Called by the kendo.DataSource on event "requestStart".
         */
-        protected onDataSourceRequestStart(e: kendo.data.DataSourceRequestStartEvent) {
+        protected onDataSourceRequestStart(e: kendo.data.DataSourceRequestStartEvent): void {
             if (this._isDebugLogEnabled)
                 console.debug("- DS.requestStart: type: '%s'", e.type);
         }
@@ -343,12 +285,10 @@
         /**
             Called by the kendo.DataSource on event "requestEnd".
         */
-        protected onDataSourceRequestEnd(e: kendo.data.DataSourceRequestEndEvent) {
-
+        protected onDataSourceRequestEnd(e: kendo.data.DataSourceRequestEndEvent): void {
             if (typeof e.type === "undefined") {
                 // This happens when there was an error.
-            }
-            else if (e.type === "read") {
+            } else if (e.type === "read") {
                 if (this._options.isLocalData) {
                     // NOTE: In case of local data the e.response will be the data array.
                     // NOP
@@ -386,11 +326,15 @@
             const message = cmodo.getODataErrorMessageFromJQueryXHR(e.xhr);
             cmodo.showError(message);
 
+            // Try finding local validaton summary.
             let $errorBox = this.$view.find(".km-form-validation-summary").first();
-            if (!$errorBox.length)
+            if (!$errorBox.length) {
+                // Try finding ancestor validaton summary.
                 $errorBox = this.$view.closest(".km-form-validation-summary");
+            }
             if ($errorBox.length) {
                 $errorBox.empty();
+                // NOTE: we are using kendo's template here because the message could be HTML.
                 const template = kendo.template("<li>#=message #</li>");
                 $errorBox.append(template({
                     message: message
@@ -401,71 +345,14 @@
             return message;
         }
 
-        public setDataSource(value: kendo.data.DataSource) {
-            this.dataSource = value;
+        protected _addCommandFilter(cmd: CustomFilterCommand): void {
+            // NOTE: command filters are treated as external filters.
+            this._setCoreFilterNode(cmd.filter._id, cmd.filter);
         }
 
-        protected initBaseFilters() {
-            // NOP
-        }
-
-        private getBaseFilters(): ExtKendoDataSourceFilterItem[] {
-            return this._baseFilters;
-        }
-
-        protected _setBaseFilter(id: string, data: DataSourceFilterOptions): void {
-            const filters = this.getBaseFilters();
-
-            let filter = filters.find(x => x._filterId === id);
-            if (!filter) {
-                filter = {
-                    _filterId: id,
-                    operator: "eq"
-                };
-                filters.push(filter);
-            }
-
-            if (typeof data.field !== "undefined")
-                filter.field = data.field;
-            if (typeof data.value !== "undefined")
-                filter.value = data.value;
-            if (typeof data.expression !== "undefined")
-                filter.customExpression = data.expression;
-        }
-
-        protected _removeBaseFilter(id: string): void {
-            const filters = this.getBaseFilters();
-            const idx = filters.findIndex(x => x._filterId === id);
-            if (idx !== -1)
-                filters.splice(idx, 1);
-        }
-
-        protected _hasBaseFilter(id: string): boolean {
-            return -1 !== this.getBaseFilters().findIndex(x => x._filterId === id);
-        }
-
-        protected _findBaseFilter(id: string): ExtKendoDataSourceFilterItem {
-            return this.getBaseFilters().find(x => x._filterId === id);
-        }
-
-        // NOTE: Operates only on the first level of filters.
-        protected removeFilterByFieldName(fieldName: string): void {
-            for (let i = 0; i < this.filters.length; i++) {
-                const item = this.filters[i];
-                if ((item as any).field === fieldName) {
-                    this.filters.splice(i, 1);
-
-                    return;
-                }
-            }
-        }
-
-        private _fixFilters(filters: Array<any>) {
-            for (const item of filters) {
-                // Set implicit "eq" operator.
-                if (typeof item.operator === "undefined" || item.operator === null)
-                    item.operator = "eq";
-            }
+        protected _removeCommandFilter(cmd: CustomFilterCommand): void {
+            // NOTE: command filters are treated as external filters.
+            this._removeCoreFilterNode(cmd.filter._id);
         }
     }
 }

@@ -20,7 +20,7 @@
         title: string;
         label?: string;
         content?: string;
-        doubleClicked?: Function;
+        doubleClicked?: (marker: google.maps.Marker, info: any) => void;
         zIndex?: number;
         customData?: any
     }
@@ -52,12 +52,13 @@
         _contextPlaceInfo: ContextPlaceInfo;
         _contextPlaceMarker: google.maps.Marker;
         _mapListeners: GeoMapSurfaceListeners;
-        _drawingOverlays: google.maps.MVCObject[];
-        _locationMarkers: google.maps.Marker[];
-        _selectionCircles: google.maps.Circle[];
+        _drawingOverlays: google.maps.MVCObject[] = [];
+        _locationMarkers: google.maps.Marker[] = [];
+        _selectionCircles: google.maps.Circle[] = [];
+        _textBoxes: google.maps.OverlayView[] = [];
         _infoBox: any;
         _isMapInitialized: boolean;
-        _isComponentInitialized: boolean;
+        _isViewInitialized: boolean;
 
         constructor(options: GeoMapViewOptions) {
             super(options);
@@ -83,14 +84,11 @@
                 mouseUp: null,
                 mouseDown: null
             };
-            this._drawingOverlays = [];
 
-            this._locationMarkers = [];
-            this._selectionCircles = [];
             this._infoBox = null;
             this._isMapInitialized = false;
 
-            this._isComponentInitialized = false;
+            this._isViewInitialized = false;
             this.getModel().set("item", new kmodo.GeoPlaceInfo());
         }
 
@@ -277,7 +275,7 @@
             this._trackLocationMarker(marker);
 
             if (options.content) {
-                google.maps.event.addListener(marker, 'click', (e) => {
+                google.maps.event.addListener(marker, 'click', e => {
                     this._infoBox.close();
                     // const content = "<div style='font-family:Roboto,Arial;color:rgb(51, 51, 51)'>" + options.content + "</div>";
                     const content = options.content;
@@ -290,7 +288,7 @@
             }
 
             if (options.doubleClicked) {
-                google.maps.event.addListener(marker, 'dblclick', (e) => {
+                google.maps.event.addListener(marker, 'dblclick', e => {
                     options.doubleClicked(marker, options);
                 });
             }
@@ -353,6 +351,7 @@
             this.clearSelectionCircles();
             this.clearLocationMarkers();
             this.clearDrawingOverlays();
+            this.clearTextBoxes();
         }
 
         clear(): void {
@@ -367,6 +366,11 @@
 
         clearSelectionCircles(): void {
             for (let x of this._selectionCircles)
+                x.setMap(null);
+        }
+
+        clearTextBoxes(): void {
+            for (let x of this._textBoxes)
                 x.setMap(null);
         }
 
@@ -580,7 +584,7 @@
             this.map.setZoom(value);
         }
 
-        _initMap(): void {
+        protected _initMap(): void {
             if (this._isMapInitialized)
                 return;
 
@@ -595,6 +599,9 @@
 
             // Init MapLabel lib. It has no TS type declarations.
             (window as any).InitMapLabelLib();
+
+            // Init custom overlays.
+            GoogleMapCustomOverlayFactory.init();
 
             const hamburg = new google.maps.LatLng(53.550370, 9.994161);
 
@@ -645,7 +652,7 @@
                     }
                 });
 
-                google.maps.event.addListener(this.drawingManager, 'overlaycomplete', (e) => {
+                google.maps.event.addListener(this.drawingManager, 'overlaycomplete', e => {
                     this._drawingOverlays.push(e.overlay);
                 });
             }
@@ -669,16 +676,16 @@
                 .then(() => this._initMap());
         }
 
-        _loadMap(): Promise<void> {
+        protected _loadMap(): Promise<void> {
             return new Promise((resolve, reject) => {
-                kmodo.googleMapInitializer.one("scriptReady", (e) => {
+                kmodo.googleMapInitializer.one("scriptReady", e => {
                     resolve();
                 });
                 kmodo.googleMapInitializer.init();
             });
         }
 
-        // Undo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Undo drawing ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         undoOperation(): void {
             const overlay = this._drawingOverlays.pop();
@@ -691,43 +698,26 @@
         // Free hand drawing ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         protected _startMapFreehandDrawingMode(): void {
-            this.map.setOptions({
-                draggable: false,
-                zoomControl: false,
-                streetViewControl: false,
-                scrollwheel: false,
-                disableDoubleClickZoom: false,
-                draggableCursor: "crosshair"
-            });
+            this._disableMapFunctions("crosshair");
 
             // Hide drawing manager control.
-            //this.drawingManager.setDrawingMode(null);
             this.drawingManager.setOptions({
                 drawingMode: null,
                 drawingControl: false
             });
 
-            this._mapListeners.mouseDown = google.maps.event.addDomListener(this.map.getDiv(), 'mousedown', (e) => {
-                this._drawFreeHandUntilMouseUp();
-            });
+            this._mapListeners.mouseDown =
+                google.maps.event.addDomListener(this.map.getDiv(), 'mousedown', e => {
+                    this._drawFreeHandUntilMouseUp();
+                });
         }
 
         protected _endMapFreehandDrawingMode(): void {
-
             const mouseDown = this._mapListeners.mouseDown;
             this._mapListeners.mouseDown = null;
             google.maps.event.removeListener(mouseDown);
 
-            // TODO: REMOVE: google.maps.event.clearListeners(this.map.getDiv(), 'mousedown');
-
-            this.map.setOptions({
-                draggable: true,
-                zoomControl: true,
-                streetViewControl: true,
-                scrollwheel: true,
-                disableDoubleClickZoom: true,
-                draggableCursor: null
-            });
+            this._restoreMapFunctions();
 
             // Show drawing manager control.
             this.drawingManager.setOptions({
@@ -748,28 +738,26 @@
                 });
 
             // Mouse move: draw.
-            const moveEventListener = google.maps.event.addListener(this.map, 'mousemove', (e) => {
+            const moveEventListener = google.maps.event.addListener(this.map, 'mousemove', e => {
                 freehandLine.getPath().push(e.latLng);
             });
 
             // Mouse up: complete drawing.
-            google.maps.event.addListenerOnce(this.map, 'mouseup', (e) => {
+            google.maps.event.addListenerOnce(this.map, 'mouseup', e => {
                 google.maps.event.removeListener(moveEventListener);
-                // TODO: REMOVE: google.maps.event.clearListeners(this.map.getDiv(), 'mousedown');
 
                 const path = freehandLine.getPath();
                 freehandLine.setMap(null);
 
                 // Simplify path.
                 const pathArray = path.getArray();
-                // KABU TODO: IMPORTANT: We need to adjust the tolerance value (in meters)
+                // TODO: IMPORTANT: We need to adjust the tolerance value (in meters)
                 //   according to the zoom of the map. Otherwise drawn polylines in the sub
                 //   100 meters resolution will be reduced to a single straight line.
                 const effectivePathArray = pathArray; //GDouglasPeucker(pathArray, 100);
 
                 // Ignore empty or too short paths.
                 if (effectivePathArray.length > 2) {
-
                     const polyOptions = {
                         map: this.map,
                         fillColor: '#0099FF',
@@ -785,8 +773,41 @@
                     this._drawingOverlays.push(new google.maps.Polyline(polyOptions));
                 }
             });
+        }
 
+        // Editable text box
+        addEditableTextBox(callback: () => void) {
+            google.maps.event.addListenerOnce(this.map, "click", e => {
+                const latLng = e.latLng;
+                // map.getProjection().fromPointToLatLng(new google.maps.Point(x, y))
+                GoogleMapCustomOverlayFactory.createEditableTextBox(this, latLng);
 
+                if (callback)
+                    callback();
+            });
+        }
+
+        _disableMapFunctions(draggableCursor: string = null): void {
+            this.map.setOptions({
+                draggable: false,
+                zoomControl: false,
+                streetViewControl: false,
+                scrollwheel: false,
+                disableDoubleClickZoom: false,
+                draggableCursor: draggableCursor
+            });
+        }
+
+        _restoreMapFunctions(): void {
+            // Resets the map's options to default values.
+            this.map.setOptions({
+                draggable: true,
+                zoomControl: true,
+                streetViewControl: true,
+                scrollwheel: true,
+                disableDoubleClickZoom: true,
+                draggableCursor: null
+            });
         }
 
         private exportAsPng(): Promise<string> {

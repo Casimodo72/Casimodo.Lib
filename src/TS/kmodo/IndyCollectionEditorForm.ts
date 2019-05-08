@@ -28,7 +28,6 @@
         }
 
         save(): Promise<any> {
-
             if (this._options.isCustomSave)
                 return Promise.resolve();
 
@@ -49,8 +48,10 @@
                 this.args.items = this.targetGridViewModel.dataSource.data();
             };
 
-            if (this.args.filters)
-                this.sourceGridViewModel.setFilter(this.args.filters);
+            const filters = this._getEffectiveFilters();
+            if (filters.length) {
+                this.sourceGridViewModel.setFilter(filters);
+            }
             this.sourceGridViewModel.createView();
             this.sourceGridViewModel.selectionManager.showSelectors();
 
@@ -100,7 +101,7 @@
                 useRemoveCommand: true
             });
 
-            this.targetGridViewModel.on("item-remove-command-fired", (e) => {
+            this.targetGridViewModel.on("item-remove-command-fired", e => {
                 this.connector.remove(e.item);
             });
 
@@ -116,9 +117,9 @@
         }
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             this.$view = $("#indylist-editor-view-" + this.getViewId());
 
@@ -222,11 +223,11 @@
             const key = this.keyName;
 
             // Handle source selection changes.
-            selectionManager.on("selectionChanged", (e) => {
+            selectionManager.on("selectionChanged", e => {
                 targetDataSource.data(e.items);
             });
 
-            selectionManager.on("selectionItemAdded", (e) => {
+            selectionManager.on("selectionItemAdded", e => {
                 // Add file to target.
                 const item = this.getTargetItemById(e.item[key]);
                 if (!item) {
@@ -234,7 +235,7 @@
                 }
             });
 
-            selectionManager.on("selectionItemRemoved", (e) => {
+            selectionManager.on("selectionItemRemoved", e => {
                 // Remove file from target.
                 const item = this.getTargetItemById(e.item[key]);
                 if (item) {

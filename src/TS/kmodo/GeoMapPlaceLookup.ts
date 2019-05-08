@@ -1,5 +1,10 @@
 ﻿namespace kmodo {
 
+    // TODO: Add manual selection of lat/lng for scenarios where
+    //   e.g. the street does not exist yet in Google map's data.
+    //   This is often the case for places which are newly being built.
+    //   See https://stackoverflow.com/questions/6764917/latitude-and-longitude-can-find-zip-code/17933106#17933106
+
     export class GeoMapPlaceLookup extends GeoMapViewBase {
         private _dialogWindow: kendo.ui.Window = null;
 
@@ -8,7 +13,8 @@
 
         }
 
-        setArgs(args): void {
+        // override
+        setArgs(args: ViewComponentArgs): void {
             this.args = args;
             this.getModel().set("item", args.item ? kendo.observable(args.item) : kendo.observable(new kmodo.GeoPlaceInfo()));
 
@@ -43,9 +49,9 @@
         }
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             this.$view = $("#geo-map-lookup-view-" + this._options.id);
 
@@ -69,7 +75,7 @@
             //   *outside* the widget.
             const $dialogCommands = $('#dialog-commands-' + this._options.id);
             // Init OK/Cancel buttons.
-            $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", (e) => {
+            $dialogCommands.find('button.ok-button').first().off("click.dialog-ok").on("click.dialog-ok", e => {
                 if (!this.getCurrentItem())
                     return false;
 

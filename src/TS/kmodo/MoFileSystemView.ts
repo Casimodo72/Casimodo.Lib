@@ -62,6 +62,10 @@ namespace kmodo {
         }
     }
 
+    interface KendoTargetElementEvent {
+        target?: Element;
+    }
+
     class MoFolderTreeViewModel {
         private options: InteralMoFolderTreeOptions;
         private owner: MoFileTreeOwner;
@@ -72,7 +76,7 @@ namespace kmodo {
         private isAddEnabled: boolean;
         private isDeleteEnabled: boolean;
         private isRenameEnabled: boolean;
-        private _isComponentInitialized: boolean;
+        private _isViewInitialized: boolean;
         private _folderKendoTreeView: kendo.ui.TreeView;
         private moFileCollectionViewModel: MoFileCollectionViewModel;
         private _items: MoFolderTreeEntity[];
@@ -98,7 +102,7 @@ namespace kmodo {
             this.isDeleteEnabled = true;
             this.isRenameEnabled = true;
 
-            this._isComponentInitialized = false;
+            this._isViewInitialized = false;
             this._initComponent();
         }
 
@@ -209,7 +213,7 @@ namespace kmodo {
                 query += "&$filter=OwnerId eq " + this.owner.Id;
 
                 if (this._filterTagIds && this._filterTagIds.length) {
-                    const tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
+                    const tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/TagId eq " + x + ")").join(" and ");
                     query += " and (IsContainer eq true or (" + tagsExpression + "))";
                 }
 
@@ -236,7 +240,7 @@ namespace kmodo {
                         this._folderKendoTreeView.setDataSource(this.createDataSource(this._items));
 
                         // Select node on right mouse click.
-                        this._folderKendoTreeView.wrapper.on('mousedown', '.k-item', (e) => {
+                        this._folderKendoTreeView.wrapper.on('mousedown', '.k-item', e => {
                             if (e.which === 3) {
                                 e.stopPropagation();
                                 this._folderKendoTreeView.select(e.currentTarget);
@@ -291,17 +295,18 @@ namespace kmodo {
             // Hide upload-component if in recycle-bin.
             this.moFileCollectionViewModel._setFileUploadVisible(!isInRecycleBin);
 
-            const filters: kendo.data.DataSourceFilterItem[] = [
+            const filters: DataSourceFilterNode[] = [
                 { field: "ParentId", operator: "eq", value: folder.Id },
                 { field: "IsContainer", operator: "eq", value: false }
             ];
 
             if (this._filterTagIds && this._filterTagIds.length) {
-                const tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/Tag/Id eq " + x + ")").join(" and ");
+                const tagsExpression = this._filterTagIds.map(x => "ToTags/any(totag: totag/TagId eq " + x + ")").join(" and ");
                 (filters as any[]).push({ customExpression: tagsExpression });
             }
 
-            this.moFileCollectionViewModel.applyFilter(filters);
+            this.moFileCollectionViewModel.setFilter(filters);
+            this.moFileCollectionViewModel.refresh();
         }
 
         isRoot(folder: MoFolderTreeEntity): boolean {
@@ -313,8 +318,8 @@ namespace kmodo {
         }
 
         private _initComponent(): void {
-            if (this._isComponentInitialized) return;
-            this._isComponentInitialized = true;
+            if (this._isViewInitialized) return;
+            this._isViewInitialized = true;
 
             // Refresh-all button.    
             this.options.$area.find(".mo-file-system-refresh-all-command").on("click", () => {
@@ -326,10 +331,10 @@ namespace kmodo {
 
             this._folderKendoTreeView = $folderTree.kendoTreeView({
                 template: cmodo.templates.get("MoTreeView"),
-                select: (e) => this.onSelectionChanged(e),
+                select: e => this.onSelectionChanged(e),
                 dataTextField: "Name",
                 dataSource: this.createDataSource([]),
-                dataBound: (e) => {
+                dataBound: e => {
                     if (this.options.isExpandAllOnLoadedEnabled && e.node)
                         e.sender.expand(e.node.find(".k-item"));
                 }
@@ -343,7 +348,7 @@ namespace kmodo {
                     target: $folderTree,
                     filter: ".k-in",
                     animation: kmodo.getDefaultContextMenuAnimation(),
-                    open: (e) => {
+                    open: e => {
                         const folder = this.select() as MoFolderTreeEntity;
                         if (!folder || this.isInRecycleBin(folder)) {
                             e.preventDefault();
@@ -365,7 +370,7 @@ namespace kmodo {
                         _enableContextMenuItem($deleteAction, !isroot /* && !folder.IsNotDeletable */ && this.isDeleteEnabled && !folder.IsReadOnly);
                         _enableContextMenuItem($selectFileSystemTemplateAction, this.options.isFileSystemTemplateEnabled && isroot);
                     },
-                    select: (e) => {
+                    select: e => {
                         const folder = this.select() as MoFolderTreeEntity;
                         if (!folder) {
                             // KABU TODO: Can this really happen or is this superfluous?
@@ -604,9 +609,9 @@ namespace kmodo {
         private _uploadMode: string;
         private _scope: MoFileUploadModel;
         private _isRefreshingAfterUpload: boolean;
-        private _isComponentInitialized: boolean;
+        private _isViewInitialized: boolean;
         private _kendoUpload: kendo.ui.Upload;
-        private _modeSelector: kendo.ui.DropDownList;
+        private _kendoUploadModeSelector: kendo.ui.DropDownList;
         private _$uploadArea: JQuery;
 
         constructor(options: MoFileUploadOptions) {
@@ -621,8 +626,8 @@ namespace kmodo {
             }) as MoFileUploadModel;
 
             this._isRefreshingAfterUpload = false;
-            this._isComponentInitialized = false;
-            this._initComponent();
+            this._isViewInitialized = false;
+            this.createView();
         }
 
         reset(): void {
@@ -640,13 +645,13 @@ namespace kmodo {
             this.showResetButton(false);
         }
 
-        onSelecting(e): void {
+        onSelecting(e: kendo.ui.UploadSelectEvent): void {
             this.reset();
-            this.trySelectFolder(e);
+            this.getCurrentFolder(e);
         }
 
-        onUploading(e): void {
-            const folder = this.trySelectFolder(e);
+        onUploading(e: kendo.ui.UploadUploadEvent): void {
+            const folder = this.getCurrentFolder(e);
             if (!folder) {
                 cmodo.showError("Wählen Sie zuerst einen Ordner bevor Sie Dateien hochladen.");
 
@@ -688,8 +693,8 @@ namespace kmodo {
             kmodo.useHeaderRequestVerificationToken(e.XMLHttpRequest);
         }
 
-        trySelectFolder(e): MoFolderTreeEntity {
-            const folder = this.options.moFileCollectionViewModel.selectFolder();
+        getCurrentFolder(e): MoFolderTreeEntity {
+            const folder = this.options.moFileCollectionViewModel.getCurrentFolder();
             if (!folder || !folder.Id) {
                 e.preventDefault();
 
@@ -701,7 +706,7 @@ namespace kmodo {
             return folder;
         }
 
-        onCompleted(e): void {
+        onCompleted(e: kendo.ui.UploadEvent): void {
             this.showResetButton(true);
 
             this._isRefreshingAfterUpload = true;
@@ -760,9 +765,9 @@ namespace kmodo {
                 this._$uploadArea.hide(100);
         }
 
-        private _initComponent(): void {
-            if (this._isComponentInitialized) return;
-            this._isComponentInitialized = true;
+        private createView(): void {
+            if (this._isViewInitialized) return;
+            this._isViewInitialized = true;
 
             this._$uploadArea = this.options.$area.find(".mo-file-upload-area");
             const $upload = this._$uploadArea.find("input.mo-file-upload");
@@ -778,17 +783,17 @@ namespace kmodo {
                 },
                 multiple: true, // KABU TODO: IMPORTANT: Really multiple?
                 showFileList: true,
-                select: $.proxy(this.onSelecting, this),
-                upload: $.proxy(this.onUploading, this),
+                select: e => this.onSelecting(e),
+                upload: e => this.onUploading(e),
                 async: {
                     saveUrl: this._baseUrl,
                     autoUpload: true
                 },
-                success: (e) => {
+                success: e => {
                     // Hide the irritating warning (or info) icon on success.
                     //$upload.find(".k-icon.k-warning").hide();
                 },
-                error: (e) => {
+                error: e => {
                     const $status = e.sender.wrapper.find(".k-upload-status-total");
                     // Remove any messages added by Kendo from the DOM.
                     cmodo.jQueryRemoveContentTextNodes($status);
@@ -796,10 +801,10 @@ namespace kmodo {
                     $status.css("color", "red");
                     cmodo.showError("Fehler. Mindestens eine Datei konnte nicht gespeichert werden.")
                 },
-                complete: $.proxy(this.onCompleted, this)
+                complete: e => this.onCompleted(e)
             }).data("kendoUpload");
 
-            this._modeSelector = this._$uploadArea
+            this._kendoUploadModeSelector = this._$uploadArea
                 .find("input.mo-file-upload-mode-selector")
                 .kendoDropDownList({
                     height: 50,
@@ -808,13 +813,13 @@ namespace kmodo {
                     autoBind: true,
                     valuePrimitive: true,
                     dataSource: [{ mode: UPLOAD_MODE_DEFAULT, displayName: "Standard" }, { mode: UPLOAD_MODE_EMAIL, displayName: "E-Mail" }],
-                    change: (e) => {
+                    change: e => {
                         // The user selected an upload mode.
                         this._uploadMode = e.sender.value();
                         this._onUploadModeChanged();
                     }
                 }).data("kendoDropDownList");
-            this._modeSelector.select(0);
+            this._kendoUploadModeSelector.select(0);
 
             kendo.bind(this._$uploadArea.find(".mo-file-upload-mode-panel"), this._scope);
 
@@ -827,14 +832,12 @@ namespace kmodo {
         private filesGridViewModel: Grid;
         _moFolderTreeViewModel: MoFolderTreeViewModel;
         private _fileUploadViewModel: MoFileUploadComponent;
-        //private _kendoContextMenu: kendo.ui.ContextMenu;
         private isUploadEnabled: boolean;
         isAddEnabled: boolean;
         private isDeleteEnabled: boolean;
         private isRenameEnabled: boolean;
         private owner: any;
-        private _isComponentInitialized: boolean;
-        //private _filterTagIds: string[];
+        private _isViewInitialized: boolean;
 
         constructor(options) {
             super();
@@ -852,15 +855,15 @@ namespace kmodo {
             this.owner = null;
             this._bindCoreEvents();
 
-            this._isComponentInitialized = false;
-            this._initComponent();
+            this._isViewInitialized = false;
+            this.createView();
         }
 
         private _bindCoreEvents(): void {
-            this.filesGridViewModel.on("dataBound", (e) => { this.trigger("dataBound", e); });
-            this.filesGridViewModel.selectionManager.on("selectionChanged", (e) => { this.trigger("selectionChanged", e); });
-            this.filesGridViewModel.selectionManager.on("selectionItemAdded", (e) => { this.trigger("selectionItemAdded", e); });
-            this.filesGridViewModel.selectionManager.on("selectionItemRemoved", (e) => { this.trigger("selectionItemRemoved", e); });
+            this.filesGridViewModel.on("dataBound", e => { this.trigger("dataBound", e); });
+            this.filesGridViewModel.selectionManager.on("selectionChanged", e => { this.trigger("selectionChanged", e); });
+            this.filesGridViewModel.selectionManager.on("selectionItemAdded", e => { this.trigger("selectionItemAdded", e); });
+            this.filesGridViewModel.selectionManager.on("selectionItemRemoved", e => { this.trigger("selectionItemRemoved", e); });
         }
         // TODO: REMOVE: 
         //setTagsFilter(tagIds: string[]): void {
@@ -879,11 +882,11 @@ namespace kmodo {
             this.owner = owner;
         }
 
-        selectFolder(): MoFolderTreeEntity {
+        getCurrentFolder(): MoFolderTreeEntity {
             return this._moFolderTreeViewModel.select() as MoFolderTreeEntity;
         }
 
-        select(e): MoFileEntity {
+        getFileByEventTarget(e: KendoTargetElementEvent): MoFileEntity {
             return this.getKendoGrid().dataItem($(e.target).closest("tr")) as MoFileEntity;
         }
 
@@ -900,8 +903,8 @@ namespace kmodo {
             this.filesGridViewModel.selectionManager.hideSelectors();
         }
 
-        applyFilter(filter): void {
-            this.filesGridViewModel.applyFilter(filter);
+        setFilter(filter: DataSourceFilterOneOrMany): void {
+            this.filesGridViewModel.setFilter(filter);
         }
 
         clear(): void {
@@ -909,29 +912,14 @@ namespace kmodo {
         }
 
         // Reloads data.
-        refresh(selectId?: string): Promise<void> {
-            return new Promise((resolve, reject) => {
+        async refresh(selectId?: string): Promise<void> {
+            await this.filesGridViewModel.refresh();
 
-                this.getDataSource().read()
-                    .then(() => {
+            if (!selectId)
+                return;
 
-                        if (!selectId) return;
-
-                        // Selected the file with the provided ID.
-
-                        const item = this.getDataSource().get(selectId);
-                        if (!item)
-                            return;
-
-                        const filesKendoGrid = this.getKendoGrid();
-                        // KABU TODO: VERY IMPORTANT: Check if selectable exists on kendo grid.
-                        if (typeof (filesKendoGrid as any).selectable !== "undefined")
-                            filesKendoGrid.select(filesKendoGrid.tbody.find("tr[data-uid='" + item.uid + "']"));
-
-                        resolve();
-                    })
-                    .fail((ex) => reject(ex));
-            });
+            // Select the file with the provided ID.
+            this.filesGridViewModel.trySetCurrentById(selectId);
         }
 
         _resetFileUpload(): void {
@@ -948,21 +936,20 @@ namespace kmodo {
             this._fileUploadViewModel.visible(value);
         };
 
-        private _initComponent(): void {
-            if (this._isComponentInitialized) return;
-            this._isComponentInitialized = true;
+        private createView(): void {
+            if (this._isViewInitialized) return;
+            this._isViewInitialized = true;
 
             // File context menu widget
             const $fileList = this.$area.find("div.mo-file-list");
             const $fileContextMenu = this.$area.find("ul.mo-file-context-menu");
             if ($fileList.length && $fileContextMenu.length) {
-                // this._kendoContextMenu =
                 $fileContextMenu.kendoContextMenu({
                     target: $fileList,
                     filter: "div.file-tile",
                     animation: kmodo.getDefaultContextMenuAnimation(),
-                    open: (e) => {
-                        const file = this.select(e);
+                    open: e => {
+                        const file = this.getFileByEventTarget(e);
                         if (!file || file.IsDeleted) {
                             e.preventDefault();
                             return;
@@ -985,12 +972,10 @@ namespace kmodo {
                         const extension = file.File.FileExtension;
                         _enableContextMenuItem($copyImageToPdfAction, extension === "png" || extension === "jpg");
                     },
-                    select: (e) => {
-                        const file = this.select(e);
-                        if (!file) {
-                            e.preventDefault();
-                            return;
-                        }
+                    select: e => {
+                        const file = this.getFileByEventTarget(e);
+                        if (!file)
+                            return false;
 
                         const name = $(e.item).data("name");
 
@@ -1073,6 +1058,8 @@ namespace kmodo {
                                 }
                             });
                         }
+
+                        return false;
                     }
                 }).data("kendoContextMenu");
             }
@@ -1203,7 +1190,7 @@ namespace kmodo {
         }
 
         clear(): void {
-            if (!this._isComponentInitialized)
+            if (!this._isViewInitialized)
                 return;
             this._filesView.clearSelection();
             this._treeView.clear();
@@ -1284,7 +1271,7 @@ namespace kmodo {
             this._treeView.setOwner(owner);
             // Don't refresh initially, but always refresh subsequently, so that the
             // consumer can have control over the first refresh.
-            if (this._isComponentInitialized) {
+            if (this._isViewInitialized) {
                 this._refreshTreeView();
             }
 
@@ -1352,9 +1339,9 @@ namespace kmodo {
         }
 
         private _createView(options: InternalMoFileExplorerOptions): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             // Folder tree view for Mo folders to select from.
             this._treeView = new MoFolderTreeViewModel({
@@ -1376,7 +1363,7 @@ namespace kmodo {
                 current: null,
                 items: this.options.owners,
                 // KABU TODO: VERY IMPORTANT: Eval if changed is really called.
-                changed: (e) => {
+                changed: e => {
                     // const item = e.sender.dataItem();
                     this._onCurrentOwnerChanged();
                 }

@@ -145,14 +145,14 @@ namespace kmodo {
 
             wnd.content(content);
 
-            wnd.wrapper.find("button.km-dialog-ok-btn").text("OK").on("click", (e) => {
+            wnd.wrapper.find("button.km-dialog-ok-btn").text("OK").on("click", e => {
                 dialogResult = true;
                 wnd.close();
                 return false;
             });
 
             if (options.cancel)
-                wnd.wrapper.find("button.km-dialog-cancel-btn").text("Abbrechen").on("click", (e) => {
+                wnd.wrapper.find("button.km-dialog-cancel-btn").text("Abbrechen").on("click", e => {
                     dialogResult = false;
                     wnd.close();
                     return false;
@@ -163,7 +163,7 @@ namespace kmodo {
         });
     }
 
-    // KABU TODO: Only used in OwnedJobList yet.
+    // TODO: Only used in OwnedJobList yet.
     export function showFileDownloadDialog(info): void {
         const args = new cmodo.DialogArgs('7a516302-3fbc-48ed-91fc-422351c10b9f');
         args.item = info;
@@ -178,7 +178,7 @@ namespace kmodo {
                 width: 500,
                 minWidth: 500,
                 height: 180, minHeight: 180,
-                deactivate: (e) => { e.sender.destroy(); }
+                deactivate: e => { e.sender.destroy(); }
             }).data('kendoWindow');
         kmodo.setModalWindowBehavior(wnd);
         wnd.center().open();

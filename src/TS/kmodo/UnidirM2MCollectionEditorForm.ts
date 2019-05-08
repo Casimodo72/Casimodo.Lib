@@ -46,8 +46,10 @@
                 this.args.items = this.targetGridViewModel.dataSource.data();
             };
 
-            if (this.args.filters)
-                this.sourceGridViewModel.setFilter(this.args.filters);
+            const filters = this._getEffectiveFilters();
+            if (filters.length) {
+                this.sourceGridViewModel.setFilter(filters);
+            }
             this.sourceGridViewModel.createView();
             this.sourceGridViewModel.selectionManager.showSelectors();
 
@@ -102,7 +104,7 @@
                 useRemoveCommand: true
             });
 
-            this.targetGridViewModel.on("item-remove-command-fired", (e) => {
+            this.targetGridViewModel.on("item-remove-command-fired", e => {
                 this.connector.remove(e.item);
             });
 
@@ -118,9 +120,9 @@
         }
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             this.$view = $("#indylist-editor-view-" + this.getViewId());
 

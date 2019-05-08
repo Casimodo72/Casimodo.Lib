@@ -99,7 +99,7 @@
             cmodo.navigationArgs.add({
                 id: listReg.id,
                 itemId: options.itemId
-                // filters: [{ field: "Id", operator: "eq", value: options.itemId }]
+                // TODO: REMOVE? filters: [{ field: "Id", operator: "eq", value: options.itemId }]
             });
 
             window.open(reg.url, "");
@@ -218,7 +218,7 @@
             // See docs: https://docs.telerik.com/kendo-ui/api/javascript/ui/window
 
             // TODO: REMOVE?
-            // const onResize = (e) => {
+            // const onResize = e => {
             //    if (wnd.options.isMaximized)
             //        return;
             //};
@@ -251,7 +251,7 @@
                     "Maximize",
                     "Close"
                 ],
-                close: (e) => {
+                close: e => {
                     if (e.userTriggered === true) {
                         // KABU TODO: IMPORTANT: Should we hand control over this to
                         //   the view model?
@@ -271,7 +271,7 @@
                         _triggerOptionsFinished2(options, args);
                     }
                 },
-                deactivate: (e) => {
+                deactivate: e => {
 
                     // $(window).off("resize", onResize);
                     if (!reg.isCached)
@@ -300,7 +300,7 @@
             cachedEntry.window = wnd;
 
             if (options.finished) {
-                wnd.one("close", (e) => {
+                wnd.one("close", e => {
                     if (e.userTriggered === true) {
                         // KABU TODO: IMPORTANT: Should we hand control over this to
                         //   the view model?
@@ -348,7 +348,7 @@
 
         }
         else {
-            wnd.one("refresh", (e) => {
+            wnd.one("refresh", e => {
 
                 //if (options.maximize === false) {
                 //    _centerKendoWindowHorizontally(wnd);

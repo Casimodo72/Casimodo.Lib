@@ -70,7 +70,7 @@
         private _edit() {
             if (!this._options.isLocalData) {
                 // Load data from server.
-                this.setFilter([{ field: this.keyName, operator: 'eq', value: this._iedit.itemId }]);
+                this._setCoreFilterNode(kmodo.KEY_FILTER_ID, { field: this.keyName, operator: 'eq', value: this._iedit.itemId, _persistent: true });
                 this.refresh()
                     .then(() => this._startEditing());
             }
@@ -83,12 +83,12 @@
         }
 
         private _add() {
-            this.setCurrentItem(this.dataSource.insert(0, {}));
+            this.setCurrent(this.dataSource.insert(0, {}));
             this._startEditing();
         }
 
         private _startEditing() {
-            const item = this.getCurrentItem();
+            const item = this.getCurrent();
 
             if (!item) {
                 if (this._iedit.mode === "modify")
@@ -140,7 +140,7 @@
             if (!this._iedit.isSaved)
                 return;
 
-            const item = this.getCurrentItem();
+            const item = this.getCurrent();
             if (!item)
                 return;
 
@@ -203,8 +203,8 @@
             this._save();
         }
 
-        getCurrentAsObject() {
-            return this.getCurrentItem().toJSON();
+        currentAsJSON() {
+            return this.getCurrent().toJSON();
         }
 
         // TODO: REMOVE?
@@ -231,7 +231,7 @@
                 return;
 
             // Transform data item from Kendo ObservableObject to simple object.
-            const item = this.getCurrentItem();
+            const item = this.getCurrent();
 
             // If localdata: do not modify anything.
             if (!this._options.isLocalData) {
@@ -283,8 +283,8 @@
 
         // override
         public createView() {
-            if (this._isComponentInitialized) return;
-            this._isComponentInitialized = true;
+            if (this._isViewInitialized) return;
+            this._isViewInitialized = true;
 
             this.$view = $("#editor-view-" + this._options.id);
 
@@ -297,7 +297,7 @@
                 this._$dialogEditCommands.remove();
             }
 
-            this.dataSource.one("change", (e) => {
+            this.dataSource.one("change", e => {
                 this._initDataChangeBehavior();
             });
 
@@ -343,14 +343,14 @@
             if (!this.dataSource.data().length)
                 return;
 
-            const dataItem = this.getCurrentItem();
+            const dataItem = this.getCurrent();
 
             this.kendoEditable = this._createKendoEditable(dataItem);
 
             let saveAttempted = false;
 
             if (this._options.isDialog) {
-                this._$dialogSaveCmd = this._$dialogEditCommands.find(".k-button.k-update").on("click", (e) => {
+                this._$dialogSaveCmd = this._$dialogEditCommands.find(".k-button.k-update").on("click", e => {
                     if (this._iedit.isSaving)
                         return false;
 
@@ -382,7 +382,7 @@
                 });
             }
 
-            dataItem.bind("change", (e) => {
+            dataItem.bind("change", e => {
                 const fieldName = e.field;
 
                 if (saveAttempted) {
@@ -416,7 +416,7 @@
             //   be set.
             // this.kendoEditable
             /*
-            this.kendoEditable.bind("change", (e) => {
+            this.kendoEditable.bind("change", e => {
                 const fieldName = Object.keys(e.values)[0];
 
                 if (saveAttempted) {
@@ -447,7 +447,7 @@
             */
 
             if (this._options.isDialog) {
-                this.kendoEditable.validatable.bind("validate", (e) => {
+                this.kendoEditable.validatable.bind("validate", e => {
                     this._updateSaveCommand(e.valid && dataItem.dirty);
                 });
             }
@@ -487,7 +487,7 @@
 
         private _findInputElement(fieldName: string): JQuery {
             // KABU TODO: Unfortunately Kendo's editable change event does
-            //   not give us the input element. Thus we need find it
+            //   not give us the input element. Thus we need to find it
             //   in the same way Kendo does.
             const bindAttribute = kendo.attr('bind');
             const bindingRegex = new RegExp('(value|checked)\\s*:\\s*' + fieldName + '\\s*(,|$)');

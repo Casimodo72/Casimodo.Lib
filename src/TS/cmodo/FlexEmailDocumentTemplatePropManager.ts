@@ -55,7 +55,7 @@
             if (cmodo.isNullOrWhiteSpace(text))
                 return props;
 
-            const elements = (new DOMParser()).parseFromString("<root>" + text + "</root>", "text/xml").documentElement.children;
+            const elements = (new DOMParser()).parseFromString("<root>" + text + "</root>", "application/xml").documentElement.children;
             let elem, name, value, kind;
             for (let i = 0; i < elements.length; i++) {
                 elem = elements[i];

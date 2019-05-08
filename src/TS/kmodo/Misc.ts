@@ -1,5 +1,12 @@
 ﻿namespace kmodo {
 
+    export function progress(isbusy: boolean, $el?: JQuery) {
+        if (!$el || !$el.length)
+            $el = $(window.document.body);
+
+        kendo.ui.progress($el, isbusy);
+    }
+
     export interface CompanySelectorOptions {
         changed?: (companyId: string) => void,
         companyId?: string;
@@ -36,7 +43,7 @@
                 transport: {
                     parameterMap: function (data, type) { return kmodo.parameterMapForOData(data, type, null); },
                     read: {
-                        url: "/odata/Companies/Query()?$select=Id,NameShortest,Color&$orderby=NameShortest",
+                        url: "/odata/Companies/Query()?$select=Id,NameShortest,Color&$orderby=NameShortest&$filter=IsDisabled eq false",
                         dataType: "json"
                     }
                 },
@@ -56,7 +63,7 @@
     }
 
     export interface MoTagFilterSelectorOptions {
-        filters?: kendo.data.DataSourceFilters | kendo.data.DataSourceFilterItem,
+        filters?: DataSourceFilterNode,
         changed?: (tagIds: string[]) => void,
         autoBind?: boolean;
     }
@@ -86,7 +93,7 @@
                 serverSorting: true,
                 serverFiltering: true
             },
-            change: (e) => {
+            change: e => {
                 if (options.changed) {
                     let ids = e.sender.dataItems().map(x => x.Id) as string[];
                     options.changed(ids);
@@ -180,13 +187,9 @@
         }
     }
 
-    // KABU TODO: REMOVE? KEEP: maybe we can use this in the future.
-    /*
-    export function getShowPhotoCellTemplate(uri: string): string {
-        return "<a class='kendomodo-button-show-image k-button' href='#' data-file-uri='" + uri + "'><span class='casimodo-icon-show-image'></span></a>";
-        // return "<div data-file-uri='" + uri + "' class='kendomodo-button-show-image'>&nbsp;</div>";
+    export function isButtonActive($btn: JQuery): boolean {
+        return $btn.hasClass("km-active-toggle-button");
     }
-    */
 
     export function toggleButton($btn: JQuery, active: boolean): void {
         if (active)
@@ -197,15 +200,24 @@
     }
 
     export function toggleScopeOption(kendoEvent: kendo.ViewEvent, scope: kendo.data.ObservableObject, propName: string): any {
-        // KABU TODO: Eval which type of event we actually get here.
+        // TODO: Eval which type of event we actually get here.
         kendoEvent.preventDefault();
-        let $elem = kmodo.getEventTarget(kendoEvent);
-        let value = !!scope[propName];
+        const $elem = kmodo.getEventTarget(kendoEvent);
+        let value = !!scope.get("propName");
         value = !value;
         scope.set(propName, value);
         kmodo.toggleButton($elem, value);
 
         return value;
+    }
+
+    export function setScopeCommandActive(kendoEvent: kendo.ViewEvent,
+        scope: kendo.data.ObservableObject, propName: string, value: boolean): void {
+        // TODO: Eval which type of event we actually get here.
+        kendoEvent.preventDefault();
+        const $elem = kmodo.getEventTarget(kendoEvent);
+        scope.set(propName, value);
+        kmodo.toggleButton($elem, value);
     }
 
     export function getEventTarget(e: any): JQuery {

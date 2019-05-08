@@ -34,7 +34,7 @@
                 fileName: "Karte XYZ"
             });
 
-            this._isComponentInitialized = false;
+            this._isViewInitialized = false;
         }
 
         getModel(): ViewModel {
@@ -74,9 +74,9 @@
         }
 
         createView(): void {
-            if (this._isComponentInitialized)
+            if (this._isViewInitialized)
                 return;
-            this._isComponentInitialized = true;
+            this._isViewInitialized = true;
 
             this.$view = $("#view-" + this._options.id);
 

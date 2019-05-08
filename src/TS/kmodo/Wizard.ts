@@ -58,7 +58,7 @@
 
     interface WizardCommand extends kmodo.ObservableObject {
         name: string;
-        text?: string;
+        title?: string;
         enabled?: boolean;
         visible?: boolean;
         onTriggered?: Function;
@@ -245,10 +245,10 @@
             this.commandsViewModel = kendo.observable(commands);
         }
 
-        private _addCommand(commands: any, name: string, text: string): void {
+        private _addCommand(commands: any, name: string, title: string): void {
             const cmd = kmodo.ObservableHelper.observable<WizardCommand>({
                 name: name,
-                text: text,
+                title: title,
                 enabled: name === "back" || name === "cancel" ? true : false,
                 visible: false,
                 onTriggered: () => this._executeCommand(name)
@@ -287,9 +287,9 @@
                     for (const x of commands) {
                         const cmd = this._getCommand(x.name);
                         if (cmd) {
-                            // Set text
-                            if (typeof x.text !== "undefined") {
-                                cmd.set("text", x.text);
+                            // Set title
+                            if (typeof x.title !== "undefined") {
+                                cmd.set("title", x.title);
                             }
 
                             // Set enabled
@@ -332,7 +332,7 @@
                     tabs: this._pages.map(function (x) { return x.tab; })
                 });
 
-                this._tabStrip.on("currentTabChanged", (e) => {
+                this._tabStrip.on("currentTabChanged", e => {
                     this._onPageActivated(e.tab.name);
                 });
 
@@ -343,7 +343,7 @@
             const $commands = this.$component.children("div.km-wizard-commands").first();
             if ($commands.length) {
                 for (const cmd of this._commands) {
-                    $commands.append('<a data-role="button" data-bind="visible:' + cmd.name + '.visible, enabled:' + cmd.name + '.enabled, events: { click:' + cmd.name + '.onTriggered }"><span data-bind="text:' + cmd.name + '.text"></span></a>');
+                    $commands.append('<a data-role="button" data-bind="visible:' + cmd.name + '.visible, enabled:' + cmd.name + '.enabled, events: { click:' + cmd.name + '.onTriggered }"><span data-bind="text:' + cmd.name + '.title"></span></a>');
                 }
 
                 kendo.bind($commands, this.commandsViewModel);

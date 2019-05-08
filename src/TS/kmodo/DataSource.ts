@@ -1,8 +1,16 @@
 ﻿
 namespace kmodo {
 
-    // KABU TODO: MAGIC Company type ID
-    export const COMPANY_TYPE_ID = "59a58131-960d-4197-a537-6fbb58d54b8a";
+    // KEY_FILTER_ID is provided e.g. via navigation arguments.
+    //   Also used when using editor/readonly forms.
+    export const KEY_FILTER_ID = "5883120a-b1a6-4ac8-81a2-1d23028daebe";
+
+    // KEY_FILTER_ID is used for filtering by tag.
+    //   The tag filter UI resides in the grid's toolbar.
+    export const TAGS_FILTER_ID = "2bd9e0d8-7b2d-4c1e-90c0-4d7eac6d01a4";
+
+    export const COMPANY_FILTER_ID = "4c30f0ae-8478-457b-992a-a774c216dca2";
+    export const COMPANY_REF_FIELD = "CompanyId";
 
     export function createLocalDataSourceTransport(data: any[]): kendo.data.DataSourceTransportWithFunctionOperations {
 
@@ -91,13 +99,14 @@ namespace kmodo {
         return kmodo.extendDeep(opts, options) as kendo.data.DataSourceOptions;
     }
 
-    export function findDataSourceFilter(filters: any[], predicate: (filter: any) => boolean): any | null {
+    export function findDataSourceFilter(
+        filters: DataSourceFilterNode[],
+        predicate: (filter: DataSourceFilterNode) => boolean): DataSourceFilterNode {
+
         if (!filters || !filters.length)
             return null;
 
-        let filter;
-        for (let i = 0; i < filters.length; i++) {
-            filter = filters[i];
+        for (const filter of filters) {
             if (filter.logic) {
                 const foundFilter = findDataSourceFilter(filter.filters, predicate);
                 if (foundFilter)
@@ -110,20 +119,48 @@ namespace kmodo {
         return null;
     }
 
-    export interface ExtKendoDataSourceFilterItem extends kendo.data.DataSourceFilterItem {
-        _filterId?: string;
+    export interface DataSourceFilterNode extends kendo.data.DataSourceFilter {
+        // kendo.data.DataSourceFilters: logic, filters
+        // If this is a logical operator node: only @logic and @filters are present.
+        logic?: string;
+        filters?: DataSourceFilterNode[];
+
+        // kendo.data.DataSourceFilterItem: operator, field, value
+        operator?: string;
+        field?: string;
+        value?: any;
+
+        // @customExpression is used for OData filter expressions
+        //   which cannot be expressed by Kendo's filters.
+        // IMPORTANT: Note that we modified Kendo's sources to use that customExpression.
+        //   I.e. this won't work with the Kendo's default sources.
         customExpression?: string;
-        targetTypeId?: string;
-        deactivatable?: boolean;
+
+        // More custom fields used for identification/activation/deactivation of filters.
+        _id?: string;
+        _persistent?: boolean;
+        _deactivatable?: boolean;
+        _targetTypeId?: string;
+        // @_targetTypeName is not used by populated by the code generator.
+        //   It's a nice-to-have for debug purposes.
+        // TODO: REVISIT: Maybe remove in the future.
+        _targetTypeName?: string;
     }
 
-    export function buildTagsDataSourceFilters(dataTypeId: string, companyId?: string)
-        : kendo.data.DataSourceFilter {
+    export type DataSourceFilterOneOrMany = DataSourceFilterNode | DataSourceFilterNode[];
 
-        const assignableFilter = { field: "AssignableToTypeId", operator: "eq", value: dataTypeId };
+    export function buildTagsDataSourceFilters(dataTypeId: string, companyId?: string): DataSourceFilterNode {
+
+        const assignableFilter: DataSourceFilterNode = {
+            field: "AssignableToTypeId",
+            operator: "eq",
+            value: dataTypeId
+        };
 
         if (!companyId)
-            return assignableFilter as kendo.data.DataSourceFilterItem;
+            return assignableFilter;
+
+        // Combine with persistent company filter.
 
         return {
             logic: "and",
@@ -132,11 +169,11 @@ namespace kmodo {
                 {
                     logic: "or",
                     filters: [
-                        { field: "CompanyId", operator: "eq", value: companyId, targetTypeId: COMPANY_TYPE_ID, deactivatable: false },
-                        { field: "CompanyId", operator: "eq", value: null }]
+                        { field: COMPANY_REF_FIELD, operator: "eq", value: companyId, _id: COMPANY_FILTER_ID, _persistent: true },
+                        { field: COMPANY_REF_FIELD, operator: "eq", value: null }]
                 }
             ]
-        } as kendo.data.DataSourceFilters;
+        };
     }
 
     // NOTE: Kendo will normalize an array of DataSourceFilterItem.

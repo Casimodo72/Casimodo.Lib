@@ -112,7 +112,7 @@
 (kendo.data as any).binders.class = kendo.data.Binder.extend({
     init: function (target, bindings, options) {
         kendo.data.Binder.fn.init.call(this, target, bindings, options);
-        let self = this as any;
+        const self = this as any;
         // get list of class names from our complex binding path object
         self._lookups = [];
         for (let key in self.bindings.class.path) {
@@ -124,9 +124,9 @@
     },
 
     refresh: function () {
-        let lookup,
-            value;
-        let self = this as any;
+        let lookup;
+        let value;
+        const self = this as any;
         for (let i = 0; i < self._lookups.length; i++) {
             lookup = self._lookups[i];
 
@@ -145,43 +145,107 @@
     }
 });
 
-// Kendo ListView selectedItem binder. Source: https://www.telerik.com/forums/two-way-binding-for-selected-item-in-listview
+// Kendo ListView selectedItem binder.
+// Source: https://www.telerik.com/forums/two-way-binding-for-selected-item-in-listview
 (kendo.data as any).binders.widget.selectedItem = kendo.data.Binder.extend({
-    init: function (widget, bindings, options) {
-        let self = this as any;
-        //call the base constructor
-        kendo.data.Binder.fn.init.call(this, widget.element[0], bindings, options);
+    /*
+    // IMPORTANT NOTE: I added an index to Kendo's binding machinery so that we can
+    //   define a processing order of bindings.
+    //   Otherwise our "selectedItem" binding would incorrectly be processed
+    //   *before* Kendo's "source" binding is processed.
+    //   The order must be:
+    //   1) get source items
+    //   2) set the selected item
+    index: 1,
+    */
 
-        //listen for the change event of the widget
+    init: function (widget, bindings, options) {
+        const self = this as kendo.data.Binder;
+        // call the base constructor
+        kendo.data.Binder.fn.init.call(this, widget.element[0], bindings, options);    
+
+        // (this as any).set("indexxxx",  1);
+
+        // listen for the change event of the widget
         $(self.element).data("kendoListView").bind("change", function (e) {
-            self.change(e); //call the change function
+            (self as any).change(e); // call the change function
         });
     },
     refresh: function () {
-        let self = this as any,
-            value = self.bindings.selectedItem.get(), //get the value from the View-Model
-            listView = $(self.element).data("kendoListView"),
-            row;
+        const self = this as kendo.data.Binder;
+        const listView: kendo.ui.ListView = $(self.element).data("kendoListView");
+        if (!listView.items().length) {
+            return;
+        }
+
+        const value = self.bindings.selectedItem.get(); // get the value from the View-Model
+
+        let row: JQuery;
 
         if (value) {
             row = listView.items().filter("[data-uid='" + value.uid + "']");
         }
 
-        if (row && row.length) { //update the widget
+        if (row && row.length) { // update the widget
             listView.select(row);
         } else {
             listView.clearSelection();
         }
-
     },
     change: function (e) {
-        let self = this as any;
-        let listView = $(self.element).data("kendoListView"),
-            selectedRow = listView.select(),
-            item;
+        const self = this as kendo.data.Binder;
+        const listView: kendo.ui.ListView = $(self.element).data("kendoListView");
+        const selectedRow: JQuery = listView.select();
+        const item: any = listView.dataSource.getByUid(selectedRow.data("uid"));
+        self.bindings.selectedItem.set(item); // update the ViewModel
+    }
+});
 
-        item = listView.dataSource.getByUid(selectedRow.data("uid"));
-        self.bindings.selectedItem.set(item); //update the ViewModel
+// Chrome & Firefox event order:
+// 1 focus (focusing)
+// 2 focusin (focused)
+// 3 blur  (focusLeaving)
+// 4 focusout (focusLeft)
+// NOTE that the event order is messed up across browsers.
+//   See https://gist.github.com/rodneyrehm/46e03d6e077257daa04c
+
+// cevalue == contentEditable value
+(kendo.data as any).binders.cetext = kendo.data.Binder.extend({
+    init: function (element, bindings, options) {
+        const self = this as kendo.data.Binder;
+        // call the base constructor
+        kendo.data.Binder.fn.init.call(this, element, bindings, options);
+
+        self.element.addEventListener("blur", e => {
+            (self as any).change();
+        });
+
+        self.element.addEventListener("keyup", e => {
+            if (e.keyCode === 13) {
+                (self as any).change();
+            }
+        });
+
+        //const $el = $(self.element);
+        //$el.on("focusout", function () {
+        //    (self as any).change();
+        //}).on("keyup", function (e) {
+        //    if (e.keyCode === 13) {
+        //        (self as any).change();
+        //    }
+        //});
+    },
+    refresh: function () {
+        // Update the HTML
+        const self = this as kendo.data.Binder;
+        const text = self.bindings["cetext"].get();
+        self.element.textContent = text;
+    },
+    change: function () {
+        // Update the view model
+        const self = this as kendo.data.Binder;
+        const text = self.element.textContent;
+        self.bindings["cetext"].set(text);
     }
 });
 

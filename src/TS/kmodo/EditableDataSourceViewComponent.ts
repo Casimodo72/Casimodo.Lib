@@ -65,7 +65,7 @@
                 errorMessage: null
             };
 
-            this.on("argsChanged", (e) => {
+            this.on("argsChanged", e => {
                 this._iedit.mode = this.args.mode as EditModeKeys;
 
                 if (this._iedit.mode === "modify")
@@ -88,18 +88,18 @@
         // override
         protected extendDataSourceOptions(options: kendo.data.DataSourceOptions) {
             // Attach event handlers.
-            options.change = this._eve(this.onDataSourceChanged);
-            options.sync = this._eve(this.onDataSourceSync);
-            options.requestStart = this._eve(this.onDataSourceRequestStart);
-            options.requestEnd = this._eve(this.onDataSourceRequestEnd);
-            options.error = this._eve(this.onDataSourceError);
+            options.change = e => this.onDataSourceChanged(e);
+            options.sync = e => this.onDataSourceSync(e);
+            options.requestStart = e => this.onDataSourceRequestStart(e);
+            options.requestEnd = e => this.onDataSourceRequestEnd(e);
+            options.error = e => this.onDataSourceError(e);
         }
 
         protected _delete() {
             if (this._iedit.mode !== "modify" || !this.auth.canDelete || !this._iedit.canDelete)
                 return;
 
-            const item = this.getCurrentItem();
+            const item = this.getCurrent();
             if (!item)
                 return;
 
@@ -178,7 +178,7 @@
                 // Add delete button at bottom-left position.
                 $('<a class="k-button k-button-icontext" style="float:left" href="#"><span class="k-icon k-delete"></span>Löschen</a>')
                     .appendTo(this.$view.find(".k-edit-buttons"))
-                    .on("click", (e) => {
+                    .on("click", e => {
                         this._delete();
                     });
             }
@@ -190,7 +190,7 @@
         // kendo.data.DataSource events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         protected onDataSourceChanged(e) {
-            this.setCurrentItem(this.dataSource.data()[0] || null);
+            this.setCurrent(this.dataSource.data()[0] || null);
         }
 
         private onDataSourceSync(e) {
@@ -252,7 +252,7 @@
 
         _setNestedItem(prop: string, foreignKey: string, referencedKey: string, odataQuery: string, assignments?: PropAssignment[]) {
 
-            const item: kendo.data.Model = this.getCurrentItem();
+            const item: kendo.data.Model = this.getCurrent();
             if (!item)
                 return;
 
