@@ -33,7 +33,7 @@
         isTagsFilterEnabled?: boolean;
         $component?: JQuery;
         useRemoveCommand?: boolean;
-       
+
         bindRow?: boolean | Function;
         gridOptions?: (e: DataSourceViewEvent) => kendo.ui.GridOptions;
         companyId?: string;
@@ -43,16 +43,16 @@
         sender: Grid;
     }
 
-    interface NavigateToEditorFormOptions extends NavigateToViewOptions {
-    }
+    export interface GridCommand extends GenericComponentCommand<Grid, GridEvent> { }
 
     export class Grid extends DataSourceViewComponent {
         private _kendoGrid: kendo.ui.Grid;
+        private _$commandBox: JQuery;
         protected _options: GridOptions;
         private expandedKeys: string[];
         private _filterCommands: CustomFilterCommandInfo[] = [];
-        private _customCommands: CustomCommand[];
-        private _customRowCommands: any[];
+        private _commands: GridCommand[];
+        private _rowCommands: GridCommand[];
         private _state: InternalGridState;
         public selectionManager: GridSelectionManager;
         private _isItemRemoveCommandEnabled: boolean;
@@ -75,8 +75,8 @@
 
             this.selectionMode = options.selectionMode || "single";
 
-            this._customCommands = [];
-            this._customRowCommands = [];
+            this._commands = [];
+            this._rowCommands = [];
 
             this._state = {
                 gridDataBindAction: null,
@@ -554,7 +554,7 @@
 
             this._state.isEditing = true;
 
-            const editorOptions: NavigateToEditorFormOptions = {
+            const editorOptions: NavigateToViewOptions = {
                 mode: mode,
                 itemId: item ? item[this.keyName] : null,
                 // Allow deletion if authorized.
@@ -686,40 +686,46 @@
             return !!this._options.tagsEditorId;
         }
 
-        registerCustomCommand(name: string, execute: Function): void {
-            this._customCommands.push({
+        addCommand(name: string, title: string, execute: (e: GridEvent) => void) {
+            const cmd: GridCommand = {
                 name: name,
-                execute: execute || null
+                title: title,
+                execute: execute
+            };
+            this._commands.push(cmd);
+
+            // Add command button to grid header.
+            const $btn = $(`<button type='button' class='k-button btn custom-command' data-command-name='${cmd.name}'>${cmd.title}</button>`);
+
+            $btn.on("click", e => {
+                const cmdName = $(e.currentTarget).attr("data-command-name");
+                this._executeCommand(cmdName);
             });
+
+            $btn.insertBefore(this._$commandBox.children().first());
         }
 
-        private _executeCustomCommand(name: string): void {
-            const cmd = this._customCommands.find(x => x.name === name);
+        private _executeCommand(name: string, data: any = null): void {
+            const cmd = this._commands.find(x => x.name === name);
             if (!cmd)
                 return;
 
             if (!cmd.execute)
                 return;
 
-            cmd.execute();
+            cmd.execute({ sender: this, data: data });
+        }
+
+        addRowCommand(cmd: GridCommand) {
+            this._rowCommands.push(cmd);
         }
 
         private _executeRowCommand(name: string, dataItem: any): void {
-            const cmd = this._customRowCommands.find(x => x.name === name);
-            if (!cmd)
+            const cmd = this._rowCommands.find(x => x.name === name);
+            if (!cmd || !cmd.execute)
                 return;
 
-            if (!cmd.execute)
-                return;
-
-            cmd.execute(dataItem);
-        }
-
-        addRowCommandHandler(name: string, execute: Function): void {
-            this._customRowCommands.push({
-                name: name,
-                execute: execute || null
-            });
+            cmd.execute({ sender: this, data: dataItem });
         }
 
         exportDataTo(target: string): void {
@@ -749,7 +755,7 @@
             if (this._isViewInitialized)
                 return;
             this._isViewInitialized = true;
-            
+
             // Process navigation args
             const naviArgs = cmodo.navigationArgs.consume(this._options.id);
             if (naviArgs && naviArgs.itemId) {
@@ -768,17 +774,22 @@
                     this._setCoreFilterNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
             }
 
-            let $component = this._options.$component || null;
+            let $grid = this._options.$component || null;
 
             // Find the element of the grid.
-            if (!$component)
-                $component = $("#grid-" + this._options.id);
+            if (!$grid)
+                $grid = $("#grid-" + this._options.id);
+
+            this.$view = $grid;
 
             const kendoGridOptions = this._initOptions();
 
             // Create the Kendo Grid.
-            this._kendoGrid = $component.kendoGrid(kendoGridOptions).data('kendoGrid');
+            this._kendoGrid = $grid.kendoGrid(kendoGridOptions).data('kendoGrid');
             this.dataSource = this._kendoGrid.dataSource;
+
+            // Commands in grid header.
+            this._$commandBox = this.$view.find(".km-grid-tools-right");
 
             if (kendoGridOptions.selectable === "row") {
                 this.grid().tbody.on("mousedown", "tr[role=row]", e => {
@@ -901,7 +912,7 @@
             // Init custom command buttons on the grid's toolbar.
 
             $toolbar.find(".custom-command").on("click", e => {
-                this._executeCustomCommand($(e.currentTarget).attr("data-command-name"));
+                this._executeCommand($(e.currentTarget).attr("data-command-name"));
             });
 
             if (!this._options.isLookup) {
@@ -916,71 +927,8 @@
                     return false;
                 });
 
-                // Edit tags context menu action.
-                if (this._options.hasRowContextMenu) {
-                    const $contextMenu = $component.parent().find("#row-context-menu-grid-" + this._options.id);
-                    $contextMenu.kendoContextMenu({
-                        target: $component,
-                        filter: "tr[role=row]",
-                        open: e => {
-                            // const menu = e.sender;
-                            // const name = $(e.item).data("name");
-                            // const dataItem = this.grid().dataItem(e.target);
-
-                            // TODO: IMPORTANT: Apply auth.
-                            // kmodo.enableContextMenuItems(menu, "EditTags", xyz);
-                        },
-                        select: e => {
-                            // const menu = e.sender;
-                            const name = $(e.item).data("name");
-                            const dataItem = this.grid().dataItem(e.target);
-
-                            // KABU TODO: This may be just a temporary hack.
-                            //   We could/should use a service instead in the future.
-                            if (name === "EditTags" && this._isTaggable()) {
-                                // Open tags (MoTags) editor.
-                                kmodo.openById(this._options.tagsEditorId,
-                                    {
-                                        itemId: dataItem[this.keyName],
-                                        filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, dataItem[COMPANY_REF_FIELD]),
-                                        // TODO: LOCALIZE
-                                        title: "Tags bearbeiten",
-
-                                        minWidth: 400,
-                                        minHeight: 500,
-
-                                        options: {
-                                            isLocalTargetData: !!this._options.isLocalData,
-                                            isCustomSave: !!this._options.isLocalData
-                                        },
-
-                                        finished2: e => {
-                                            if (e.result.isOk) {
-                                                // TODO: IMPORTANT: MAGIC ToTags. Move to entity mapping service somehow.
-                                                if (this._options.isLocalData &&
-                                                    typeof dataItem["ToTags"] !== "undefined" &&
-                                                    e.result.items &&
-                                                    e.result.items.length) {
-
-                                                    // Local data: add tags to entity.
-                                                    const tags = e.result.items.map(x => x.toJSON());
-                                                    const tagLinks = cmodo.entityMappingService.createLinksForTags(this._options.dataTypeId, dataItem[this.keyName], tags);
-
-                                                    dataItem.set("ToTags", tagLinks);
-                                                }
-
-                                                this.refresh();
-                                            }
-                                        }
-                                    });
-                            }
-                            else {
-                                // Custom row commands.
-                                this._executeRowCommand(name, dataItem);
-                            }
-                        }
-                    });
-                }
+                // Row commands
+                this._initRowContextMenu();
             }
 
             this.grid().tbody.on("click", "span.km-page-navi", kmodo.onPageNaviEvent);
@@ -993,6 +941,113 @@
 
             if (this._options.isDialog)
                 this._initViewAsDialog();
+        }
+
+        private _initRowContextMenu(): void {
+            if (this._options.isTaggable && !!this._options.tagsEditorId) {
+                // Insert built-in "edit tags" command.
+                this._rowCommands.splice(0, 0, {
+                    name: "EditTags",
+                    title: "Tags(Markierungen)",
+                    execute: (e) => {
+                        this._editTags(e.data);
+                    }
+                });
+            }
+
+            //if (!this._rowCommands.length) {
+            //    // No commands no context menu.
+            //    return;
+            //}
+
+            // Create menu element.
+            // id='row-context-menu-grid-d9d90acb-f062-4f02-bed4-7266b0fa86b4'
+            const $menu = $("<ul style='text-wrap:none;min-width:150px;display:none'></ul>");
+            // TODO: REMOVE: const $menu = this.$view.parent().find("#row-context-menu-grid-" + this._options.id);
+
+            // Add row commands to context menu.
+            //for (const cmd of this._rowCommands) {
+            //    $menu.append(`<li data-name="${cmd.name}">${cmd.title}</li>`);
+            //}
+
+            // Add menu element as next sibling of grid element.
+            $menu.insertAfter(this.$view);
+
+            // Create context menu.
+            $menu.kendoContextMenu({
+                target: this._kendoGrid.element,
+                filter: "tr[role=row]",
+                open: e => {
+                    if (!this._rowCommands.length) {
+                        // No commands -> no context menu.
+                        e.preventDefault();
+                        return;
+                    }
+
+                    const menu = e.sender;
+
+                    // Clear existing commands.
+                    menu.element.empty();
+
+                    // Add row commands
+                    for (const cmd of this._rowCommands) {
+                        menu.element.append(`<li class="k-item k-state-default k-first k-last" role="menuitem" data-name="${cmd.name}"><span class="k-link">${cmd.title}</span></li>`)
+                        //menu.append({
+                        //    text: cmd.title,
+                        //    // TODO: REVISIT: using attr does not work with out Kendo version.
+                        //    //attr: {
+                        //    //    'data-name': cmd.name
+                        //    //}
+                        //}, null).element.data("name", cmd.name);                       
+                    }
+
+                    // TODO: REVISIT: Anything to do here? Maybe apply auth? Let the command enabled/disable itself?
+                },
+                select: e => {
+                    // const menu = e.sender;
+                    const name = $(e.item).data("name");
+                    const dataItem = this.grid().dataItem(e.target);
+
+                    this._executeRowCommand(name, dataItem);
+                }
+            });
+        }
+
+        private _editTags(dataItem: any): void {
+            // Open tags (MoTags) editor.
+            kmodo.openById(this._options.tagsEditorId, {
+                itemId: dataItem[this.keyName],
+                filters: kmodo.buildTagsDataSourceFilters(this._options.dataTypeId, dataItem[COMPANY_REF_FIELD]),
+                // TODO: LOCALIZE
+                title: "Tags bearbeiten",
+
+                minWidth: 400,
+                minHeight: 500,
+
+                options: {
+                    isLocalTargetData: !!this._options.isLocalData,
+                    isCustomSave: !!this._options.isLocalData
+                },
+
+                finished2: e => {
+                    if (e.result.isOk) {
+                        // TODO: IMPORTANT: MAGIC ToTags. Move to entity mapping service somehow.
+                        if (this._options.isLocalData &&
+                            typeof dataItem["ToTags"] !== "undefined" &&
+                            e.result.items &&
+                            e.result.items.length) {
+
+                            // Local data: add tags to entity.
+                            const tags = e.result.items.map(x => x.toJSON());
+                            const tagLinks = cmodo.entityMappingService.createLinksForTags(this._options.dataTypeId, dataItem[this.keyName], tags);
+
+                            dataItem.set("ToTags", tagLinks);
+                        }
+
+                        this.refresh();
+                    }
+                }
+            });
         }
 
         updateSize() {
@@ -1109,8 +1164,8 @@
         private _initFilterCommands($toolbarLeft: JQuery): void {
             // Add deactivatable filter buttons to the grid's toolbar.
 
-            const commands: CustomFilterCommand[] = this.args.filterCommands;
-            if (!commands)
+            const commands = this.args.filterCommands;
+            if (!commands || !commands.length)
                 return;
 
             // Ensure group prop.
@@ -1191,7 +1246,7 @@
             }
         }
 
-        private _createFilterCommandUI(cmd: CustomFilterCommand, active: boolean): JQuery {
+        private _createFilterCommandUI(cmd: ComponentCommand, active: boolean): JQuery {
             const activeClass = active ? " km-active-toggle-button" : "";
             return $(`<button class='k-button${activeClass}'>${cmd.title}</button>`);
         }

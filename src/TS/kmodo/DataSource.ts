@@ -149,31 +149,28 @@ namespace kmodo {
 
     export type DataSourceFilterOneOrMany = DataSourceFilterNode | DataSourceFilterNode[];
 
-    export function buildTagsDataSourceFilters(dataTypeId: string, companyId?: string): DataSourceFilterNode {
+    export function buildTagsDataSourceFilters(dataTypeId: string, companyId?: string): DataSourceFilterNode[] {
+        const filters: DataSourceFilterNode[] = [];
 
-        const assignableFilter: DataSourceFilterNode = {
+        filters.push({
             field: "AssignableToTypeId",
             operator: "eq",
             value: dataTypeId
-        };
+        });
 
         if (!companyId)
-            return assignableFilter;
+            return filters;
 
         // Combine with persistent company filter.
 
-        return {
-            logic: "and",
+        filters.push({
+            logic: "or",
             filters: [
-                assignableFilter,
-                {
-                    logic: "or",
-                    filters: [
-                        { field: COMPANY_REF_FIELD, operator: "eq", value: companyId, _id: COMPANY_FILTER_ID, _persistent: true },
-                        { field: COMPANY_REF_FIELD, operator: "eq", value: null }]
-                }
-            ]
-        };
+                { field: COMPANY_REF_FIELD, operator: "eq", value: companyId, _id: COMPANY_FILTER_ID, _persistent: true },
+                { field: COMPANY_REF_FIELD, operator: "eq", value: null }]
+        });
+
+        return filters;
     }
 
     // NOTE: Kendo will normalize an array of DataSourceFilterItem.

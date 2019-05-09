@@ -7,10 +7,6 @@
         url?: string
     }
 
-    export interface ViewComponentEvent {
-        sender: ViewComponent;
-    }
-
     export interface ViewComponentOptions {
         id?: string;
         viewId?: string;
@@ -34,21 +30,35 @@
         $el: JQuery
     }
 
-    export interface CustomCommand {
-        name: string;
-        group?: string;
-        execute: Function;
+    export interface ComponentEvent {
+        sender: any;
     }
 
-    export interface CustomFilterCommand extends CustomCommand {
+    export interface GenericComponentEvent<TComponent extends ViewComponent> extends ComponentEvent {
+        sender: TComponent;
+    }
+
+    export interface ComponentCommand {
+        name: string;
         title: string;
+        group?: string;
+
         deactivatable?: boolean;
         hideOnDeactivated?: boolean;
-        filter: DataSourceFilterNode;
+        filter?: DataSourceFilterNode;
+
+        execute: (e: any) => void;
+    }
+
+    export interface GenericComponentCommand<
+        TComponent extends ViewComponent,
+        TEvent extends GenericComponentEvent<TComponent>
+        > extends ComponentCommand {
+        execute: (e: TEvent) => void;
     }
 
     export interface CustomFilterCommandInfo {
-        command: CustomFilterCommand;
+        command: ComponentCommand;
         $btn: JQuery;
     }
 
@@ -61,7 +71,7 @@
         item?: any;
         itemId?: string;
         filters?: DataSourceFilterNode[];
-        filterCommands?: CustomFilterCommand[];
+        filterCommands?: ComponentCommand[];
         isCancelled?: boolean;
         isOk?: boolean;
         buildResult?: Function;
@@ -86,8 +96,8 @@
 
     export abstract class ViewComponent extends cmodo.ViewComponent implements IViewComponent {
         protected _options: ViewComponentOptions;
-        $view: JQuery = null;
-        scope: any = null;
+        $view: JQuery = null;        
+        scope: any = null;       
         // Core filters are provided via options.
         private readonly _coreFilters: DataSourceFilterNode[] = [];
         // Internal filters are filters handled by the component itself.
@@ -136,11 +146,6 @@
 
             if (!args)
                 return;
-
-            // TODO: REMOVE:
-            //if (args.filters) {
-            //    this.setFilter(args.filters);
-            //}
 
             // Dialog result builder function.
             if (this._options.isDialog) {
@@ -215,7 +220,7 @@
             cmodo.clearArray(filterSlot);
             filterSlot.push(...filters);
         }
-        
+
         protected _clearFilterCore(slot: ComponentFilterSlot): void {
             cmodo.clearArray(this._getFilterSlot(slot));
         }

@@ -63,7 +63,7 @@
     }
 
     export interface MoTagFilterSelectorOptions {
-        filters?: DataSourceFilterNode,
+        filters?: DataSourceFilterNode[],
         changed?: (tagIds: string[]) => void,
         autoBind?: boolean;
     }

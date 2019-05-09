@@ -19,7 +19,7 @@
         finished?: (result: any) => void;
         finished2?: (e: NavigateToViewResultEvent) => void;
         value?: any;
-        filters?: any;
+        filters?: DataSourceFilterNode[];
         filterCommands?: any;
         params?: any;
         title?: string;

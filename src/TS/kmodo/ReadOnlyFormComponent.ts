@@ -4,11 +4,18 @@
         editor?: EditorInfo;
     }
 
+    export interface ReadOnlyFormEvent extends DataSourceViewEvent {
+        sender: ReadOnlyForm;
+    }
+
+    export interface ReadOnlyFormCommand extends GenericComponentCommand<ReadOnlyForm, ReadOnlyFormEvent> { }
+
     export class ReadOnlyForm extends DataSourceViewComponent {
         protected _options: FormReadOnlyFormOptions;
-        private $toolbar: JQuery;
+        private _$toolbar: JQuery;
+        private _$commandBox: JQuery;
         private _renderers: CustomPropViewComponentInfo[];
-        private _customCommands: any[];
+        private _commands: ReadOnlyFormCommand[];
 
         constructor(options: FormReadOnlyFormOptions) {
             super(options);
@@ -16,21 +23,44 @@
             // TODO: REMOVE: this._options = super._options as FormReadOnlyViewOptions;
 
             this.$view = null;
-            this.$toolbar = null;
+            this._$toolbar = null;
             this._renderers = [];
-            this._customCommands = [];
+            this._commands = [];
             this.createDataSource();
         }
 
-        registerCustomCommand(name: string, execute: Function) {
-            this._customCommands.push({
+        addCommand(name: string, title: string, execute: (e: ReadOnlyFormEvent) => void) {
+            const cmd: ReadOnlyFormCommand = {
                 name: name,
-                execute: execute || null
+                title: title,
+                execute: execute
+            };
+            this._commands.push(cmd);
+
+            // Add command button to form header.
+            const $btn = $(`<button type='button' class='k-button btn custom-command' data-command-name='${cmd.name}'>${cmd.title}</button>`);
+
+            $btn.on("click", e => {
+                const cmdName = $(e.currentTarget).attr("data-command-name");
+                this._executeCommand(cmdName);
             });
+
+            $btn.insertBefore(this._$commandBox.children().first());
+        }
+
+        private _executeCommand(name: string, data: any = null): void {
+            const cmd = this._commands.find(x => x.name === name);
+            if (!cmd)
+                return;
+
+            if (!cmd.execute)
+                return;
+
+            cmd.execute({ sender: this, data: data });
         }
 
         setTitle(title: string) {
-            this.$toolbar.find(".details-view-title").text(title || null);
+            this._$toolbar.find(".details-view-title").text(title || null);
         }
 
         protected createDataSourceOptions(): kendo.data.DataSourceOptions {
@@ -74,7 +104,7 @@
             }
 
             // Init edit button.
-            const $editBtn = this.$toolbar.find(".edit-command");
+            const $editBtn = this._$toolbar.find(".edit-command");
             if (this.auth.canModify && this._options.editor) {
                 $editBtn.on("click", e => {
                     this._openEditor();
@@ -120,42 +150,28 @@
             this.$view.find('.remove-on-Read').remove();
         }
 
-        private _executeCustomCommand(name: string) {
-            const cmd = this._customCommands.find(x => x.name === name);
-            if (!cmd)
-                return;
-
-            if (!cmd.execute)
-                return;
-
-            cmd.execute();
-        }
-
         // override
         createView() {
-            if (this._isViewInitialized) return
+            if (this._isViewInitialized)
+                return;
             this._isViewInitialized = true;
 
             this.$view = $("#details-view-" + this._options.id);
+            this._$commandBox = this.$view.find(".details-view-commands");
 
             this._prepareView();
 
             this._initTextRenderers();
 
             // Toolbar commands.
-            this.$toolbar = this.$view.find(".details-view-toolbar");
+            this._$toolbar = this.$view.find(".details-view-toolbar");
             // Refresh command.
-            this.$toolbar.find(".refresh-command").on("click", e => {
+            this._$toolbar.find(".refresh-command").on("click", e => {
                 kmodo.progress(true, this.$view);
                 this.refresh()
                     .finally(() => {
                         kmodo.progress(false, this.$view);
                     });
-            });
-            // Custom commands.
-            this.$toolbar.find(".custom-command").on("click", e => {
-                const commandName = $(e.currentTarget).attr("data-command-name");
-                this._executeCustomCommand(commandName);
             });
 
             this.setTitle(this._options.title);

@@ -162,7 +162,7 @@
     init: function (widget, bindings, options) {
         const self = this as kendo.data.Binder;
         // call the base constructor
-        kendo.data.Binder.fn.init.call(this, widget.element[0], bindings, options);    
+        kendo.data.Binder.fn.init.call(this, widget.element[0], bindings, options);
 
         // (this as any).set("indexxxx",  1);
 
@@ -209,37 +209,27 @@
 // NOTE that the event order is messed up across browsers.
 //   See https://gist.github.com/rodneyrehm/46e03d6e077257daa04c
 
-// cevalue == contentEditable value
+// cetext == contentEditable text
 (kendo.data as any).binders.cetext = kendo.data.Binder.extend({
     init: function (element, bindings, options) {
         const self = this as kendo.data.Binder;
-        // call the base constructor
         kendo.data.Binder.fn.init.call(this, element, bindings, options);
+
+        self.element.addEventListener("keydown", e => {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).blur();
+            }
+        });
 
         self.element.addEventListener("blur", e => {
             (self as any).change();
         });
-
-        self.element.addEventListener("keyup", e => {
-            if (e.keyCode === 13) {
-                (self as any).change();
-            }
-        });
-
-        //const $el = $(self.element);
-        //$el.on("focusout", function () {
-        //    (self as any).change();
-        //}).on("keyup", function (e) {
-        //    if (e.keyCode === 13) {
-        //        (self as any).change();
-        //    }
-        //});
     },
     refresh: function () {
         // Update the HTML
         const self = this as kendo.data.Binder;
-        const text = self.bindings["cetext"].get();
-        self.element.textContent = text;
+        self.element.textContent = self.bindings["cetext"].get().trim();
     },
     change: function () {
         // Update the view model

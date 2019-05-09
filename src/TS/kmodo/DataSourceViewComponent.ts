@@ -1,6 +1,6 @@
 ﻿namespace kmodo {
 
-    export interface DataSourceViewEvent extends ViewComponentEvent {
+    export interface DataSourceViewEvent extends ComponentEvent {
         sender: DataSourceViewComponent;
         data?: any;
     }
@@ -345,12 +345,12 @@
             return message;
         }
 
-        protected _addCommandFilter(cmd: CustomFilterCommand): void {
+        protected _addCommandFilter(cmd: ComponentCommand): void {
             // NOTE: command filters are treated as external filters.
             this._setCoreFilterNode(cmd.filter._id, cmd.filter);
         }
 
-        protected _removeCommandFilter(cmd: CustomFilterCommand): void {
+        protected _removeCommandFilter(cmd: ComponentCommand): void {
             // NOTE: command filters are treated as external filters.
             this._removeCoreFilterNode(cmd.filter._id);
         }

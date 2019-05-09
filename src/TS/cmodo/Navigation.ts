@@ -1,7 +1,6 @@
 ﻿
 namespace cmodo {
     export class DialogArgs {
-
         id: string;
         value: any;
         values: any[];
