@@ -241,7 +241,7 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojViewCommand> CustomCommands { get; set; } = new List<MojViewCommand>();
 
-        public List<MojViewCommand> ListItemCommands { get; set; } = new List<MojViewCommand>();
+        // TODO: REMOVE: public List<MojViewCommand> ListItemCommands { get; set; } = new List<MojViewCommand>();
 
         public bool CanCreate { get; set; }
 
@@ -316,10 +316,11 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsTaggable { get; set; }
 
-        public bool HasListItemContextMenu
-        {
-            get { return IsTaggable || ListItemCommands.Count != 0; }
-        }
+        // TODO: REMOVE
+        //public bool HasListItemContextMenu
+        //{
+        //    get { return IsTaggable || ListItemCommands.Count != 0; }
+        //}
 
         public bool IsAuthEnabled { get; set; } = true;
         public bool IsAuthAmbientForGroup { get; set; }

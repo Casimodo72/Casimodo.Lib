@@ -350,7 +350,7 @@ namespace Casimodo.Lib.Mojen
                 if (view.ItemSelection.IsMultiselect && view.ItemSelection.UseCheckBox)
                     O("selectionMode: 'multiple',");
 
-                O("hasRowContextMenu: {0},", Moj.JS(context.View.HasListItemContextMenu));
+                // TODO: REMOVE: O("hasRowContextMenu: {0},", Moj.JS(context.View.HasListItemContextMenu));
                 // Tags
                 O("isTaggable: {0},", Moj.JS(view.IsTaggable));
                 O("isTagsFilterEnabled: {0},", Moj.JS(view.IsTagsFilterEnabled));

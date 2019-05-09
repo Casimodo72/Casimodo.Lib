@@ -632,36 +632,39 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder CustomCommand(string name, string displayName)
-        {
-            View.CustomCommands.Add(new MojViewCommand
-            {
-                Name = name,
-                DisplayName = displayName
-            });
+        // TODO: REMOVE?
+        //public MojViewBuilder CustomCommand(string name, string displayName)
+        //{
+        //    View.CustomCommands.Add(new MojViewCommand
+        //    {
+        //        Name = name,
+        //        DisplayName = displayName
+        //    });
 
-            return this;
-        }
+        //    return this;
+        //}
 
-        public MojViewBuilder ListItemCommand(string name, string displayName)
-        {
-            View.ListItemCommands.Add(new MojViewCommand
-            {
-                Name = name,
-                DisplayName = displayName
-            });
+        // TODO: REMOVE?
+        //public MojViewBuilder ListItemCommand(string name, string displayName)
+        //{
+        //    View.ListItemCommands.Add(new MojViewCommand
+        //    {
+        //        Name = name,
+        //        DisplayName = displayName
+        //    });
 
-            return this;
-        }
+        //    return this;
+        //}
 
-        public MojViewBuilder RemoveListItemCommand(string name)
-        {
-            var cmd = View.ListItemCommands.FirstOrDefault(x => x.Name == name);
-            if (cmd != null)
-                View.ListItemCommands.Remove(cmd);
+        // TODO: REMOVE?
+        //public MojViewBuilder RemoveListItemCommand(string name)
+        //{
+        //    var cmd = View.ListItemCommands.FirstOrDefault(x => x.Name == name);
+        //    if (cmd != null)
+        //        View.ListItemCommands.Remove(cmd);
 
-            return this;
-        }
+        //    return this;
+        //}
 
         public MojViewBuilder Content(Action<MojViewBuilder> build)
         {
@@ -691,14 +694,6 @@ namespace Casimodo.Lib.Mojen
                 return this;
 
             View.IsTaggable = value;
-
-            if (value)
-            {
-                // KABU TODO: LOCALIZE?
-                ListItemCommand("EditTags", "Tags setzen (Markierungen)");
-            }
-            else
-                RemoveListItemCommand("EditTags");
 
             return this;
         }

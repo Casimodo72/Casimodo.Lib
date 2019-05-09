@@ -158,23 +158,24 @@ namespace Casimodo.Lib.Mojen
             // Container element for the Kendo grid widget.
             O($"<div id='{context.ComponentId}' class='component-root'></div>");
 
-            if (context.View.HasListItemContextMenu)
-            {
-                O();
-                // KABU TODO: Currently just a hack.
-                // Add a row context menu in order to edit the tags of the selected data item.
-                O("<ul id='row-context-menu-{0}' style='text-wrap:none;min-width:150px;display:none'>",
-                    context.ComponentId);
-                Push();
+            // TODO: REMOVE
+            //if (context.View.HasListItemContextMenu)
+            //{
+            //    O();
+            //    // KABU TODO: Currently just a hack.
+            //    // Add a row context menu in order to edit the tags of the selected data item.
+            //    O("<ul id='row-context-menu-{0}' style='text-wrap:none;min-width:150px;display:none'>",
+            //        context.ComponentId);
+            //    Push();
 
-                foreach (var cmd in context.View.ListItemCommands)
-                {
-                    O($"<li data-name='{cmd.Name}'>{cmd.DisplayName}</li>");
-                }
+            //    foreach (var cmd in context.View.ListItemCommands)
+            //    {
+            //        O($"<li data-name='{cmd.Name}'>{cmd.DisplayName}</li>");
+            //    }
 
-                Pop();
-                O("</ul>");
-            }
+            //    Pop();
+            //    O("</ul>");
+            //}
 
             // Details view Kendo template
             if (context.View.InlineDetailsView != null)
