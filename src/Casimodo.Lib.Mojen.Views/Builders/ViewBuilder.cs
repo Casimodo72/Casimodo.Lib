@@ -713,6 +713,15 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        /// <summary>
+        /// The view's controller method is custom and will not be generated.
+        /// </summary>        
+        public MojViewBuilder CustomControllerMethod()
+        {
+            View.IsCustomControllerMethod = true;
+            return this;
+        }
+
         public MojViewBuilder Escape(bool escape)
         {
             View.IsEscapingNeeded = escape;

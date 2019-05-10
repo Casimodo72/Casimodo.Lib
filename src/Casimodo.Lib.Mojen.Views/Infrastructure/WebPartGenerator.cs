@@ -499,7 +499,7 @@ namespace Casimodo.Lib.Mojen
         public void OMvcPartialView(string virtualPath, bool kendoEscape = false)
         {
             if (kendoEscape)
-                O($@"@(await @Html.PartialAsync(""{virtualPath}"")).ToKendoTemplate()");
+                O($@"@((await @Html.PartialAsync(""{virtualPath}"")).ToKendoTemplate())");
             else
                 O($@"<partial name=""{virtualPath}""/>");
         }

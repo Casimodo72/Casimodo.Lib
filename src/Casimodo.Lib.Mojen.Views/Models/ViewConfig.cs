@@ -273,6 +273,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsMaximized { get; set; }
 
         public bool IsCustom { get; set; }
+        public bool IsCustomControllerMethod { get; set; }
 
         public bool IsSingle { get; set; }
 
