@@ -2,12 +2,22 @@
 
     interface NavigateToViewEventOptions {
         editing?: Function;
+        dataChanging?: Function;
+        dataChange?: Function;
+        validating?: Function;
         saved?: Function;
     }
 
     export interface NavigateToViewResultEvent {
         sender: any;
-        result: any;
+        result: NavigateToViewResult;
+    }
+
+    export interface NavigateToViewResult {
+        isOk?: boolean;
+        isDeleted?: boolean;
+        value?: any;
+        items?: any[];
     }
 
     export interface NavigateToViewOptions {
@@ -67,13 +77,13 @@
 
     type CachedComponentInfo = {
         id: string;
-        vm: any;
+        component: any;
         window?: kendo.ui.Window;
     }
 
     const _componentCache = new Array<CachedComponentInfo>();
 
-    function _openCore(reg: cmodo.ComponentRegItem, options: NavigateToViewOptions, finished?: (result: any) => void) {
+    function _openCore(reg: cmodo.ComponentInfo, options: NavigateToViewOptions, finished?: (result: any) => void) {
         if (!reg) return;
 
         options = options || {} as NavigateToViewOptions;
@@ -115,7 +125,7 @@
             args.title = options.title || null;
             args.message = options.message || null;
 
-            const vm = _createViewModel(reg, options);
+            const vm = _createComponent(reg, options);
             options.vm = vm;
             vm.setArgs(args);
 
@@ -130,7 +140,7 @@
             args.item = options.item;
             args.title = options.title || null;
 
-            const vm = _createViewModel(reg, options);
+            const vm = _createComponent(reg, options);
             options.vm = vm;
             vm.setArgs(args);
 
@@ -140,22 +150,22 @@
         }
     };
 
-    function _createViewModel(reg: cmodo.ComponentRegItem, options: NavigateToViewOptions): any {
-        let vm = null;
+    function _createComponent(reg: cmodo.ComponentInfo, options: NavigateToViewOptions): any {
+        let component = null;
         let cachedEntry: CachedComponentInfo = null;
 
         if (reg.isCached) {
             cachedEntry = _componentCache.find(x => x.id === reg.id);
             if (cachedEntry)
-                vm = cachedEntry.vm;
+                component = cachedEntry.component;
         }
 
-        if (!vm) {
-            vm = cmodo.componentRegistry.createViewModelOnly(reg, options.options);
+        if (!component) {
+            component = cmodo.componentRegistry.createComponent(reg, false, options.options);
         }
 
         if (reg.isCached && !cachedEntry) {
-            _componentCache.push({ id: reg.id, vm: vm });
+            _componentCache.push({ id: reg.id, component: component });
         }
 
         if (options.events) {
@@ -163,19 +173,26 @@
             if (reg.isCached)
                 throw new Error("Event assignment not allowed for cached view models.");
 
-            if (eves.editing) {
-                vm.on("editing", eves.editing);
-            }
+            if (eves.editing)
+                component.on("editing", eves.editing);
 
-            if (eves.saved) {
-                vm.on("saved", eves.saved);
-            }
+            if (eves.dataChanging)
+                component.on("dataChanging", eves.dataChanging);
+
+            if (eves.dataChange)
+                component.on("dataChange", eves.dataChange);
+
+            if (eves.validating)
+                component.on("validating", eves.validating);
+
+            if (eves.saved)
+                component.on("saved", eves.saved);
         }
 
-        return vm;
+        return component;
     };
 
-    function _openModalWindow(reg: cmodo.ComponentRegItem, options: NavigateToViewOptions,
+    function _openModalWindow(reg: cmodo.ComponentInfo, options: NavigateToViewOptions,
         args: cmodo.DialogArgs, loaded: Function) {
 
         let wnd: kendo.ui.Window = null;

@@ -112,7 +112,7 @@ namespace Casimodo.Lib.Mojen
                 return "Put";
         }
 
-        // KABU TODO: Not used anywhere.
+        // TODO: REMOVE? Not used anymore.
         public static string GetODataRouteForNextSequenceValue(this MojProp prop)
         {
             if (prop.IsModel()) throw new MojenException("The given property must not be a model.");
@@ -247,7 +247,7 @@ namespace Casimodo.Lib.Mojen
                     s.o("(");
 
                     // If x-to-many: filter out IsDeleted items.
-                    // KABU TODO: VERY IMPORTANT: Actually sometimes we need to include IsDeleted items.
+                    // TODO: VERY IMPORTANT: Actually sometimes we need to include IsDeleted items.
                     //   We need a configuration for this on the reference-definition.
                     if (reference.SourceProp.Reference.IsToMany)
                     {
@@ -294,7 +294,7 @@ namespace Casimodo.Lib.Mojen
                 case MexOp.LessOrEq: return "le";
                 case MexOp.And: return "and";
                 case MexOp.Or: return "or";
-                // KABU TODO: IMPL more operators?
+                // TODO: IMPL more operators?
                 default:
                     throw new NotImplementedException($"Conversion to OData operator of {op.ToString()} is not implemented.");
             }

@@ -1,16 +1,21 @@
 ﻿
 namespace kmodo {
 
-    export interface TabPageContentComponent extends kmodo.IViewComponent {
+    export interface ITabPageContentComponent extends kmodo.IViewComponent {
+        setFilter?(filter: DataSourceFilterOneOrMany): void;
     }
 
-    export interface MasterTabPageContentComponent extends TabPageContentComponent {
+    export interface IDetailTabPageContentComponent extends ITabPageContentComponent {
+    }
+
+    export interface IMasterTabPageContentComponent extends ITabPageContentComponent {
         getCurrent(): any;
     }
 
     export interface TabPageEventBase {
         tab: TabPage;
-        vm: ViewComponent;
+        componentAsAny: any;
+        component: ITabPageContentComponent;
     }
 
     export interface TabPageEvent extends TabPageEventBase {
@@ -19,55 +24,58 @@ namespace kmodo {
 
     export interface DetailTabPageEvent extends TabPageEventBase {
         sender: MasterDetailTabStrip;
+        component: IDetailTabPageContentComponent;
+        mcomponent?: IMasterTabPageContentComponent;
         master: any;
     }
 
-    export interface TabPageOptions {
-        icomponent?: cmodo.ComponentRegItem;
+    export interface TabPageOptionsBase<
+        TComponent extends ITabPageContentComponent,
+        TTabEvent extends TabPageEvent> {
         canShow?: boolean;
-        vm?: TabPageContentComponent | (() => TabPageContentComponent);
+        icomponent?: cmodo.ComponentInfo;
+        component?: TComponent | (() => TComponent);
         name?: string;
-        master?: boolean;       
-        init?: (e: TabPageEvent) => void;
-        filtering?: (e: TabPageEvent) => void;
-        filters?: (e: TabPageEvent) => DataSourceFilterNode[];
-        enter?: (e: TabPageEvent) => void;        
-        leave?: (e: TabPageEvent) => void;
-        leaveOrClear?: (e: TabPageEvent) => void;
-        clear?: (e: TabPageEvent) => void;
+        master?: boolean;
+        init?: (e: TTabEvent) => void;
+        filtering?: (e: TTabEvent) => void;
+        filters?: (e: TTabEvent) => DataSourceFilterNode[];
+        enter?: (e: TTabEvent) => void;
+        leave?: (e: TTabEvent) => void;
+        leaveOrClear?: (e: TTabEvent) => void;
+        autoClear?: boolean;
+        autoRefresh?: boolean;
+        clear?: (e: TTabEvent) => void;
         isEnabled?: boolean;
-        isMasterAffected?: boolean;
     }
 
-    export interface DetailTabPageOptions extends TabPageOptions {      
-        init?: (e: DetailTabPageEvent) => void;
-        filtering?: (e: DetailTabPageEvent) => void;
-        filters?: (e: DetailTabPageEvent) => DataSourceFilterNode[];
-        enter?: (e: DetailTabPageEvent) => void;       
-        leave?: (e: DetailTabPageEvent) => void;
-        leaveOrClear?: (e: DetailTabPageEvent) => void;
-        clear?: (e: DetailTabPageEvent) => void;
+    export interface TabPageOptions extends TabPageOptionsBase<ITabPageContentComponent, TabPageEvent> {
+    }
+
+    export interface DetailTabPageOptions extends TabPageOptionsBase<IDetailTabPageContentComponent, DetailTabPageEvent> {
+        isMasterAffected?: boolean;
     }
 
     export class TabPage extends cmodo.ComponentBase {
         owner: TabStrip;
-        icomponent: cmodo.ComponentRegItem;
+        icomponent: cmodo.ComponentInfo;
         iauth: cmodo.AuthQuery;
-        vm: TabPageContentComponent;
+        component: ITabPageContentComponent;
         name: string;
         master: boolean;
         init: (e: any) => void;
         filtering: (e: any) => void;
         filters: (e: any) => DataSourceFilterNode[];
         enter: (e: any) => void;
+        autoClear: boolean = true;
+        autoRefresh: boolean = true;
         clear: (e: any) => void;
         leave: (e: any) => void;
         leaveOrClear: (e: any) => void;
         isEnabled: boolean;
-        isMasterAffected: boolean;
         _isInitPerformed: boolean;
         _isRefreshPending: boolean;
-        _getVmOnDemand: Function;
+        _componentFactory: () => any;
         _canShow: boolean;
 
         constructor(options: TabPageOptions) {
@@ -77,11 +85,11 @@ namespace kmodo {
             this.icomponent = options.icomponent || null;
             this.name = options.name;
 
-            this._getVmOnDemand = null;
-            if (typeof options.vm === "function")
-                this._getVmOnDemand = options.vm;
+            this._componentFactory = null;
+            if (typeof options.component === "function")
+                this._componentFactory = options.component;
             else
-                this.vm = options.vm || null;
+                this.component = options.component || null;
 
             this._canShow = typeof options.canShow !== "undefined" ? !!options.canShow : true;
             this.master = !!options.master || false;
@@ -89,11 +97,13 @@ namespace kmodo {
             this.filters = options.filters || null;
             this.init = options.init || null;
             this.enter = options.enter || null;
+            this.autoClear = options.autoClear !== undefined ? options.autoClear : this.autoClear;
+            this.autoRefresh = options.autoRefresh !== undefined ? options.autoRefresh : this.autoRefresh;
             this.clear = options.clear || null;
             this.leave = options.leave || null;
             this.leaveOrClear = options.leaveOrClear || null;
             this.isEnabled = true;
-            this.isMasterAffected = options.isMasterAffected || false;
+
             this._isInitPerformed = false;
             this._isRefreshPending = false;
         }
@@ -117,19 +127,23 @@ namespace kmodo {
         }
 
         bindModel(): void {
-            if (this.vm && this.vm.getModel())
-                kendo.bind(this.getContentElem(), this.vm.getModel());
+            if (this.component && this.component.getModel())
+                kendo.bind(this.getContentElem(), this.component.getModel());
         }
 
         bind($elem: JQuery): void {
-            if ($elem !== null && this.vm && this.vm.getModel())
-                kendo.bind($elem, this.vm.getModel());
+            if ($elem && $elem.length && this.component && this.component.getModel())
+                kendo.bind($elem, this.component.getModel());
         }
     }
 
     export class DetailTabPage extends TabPage {
+        isMasterAffected: boolean;
+
         constructor(options: DetailTabPageOptions) {
             super(options);
+
+            this.isMasterAffected = options.isMasterAffected || false;
         }
     }
 
@@ -142,7 +156,7 @@ namespace kmodo {
     export class TabStrip extends cmodo.ComponentBase {
         protected _options: TabStripOptions;
         protected tabs: TabPage[];
-        protected component: kendo.ui.TabStrip;
+        protected _kendoTabStrip: kendo.ui.TabStrip;
         protected _currentTab: TabPage;
 
         constructor(options: TabStripOptions) {
@@ -199,11 +213,11 @@ namespace kmodo {
 
         // Hide the tab-strip so that only the page contents are visible.
         hideTabStrip(): void {
-            this.component.element.children("ul").hide();
+            this._kendoTabStrip.element.children("ul").hide();
         }
 
         private _initComponent(options: TabStripOptions): void {
-            this.component = options.$component.kendoTabStrip({
+            this._kendoTabStrip = options.$component.kendoTabStrip({
                 show: e => this.onTabActivated(e),
                 animation: getDefaultTabControlAnimation()
             }).data("kendoTabStrip");
@@ -221,7 +235,7 @@ namespace kmodo {
             // those pages to have the same hight as the whole Kendo tabstrip).
             // We have to adjust the pages programmatically on window resize.
             // https://docs.telerik.com/kendo-ui/controls/navigation/tabstrip/how-to/expand-height
-            const $tabstrip = this.component.element;
+            const $tabstrip = this._kendoTabStrip.element;
             const $tabs = $tabstrip.children(".k-content");
             const $visibleTab = $tabs.filter(":visible");
             const height = $tabstrip.innerHeight()
@@ -258,16 +272,20 @@ namespace kmodo {
 
             const tab = this.getTab(index);
 
-            if (tab.vm && tab.vm.clear)
-                tab.vm.clear();
+            this._tryClearTab(tab, true);
 
             this.tabs.splice(index, 1);
 
             this._removeTabElem(name);
         }
 
+        protected _tryClearTab(tab: TabPage, force: boolean = false): void {
+            if (tab.autoClear && tab.component && tab.component.clear)
+                tab.component.clear();
+        }
+
         private _removeTabElem(name: string): void {
-            this.component.remove(this.getIndexOfTabElementByName(name));
+            this._kendoTabStrip.remove(this.getIndexOfTabElementByName(name));
         }
 
         setTabVisible(name: string, value: boolean): void {
@@ -279,7 +297,7 @@ namespace kmodo {
         }
 
         private getIndexOfTabElementByName(name: string): number {
-            const elements = this.component.items();
+            const elements = this._kendoTabStrip.items();
             for (let i = 0; i < elements.length; i++) {
                 if ($(elements[i]).data("name") === name)
                     return i;
@@ -313,11 +331,11 @@ namespace kmodo {
         }
 
         getTabContentElem(name: string): JQuery {
-            return $(this.component.contentElement(this.getIndexOfTabElementByName(name)));
+            return $(this._kendoTabStrip.contentElement(this.getIndexOfTabElementByName(name)));
         }
 
         getTabElem(name: string): JQuery {
-            return $(this.component.items()[this.getIndexOfTabElementByName(name)]);
+            return $(this._kendoTabStrip.items()[this.getIndexOfTabElementByName(name)]);
         }
 
         getTab(nameOrIndex: number | string): TabPage {
@@ -344,11 +362,11 @@ namespace kmodo {
         }
 
         selectTab(name: string): void {
-            this.component.select(this.getIndexOfTabElementByName(name));
+            this._kendoTabStrip.select(this.getIndexOfTabElementByName(name));
         }
 
         selectTabAt(index: number): void {
-            this.component.select(index);
+            this._kendoTabStrip.select(index);
         }
 
         onTabActivated(e): void {
@@ -377,7 +395,10 @@ namespace kmodo {
             const tabEvent = this._createTabEvent(tab);
 
             // Apply filters
-            await this._applyTabFilter(tab, tabEvent);
+            this._setTabFilter(tab, tabEvent);
+
+            if (tab.autoRefresh)
+                await tab.component.refresh();
 
             // Trigger enter event
             if (tab.enter)
@@ -389,8 +410,8 @@ namespace kmodo {
 
             if (prevTab) {
 
-                if (this._canClearTab(prevTab) && prevTab.vm && prevTab.vm.clear)
-                    prevTab.vm.clear();
+                if (this._canClearTab(prevTab))
+                    this._tryClearTab(prevTab);
 
                 if (prevTab.leave)
                     prevTab.leave(this._createTabEvent(prevTab));
@@ -399,28 +420,34 @@ namespace kmodo {
                     prevTab.leaveOrClear(this._createTabEvent(prevTab));
             }
 
-            if (tab.master && tab._isRefreshPending) {
+            if (tab.master && tab._isRefreshPending && tab.autoRefresh) {
                 tab._isRefreshPending = false;
-                if (tab.vm)
-                    tab.vm.refresh();
+                if (tab.component)
+                    tab.component.refresh();
             }
 
             return true;
         }
 
-        protected async _applyTabFilter(tab: TabPage, event: any): Promise<void> {
-            if (!tab.vm || (!tab.filters && !tab.filtering))
+        protected _setTabFilter(tab: TabPage, event: any): void {
+            if (!tab.component || (!tab.filters && !tab.filtering))
                 return;
 
             if (tab.filtering) {
                 tab.filtering(event);
             }
 
-            if (tab.filters) {
-                tab.vm.setFilter(tab.filters(event));
+            if (tab.filters && typeof tab.component.setFilter === "function") {
+                tab.component.setFilter(tab.filters(event));
             }
-           
-            await tab.vm.refresh();
+        }
+
+        protected _initTabComponent(tab: TabPage): void {
+            if (tab.icomponent) {
+                tab.component = tab.icomponent.create(true);
+            } else if (tab._componentFactory) {
+                tab.component = tab._componentFactory() || null;
+            }
         }
 
         protected _initTab(tab: TabPage): void {
@@ -429,12 +456,19 @@ namespace kmodo {
 
             tab._isInitPerformed = true;
 
+            this._initTabComponent(tab);
+
             if (tab.init)
                 tab.init(this._createTabEvent(tab));
         }
 
-        protected _createTabEvent(tab: TabPage): any {
-            return { sender: this, tab: tab };
+        protected _createTabEvent(tab: TabPage): TabPageEvent {
+            return {
+                sender: this,
+                tab: tab,
+                componentAsAny: tab.component,
+                component: tab.component
+            };
         }
 
         protected _canHideTab(tab: TabPage): boolean {
@@ -455,23 +489,23 @@ namespace kmodo {
     }
 
     export class MasterDetailTabStrip extends TabStrip {
-
+        protected tabs: DetailTabPage[];
         mtab: TabPage;
-        mvm: MasterTabPageContentComponent;
+        mcomponent: IMasterTabPageContentComponent;
 
         constructor(options: MasterDetailTabStripOptions) {
 
-            if (options.hideAll === true)
+            if (typeof options.hideAll === "undefined")
                 options.hideAll = true;
 
             super(options);
 
-            this.mvm = null;
+            this.mcomponent = null;
             this.mtab = this.tabs.find(x => x.master === true);
             if (!this.mtab)
                 throw new Error("Master tab is missing.");
 
-            this._initTab(this.mtab);
+            this._initTab(this.mtab as DetailTabPage);
         }
 
         protected _start(): void {
@@ -484,21 +518,21 @@ namespace kmodo {
 
         // override
         _bindMaster(tab: TabPage): void {
-            if (this.mvm && this.mvm.getModel())
-                kendo.bind(tab.getContentElem(), this.mvm.getModel());
+            if (this.mcomponent && this.mcomponent.getModel())
+                kendo.bind(tab.getContentElem(), this.mcomponent.getModel());
         }
 
-        setMasterViewModel(vm): void {
-            this.mvm = vm;
+        setMasterComponent(component): void {
+            this.mcomponent = component;
             // KABU TODO: VERY VERY IMPORTANT: React on current *selected* item changed,
             //   because after we add new item, no item is selected, but the current
             //   item still references the last selected item.
 
-            this.mvm.on("currentChanged", e => {
+            this.mcomponent.on("currentChanged", e => {
 
                 // On selected master item changed.
                 // Show/hide tabs if the master item is selected/not selected.
-                this.toggleTabs(this.mvm.getCurrent());
+                this.toggleTabs(!!this.mcomponent.getCurrent());
 
                 // Clear all tabs.
                 for (const tab of this.tabs) {
@@ -509,9 +543,8 @@ namespace kmodo {
 
                     if (!tab.isEnabled) return;
 
-                    // Clear view model.
-                    if (tab.vm && tab.vm.clear)
-                        tab.vm.clear();
+                    // Clear component.
+                    this._tryClearTab(tab);
 
                     if (tab.clear)
                         tab.clear(this._createTabEvent(tab));
@@ -523,30 +556,26 @@ namespace kmodo {
         }
 
         getCurrentMasterItem(): any | null {
-            return this.mvm.getCurrent();
+            return this.mcomponent.getCurrent();
         }
 
-        protected _initTab(tab: TabPage): void {
+        // override
+        protected _initTab(tab: DetailTabPage): void {
             if (tab._isInitPerformed)
                 return;
 
             tab._isInitPerformed = true;
 
-            if (tab.icomponent) {
-                tab.vm = tab.icomponent.vm();
-            }
-            else if (tab._getVmOnDemand) {
-                tab.vm = tab._getVmOnDemand() || null;
-            }
+            this._initTabComponent(tab);
 
-            if (tab.master && tab.vm)
-                this.setMasterViewModel(tab.vm);
+            if (tab.master && tab.component)
+                this.setMasterComponent(tab.component);
 
-            if (tab.isMasterAffected && tab.vm && !tab.master) {
+            if (tab.isMasterAffected && tab.component && !tab.master) {
                 // If the component affects the master then
                 // refresh the master component whenever some data
                 // is saved.
-                tab.vm.on("saved", e => {
+                tab.component.on("saved", e => {
                     this.mtab._isRefreshPending = true;
                 });
             }
@@ -559,18 +588,24 @@ namespace kmodo {
             return !tab.master;
         }
 
-        protected _createTabEvent(tab: TabPage): any {
-            return { sender: this, tab: tab, vm: tab.vm, matervm: this.mvm, master: this.mvm.getCurrent() };
+        // override
+        protected _createTabEvent(tab: TabPage): DetailTabPageEvent {
+            const eve = super._createTabEvent(tab) as DetailTabPageEvent;
+            eve.mcomponent = this.mcomponent;
+            eve.master = this.mcomponent.getCurrent();
+
+            return eve;
         }
 
+        // override
         protected _canClearTab(tab): boolean {
-            // Don't clear the master's view model.
+            // Don't clear the master component.
             return !tab.master;
         }
 
         protected _canEnterTab(tab): boolean {
-            // Enter tabs only if enabled and master item is selected.
-            return tab.isEnabled && this.mvm.getCurrent() !== null;
+            // Enter tabs only if enabled and master data is selected.
+            return tab.isEnabled && this.mcomponent.getCurrent() !== null;
         }
     }
 

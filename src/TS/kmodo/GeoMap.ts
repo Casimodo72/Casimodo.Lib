@@ -274,7 +274,9 @@
     export class GoogleMapCustomOverlayFactory {
 
         static createEditableTextBox(view: GeoMapViewBase, location: google.maps.LatLng) {
-            return new GoogleMapCustomOverlayFactory.EditableTextBox(view, location);
+            const textBox = new GoogleMapCustomOverlayFactory.EditableTextBox(view, location) as google.maps.OverlayView;
+           
+            return textBox;
         }
 
         static EditableTextBox: any;

@@ -778,9 +778,8 @@
         // Editable text box
         addEditableTextBox(callback: () => void) {
             google.maps.event.addListenerOnce(this.map, "click", e => {
-                const latLng = e.latLng;
-                // map.getProjection().fromPointToLatLng(new google.maps.Point(x, y))
-                GoogleMapCustomOverlayFactory.createEditableTextBox(this, latLng);
+
+                this._textBoxes.push(GoogleMapCustomOverlayFactory.createEditableTextBox(this, e.latLng));
 
                 if (callback)
                     callback();

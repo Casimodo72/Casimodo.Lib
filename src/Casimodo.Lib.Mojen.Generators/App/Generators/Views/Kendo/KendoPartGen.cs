@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
 
             OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
             {
-                OBeginComponentViewModelFactory(context);
+                OBeginComponentFactory(context);
 
                 OB("return new kmodo.EditorForm(");
                 OViewModelOptions(context,
@@ -43,7 +43,7 @@ namespace Casimodo.Lib.Mojen
                     });
                 End(").init();");
 
-                OEndComponentViewModelFactory(context);
+                OEndComponentFactory(context);
             });
         }
 
@@ -56,7 +56,7 @@ namespace Casimodo.Lib.Mojen
 
             OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
             {
-                OBeginComponentViewModelFactory(context);
+                OBeginComponentFactory(context);
 
                 OB("return new kmodo.ReadOnlyForm(");
                 OViewModelOptions(context,
@@ -79,7 +79,7 @@ namespace Casimodo.Lib.Mojen
                     });
                 End(").init();");
 
-                OEndComponentViewModelFactory(context);
+                OEndComponentFactory(context);
             });
         }
 
@@ -135,22 +135,23 @@ namespace Casimodo.Lib.Mojen
             End(");");
         }
 
-        public void OBeginComponentViewModelFactory(WebViewGenContext context)
+        public void OBeginComponentFactory(WebViewGenContext context)
         {
-            O($"export const {context.ViewModelFactoryName} = cmodo.createComponentViewModelFactory();");
+            O($"export const {context.ViewModelFactoryName} = cmodo.createComponentFactory();");
             OB($"{context.ViewModelFactoryName}.createCore = function (options)");
 
+            // TODO: REMOVE
             //OJsImmediateBegin("factory");
-
             //O();
             //OB("factory.createCore = function (options)");
         }
 
-        public void OEndComponentViewModelFactory(WebViewGenContext context)
+        public void OEndComponentFactory(WebViewGenContext context)
         {
             End();
+            // TODO: REMOVE:
             //End(";"); // View model factory.
-            //OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "cmodo.createComponentViewModelFactory()"));
+            //OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "cmodo.createComponentFactory()"));
         }
 
         public WebViewGenContext InitComponentNames(WebViewGenContext context)

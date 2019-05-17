@@ -1,4 +1,11 @@
 ﻿
+namespace kmodo {
+    // Missing interfaces
+    export interface KendoObservableChangeEvent {
+        field: string;
+    }
+}
+
 // Kendo MVVM binders ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // visibleWithFade
@@ -278,3 +285,14 @@ $.extend(true, (kendo.ui as any).validator, {
         }
     }
 });
+
+// Polyfills ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Kendo's ObservableArray is not iterable
+// See https://github.com/telerik/kendo-ui-core/issues/1727
+if (typeof Symbol !== "undefined" && Symbol.iterator && !kendo.data.ObservableArray.prototype[Symbol.iterator]) {
+    kendo.data.ObservableArray.prototype[Symbol.iterator] = [][Symbol.iterator];
+}
+
+//if (Symbol && Symbol.iterator && !kendo.data.ObservableArray.prototype[Symbol.iterator]) {
+//    kendo.data.ObservableArray.prototype[Symbol.iterator] = [][Symbol.iterator]
+//}

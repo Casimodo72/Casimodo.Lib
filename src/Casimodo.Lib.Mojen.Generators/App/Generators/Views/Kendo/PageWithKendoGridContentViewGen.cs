@@ -36,7 +36,7 @@ namespace Casimodo.Lib.Mojen
                     OMvcScriptBegin();
                     OJsOnPageReady(() =>
                     {
-                        O($"cmodo.componentRegistry.getById({Quote(grid.Id)}).vm().processNavigation().refresh();");
+                        O($"cmodo.componentRegistry.get({Quote(grid.Id)}).create(true).processNavigation().refresh();");
                     });
                     OMvcScriptEnd();
 

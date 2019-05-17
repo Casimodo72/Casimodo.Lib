@@ -1,7 +1,7 @@
 ﻿namespace kmodo {
 
     export interface IndyCollectionEditorFormOptions extends ViewComponentOptions {
-        title?: string;      
+        title?: string;
         saveBaseUrl: string;
         saveMethod: string;
         isLocalTargetData?: boolean;
@@ -13,12 +13,12 @@
         targetContainerListField: string;
     }
 
-    export class IndyCollectionEditorForm extends ViewComponent {
+    export class IndyCollectionEditorForm extends FilterableViewComponent {
         protected _options: IndyCollectionEditorFormOptions;
         dataSource: kendo.data.DataSource = null;
         connector: SelectableFromCollectionConnector = null;
-        sourceGridViewModel: Grid;
-        targetGridViewModel: Grid;
+        sourceGrid: Grid;
+        targetGrid: Grid;
         private _dialogWindow: kendo.ui.Window;
 
         constructor(options: IndyCollectionEditorFormOptions) {
@@ -34,7 +34,7 @@
             const baseUrl = this._options.saveBaseUrl;
             const method = this._options.saveMethod;
             const key = this.keyName;
-            const itemIds = this.targetGridViewModel.dataSource.data().map(x => x[key]);
+            const itemIds = this.targetGrid.dataSource.data().map(x => x[key]);
             const params = [
                 { name: "id", value: this.args.itemId },
                 { name: "itemIds", value: itemIds }
@@ -45,21 +45,21 @@
 
         start(): void {
             this.args.buildResult = () => {
-                this.args.items = this.targetGridViewModel.dataSource.data();
+                this.args.items = this.targetGrid.dataSource.data();
             };
 
-            const filters = this._getEffectiveFilters();
+            const filters = this.filter.getEffective();
             if (filters.length) {
-                this.sourceGridViewModel.setFilter(filters);
+                this.sourceGrid.setFilter(filters);
             }
-            this.sourceGridViewModel.createView();
-            this.sourceGridViewModel.selectionManager.showSelectors();
+            this.sourceGrid.createView();
+            this.sourceGrid.selectionManager.showSelectors();
 
-            this.targetGridViewModel.createView();
+            this.targetGrid.createView();
 
             this.connector.init();
 
-            this.sourceGridViewModel.refresh();
+            this.sourceGrid.refresh();
 
             if (!this._options.isLocalTargetData) {
                 cmodo.oDataQuery(this._options.targetContainerQuery + "&$filter=" + this.keyName + " eq " + this.args.itemId)
@@ -68,12 +68,12 @@
                         if (!item)
                             return;
 
-                        this.targetGridViewModel.dataSource.data(item[this._options.targetContainerListField]);
+                        this.targetGrid.dataSource.data(item[this._options.targetContainerListField]);
                         this.connector.processInitialTargetItems();
                     });
             }
             else {
-                this.targetGridViewModel.refresh()
+                this.targetGrid.refresh()
                     .then(() => {
                         this.connector.processInitialTargetItems();
                     });
@@ -82,33 +82,35 @@
 
         private _createGrids(): void {
 
-            this.sourceGridViewModel = cmodo.componentRegistry.getById(this._options.sourceListId).vmOnly({
-                $component: this.$view.find(".indylist-source-view").first(),
-                selectionMode: "multiple",
-                isAuthRequired: false,
-                isDialog: false, isLookup: false, isDetailsEnabled: false,
-                editor: null
-            });
+            this.sourceGrid = cmodo.componentRegistry.get(this._options.sourceListId).create(false,
+                {
+                    $component: this.$view.find(".indylist-source-view").first(),
+                    selectionMode: "multiple",
+                    isAuthRequired: false,
+                    isDialog: false, isLookup: false, isDetailsEnabled: false,
+                    editor: null
+                });
 
-            this.targetGridViewModel = cmodo.componentRegistry.getById(this._options.targetListId).vmOnly({
-                $component: this.$view.find(".indylist-target-view").first(),
-                isAuthRequired: false,
-                isDialog: false, isLookup: false, isDetailsEnabled: false,
-                editor: null,
-                // KABU TODO: VERY IMPORTANT: Eval if those new options work as expected.
-                isLocalData: this._options.isLocalTargetData,
-                localData: this._options.localTargetData || null,
-                useRemoveCommand: true
-            });
+            this.targetGrid = cmodo.componentRegistry.get(this._options.targetListId).create(false,
+                {
+                    $component: this.$view.find(".indylist-target-view").first(),
+                    isAuthRequired: false,
+                    isDialog: false, isLookup: false, isDetailsEnabled: false,
+                    editor: null,
+                    // KABU TODO: VERY IMPORTANT: Eval if those new options work as expected.
+                    isLocalData: this._options.isLocalTargetData,
+                    localData: this._options.localTargetData || null,
+                    useRemoveCommand: true
+                });
 
-            this.targetGridViewModel.on("item-remove-command-fired", e => {
+            this.targetGrid.on("item-remove-command-fired", e => {
                 this.connector.remove(e.item);
             });
 
             this.connector = new SelectableFromCollectionConnector({
                 keyName: this.keyName,
-                source: this.sourceGridViewModel,
-                target: this.targetGridViewModel
+                source: this.sourceGrid,
+                target: this.targetGrid
             });
         }
 
@@ -206,15 +208,15 @@
     export class SelectableFromCollectionConnector extends cmodo.ComponentBase {
 
         keyName: string;
-        sourceGridViewModel: Grid;
-        targetGridViewModel: Grid;
+        sourceGrid: Grid;
+        targetGrid: Grid;
 
         constructor(options: SelectableFromCollectionConnectorOptions) {
             super();
 
             this.keyName = options.keyName || "Id";
-            this.sourceGridViewModel = options.source;
-            this.targetGridViewModel = options.target;
+            this.sourceGrid = options.source;
+            this.targetGrid = options.target;
         }
 
         init(): void {
@@ -279,11 +281,11 @@
         }
 
         private _getSourceSelectionManager(): GridSelectionManager {
-            return this.sourceGridViewModel.selectionManager;
+            return this.sourceGrid.selectionManager;
         }
 
         private _getTargetDataSource(): kendo.data.DataSource {
-            return this.targetGridViewModel.dataSource;
+            return this.targetGrid.dataSource;
         }
     }
 }

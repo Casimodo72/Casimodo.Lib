@@ -1,4 +1,4 @@
-﻿namespace kmodo {    
+﻿namespace kmodo {
 
     export class GeoMapLocationView extends GeoMapViewBase {
         constructor(options: GeoMapViewOptions) {
@@ -47,9 +47,8 @@
             return this.refreshCore();
         }
 
-        refreshWith(settings: ContextPlaceInfo): Promise<void> {
-            this._contextPlaceInfo = settings;
-            return this.refreshCore();
+        setContextFilter(context: ContextPlaceInfo): void {
+            this._contextPlaceInfo = context;
         }
 
         private refreshCore(): Promise<void> {

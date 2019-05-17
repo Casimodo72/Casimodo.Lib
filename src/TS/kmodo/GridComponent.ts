@@ -484,9 +484,9 @@
            This will process such navigational arguments, filter the data and modify the UI.
         */
         // override
-        processNavigation(): void {
-            if (!this._hasCoreFilterNode(KEY_FILTER_ID))
-                return;
+        processNavigation(): Grid {
+            if (!this.filter.hasCoreNode(KEY_FILTER_ID))
+                return this;
 
             this.one("dataBound", e => {
                 // Select the single row.
@@ -513,7 +513,7 @@
                     .show(100);
 
                 // Remove single entity filter and reload.
-                this._removeCoreFilterNode(KEY_FILTER_ID);
+                this.filter.removeCoreNode(KEY_FILTER_ID);
                 this.refresh();
             });
 
@@ -522,7 +522,7 @@
             $command.addClass("km-active-toggle-button")
                 .show();
 
-            return;
+            return this;
         }
 
         add(): boolean {
@@ -562,6 +562,15 @@
                 events: {
                     editing: e => {
                         this.trigger("editing", e);
+                    },
+                    dataChanging: e => {
+                        this.trigger("dataChanging", e);
+                    },
+                    dataChange: e => {
+                        this.trigger("dataChange", e);
+                    },
+                    validating: e => {
+                        this.trigger("validating", e);
                     }
                 },
                 finished2: e => {
@@ -743,7 +752,7 @@
 
         private _updateTagFilterSelector(): void {
             if (this._tagsFilterSelector) {
-                const companyFilter = this._findCoreFilterNode(COMPANY_FILTER_ID);
+                const companyFilter = this.filter.findCoreNode(COMPANY_FILTER_ID);
                 const companyId = companyFilter ? companyFilter.value : null;
                 const filters = buildTagsDataSourceFilters(this._options.dataTypeId, companyId);
 
@@ -759,7 +768,7 @@
             // Process navigation args
             const naviArgs = cmodo.navigationArgs.consume(this._options.id);
             if (naviArgs && naviArgs.itemId) {
-                this._setCoreFilterNode(KEY_FILTER_ID, { field: this.keyName, value: naviArgs.itemId });
+                this.filter.setCoreNode(KEY_FILTER_ID, { field: this.keyName, value: naviArgs.itemId });
             }
 
             const isCompanyChangeable = !this._hasPersistentCompanyFilter();
@@ -767,11 +776,11 @@
             if (this._options.isGlobalCompanyFilterEnabled &&
                 isCompanyChangeable &&
                 // Don't filter by global company if navigating to a specific entity.
-                !this._hasCoreFilterNode(KEY_FILTER_ID)) {
+                !this.filter.hasCoreNode(KEY_FILTER_ID)) {
 
                 const companyId = cmodo.getGlobalInitialCompanyId();
                 if (companyId)
-                    this._setCoreFilterNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
+                    this.filter.setCoreNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
             }
 
             let $grid = this._options.$component || null;
@@ -842,7 +851,7 @@
                 initialCompanyId =
                     (this._options.isGlobalCompanyFilterEnabled &&
                         // Don't filter by global company if navigating to a specific entity.
-                        !this._hasCoreFilterNode(KEY_FILTER_ID))
+                        !this.filter.hasCoreNode(KEY_FILTER_ID))
                         ? cmodo.getGlobalInitialCompanyId()
                         : null;
 
@@ -852,9 +861,9 @@
                         companyId: initialCompanyId,
                         changed: companyId => {
                             if (companyId)
-                                this._setCoreFilterNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
+                                this.filter.setCoreNode(COMPANY_FILTER_ID, { field: COMPANY_REF_FIELD, value: companyId });
                             else
-                                this._removeCoreFilterNode(COMPANY_FILTER_ID);
+                                this.filter.removeCoreNode(COMPANY_FILTER_ID);
 
                             this.refresh();
 
@@ -880,10 +889,10 @@
                         changed: tagIds => {
                             if (tagIds && tagIds.length) {
                                 const expression = tagIds.map(x => "ToTags/any(totag: totag/TagId eq " + x + ")").join(" and ");
-                                this._setCoreFilterNode(TAGS_FILTER_ID, { customExpression: expression });
+                                this.filter.setCoreNode(TAGS_FILTER_ID, { customExpression: expression });
                             }
                             else
-                                this._removeCoreFilterNode(TAGS_FILTER_ID);
+                                this.filter.removeCoreNode(TAGS_FILTER_ID);
 
                             this.refresh();
                         }
@@ -1205,7 +1214,7 @@
                     this._filterCommands.push(icmd);
 
                     $btn.on("click", e => {
-                        const newActive = !this._hasCoreFilterNode(cmd.filter._id);
+                        const newActive = !this.filter.hasCoreNode(cmd.filter._id);
 
                         this._setFilterCommandActive(icmd, newActive);
 
@@ -1306,14 +1315,14 @@
     }
 
     export class GridSelectionManager extends cmodo.ComponentBase {
-        private keyName: string;
-        private selection: any[];
+        private _keyName: string;
+        private _selection: any[];
         private _selectionDataItems: any[];
         private _iselectors: SingleSelectionInfo[];
         private _iallSelector: AllSelectionInfo;
         private _isSelectorInitializationPending: boolean;
         private _isSelectorBindingPending: boolean;
-        private gridViewModel: Grid;
+        private _grid: Grid;
         private _$allSelector: JQuery;
         private _isSelectorsVisible: boolean;
         private _isUpdatingSelectors: boolean;
@@ -1323,12 +1332,12 @@
         constructor(options) {
             super();
 
-            this.gridViewModel = options.grid;
+            this._grid = options.grid;
 
-            this.keyName = this.gridViewModel.keyName;
+            this._keyName = this._grid.keyName;
 
             // List of selected data item IDs.
-            this.selection = [];
+            this._selection = [];
             // List of selected data items.
             this._selectionDataItems = [];
             // Infos of currently visible selectors.
@@ -1347,7 +1356,7 @@
 
         clearSelection(): void {
             this._performBatchUpdate(() => {
-                this.selection = [];
+                this._selection = [];
                 this._selectionDataItems = [];
 
                 if (this._$allSelector)
@@ -1397,11 +1406,11 @@
         }
 
         private getKendoGrid(): kendo.ui.Grid {
-            return this.gridViewModel.getKendoGrid() as kendo.ui.Grid;
+            return this._grid.getKendoGrid() as kendo.ui.Grid;
         }
 
         private _getIsEnabled(): boolean {
-            return this.gridViewModel.getSelectionMode() === "multiple";
+            return this._grid.getSelectionMode() === "multiple";
         }
 
         public _onDataSourceDataBound(e): void {
@@ -1463,7 +1472,7 @@
                     const $selectorVisual = $row.find("label.list-item-selector");
 
                     const item = this.getKendoGrid().dataItem($row);
-                    const id = item[this.keyName];
+                    const id = item[this._keyName];
                     const isSelected = this._getIsSelectedById(id);
 
                     this._iselectors.push({
@@ -1531,7 +1540,7 @@
         }
 
         private _getDataSource(): kendo.data.DataSource {
-            return this.gridViewModel.dataSource;
+            return this._grid.dataSource;
         }
 
         private _updateSelectedViewStates(): void {
@@ -1587,11 +1596,11 @@
 
         _addDataItem(item: any): void {
             // Add item to selection.
-            const index = this.selection.indexOf(item[this.keyName]);
+            const index = this._selection.indexOf(item[this._keyName]);
             if (index !== -1)
                 return;
 
-            this.selection.push(item[this.keyName]);
+            this._selection.push(item[this._keyName]);
             this._selectionDataItems.push(item);
 
             if (!this._isUpdatingBatch) {
@@ -1601,17 +1610,17 @@
         }
 
         _removeDataItem(item: any): void {
-            this._removeDataItemById(item[this.keyName]);
+            this._removeDataItemById(item[this._keyName]);
         };
 
         _removeDataItemById(id: string): void {
-            const index = this.selection.indexOf(id);
+            const index = this._selection.indexOf(id);
             if (index === -1)
                 return;
 
             const item = this._selectionDataItems[index];
 
-            this.selection.splice(index, 1);
+            this._selection.splice(index, 1);
             this._selectionDataItems.splice(index, 1);
 
             if (!this._isUpdatingBatch) {
@@ -1621,7 +1630,7 @@
         }
 
         _getIsSelectedById(id): boolean {
-            return this.selection.indexOf(id) !== -1;
+            return this._selection.indexOf(id) !== -1;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace kmodo {
 
-    export interface EmailAttachmentsViewOptions {
+    export interface EmailAttachmentsComponentOptions {
         $area: JQuery;
         owners?: () => MoFileTreeOwnerDefinition[] | MoFileTreeOwnerDefinition[];
         isFileSystemTemplateEnabled: boolean;
@@ -9,7 +9,7 @@
         attachmentFileTemplate: Function;
     }
 
-    interface InternalEmailAttachmentsViewOptions {
+    interface InternalEmailAttachmentsComponentOptions {
         $area: JQuery;
         owners: MoFileTreeOwnerDefinition[];
         isFileSystemTemplateEnabled: boolean;
@@ -18,33 +18,31 @@
         attachmentFileTemplate: Function;
     }
 
-    export class EmailAttachmentsViewModel extends cmodo.ComponentBase {
-        private options: InternalEmailAttachmentsViewOptions;
+    export class EmailAttachmentsComponent extends cmodo.ComponentBase {
+        private options: InternalEmailAttachmentsComponentOptions;
         currentOwnerKind: string;
-        _attachmentsDataSource: kendo.data.DataSource;
-        _fileExplorer: MoFileExplorerViewModel;
+        _attachmentsDataSource: IGenericDataSource<MoFileModel>;
+        _fileExplorer: MoFileExplorerComponent;
         _attachmentsKendoListView: kendo.ui.ListView;
         _attachmentsKendoPager: kendo.ui.Pager;
         private _isViewInitialized: boolean = false;
 
-        constructor(options: EmailAttachmentsViewOptions) {
+        constructor(options: EmailAttachmentsComponentOptions) {
             super();
             this._setOptions(options);
-            // KABU TODO: MoFileExplorerViewModel options:
+            // TODO: MoFileExplorerComponent options:
             // options.areFileSelectorsVisible (default: false)
             // options.isRecycleBinEnabled (default: true)
 
             this.currentOwnerKind = "Project";
 
-            this._attachmentsDataSource = new kendo.data.DataSource({
+            this._attachmentsDataSource = ObservableHelper.dataSource<MoFileModel>({
                 data: [],
                 pageSize: 7
             });
-
-            // NOTE: _initComponent() on demand using initComponent().
         }
 
-        private _setOptions(options: EmailAttachmentsViewOptions): void {
+        private _setOptions(options: EmailAttachmentsComponentOptions): void {
             this.options = {
                 $area: options.$area,
                 owners: (typeof options.owners === "function")
@@ -61,8 +59,9 @@
             this._initComponent(this.options);
         }
 
-        activateOwner(ownerKind: string): void {
-            this._fileExplorer.activateOwner(ownerKind);
+        activateOwner(ownerKind?: string): void {
+            this._fileExplorer.selectOwner(ownerKind);
+            this._fileExplorer.refresh();
         }
 
         clearSelection(): void {
@@ -72,11 +71,11 @@
             this._attachmentsDataSource.data([]);
         }
 
-        getAttachments(): kendo.data.ObservableArray {
+        getAttachments(): ObservableArray<MoFileModel> {
             return this._attachmentsDataSource.data();
         }
 
-        insertAttachments(attachments: Object[]): void {
+        insertAttachments(attachments: MoFileModel[]): void {
             if (!attachments)
                 return;
 
@@ -88,7 +87,7 @@
             // Add the existing attachments to the selectionManager of the files Grid view model.
             const selectionManager = this._getFilesSelectionManager();
 
-            this.getAttachments().forEach(function (item) {
+            this.getAttachments().forEach(item => {
                 selectionManager._addDataItem(item);
             });
         }
@@ -97,12 +96,12 @@
             return this._fileExplorer.refresh();
         }
 
-        getAttachmentById(id: string): MoFileEntity {
-            return this.getAttachments().find(function (x) { return (x as MoFileEntity).Id === id; }) as MoFileEntity;
+        getAttachmentById(id: string): MoFileModel {
+            return this.getAttachments().find(function (x) { return (x as MoFileModel).Id === id; }) as MoFileModel;
         }
 
-        getAttachmentByUid(uid: string): MoFileEntity {
-            return this.getAttachments().find(function (x) { return (x as MoFileEntity).uid === uid; }) as MoFileEntity;
+        getAttachmentByUid(uid: string): MoFileModel {
+            return this.getAttachments().find(x => x.uid === uid);
         }
 
         private _getFilesSelectionManager(): GridSelectionManager {
@@ -122,7 +121,7 @@
             this._attachmentsDataSource.remove(item);
         }
 
-        private _initComponent(options: InternalEmailAttachmentsViewOptions): void {
+        private _initComponent(options: InternalEmailAttachmentsComponentOptions): void {
             if (this._isViewInitialized)
                 return;
             this._isViewInitialized = true;
@@ -150,7 +149,7 @@
                 }).data("kendoPager");
 
             // Init file explorer.
-            this._fileExplorer = new MoFileExplorerViewModel({
+            this._fileExplorer = new MoFileExplorerComponent({
                 $area: this.options.$area,
                 areFileSelectorsVisible: this.options.areFileSelectorsVisible,
                 isFileSystemTemplateEnabled: this.options.isFileSystemTemplateEnabled,
@@ -160,7 +159,7 @@
             });
             this._fileExplorer.createView();
 
-            const filesView = this._fileExplorer._filesView;
+            const filesView = this._fileExplorer._files;
 
             // Handle file selection changes.
             filesView.on("selectionChanged", e => {

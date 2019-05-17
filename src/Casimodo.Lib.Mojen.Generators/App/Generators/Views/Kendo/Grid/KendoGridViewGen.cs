@@ -195,7 +195,7 @@ namespace Casimodo.Lib.Mojen
 
             OTsNamespace(WebConfig.ScriptUINamespace, nscontext =>
             {
-                KendoGen.OBeginComponentViewModelFactory(context);
+                KendoGen.OBeginComponentFactory(context);
                 OB("return new kmodo.Grid(");
                 KendoGen.OViewModelOptions(context, isList: true,
                     extend: () =>
@@ -238,7 +238,7 @@ namespace Casimodo.Lib.Mojen
                 //O();
                 //O("return vm;");
 
-                KendoGen.OEndComponentViewModelFactory(context);
+                KendoGen.OEndComponentFactory(context);
             });
         }
 

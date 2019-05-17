@@ -183,7 +183,6 @@
                     });
             }
 
-            // KABU TODO: IMPORTANT: Eval is this used.
             this.trigger("editing", { sender: this, model: e.item, item: e.item, isNew: e.isNew });
         }
 

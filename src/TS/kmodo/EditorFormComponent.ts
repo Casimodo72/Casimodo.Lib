@@ -15,16 +15,6 @@
         title?: string;
     }
 
-    export interface EditorValidationError {
-        prop: string;
-        message: string;
-    }
-
-    export interface EditorValidationResult {
-        valid: boolean;
-        errors: EditorValidationError[];
-    }
-
     export class EditorForm extends EditableDataSourceViewComponent {
         protected _options: EditorFormOptions;
         private _editorWindow: kendo.ui.Window = null;
@@ -70,7 +60,7 @@
         private _edit() {
             if (!this._options.isLocalData) {
                 // Load data from server.
-                this._setCoreFilterNode(kmodo.KEY_FILTER_ID, { field: this.keyName, operator: 'eq', value: this._iedit.itemId, _persistent: true });
+                this.filter.setCoreNode(kmodo.KEY_FILTER_ID, { field: this.keyName, operator: 'eq', value: this._iedit.itemId, _persistent: true });
                 this.refresh()
                     .then(() => this._startEditing());
             }
@@ -315,13 +305,49 @@
             return `<a href="\\#" class="km-form-control-error-tooltip" data-tooltip="#:message#"><span class='icon-prop-validation-error'></a>`;
         }
 
+        private _validateProp(field: string, input: JQuery): EditorValidationResult {
+            const result: EditorValidationResult = {
+                valid: true,
+                errors: []
+            };
+
+            if (input && input.length === 1) {
+                result.valid = this.kendoEditable.validatable.validateInput(input);
+                result.errors = this.kendoEditable.validatable.errors().map(x => ({ prop: "", message: x }));
+            }
+
+            this.trigger("validating", { sender: this, field: field, validation: result, data: this.getCurrent() });
+
+            this._processValidationResult(result);
+
+            return result;
+        }
+
         validate(): EditorValidationResult {
+            return this._validateCore();
+        }
+
+        private _validateCore(field: string = null): EditorValidationResult {
             const result: EditorValidationResult = {
                 valid: this.kendoEditable.validatable.validate(),
                 errors: this.kendoEditable.validatable.errors().map(x => ({ prop: "", message: x }))
             };
 
+            this.trigger("validating", { sender: this, field: field, validation: result, data: this.getCurrent() });
+
+            this._processValidationResult(result);
+
             return result;
+        }
+
+        private _processValidationResult(validation: EditorValidationResult): void {
+            const data = this.getCurrent();
+
+            if (this._options.isDialog) {
+                this._updateSaveCommand(validation.valid && data.dirty);
+            }
+
+            this._showErrors(validation.errors);
         }
 
         private _createKendoEditable(dataItem: any): KendoUIEditable {
@@ -369,7 +395,7 @@
                     }
 
                     // Save only if modified and valid.
-                    if (dataItem.dirty && this.kendoEditable.validatable.validate()) {
+                    if (dataItem.dirty && this.validate().valid) {
                         this._save();
                     }
 
@@ -382,75 +408,46 @@
                 });
             }
 
+            dataItem.bind("set", e => {
+                const eve = {
+                    sender: this,
+                    field: e.field,
+                    data: dataItem,
+                    currentValue: e.currentValue,
+                    value: e.value,
+                    prevent: false
+                };
+                this.trigger("dataChanging", eve);
+
+                if (eve.prevent)
+                    e.preventDefault();
+            });
+
             dataItem.bind("change", e => {
-                const fieldName = e.field;
+                const field = e.field;
 
                 if (saveAttempted) {
                     // Validate all if a save was already attempted.
-                    this.kendoEditable.validatable.validate();
+                    this._validateCore(field);
                 }
                 else {
                     // const fieldValue = e.values[fieldName];
-                    const input = this._findInputElement(fieldName);
+                    const input = this._findInputElement(field);
 
                     // NOTE: if we don't find the specific input element
                     //   then this might be a hidden field or a complex type field.
                     //   We will ignore such fields if a save was not attempted yet.
+                    const valid = this._validateProp(field, input).valid;
 
-                    if (input && input.length === 1) {
-                        const valid = this.kendoEditable.validatable.validateInput(input);
-
-                        // If a save was not attempted yet then enable the
-                        //   save button when there are changes.
-                        this._updateSaveCommand(dataItem.dirty && valid);
-                    }
+                    // If a save was not attempted yet then enable the
+                    //   save button when there are changes.
+                    this._updateSaveCommand(dataItem.dirty && valid);
                 }
 
-                this.trigger("fieldChange", {
-                    sender: this, field: fieldName
+                this.trigger("dataChange", {
+                    sender: this, field: field
                 });
             });
-
-            // NOTE: Don't subscribe to kendo editable "change" because
-            //   this will be triggered when a new value is "attempted" to
-            //   be set.
-            // this.kendoEditable
-            /*
-            this.kendoEditable.bind("change", e => {
-                const fieldName = Object.keys(e.values)[0];
-
-                if (saveAttempted) {
-                    // Validate all if a save was already attempted.
-                    this.kendoEditable.validatable.validate();
-                }
-                else {                   
-                    const fieldValue = e.values[fieldName];
-                    const input = this._findInputElement(fieldName);
-
-                    // NOTE: if we don't find the specific input element
-                    //   then this might be a hidden field or a complex type field.
-                    //   We will ignore such fields if a save was not attempted yet.
-
-                    if (input && input.length === 1) {
-                        const valid = this.kendoEditable.validatable.validateInput(input);
-
-                        // If a save was not attempted yet then enable the
-                        //   save button when there are changes.
-                        this._updateSaveCommand(dataItem.dirty && valid);
-                    }                  
-                }
-
-                this.trigger("fieldChange", {
-                    sender: this, field: fieldName
-                });
-            });
-            */
-
-            if (this._options.isDialog) {
-                this.kendoEditable.validatable.bind("validate", e => {
-                    this._updateSaveCommand(e.valid && dataItem.dirty);
-                });
-            }
         }
 
         private _updateSaveCommand(saveable: boolean) {

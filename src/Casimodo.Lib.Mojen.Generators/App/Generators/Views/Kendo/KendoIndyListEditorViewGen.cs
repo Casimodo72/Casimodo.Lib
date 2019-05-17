@@ -93,7 +93,7 @@ namespace Casimodo.Lib.Mojen
         {
             OTsNamespace(WebConfig.ScriptUINamespace, (nscontext) =>
             {
-                KendoGen.OBeginComponentViewModelFactory(context);
+                KendoGen.OBeginComponentFactory(context);
                 OB("return new kmodo.IndyCollectionEditorForm(");
 
                 var listProp = context.View.TypeConfig.GetProp(ListPropName);
@@ -121,7 +121,7 @@ namespace Casimodo.Lib.Mojen
 
                 End(").init();");
 
-                KendoGen.OEndComponentViewModelFactory(context);
+                KendoGen.OEndComponentFactory(context);
             });
         }
     }

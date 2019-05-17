@@ -61,7 +61,7 @@ namespace kmodo {
         projectSegmentId: string;
     }
 
-    interface ViewModel extends ViewComponentModel {
+    interface ViewModel extends ComponentViewModel {
         currentView: VicinityPaneInfo;
         views: kendo.data.ObservableArray;
     }
@@ -168,13 +168,22 @@ namespace kmodo {
             this.views.push(info);
         }
 
-        refreshWith(settings: ContextPlaceInfo): Promise<void> {
-            // KABU TODO: INCONSISTENT: In GeoMapLocationView we use _contextPlaceInfo for this.
-            this.args = settings;
+        setContextFilter(context: ContextPlaceInfo): void {
+            // TODO: INCONSISTENT: In GeoMapLocationView we use _contextPlaceInfo for this.
+            this.args = context;
             this._contextPlaceLocation = null;
 
-            return this.refreshCore();
+            // TODO: REMOVE: return this.refreshCore();
         }
+
+        // TODO: REMOVE
+        //refreshWith(settings: ContextPlaceInfo): Promise<void> {
+        //    // KABU TODO: INCONSISTENT: In GeoMapLocationView we use _contextPlaceInfo for this.
+        //    this.args = settings;
+        //    this._contextPlaceLocation = null;
+
+        //    return this.refreshCore();
+        //}
 
         refresh(): Promise<void> {
             return this.refreshCore();

@@ -78,10 +78,9 @@
         items?: any; // NOTE: Can be a kendo.data.ObservableArray.
         title?: string;
         message?: string;
-
     }
 
-    export interface ViewComponentModel extends kendo.data.ObservableObject {
+    export interface ComponentViewModel extends kendo.data.ObservableObject {
         item: any
     }
 
@@ -89,21 +88,15 @@
         refresh(): Promise<void>;
         clear(): void;
         getModel(): any;
-        setFilter(filter: DataSourceFilterOneOrMany): void;
     }
 
-    type ComponentFilterSlot = "core" | "internal" | "default";
+    export abstract class ViewComponent extends cmodo.ViewComponent
+        implements IViewComponent {
 
-    export abstract class ViewComponent extends cmodo.ViewComponent implements IViewComponent {
         protected _options: ViewComponentOptions;
-        $view: JQuery = null;        
-        scope: any = null;       
-        // Core filters are provided via options.
-        private readonly _coreFilters: DataSourceFilterNode[] = [];
-        // Internal filters are filters handled by the component itself.
-        protected readonly _internalFilters: DataSourceFilterNode[] = [];
-        // Filters are externally provided filters.
-        private readonly _filters: DataSourceFilterNode[] = [];
+        $view: JQuery = null;
+        scope: any = null;
+
         protected args: ViewComponentArgs = null;
         protected _isViewInitialized = false;
         protected _isDebugLogEnabled = false;
@@ -117,11 +110,6 @@
                     this._options[prop] = this._options.extra[prop];
             }
 
-            // Set core filters.
-            if (this._options.coreFilters) {
-                this._coreFilters.push(...this._options.coreFilters);
-            }
-
             this.scope = kendo.observable({ item: null });
             this.scope.bind("change", e => this._onScopeChanged(e));
         }
@@ -131,14 +119,8 @@
             return super.refresh();
         }
 
-        getModel(): ViewComponentModel {
+        getModel(): ComponentViewModel {
             return this.scope;
-        }
-
-        // override
-        clear(): void {
-            cmodo.clearArray(this._filters);
-            super.clear();
         }
 
         setArgs(args: ViewComponentArgs): void {
@@ -180,34 +162,86 @@
         protected _onScopeChanged(e) {
             this.trigger("scopeChanged", e);
         }
+    }
 
-        // Filters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    export interface IFilterableViewComponent extends IViewComponent {
+        setFilter(filter: DataSourceFilterOneOrMany): void;
+    }
 
-        setFilter(filter: DataSourceFilterOneOrMany): void {
-            this._setFilterCore(filter, "default");
+    export abstract class FilterableViewComponent extends ViewComponent
+        implements IFilterableViewComponent {
+
+        protected readonly filter: ComponentFilterManager = new ComponentFilterManager();
+
+        constructor(options: ViewComponentOptions) {
+            super(options);
+
+            // Set base filters.
+            if (this._options.coreFilters) {
+                this.filter.setBase(this._options.coreFilters);
+            }
         }
 
-        protected _getFilterSlot(name: ComponentFilterSlot): DataSourceFilterNode[] {
-            if (name === "core")
-                return this._coreFilters;
-            else if (name === "internal")
-                return this._internalFilters;
-            else return this._filters;
+        // override
+        clear(): void {
+            this.filter.clear();
+            super.clear();
+        }
+
+        setFilter(filter: DataSourceFilterOneOrMany): void {
+            this.filter.set(filter);
         }
 
         protected _getEffectiveFilters(): DataSourceFilterNode[] {
-            const filters: DataSourceFilterNode[] = [];
-            filters.push(...this._coreFilters);
-            filters.push(...this._internalFilters);
-            filters.push(...this._filters);
+            const filters = this.filter.getEffective();
             if (this.args && this.args.filters) {
                 filters.push(...this.args.filters);
             }
 
             return filters;
         }
+    }
 
-        protected _setFilterCore(filter: DataSourceFilterOneOrMany, slot: ComponentFilterSlot): void {
+    type ComponentFilterSlot = "core" | "internal" | "default";
+
+    export class ComponentFilterManager {
+        // Base filters are provided via options.
+        private readonly _baseFilters: DataSourceFilterNode[] = [];
+        // Internal filters are filters handled by the component itself.
+        private readonly _internalFilters: DataSourceFilterNode[] = [];
+        // Filters are externally provided filters.
+        private readonly _filters: DataSourceFilterNode[] = [];
+
+        set(filter: DataSourceFilterOneOrMany): void {
+            this._set(filter, "default");
+        }
+
+        setInternal(filter: DataSourceFilterOneOrMany): void {
+            this._set(filter, "internal");
+        }
+
+        setBase(filter: DataSourceFilterOneOrMany): void {
+            this._set(filter, "core");
+        }
+
+        private _getSlot(name: ComponentFilterSlot): DataSourceFilterNode[] {
+            if (name === "core")
+                return this._baseFilters;
+            else if (name === "internal")
+                return this._internalFilters;
+            else return this._filters;
+        }
+
+        getEffective(): DataSourceFilterNode[] {
+            const filters: DataSourceFilterNode[] = [];
+            filters.push(...this._baseFilters);
+            filters.push(...this._internalFilters);
+            filters.push(...this._filters);
+
+            return filters;
+        }
+
+        private _set(filter: DataSourceFilterOneOrMany, slot: ComponentFilterSlot): void {
             this._fixFilter(filter);
 
             const filters = filter
@@ -216,37 +250,43 @@
                     : [filter])
                 : [];
 
-            let filterSlot = this._getFilterSlot(slot);
+            let filterSlot = this._getSlot(slot);
             cmodo.clearArray(filterSlot);
             filterSlot.push(...filters);
         }
 
-        protected _clearFilterCore(slot: ComponentFilterSlot): void {
-            cmodo.clearArray(this._getFilterSlot(slot));
+        clear(): void {
+            this._clear("default");
         }
 
-        protected _setCoreFilterNode(id: string, filter: DataSourceFilterNode): void {
+        private _clear(slot: ComponentFilterSlot): void {
+            cmodo.clearArray(this._getSlot(slot));
+        }
+
+        setCoreNode(id: string, filter: DataSourceFilterNode): void {
             filter._id = id;
-            this._removeCoreFilterNode(id);
+            this.removeCoreNode(id);
             this._fixFilterNode(filter);
-            this._coreFilters.push(filter);
+            this._baseFilters.push(filter);
         }
 
-        protected _removeCoreFilterNode(id: string): void {
-            const idx = this._coreFilters.findIndex(x => x._id === id);
+        removeCoreNode(id: string): void {
+            const idx = this._baseFilters.findIndex(x => x._id === id);
             if (idx !== -1)
-                this._coreFilters.splice(idx, 1);
+                this._baseFilters.splice(idx, 1);
         }
 
-        protected _hasCoreFilterNode(id: string): boolean {
-            return !!this._findCoreFilterNode(id);
+        hasCoreNode(id: string): boolean {
+            return !!this.findCoreNode(id);
         }
 
-        protected _findCoreFilterNode(id: string): DataSourceFilterNode {
-            return this._coreFilters.find(x => x._id === id);
+        findCoreNode(id: string): DataSourceFilterNode {
+            return this._baseFilters.find(x => x._id === id);
         }
 
-        protected _fixFilter(filter: DataSourceFilterOneOrMany): void {
+        private _fixFilter(filter: DataSourceFilterOneOrMany): void {
+            if (!filter)
+                return;
             if (Array.isArray(filter)) {
                 // TODO: traverse deep
                 for (const f of filter)
@@ -256,7 +296,9 @@
             }
         }
 
-        protected _fixFilterNode(filter: DataSourceFilterNode): DataSourceFilterNode {
+        private _fixFilterNode(filter: DataSourceFilterNode): DataSourceFilterNode {
+            if (!filter)
+                return null;
             if (filter.logic) {
                 if (filter.filters) {
                     for (const f of filter.filters)

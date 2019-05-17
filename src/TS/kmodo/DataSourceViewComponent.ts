@@ -18,7 +18,18 @@
         isCustomSave?: boolean;
     }
 
-    export abstract class DataSourceViewComponent extends ViewComponent {
+    export interface EditorValidationError {
+        prop: string;
+        message: string;
+        showError?: boolean;
+    }
+
+    export interface EditorValidationResult {
+        valid: boolean;
+        errors: EditorValidationError[];
+    }
+
+    export abstract class DataSourceViewComponent extends FilterableViewComponent {
         protected _options: DataSourceViewOptions;
         dataSource: kendo.data.DataSource = null;
 
@@ -121,7 +132,7 @@
                 return promise;
             }
 
-            const queries = cmodo.componentRegistry.getById(this._options.id).getAuthQueries();
+            const queries = cmodo.componentRegistry.get(this._options.id).getAuthQueries();
 
             return promise
                 .then(() => cmodo.getActionAuth(queries))
@@ -326,33 +337,53 @@
             const message = cmodo.getODataErrorMessageFromJQueryXHR(e.xhr);
             cmodo.showError(message);
 
+            this._showErrors([{ prop: "", message: message }]);
+
+            return message;
+        }
+
+        protected _showErrors(errors: EditorValidationError[]): void {
+            if (!errors || !errors.length)
+                return;
+
             // Try finding local validaton summary.
             let $errorBox = this.$view.find(".km-form-validation-summary").first();
             if (!$errorBox.length) {
                 // Try finding ancestor validaton summary.
                 $errorBox = this.$view.closest(".km-form-validation-summary");
             }
-            if ($errorBox.length) {
-                $errorBox.empty();
-                // NOTE: we are using kendo's template here because the message could be HTML.
-                const template = kendo.template("<li>#=message #</li>");
-                $errorBox.append(template({
-                    message: message
-                }));
-                $errorBox.show(100);
+            if (!$errorBox.length)
+                return;
+
+            $errorBox.empty();
+
+            if (!errors.length) {
+                $errorBox.hide(100);
+                return;
             }
 
-            return message;
+            // NOTE: we are using kendo's template here because the message could
+            //  originate from the server and thus be HTML. Although I now adjusted
+            //  the server to not return HTML. Keep this though.
+            const template = kendo.template("<li>#=message #</li>");
+
+            for (const error of errors) {
+                $errorBox.append(template({
+                    message: error.prop ? `${error.prop}: ${error.message}` : error.message
+                }));
+            }
+
+            $errorBox.show(100);
         }
 
         protected _addCommandFilter(cmd: ComponentCommand): void {
             // NOTE: command filters are treated as external filters.
-            this._setCoreFilterNode(cmd.filter._id, cmd.filter);
+            this.filter.setCoreNode(cmd.filter._id, cmd.filter);
         }
 
         protected _removeCommandFilter(cmd: ComponentCommand): void {
             // NOTE: command filters are treated as external filters.
-            this._removeCoreFilterNode(cmd.filter._id);
+            this.filter.removeCoreNode(cmd.filter._id);
         }
     }
 }

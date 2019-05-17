@@ -51,7 +51,7 @@
         IsContainer: boolean;
     }
 
-    interface ViewModel extends kmodo.ViewComponentModel {
+    interface ViewModel extends kmodo.ComponentViewModel {
         values: TextItem[];
         containers: TextItemContainer[];
         deleteAllValues: Function;

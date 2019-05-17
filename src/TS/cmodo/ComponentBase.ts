@@ -2,7 +2,7 @@
 // Performance: https://www.contentful.com/blog/2017/04/04/es6-modules-support-lands-in-browsers-is-it-time-to-rethink-bundling/
 // Multi files per module: https://github.com/Microsoft/TypeScript/issues/17
 namespace cmodo {
-    
+
     export function showError(message: string): void {
         // NOP. Consumer has to provide its own implementation.
     }
@@ -43,25 +43,22 @@ namespace cmodo {
 
     export interface ViewComponentFactory {
         createCore(options: any): any;
-        create(options: any): any;
-        createViewModel(options: any);
+        create(init: boolean, options: any): any;
     }
 
-    export function createComponentViewModelFactory(): ViewComponentFactory {
+    export function createComponentFactory(): ViewComponentFactory {
         return {
             createCore: function (options: any): any {
-                throw new Error("Not implemented.");
+                throw new Error("createCore() is not implemented.");
             },
-            create: function (options: any): any {
-                const vm = this.createCore(options) as any;
-                if (typeof vm.createView === "function")
-                    vm.createView();
+            create: function (init: boolean, options: any): any {
+                const component = this.createCore(options) as any;
 
-                return vm;
+                if (init && typeof component.createView === "function")
+                    component.createView();
+
+                return component;
             },
-            createViewModel: function (options: any): any {
-                return this.createCore(options);
-            }
         };
     }
 }

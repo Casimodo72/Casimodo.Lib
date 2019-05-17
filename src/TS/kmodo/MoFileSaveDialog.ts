@@ -1,6 +1,6 @@
 ﻿namespace kmodo {
 
-    interface ViewModel extends ViewComponentModel {
+    interface ViewModel extends ComponentViewModel {
         fileName: string;
     }
 
@@ -22,7 +22,7 @@
 
     export class MoFileSaveDialog extends ViewComponent {
         protected args: ViewArgs;
-        private fileExplorer: MoFileExplorerViewModel;
+        private fileExplorer: MoFileExplorerComponent;
         private _dialogWindow: kendo.ui.Window;
 
         constructor(options: ViewComponentOptions) {
@@ -66,7 +66,7 @@
                     this.fileExplorer.setOwnerValues("ProjectSegment", { Id: projectSegmentId, Name: "Projekt-Segment", CompanyId: companyId });
                 if (contractId)
                     this.fileExplorer.setOwnerValues("Contract", { Id: contractId, Name: "Auftrag", CompanyId: companyId });
-                this.fileExplorer.activateOwner();
+                this.fileExplorer.selectOwner();
             }
 
             // Return dummy promise to satisfy overridden refresh() method.
@@ -123,7 +123,7 @@
             });
 
             // The actual Mo file explorer component.
-            this.fileExplorer = new kmodo.MoFileExplorerViewModel({
+            this.fileExplorer = new kmodo.MoFileExplorerComponent({
                 $area: this.$view.find(".mo-file-system-view").first(),
                 isFileSystemTemplateEnabled: false,
                 areFileSelectorsVisible: false,
