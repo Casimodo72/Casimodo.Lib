@@ -5,12 +5,17 @@ using System.Runtime.Serialization;
 
 namespace Casimodo.Lib.Mojen
 {
+    public interface IFormedTypePropAccessor
+    {
+        MojProp Get(string propName);
+    }
+
     public class MojFormedTypeRegistry : MojBase
     {
         public List<MojFormedTypeContainer> TypeContainers { get; set; } = new List<MojFormedTypeContainer>();
     }
 
-    public class MojFormedTypeContainer
+    public class MojFormedTypeContainer: IFormedTypePropAccessor
     {
         internal readonly Dictionary<int, MojProp> _props = new Dictionary<int, MojProp>();
 

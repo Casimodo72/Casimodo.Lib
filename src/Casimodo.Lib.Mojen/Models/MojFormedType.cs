@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class MojFormedType : MojBase
+    public class MojFormedType : MojBase, IFormedTypePropAccessor
     {
         Dictionary<int, MojProp> _props = new Dictionary<int, MojProp>();
 
