@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace Casimodo.Lib.Mojen
 {
     public interface IFormedTypePropAccessor
     {
-        MojProp Get(string propName);
+        MojProp Get(string propName, bool required = false);
     }
 
     public class MojFormedTypeRegistry : MojBase
@@ -15,7 +14,7 @@ namespace Casimodo.Lib.Mojen
         public List<MojFormedTypeContainer> TypeContainers { get; set; } = new List<MojFormedTypeContainer>();
     }
 
-    public class MojFormedTypeContainer: IFormedTypePropAccessor
+    public class MojFormedTypeContainer : IFormedTypePropAccessor
     {
         internal readonly Dictionary<int, MojProp> _props = new Dictionary<int, MojProp>();
 
@@ -37,14 +36,18 @@ namespace Casimodo.Lib.Mojen
             return this[index];
         }
 
-        public MojProp Get(string propName)
+        public MojProp Get(string propName, bool required = true)
         {
-            return _props.Values.First(x => x.Name == propName);
+            var prop = _props.Values.FirstOrDefault(x => x.Name == propName);
+            if (prop == null && required)
+                throw new MojenException($"Property '{propName}' not found in formed type '{Type.ClassName}'.");
+
+            return prop;
         }
 
         public MojProp this[int index]
         {
             get { return _props[index]; }
         }
-    }   
+    }
 }

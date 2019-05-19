@@ -75,9 +75,12 @@ namespace Casimodo.Lib.Mojen
             return this[index];
         }
 
-        public MojProp Get(string name)
+        public MojProp Get(string name, bool required = true)
         {
-            return this[_props.First(x => x.Value.Name == name).Key];            
+            if (!required && !_props.Values.Any(x => x.Name == name))
+                return null;
+
+            return this[_props.First(x => x.Value.Name == name).Key];
         }
 
         public MojProp this[int index]
