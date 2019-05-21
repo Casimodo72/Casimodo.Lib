@@ -58,7 +58,7 @@ namespace kmodo {
     interface GeoMapLocationVicinityViewArgs extends ViewComponentArgs {
         contractId: string;
         projectId: string;
-        projectSegmentId: string;
+        projectSegmentId?: string;
     }
 
     interface ViewModel extends ComponentViewModel {

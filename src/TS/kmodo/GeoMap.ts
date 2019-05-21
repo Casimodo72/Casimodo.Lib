@@ -46,17 +46,32 @@
         Street: string;
         ZipCode: string;
         // Commune: string;
-        City: string;
-        CountryStateId: string;
-        CountryId: string;
+        City?: string;
+        CountryStateId?: string;
+        CountryId?: string;
+
         Longitude: string;
         Latitude: string;
-        UtmZone: string;
+
+        UtmZone: string; 
         UtmEasting: string;
         UtmNorthing: string;
     }
+   
+    export interface GeoPlaceEditorValues extends kmodo.ObservableObject {
+        Street: string;
+        ZipCode: string;
+        // Commune: string;
+        City?: string;
+        CountryStateId?: string;
+        CountryId?: string;
 
-    export interface GeoPlaceEditorValues extends GeoPlaceEditorProps, kmodo.ObservableObject {
+        Longitude: number;
+        Latitude: number;
+
+        UtmZone: string; 
+        UtmEasting: number;
+        UtmNorthing: number;
     }
 
     export class GeoPlaceEditorInfo {

@@ -279,9 +279,18 @@ namespace kmodo {
             this._removeTabElem(name);
         }
 
-        protected _tryClearTab(tab: TabPage, force: boolean = false): void {
-            if (tab.autoClear && tab.component && tab.component.clear)
+        protected _tryClearTab(tab: TabPage, force: boolean = false): boolean {
+            if (tab.autoClear && tab.component && tab.component.clear) {
                 tab.component.clear();
+                return true;
+            } else return false;
+        }
+
+        protected _tryRefreshTab(tab: TabPage, force: boolean = false): boolean {
+            if (tab.autoRefresh && tab.component && tab.component.refresh) {
+                tab.component.refresh();
+                return true;
+            } else return false;
         }
 
         private _removeTabElem(name: string): void {
@@ -397,8 +406,7 @@ namespace kmodo {
             // Apply filters
             this._setTabFilter(tab, tabEvent);
 
-            if (tab.autoRefresh)
-                await tab.component.refresh();
+            this._tryRefreshTab(tab);
 
             // Trigger enter event
             if (tab.enter)
@@ -420,10 +428,9 @@ namespace kmodo {
                     prevTab.leaveOrClear(this._createTabEvent(prevTab));
             }
 
-            if (tab.master && tab._isRefreshPending && tab.autoRefresh) {
-                tab._isRefreshPending = false;
-                if (tab.component)
-                    tab.component.refresh();
+            if (tab.master && tab._isRefreshPending) {
+                if (this._tryRefreshTab(tab))
+                    tab._isRefreshPending = false;
             }
 
             return true;

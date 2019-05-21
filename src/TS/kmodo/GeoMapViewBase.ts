@@ -29,7 +29,7 @@
         companyId: string;
         contractId: string;
         projectId: string;
-        projectSegmentId: string;
+        projectSegmentId?: string;
     }
 
 
