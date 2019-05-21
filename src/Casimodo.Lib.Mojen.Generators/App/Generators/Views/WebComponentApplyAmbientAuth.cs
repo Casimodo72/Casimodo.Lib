@@ -65,7 +65,8 @@ namespace Casimodo.Lib.Mojen
             if (target.AuthPermissions.Any())
             {
                 if (!target.IsAuthAmbientOverwritten)
-                    throw new MojenException("This view has explicit auth assigned and ambient auth was configured to be overwritten.");
+                    throw new MojenException("This view has explicit auth assigned but ambient " +
+                        "auth not was configured to be overwritten.");
 
                 return;
             }
