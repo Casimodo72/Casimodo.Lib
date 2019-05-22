@@ -13,7 +13,7 @@ namespace Casimodo.Lib.Mojen
         Create = 1,
         Update = 2,
         Delete = 3,
-        PropChanged = 4,
+        PropChanged = 4
     }
 
     public enum MiaTypeOpKind

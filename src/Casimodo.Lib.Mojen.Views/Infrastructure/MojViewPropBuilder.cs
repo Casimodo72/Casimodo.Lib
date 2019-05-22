@@ -146,17 +146,31 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        /// <summary>
+        /// TODO: Not implemented yet.
+        /// </summary>
         public TBuilder ShowIf(MojProp prop)
         {
-            // KABU TODO: IMPL?
+            // TODO: IMPL?
 
             return This();
         }
 
+        /// <summary>
+        /// TODO: Not implemented yet.
+        /// </summary>
+        public TBuilder ShowIfNot(MojProp prop)
+        {
+            // TODO: IMPL?
+            return This();
+        }
+
+        /// <summary>
+        /// TODO: Not implemented yet.
+        /// </summary>
         public TBuilder ShowIf(MojFormedType type)
         {
-            // KABU TODO: IMPL?
-
+            // TODO: IMPL?
             return This();
         }
 
@@ -168,7 +182,6 @@ namespace Casimodo.Lib.Mojen
 
         public TBuilder ShowOn(MojViewMode mode)
         {
-            //Prop.ShowModes = mode;
             Prop.HideModes = MojViewMode.All & ~mode;
             return This();
         }

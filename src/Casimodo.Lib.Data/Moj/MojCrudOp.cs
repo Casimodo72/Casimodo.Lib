@@ -12,6 +12,7 @@ namespace Casimodo.Lib.Data
         Create = 1,
         Update = 2,
         Delete = 3,
-        Patch = 4
+        Patch = 4,
+        Touch = 5
     }
 }

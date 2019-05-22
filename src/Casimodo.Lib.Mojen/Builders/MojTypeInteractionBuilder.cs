@@ -25,8 +25,9 @@ namespace Casimodo.Lib.Mojen
             return On(MiaTypeTriggerEventKind.Create);
         }
 
-        public MiaTypeOperationsBuilder OnUpdate()
+        public MiaTypeOperationsBuilder OnModify(bool includeTouch = true)
         {
+            // TODO: IMPL automatic touch on modification.
             return On(MiaTypeTriggerEventKind.Update);
         }
 
@@ -99,6 +100,11 @@ namespace Casimodo.Lib.Mojen
         public MiaTypeOperationsBuilder Update(MojType type = null, bool many = false)
         {
             return Do(MojCrudOp.Update, type, many);
+        }
+
+        public MiaTypeOperationsBuilder Touch(MojType type = null, bool many = false)
+        {
+            return Do(MojCrudOp.Touch, type, many);
         }
 
         public MiaTypeOperationsBuilder Delete(MojType type = null, bool many = false)
