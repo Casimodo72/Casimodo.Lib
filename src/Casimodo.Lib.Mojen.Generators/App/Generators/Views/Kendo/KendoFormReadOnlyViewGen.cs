@@ -30,7 +30,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     PerformWrite(ScriptFilePath, () =>
                     {
-                        KendoGen.OReadOnlyViewModel(context);
+                        KendoGen.OReadOnlyFormComponent(context);
                     });
 
                     RegisterComponent(context);

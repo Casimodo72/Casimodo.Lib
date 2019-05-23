@@ -45,7 +45,7 @@ namespace Casimodo.Lib.Mojen
 
                 PerformWrite(ScriptFilePath, () =>
                 {
-                    KendoGen.OEditorViewModel(context);
+                    KendoGen.OEditableFormComponent(context);
                 });
 
                 var dataViewModelGen = new WebDataEditViewModelGen();
@@ -86,13 +86,13 @@ namespace Casimodo.Lib.Mojen
 
             OLabelContainerBegin = c =>
             {
-                // if (c.IsRunEditable)
+                // TODO: REMOVE: if (c.IsRunEditable)
                 var style = c.Cur.GetGroupLabelStyle();
                 XB($"<div class='{style ?? LabelContainerClass}'>");
             };
             OLabelContainerEnd = c =>
             {
-                // if (c.IsRunEditable)
+                // TODO: REMOVE: if (c.IsRunEditable)
                 XE("</div>");
             };
 
@@ -136,7 +136,7 @@ namespace Casimodo.Lib.Mojen
                 XB($"<div class='form-horizontal component-root'{style}{GetViewHtmlId(context)}>");
             }
 
-            // Validation error box.
+            // Validation errors box.
             O("<ul class='km-form-validation-summary' style='display:none'></ul>");
 
             // External fields. Those fields need to be included in the UsedViewPropInfos

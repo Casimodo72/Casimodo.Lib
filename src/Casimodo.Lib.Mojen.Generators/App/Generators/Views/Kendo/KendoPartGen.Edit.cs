@@ -37,7 +37,7 @@ namespace Casimodo.Lib.Mojen
 
         void GenOnEditing_OnPropChanged(MojViewConfig view)
         {
-            var type = view.TypeConfig.RequiredStore;
+            var type = view.TypeConfig.GetUnderlyingDataType();
 
             var triggers = type.Triggers.Where(x => x.Event == MiaTypeTriggerEventKind.PropChanged).ToArray();
             var cascadeTargetProps = type.GetProps()

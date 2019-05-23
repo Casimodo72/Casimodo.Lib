@@ -50,6 +50,11 @@ namespace Casimodo.Lib.Mojen
             return View(id).List();
         }
 
+        public MojViewBuilder EditorViewFor(string id, MojType type)
+        {
+            return View(id, type).Editor();
+        }
+
         public MojViewBuilder EditorView(string id, params MojProp[] parameters)
         {
             return View(id).Editor(parameters);
@@ -68,14 +73,14 @@ namespace Casimodo.Lib.Mojen
             return View(id).SingleLookupView(parameters);
         }
 
-        public MojViewBuilder View(string id = null)
+        public MojViewBuilder View(string id, MojType type = null)
         {
             Guard.ArgNotNullOrWhitespace(id, nameof(id));
 
             var view = new MojControllerViewConfig();
             view.Id = id;
             view.Controller = Controller;
-            view.TypeConfig = Controller.TypeConfig;
+            view.TypeConfig = type ?? Controller.TypeConfig;
 
             if (App.Items.Any(x => (x as MojViewConfig)?.Id == id))
                 throw new MojenException($"Duplicate view ID '{id}'.");

@@ -329,6 +329,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsAuthAmbientOverwritten { get; set; }
 
         public bool HasNoApi { get; set; }
+        public bool IsLocalData { get; set; }
 
         public bool IsFilterable { get; set; } = true;
 

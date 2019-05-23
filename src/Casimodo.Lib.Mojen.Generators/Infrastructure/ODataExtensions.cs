@@ -137,6 +137,8 @@ namespace Casimodo.Lib.Mojen
         {
             var c = new MojHttpRequestConfig();
 
+            c.IsLocalData = view.IsLocalData;
+
             c.ReadGraph = view.BuildDataGraphForRead();
             c.ModelProps = c.ReadGraph
                 .OfType<MojPropDataGraphNode>().Select(x => x.Prop)
@@ -147,30 +149,33 @@ namespace Casimodo.Lib.Mojen
                     .Select(x => x.SourceProp))
                 .ToArray();
 
-            // OData URLs
-            c.ODataBaseUrl = gen.GetODataPath(view.TypeConfig, customQueryBase: customQueryBase);
-            c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc(customMethod: customQueryMethod)}?";
-            // Build OData $expand expressions based on the used foreign properties in the view.
-            c.ODataSelectUrl = c.ODataReadBaseUrl + gen.BuildODataSelectAndExpand(c.ReadGraph);
-            if (!string.IsNullOrEmpty(view.CustomSelectFilter))
+            if (!view.IsLocalData)
             {
-                c.ODataSelectUrl += "&" + view.CustomSelectFilter;
-            }
-            c.ODataFilterUrl = c.ODataReadBaseUrl + "$select=";
-            c.ODataCrudUrl = c.ODataBaseUrl;
-            c.ODataCreateUrl = c.ODataCrudUrl;
-            c.ODataUpdateUrlTemplate = c.ODataCrudUrl;
-            c.ODataDeleteUrl = c.ODataCrudUrl;
+                // OData URLs
+                c.ODataBaseUrl = gen.GetODataPath(view.TypeConfig, customQueryBase: customQueryBase);
+                c.ODataReadBaseUrl = c.ODataBaseUrl + $"/{gen.GetODataQueryFunc(customMethod: customQueryMethod)}?";
+                // Build OData $expand expressions based on the used foreign properties in the view.
+                c.ODataSelectUrl = c.ODataReadBaseUrl + gen.BuildODataSelectAndExpand(c.ReadGraph);
+                if (!string.IsNullOrEmpty(view.CustomSelectFilter))
+                {
+                    c.ODataSelectUrl += "&" + view.CustomSelectFilter;
+                }
+                c.ODataFilterUrl = c.ODataReadBaseUrl + "$select=";
+                c.ODataCrudUrl = c.ODataBaseUrl;
+                c.ODataCreateUrl = c.ODataCrudUrl;
+                c.ODataUpdateUrlTemplate = c.ODataCrudUrl;
+                c.ODataDeleteUrl = c.ODataCrudUrl;
 
-            if (editorView != null)
-            {
-                c.ODataCreateUrl = editorView.GetODataCreateUrl(c.ODataBaseUrl);
-                c.ODataUpdateUrlTemplate = editorView.GetODataUpdateUrlTemplate(c.ODataBaseUrl); ;
-            }
+                if (editorView != null)
+                {
+                    c.ODataCreateUrl = editorView.GetODataCreateUrl(c.ODataBaseUrl);
+                    c.ODataUpdateUrlTemplate = editorView.GetODataUpdateUrlTemplate(c.ODataBaseUrl); ;
+                }
 
-            // Ajax URL
-            // NOTE: Currently we don't use Ajax directly anywhere.
-            c.AjaxUrl = null;
+                // Ajax URL
+                // NOTE: Currently we don't use Ajax directly anywhere.
+                c.AjaxUrl = null;
+            }
 
             return c;
         }

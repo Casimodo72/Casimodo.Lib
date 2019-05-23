@@ -173,6 +173,10 @@ namespace Casimodo.Lib.Mojen
             // KABU TODO: How to also ensure that only exposable *navigated-to* properties are used?
             foreach (var prop in props)
             {
+                if (prop.DeclaringType.IsComplex())
+                    // Pass through non-entity props.
+                    continue;
+
                 if (!exposableProps.Contains(prop.Name))
                     throw new MojenException($"The property '{prop.Name}' is not exposable, thus must no included in read operations.");
             }

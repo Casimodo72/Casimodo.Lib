@@ -309,6 +309,14 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewBuilder LocalData()
+        {
+            View.IsLocalData = true;
+            View.IsCustomSave = true;
+
+            return this;
+        }
+
         public MojViewBuilder NoApi()
         {
             View.HasNoApi = true;

@@ -71,14 +71,17 @@ namespace Casimodo.Lib.Mojen
                         Prop = x
                     }));
 
-            // Ensure key property.
-            if (!propItems.Any(x => x.Prop.IsKey))
+            // Ensure key property for model/entity types.
+            if (type.IsEntityOrModel())
             {
-                propItems.Insert(0, new
+                if (!propItems.Any(x => x.Prop.IsKey))
                 {
-                    Info = (MojViewPropInfo)null,
-                    Prop = type.Key
-                });
+                    propItems.Insert(0, new
+                    {
+                        Info = (MojViewPropInfo)null,
+                        Prop = type.Key
+                    });
+                }
             }
 
             OGeneratedFileComment();

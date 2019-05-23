@@ -8,6 +8,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojProp[] ModelProps { get; set; }
 
+        public bool IsLocalData { get; set; }
+
         public string ODataBaseUrl { get; set; }
         public string ODataReadBaseUrl { get; set; }
         public string ODataSelectUrl { get; set; }

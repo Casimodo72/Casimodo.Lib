@@ -106,10 +106,6 @@ namespace Casimodo.Lib.Mojen
             oElemAttrs();
             OHtmlDataBindValue(context, ppath);
             oO("/>");
-#if (false)
-            <input class="k-input" id="Color" name="Color" /><script>
-            jQuery(function(){jQuery("#Color").kendoColorPicker({"opacity":false});});
-#endif
         }
 
         void OKendoDateTimePicker(WebViewGenContext context)
@@ -134,7 +130,7 @@ namespace Casimodo.Lib.Mojen
             oAttr("name", ppath);
             oAttr("data-display-name", vprop.DisplayLabel);
             oElemAttrs();
-            // KABU TODO: IMPORTANT: Do we need a require dvalidation error message?
+            // TODO: IMPORTANT: Do we need a require dvalidation error message?
             if (dprop.IsRequiredOnEdit)
                 oAttr("required", "");
             OHtmlDataBindValue(context, ppath);
@@ -171,7 +167,7 @@ namespace Casimodo.Lib.Mojen
 
                 if (dprop.RowCount != 0) ElemAttr("rows", dprop.RowCount);
                 if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
-                // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+                // TODO: IMPORTANT: Check whether Required and LocallyRequired works.
 
                 oElemAttrs();
                 OHtmlRequiredttrs(context, dprop);
@@ -195,8 +191,7 @@ namespace Casimodo.Lib.Mojen
                 ElemClass("k-textbox");
 
                 Oo($@"<input id='{ppath}' name='{ppath}'");
-                //  spellcheck='false'
-                // KABU TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+                // TODO: IMPORTANT: Check whether Required and LocallyRequired works.
                 oElemAttrs();
                 OHtmlRequiredttrs(context, dprop);
                 OHtmlDataBindValue(context);
@@ -359,6 +354,7 @@ namespace Casimodo.Lib.Mojen
 #endif
         }
 
+        // TODO: REMOVE:
 #if (false)
         void ONumericInputScriptCore(string ppath, string format, int? decimals)
         {

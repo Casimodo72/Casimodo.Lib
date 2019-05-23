@@ -7,9 +7,9 @@ namespace Casimodo.Lib.Mojen
 {
     public partial class KendoPartGen : WebPartGenerator
     {
-        public void OEditorViewModel(WebViewGenContext context)
+        public void OEditableFormComponent(WebViewGenContext context)
         {
-            // View model for standalone editor views.
+            // Standalone editable form component.
             var view = context.View;
             var transport = this.CreateODataTransport(view, editorView: view);
 
@@ -21,17 +21,20 @@ namespace Casimodo.Lib.Mojen
                 OViewModelOptions(context,
                     extend: () =>
                     {
-                        // OData read query URL
-                        O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
+                        if (!transport.IsLocalData)
+                        {
+                            // OData read query URL
+                            O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
 
-                        OB("transport: e =>");
-                        OB("return");
-                        ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport,
-                            create: context.View.CanCreate,
-                            modify: context.View.CanModify,
-                            delete: context.View.CanDelete));
-                        End(";");
-                        End(",");
+                            OB("transport: e =>");
+                            OB("return");
+                            ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport,
+                                create: context.View.CanCreate,
+                                modify: context.View.CanModify,
+                                delete: context.View.CanDelete));
+                            End(";");
+                            End(",");
+                        }
 
                         OB("dataModel: e =>");
                         OB("return");
@@ -47,9 +50,9 @@ namespace Casimodo.Lib.Mojen
             });
         }
 
-        public void OReadOnlyViewModel(WebViewGenContext context)
+        public void OReadOnlyFormComponent(WebViewGenContext context)
         {
-            // View model for standalone read-only views.
+            // Standalone read-only form component.
 
             var view = context.View;
             var transport = this.CreateODataTransport(view);
@@ -62,14 +65,17 @@ namespace Casimodo.Lib.Mojen
                 OViewModelOptions(context,
                     extend: () =>
                     {
-                        // OData read query URL
-                        O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
+                        if (!transport.IsLocalData)
+                        {
+                            // OData read query URL
+                            O($"readQuery: {Moj.JS(transport.ODataSelectUrl)},");
 
-                        OB("transport: e =>");
-                        OB("return");
-                        ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport));
-                        End(";");
-                        End(",");
+                            OB("transport: e =>");
+                            OB("return");
+                            ODataSourceTransportOptions(context, GetDataSourceSingleConfig(context, transport));
+                            End(";");
+                            End(",");
+                        }
 
                         OB("dataModel: e =>");
                         OB("return");
@@ -339,6 +345,10 @@ namespace Casimodo.Lib.Mojen
             O("isLookup: {0},", Moj.JS(view.Lookup.Is));
             O("isDialog: {0},", Moj.JS(view.IsDialog));
             O("isAuthRequired: {0},", Moj.JS(view.IsAuthEnabled));
+
+            if (view.IsLocalData)
+                O("isLocalData: true,");
+
             O("isCustomSave: {0},", Moj.JS(view.IsCustomSave));
 
             // Company filters

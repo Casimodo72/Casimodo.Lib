@@ -557,6 +557,17 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        public MojType GetUnderlyingDataType()
+        {
+            if (Store != null)
+                return Store;
+
+            if (Kind == MojTypeKind.Entity || Kind == MojTypeKind.Complex)
+                return this;
+
+            throw new MojenException("The MojType no underlying data type assigned.");
+        }
+
         public void CheckRequiredStore()
         {
             var dummy = RequiredStore;
