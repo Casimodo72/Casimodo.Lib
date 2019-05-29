@@ -724,9 +724,9 @@ namespace Casimodo.Lib.Mojen
         /// <summary>
         /// The view's controller method is custom and will not be generated.
         /// </summary>        
-        public MojViewBuilder CustomControllerMethod()
+        public MojViewBuilder CustomViewControllerMethod()
         {
-            View.IsCustomControllerMethod = true;
+            View.IsCustomViewControllerMethod = true;
             return this;
         }
 

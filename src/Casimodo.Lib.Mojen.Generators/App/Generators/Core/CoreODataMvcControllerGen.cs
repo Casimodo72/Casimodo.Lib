@@ -46,7 +46,7 @@ namespace Casimodo.Lib.Mojen
 
         public override void GenerateControllerContent(MojControllerConfig controller)
         {
-            foreach (var view in controller.GetPageViews().Where(x => !x.IsCustomControllerMethod))
+            foreach (var view in controller.GetPageViews().Where(x => !x.IsCustomViewControllerMethod))
             {
                 // Index
                 O();

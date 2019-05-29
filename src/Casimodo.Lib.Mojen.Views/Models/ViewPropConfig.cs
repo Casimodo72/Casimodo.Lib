@@ -388,6 +388,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojFontWeight FontWeight { get; set; }
 
+        public string Color { get; set; }
+
         public bool? IsAutocomplete { get; set; }
 
         public int VisiblePosition { get; set; }

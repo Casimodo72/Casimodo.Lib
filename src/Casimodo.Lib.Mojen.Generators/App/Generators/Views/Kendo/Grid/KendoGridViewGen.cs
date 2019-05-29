@@ -158,25 +158,6 @@ namespace Casimodo.Lib.Mojen
             // Container element for the Kendo grid widget.
             O($"<div id='{context.ComponentId}' class='component-root'></div>");
 
-            // TODO: REMOVE
-            //if (context.View.HasListItemContextMenu)
-            //{
-            //    O();
-            //    // KABU TODO: Currently just a hack.
-            //    // Add a row context menu in order to edit the tags of the selected data item.
-            //    O("<ul id='row-context-menu-{0}' style='text-wrap:none;min-width:150px;display:none'>",
-            //        context.ComponentId);
-            //    Push();
-
-            //    foreach (var cmd in context.View.ListItemCommands)
-            //    {
-            //        O($"<li data-name='{cmd.Name}'>{cmd.DisplayName}</li>");
-            //    }
-
-            //    Pop();
-            //    O("</ul>");
-            //}
-
             // Details view Kendo template
             if (context.View.InlineDetailsView != null)
             {
@@ -319,22 +300,6 @@ namespace Casimodo.Lib.Mojen
                                 if (view.IsNavigatableTo)
                                     o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'></button>");
 
-                                // KABU TODO: REMOVE?
-                                //if (view.CustomActions.Any())
-                                //{
-                                //    foreach (var action in view.CustomActions)
-                                //    {
-                                //        if (action.Kind == MojViewActionKind.Toggle)
-                                //        {
-                                //            o($"<button class='k-button custom-command' name='{action.Name}'");
-                                //            if (!action.IsVisible)
-                                //                o(" style ='display:none'");
-                                //            o($">{action.DisplayName}</button>");
-                                //        }
-                                //        else throw new MojenException($"Unhandled view action kind '{action.Kind}'.");
-                                //    }
-                                //}
-
                                 o("</div>"); // tools left                              
 
                                 o("<div class='km-grid-tools-right'>");
@@ -349,7 +314,6 @@ namespace Casimodo.Lib.Mojen
                                 {
                                     o("<ul class='km-grid-tools-menu'>");
                                     o("<li><span></span><ul>");
-                                    //  style='text-wrap:none;min-width:150px;display:none'
 
                                     if (context.View.IsExportableToExcel)
                                         // TODO: LOCALIZE
@@ -488,13 +452,10 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        bool HasColumnStyle(MojViewProp vprop)
-        {
-            return vprop.FontWeight != MojFontWeight.Normal;
-        }
-
         string GetGridColCssSelector(WebViewGenContext context, MojViewProp vprop)
         {
+            // TODO: Since this is col position based:
+            //   it won't work if columns are rearranged by the user.
             return $"#{context.ComponentId} tr[role='row'] > td[role='gridcell']:nth-child({vprop.VisiblePosition})";
         }
 
@@ -915,6 +876,18 @@ namespace Casimodo.Lib.Mojen
                 // Need to use " " if we don't want a column label, otherwise Kendo will
                 // insist in displaying the field's name.
                 O($"autofit: true,");
+            }
+
+            // Custom color
+            // NOTE: kendo.ui.GridColumn does not define a "style" prop.
+            //   This is a custom prop used by our Grid component.
+            if (!string.IsNullOrEmpty(vprop.Color))
+            {
+                OB("style:");
+
+                O($"color: '{vprop.Color}'");
+
+                End(",");
             }
 
             End(","); // Column

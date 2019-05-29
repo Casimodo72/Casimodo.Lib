@@ -353,6 +353,13 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojViewPropBuilder Color(string color)
+        {
+            Prop.Color = color;
+
+            return this;
+        }
+
         public MojViewPropBuilder NoAutocomplete()
         {
             Prop.IsAutocomplete = false;
