@@ -38,7 +38,7 @@ namespace Casimodo.Lib.Mojen
             return type.GetProps()
                 .Where(x => x.InitialSort.Is)
                 .OrderBy(x => x.InitialSort.Index)
-                .Select(x => x.InitialSort.Direction == MojOrderDirection.Ascending ? x.Name : x.Name + " desc")
+                .Select(x => x.InitialSort.Direction == MojSortDirection.Ascending ? x.Name : x.Name + " desc")
                 .Join(",");
         }
 

@@ -1139,7 +1139,7 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TPropBuilder InitialSort(MojOrderDirection direction = MojOrderDirection.Ascending, int index = 1)
+        public TPropBuilder InitialSort(MojSortDirection direction = MojSortDirection.Ascending, int index = 1)
         {
             PropConfig.InitialSort = new MojOrderConfig
             {

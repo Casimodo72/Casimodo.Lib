@@ -27,7 +27,7 @@ namespace Casimodo.Lib.Mojen
                 typeof(MojProp), typeof(MojAttrs),
                 typeof(MojAttr), typeof(MojAttrArg),
                 typeof(MojValueSetContainer), typeof(MojValueSetAggregate), typeof(MojValueSet), typeof(MojValueSet<string>),
-                typeof(MojOrderConfig), typeof(MojOrderDirection),
+                typeof(MojOrderConfig), typeof(MojSortDirection),
                 typeof(MojPickConfig), typeof(MojVersionMapping),
                 typeof(MojDateTimeInfo), typeof(MojBinaryConfig),
                 typeof(MojInterface),

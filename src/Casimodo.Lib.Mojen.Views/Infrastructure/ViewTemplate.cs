@@ -153,9 +153,8 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public ViewTemplate oO() // MojProp prop, bool readOnly = false)
+        public ViewTemplate oO()
         {
-            // oCore(prop, readOnly: readOnly);
             EndRun();
             return this;
         }

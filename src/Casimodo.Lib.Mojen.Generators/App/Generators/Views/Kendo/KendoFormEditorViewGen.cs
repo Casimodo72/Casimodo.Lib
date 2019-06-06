@@ -480,9 +480,7 @@ namespace Casimodo.Lib.Mojen
 
             XBInputGroup();
 
-            //XB("<div class='kmodo-tags-container'>");
-
-            O($"<div class='kmodo-tags-listview' data-role='listview' data-bind='source: {propPath}' data-template='tag-template'/>");
+            O($"<div class='km-tags-listview' data-role='listview' data-bind='source: {propPath}' data-template='tag-template'/>");
 
             // Invisible input for binding & validation.
             OSelectorControlInvisibleInput(context);
@@ -512,7 +510,7 @@ namespace Casimodo.Lib.Mojen
 
             // Tag item template
             OKendoTemplateBegin("tag-template");
-            XB("<div class='kmodo-tag-item'>");
+            XB("<div class='km-tag-item'>");
             var firstProp = vprop.ContentView?.Props.FirstOrDefault();
             if (firstProp != null)
             {
@@ -803,7 +801,7 @@ namespace Casimodo.Lib.Mojen
                                 $@"bevor '{info.EffectiveDisplayLabel}' ausgewählt werden kann."");");
                             // Exit
                             O("return;");
-                        }                       
+                        }
                         End(); // if (!cascadeFromVal)
                         OB("else");
                         // Don't add filter/command if the cascade-from value is null.
@@ -830,7 +828,7 @@ namespace Casimodo.Lib.Mojen
                                     $"value: cascadeFromVal, " +
                                     // Add an ID for easy removal of that filter.
                                     $"_id: '{Guid.NewGuid()}', " +
-                                    $"_deactivatable: {Moj.JS(filterIsDeactivatable)}, " +                                   
+                                    $"_deactivatable: {Moj.JS(filterIsDeactivatable)}, " +
                                     $"_targetTypeId: '{filterTargetType.Id}', " +
                                     // TODO: REMOVE: _targetTypeName if the future
                                     $"_targetTypeName: '{filterTargetType.Name}', " +

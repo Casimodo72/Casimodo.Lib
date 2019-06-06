@@ -322,7 +322,7 @@ namespace Casimodo.Lib.Mojen
             return predicateBuilder.Expression;
         }
 
-        public MojViewPropBuilder InitialSort(MojOrderDirection direction = MojOrderDirection.Ascending, int index = 1)
+        public MojViewPropBuilder Sort(MojSortDirection direction = MojSortDirection.Ascending, int index = 1)
         {
             Prop.InitialSort = new MojOrderConfig
             {

@@ -298,7 +298,7 @@ namespace Casimodo.Lib.Mojen
                                     o("<div class='km-grid-tool-filter'><span class='icon-tag'></span><div class='km-grid-tags-filter-selector'></div></div>");
 
                                 if (view.IsNavigatableTo)
-                                    o("<button class='k-button kmodo-clear-guid-filter-command' style='display:none'></button>");
+                                    o("<button class='k-button km-clear-key-filter-command' style='display:none'></button>");
 
                                 o("</div>"); // tools left                              
 
@@ -645,7 +645,7 @@ namespace Casimodo.Lib.Mojen
             else if (dprop.UseColor)
             {
                 valueTemplate = valueTemplate ?? $"data.get('{propPath}' || '')";
-                template = $"<div class='kmodo-cellcol'><div class='kmodo-cellmarker' style='background-color:#:data.get('{vprop.ColorProp.FormedTargetPath}')#'></div>#:data.get('{propPath}') || ''#</div>";
+                template = $"<div class='km-cellcol'><div class='km-cellmarker' style='background-color:#:data.get('{vprop.ColorProp.FormedTargetPath}')#'></div>#:data.get('{propPath}') || ''#</div>";
             }
 
             if (template == null && valueTemplate != null)
@@ -859,9 +859,9 @@ namespace Casimodo.Lib.Mojen
                 if (vprop.FontWeight == MojFontWeight.Bold)
                     @class += " strong";
 
-                // KABU TODO: MACIG hack
+                // TODO: MAGIC prop name
                 if (dprop.Name == "ModifiedOn")
-                    @class += " kmodo-grid-timestamp";
+                    @class += " km-grid-col-timestamp";
 
                 OB("attributes:");
 

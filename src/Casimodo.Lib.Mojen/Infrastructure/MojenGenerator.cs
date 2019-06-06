@@ -54,7 +54,7 @@ namespace Casimodo.Lib.Mojen
             bool isfirst = true;
             foreach (var order in orders.OrderBy(x => x.Index))
             {
-                if (order.Direction == MojOrderDirection.Ascending)
+                if (order.Direction == MojSortDirection.Ascending)
                 {
                     if (isfirst)
                         sb.Append(string.Format(".OrderBy(x => x.{0})", order.Name));

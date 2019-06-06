@@ -27,11 +27,11 @@ namespace Casimodo.Lib.Mojen
         public string Name { get; set; }
 
         [DataMember]
-        public MojOrderDirection Direction { get; set; }
+        public MojSortDirection Direction { get; set; }
     }
 
     [DataContract(Namespace = MojContract.Ns)]
-    public enum MojOrderDirection
+    public enum MojSortDirection
     {
         [EnumMember]
         Ascending = 0,
