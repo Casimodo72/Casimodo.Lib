@@ -46,7 +46,7 @@ namespace kmodo {
         autoClear?: boolean;
         autoRefresh?: boolean;
         clear?: (e: TTabEvent) => void;
-        isEnabled?: boolean;
+        enabled?: boolean;
     }
 
     export interface TabPageOptions extends TabPageOptionsBase<ITabPageContentComponent, TabPageEvent> {
@@ -72,7 +72,7 @@ namespace kmodo {
         clear: (e: any) => void;
         leave: (e: any) => void;
         leaveOrClear: (e: any) => void;
-        isEnabled: boolean;
+        enabled: boolean;
         _isInitPerformed: boolean;
         _isRefreshPending: boolean;
         _componentFactory: () => any;
@@ -102,7 +102,7 @@ namespace kmodo {
             this.clear = options.clear || null;
             this.leave = options.leave || null;
             this.leaveOrClear = options.leaveOrClear || null;
-            this.isEnabled = true;
+            this.enabled = options.enabled !== undefined ? options.enabled : true;
 
             this._isInitPerformed = false;
             this._isRefreshPending = false;
@@ -254,7 +254,7 @@ namespace kmodo {
 
         hideDisabledTabs(): void {
             for (let tab of this.tabs) {
-                if (!tab.isEnabled)
+                if (!tab.enabled)
                     this.toggleTabs(false, tab.name);
             }
         }
@@ -487,7 +487,7 @@ namespace kmodo {
         }
 
         protected _canEnterTab(tab: TabPage): boolean {
-            return tab.isEnabled;
+            return tab.enabled;
         }
     }
 
@@ -548,7 +548,7 @@ namespace kmodo {
 
                     if (!tab._isInitPerformed) return;
 
-                    if (!tab.isEnabled) return;
+                    if (!tab.enabled) return;
 
                     // Clear component.
                     this._tryClearTab(tab);
@@ -612,7 +612,7 @@ namespace kmodo {
 
         protected _canEnterTab(tab): boolean {
             // Enter tabs only if enabled and master data is selected.
-            return tab.isEnabled && this.mcomponent.getCurrent() !== null;
+            return tab.enabled && this.mcomponent.getCurrent() !== null;
         }
     }
 

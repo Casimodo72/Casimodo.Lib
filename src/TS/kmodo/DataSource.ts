@@ -43,7 +43,7 @@ namespace kmodo {
             type: "odata-v4",
             error: kendoDataSourceODataErrorHandler,
             transport: {
-                parameterMap: function (data, type) { return parameterMapForOData(data, type); },
+                parameterMap: parameterMapForOData,
                 read: {
                     url: url,
                     dataType: "json",

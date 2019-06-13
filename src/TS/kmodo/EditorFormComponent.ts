@@ -1,16 +1,5 @@
 ﻿namespace kmodo {
 
-    // KABU TODO: kendo.ui.Editable is missing.
-    interface KendoUIEditableOptions {
-        model: any;
-        clearContainer: boolean;
-        errorTemplate?: string;
-    }
-
-    interface KendoUIEditable extends kendo.ui.Widget {
-        validatable: kendo.ui.Validator;
-    }
-
     export interface EditorFormOptions extends EditableDataSourceViewOptions {
         title?: string;
     }
@@ -19,14 +8,12 @@
         protected _options: EditorFormOptions;
         private _editorWindow: kendo.ui.Window = null;
         private _editors: CustomPropViewComponentInfo[] = [];
-        private kendoEditable: KendoUIEditable = null;
+        private kendoEditable: CustomEditable = null;
         private _$dialogEditCommands: JQuery = null;
         private _$dialogSaveCmd: JQuery;
 
         constructor(options: EditorFormOptions) {
             super(options);
-
-            // TODO: REMOVE: this._options = super._options as EditorFormOptions;
 
             this.getModel().set("item", {});
             this.createDataSource();
@@ -118,6 +105,9 @@
 
                 for (const prop of Object.keys(template)) {
                     if (typeof item[prop] !== "undefined") {
+                        // NOTE that we are avoiding the ObservableObject.set() function here.
+                        //   Otherwise this would trigger Kendo Editable's unpredictable/insane/buggy
+                        //   validation machinery.
                         item[prop] = template[prop];
                         item.trigger("change", { field: prop });
                     }
@@ -151,6 +141,15 @@
         protected _cancel() {
             super._cancel();
             this._closeWindow();
+        }
+
+        set(field: string, value: any) {
+            try {
+                this.kendoEditable._updateSource = "code";
+                this.getCurrent().set(field, value);
+            } finally {
+                this.kendoEditable._updateSource = null;
+            }
         }
 
         protected _setWindowTitle(title: string): void {
@@ -350,8 +349,7 @@
             this._showErrors(validation.errors);
         }
 
-        private _createKendoEditable(dataItem: any): KendoUIEditable {
-
+        private _createKendoEditable(dataItem: kendo.data.Model): CustomEditable {
             const editableOptions: KendoUIEditableOptions = {
                 model: dataItem,
                 clearContainer: false,
@@ -359,8 +357,9 @@
             };
 
             // Type definition for "kendoEditable" is missing, thus the cast.
-            const editable = (this.$view as any).kendoEditable(editableOptions)
-                .data("kendoEditable") as KendoUIEditable;
+            const editable = new CustomEditable(this.$view, editableOptions);
+            //const editable = (this.$view as any).kendoEditable(editableOptions)
+            //    .data("kendoEditable") as KendoUIEditable;
 
             return editable;
         }
@@ -369,7 +368,7 @@
             if (!this.dataSource.data().length)
                 return;
 
-            const dataItem = this.getCurrent();
+            const dataItem = this.getCurrent() as kendo.data.Model;
 
             this.kendoEditable = this._createKendoEditable(dataItem);
 
@@ -425,6 +424,8 @@
 
             dataItem.bind("change", e => {
                 const field = e.field;
+                if (!field)
+                    return;
 
                 if (saveAttempted) {
                     // Validate all if a save was already attempted.
@@ -483,13 +484,13 @@
         }
 
         private _findInputElement(fieldName: string): JQuery {
-            // KABU TODO: Unfortunately Kendo's editable change event does
+            // TODO: Unfortunately Kendo's editable change event does
             //   not give us the input element. Thus we need to find it
             //   in the same way Kendo does.
             const bindAttribute = kendo.attr('bind');
             const bindingRegex = new RegExp('(value|checked)\\s*:\\s*' + fieldName + '\\s*(,|$)');
 
-            const input = $(':input[' + bindAttribute + '*="' + fieldName + '"]', this.$view)
+            const input = this.$view.find(':input[' + bindAttribute + '*="' + fieldName + '"]')
                 .filter('[' + kendo.attr('validate') + '!=\'false\']')
                 .filter((index, elem) => {
                     return bindingRegex.test($(elem).attr(bindAttribute));
@@ -527,6 +528,299 @@
                 return "htmlmixed";
 
             throw new Error("Unexpected text content type '" + type + "'.");
+        }
+    }
+
+    class KendoHelper {
+        public static isFunction(value: any): boolean {
+            return typeof value === "function";
+        }
+
+        public static isPlainObject(value: any): boolean {
+            return $.isPlainObject(value);
+        }
+
+        public static inArray(value: any, array: any[]): number {
+            return $.inArray(value, array);
+        }
+
+        public static extractFormat(value: any): any {
+            return (kendo as any)._extractFormat(value);
+        }
+    }
+
+    // KABU TODO: kendo.ui.Editable is missing.
+    interface KendoUIEditableOptions {
+        model: kendo.data.Model;
+        clearContainer: boolean;
+        errorTemplate?: string;
+    }
+
+    //interface KendoUIEditable { // extends kendo.ui.Widget {
+    //    validatable: kendo.ui.Validator;
+    //}
+
+    class CustomEditable {
+        private static readonly nameSpecialCharRegExp = /("|\%|'|\[|\]|\$|\.|\,|\:|\;|\+|\*|\&|\!|\#|\(|\)|<|>|\=|\?|\@|\^|\{|\}|\~|\/|\||`)/g;
+        private static readonly ERRORTEMPLATE = '<div class="k-widget k-tooltip k-tooltip-validation" style="margin:0.5em"><span class="k-icon k-warning"> </span>' + '#=message#<div class="k-callout k-callout-n"></div></div>';
+        private static readonly CHANGE = 'change';
+
+        validatable: kendo.ui.Validator = null;
+        private _validateProxy: any;
+        private element: JQuery;
+        private _validationEventInProgress = false;
+        _updateSource: string = null;
+
+        constructor(element, private options: KendoUIEditableOptions) {
+            this.element = element;
+            this._validateProxy = $.proxy(this._validate, this);
+            this.refresh();
+        }
+
+        private static readonly specialRules = [
+            'url',
+            'email',
+            'number',
+            'date',
+            'boolean'
+        ];
+
+        private static fieldType(field) {
+            field = field != null ? field : '';
+            return field.type || $.type(field) || 'string';
+        }
+
+        private static convertToValueBinding(container: JQuery): void {
+            container.find(':input:not(:button, [' + kendo.attr('role') + '=upload], [' + kendo.attr('skip') + '], [type=file]), select')
+                .each(function (idx, elem: any) {
+                    const bindAttr = kendo.attr('bind');
+                    let binding = elem.getAttribute(bindAttr) || '';
+                    const bindingName = elem.type === 'checkbox' || elem.type === 'radio' ? 'checked:' : 'value:';
+                    const fieldName = elem.name;
+
+                    if (binding.indexOf(bindingName) === -1 && fieldName) {
+                        binding += (binding.length ? ',' : '') + bindingName + fieldName;
+                        $(elem).attr(bindAttr, binding);
+                    }
+                });
+        }
+
+        private static createAttributes(options) {
+            const field = (options.model.fields || options.model)[options.field];
+            const type = CustomEditable.fieldType(field);
+            const validation = field ? field.validation : {};
+            let ruleName;
+            const DATATYPE = kendo.attr('type');
+            const BINDING = kendo.attr('bind');
+            let rule;
+            const attr = { name: options.field };
+
+            for (ruleName in validation) {
+                rule = validation[ruleName];
+                if (KendoHelper.inArray(ruleName, CustomEditable.specialRules) >= 0) {
+                    attr[DATATYPE] = ruleName;
+                } else if (!KendoHelper.isFunction(rule)) {
+                    attr[ruleName] = KendoHelper.isPlainObject(rule) ? rule.value || ruleName : rule;
+                }
+                attr[kendo.attr(ruleName + '-msg')] = rule.message;
+            }
+            if (KendoHelper.inArray(type, CustomEditable.specialRules) >= 0) {
+                attr[DATATYPE] = type;
+            }
+            attr[BINDING] = (type === 'boolean' ? 'checked:' : 'value:') + options.field;
+            return attr;
+        }
+
+        private static convertItems(items) {
+            var idx, length, item, value, text, result;
+            if (items && items.length) {
+                result = [];
+                for (idx = 0, length = items.length; idx < length; idx++) {
+                    item = items[idx];
+                    text = item.text || item.value || item;
+                    value = item.value == null ? item.text || item : item.value;
+                    result[idx] = {
+                        text: text,
+                        value: value
+                    };
+                }
+            }
+            return result;
+        }
+
+        private static readonly editors = {
+            'number': function (container: JQuery, options: any) {
+                var attr = CustomEditable.createAttributes(options);
+                $('<input type="text"/>')
+                    .attr(attr)
+                    .appendTo(container)
+                    .kendoNumericTextBox({ format: options.format });
+                $('<span ' + kendo.attr('for') + '="' + options.field + '" class="k-invalid-msg"/>')
+                    .hide()
+                    .appendTo(container);
+            },
+            'date': function (container: JQuery, options: any) {
+                var attr = CustomEditable.createAttributes(options), format = options.format;
+                if (format) {
+                    format = KendoHelper.extractFormat(format);
+                }
+                attr[kendo.attr('format')] = format;
+                $('<input type="text"/>').attr(attr).appendTo(container).kendoDatePicker({ format: options.format });
+                $('<span ' + kendo.attr('for') + '="' + options.field + '" class="k-invalid-msg"/>').hide().appendTo(container);
+            },
+            'string': function (container: JQuery, options: any) {
+                var attr = CustomEditable.createAttributes(options);
+                $('<input type="text" class="k-input k-textbox"/>').attr(attr).appendTo(container);
+            },
+            'boolean': function (container: JQuery, options: any) {
+                var attr = CustomEditable.createAttributes(options);
+                $('<input type="checkbox" />').attr(attr).appendTo(container);
+            },
+            'values': function (container: JQuery, options: any) {
+                var attr = CustomEditable.createAttributes(options);
+                var items = kendo.stringify(CustomEditable.convertItems(options.values));
+                $('<select ' + kendo.attr('text-field') + '="text"' + kendo.attr('value-field') + '="value"' + kendo.attr('source') + '=\'' + (items ? items.replace(/\'/g, '&apos;') : items) + '\'' + kendo.attr('role') + '="dropdownlist"/>').attr(attr).appendTo(container);
+                $('<span ' + kendo.attr('for') + '="' + options.field + '" class="k-invalid-msg"/>').hide().appendTo(container);
+            }
+        }
+
+        private static addValidationRules(modelField, rules) {
+            const validation = modelField ? modelField.validation || {} : {};
+            let rule;
+            let descriptor;
+            for (rule in validation) {
+                descriptor = validation[rule];
+                if (KendoHelper.isPlainObject(descriptor) && descriptor.value) {
+                    descriptor = descriptor.value;
+                }
+                if (KendoHelper.isFunction(descriptor)) {
+                    rules[rule] = descriptor;
+                }
+            }
+        }
+
+        editor(field: any, modelField: any) {
+            const isObject = KendoHelper.isPlainObject(field);
+            const fieldName = isObject ? field.field : field;
+            const model = this.options.model;
+            const isValuesEditor = isObject && field.values;
+            const type = isValuesEditor ? 'values' : CustomEditable.fieldType(modelField);
+            const isCustomEditor = isObject && field.editor;
+            let editor = isCustomEditor ? field.editor : CustomEditable.editors[type];
+            let container = this.element.find('[' + kendo.attr('container-for') + '=' + fieldName.replace(CustomEditable.nameSpecialCharRegExp, '\\$1') + ']');
+
+            editor = editor ? editor : CustomEditable.editors.string;
+            if (isCustomEditor && typeof field.editor === 'string') {
+                editor = function (container) {
+                    container.append(field.editor);
+                };
+            }
+            container = container.length ? container : this.element;
+            editor(container, $.extend(true, {}, isObject ? field : { field: fieldName }, { model: model }));
+        }
+
+        _validate(e: any) {
+            if (this._updateSource === "code") {
+                // Kendo is severely broken w.r.t. validation in a MVVM scenario.
+                // If a value is changed programmatically then it does not validate
+                //   that value but validates the input element which doesn't have
+                //   that value assigned at this point yet.
+                //   This means: if an input element is currently invalid then
+                //   one cannot change its value programmatically via the observable.
+                return;
+            }
+
+            let input: JQuery;
+            const value = e.value;
+            // const preventChangeTrigger = this._validationEventInProgress;
+            const values = {};
+            const bindAttribute = kendo.attr('bind');
+            const fieldName = e.field.replace(CustomEditable.nameSpecialCharRegExp, '\\$1');
+            const bindingRegex = new RegExp('(value|checked)\\s*:\\s*' + fieldName + '\\s*(,|$)');
+
+            values[e.field] = e.value;
+            input = $(':input[' + bindAttribute + '*="' + fieldName + '"]', this.element)
+                .filter('[' + kendo.attr('validate') + '!=\'false\']')
+                .filter(function (idx, elem) {
+                    return bindingRegex.test($(elem).attr(bindAttribute));
+                });
+            if (input.length > 1) {
+                input = input.filter(function (idx, elem) {
+                    var element = $(elem);
+                    return !element.is(':radio') || element.val() == value;
+                });
+            }
+            try {
+                this._validationEventInProgress = true;
+                if (!this.validatable.validateInput(input)
+                    // NOTE: Change event remove because we don't listen to that.
+                    /* || !preventChangeTrigger && this.trigger(CHANGE, { values: values }) */
+                ) {
+                    e.preventDefault();
+                }
+            } finally {
+                this._validationEventInProgress = false;
+            }
+        }
+
+        destroy() {
+            this.options.model.unbind('set', this._validateProxy);
+            // TODO REMOVE: kendo.unbind(this.element);
+            if (this.validatable) {
+                this.validatable.destroy();
+            }
+            // TODO REMOVE: kendo.destroy(this.element);
+            // TODO REMOVE: this.element.removeData('kendoValidator');
+            // TODO: Do we need the following?
+            if (this.element.is('[' + kendo.attr('role') + '=editable]')) {
+                this.element.removeAttr(kendo.attr('role'));
+            }
+        }
+
+        refresh() {
+            let idx;
+            let length;
+            let fields = [];
+            const container = this.options.clearContainer ? this.element.empty() : this.element;
+            const model = this.options.model;
+            const rules = {};
+            let field;
+            let isObject;
+            let fieldName;
+            let modelField;
+            let modelFields;
+
+            if (!$.isArray(fields)) {
+                fields = [fields];
+            }
+            for (idx = 0, length = fields.length; idx < length; idx++) {
+                field = fields[idx];
+                isObject = KendoHelper.isPlainObject(field);
+                fieldName = isObject ? field.field : field;
+                modelField = (model.fields || model)[fieldName];
+                CustomEditable.addValidationRules(modelField, rules);
+                this.editor(field, modelField);
+            }
+
+            if (!length) {
+                modelFields = model.fields || model;
+                for (fieldName in modelFields) {
+                    CustomEditable.addValidationRules(modelFields[fieldName], rules);
+                }
+            }
+            CustomEditable.convertToValueBinding(container);
+            if (this.validatable) {
+                this.validatable.destroy();
+            }
+            kendo.bind(container, this.options.model);
+            this.options.model.unbind('set', this._validateProxy);
+            this.options.model.bind('set', this._validateProxy);
+            this.validatable = new kendo.ui.Validator(container as any, {
+                validateOnBlur: false,
+                errorTemplate: this.options.errorTemplate || undefined,
+                rules: rules
+            });
+            container.find(':kendoFocusable').eq(0).focus();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿
-// KABU TODO: Eliminate references to hard-coded geoassistant.MoTypeKeys.Manager/File GUID.
+// TODO: Eliminate references to hard-coded geoassistant.MoTypeKeys.Manager/File GUID.
 namespace kmodo {
 
     class MoFileSystemError extends Error {
@@ -734,13 +734,13 @@ namespace kmodo {
         }
 
         showResetButton(visible: boolean): void {
-            let $btn = this.options.$area.find(".kmodo-upload-reset-command");
+            let $btn = this.options.$area.find(".km-upload-reset-command");
 
             if (visible && !$btn.length) {
                 // Add reset button
                 $btn = this._kendoUpload.wrapper
                     .find(".k-dropzone")
-                    .append('<button type="button" class="k-button k-upload-action kmodo-upload-reset-command" aria-label="Bereinigen"><span class="k-icon k-i-close k-i-x" title="Bereinigen"></span></button>');
+                    .append('<button type="button" class="k-button k-upload-action km-upload-reset-command" aria-label="Bereinigen"><span class="k-icon k-i-close k-i-x" title="Bereinigen"></span></button>');
 
                 $btn.on("click", () => {
                     this.reset();
@@ -1088,6 +1088,7 @@ namespace kmodo {
         owners?: (() => MoFileTreeOwnerDefinition[]) | MoFileTreeOwnerDefinition[];
         isRecycleBinEnabled?: boolean;
         isFileSystemTemplateEnabled?: boolean;
+        // TODO: RENAME to isFileSelectorVisible; no need to pluralize here
         areFileSelectorsVisible?: boolean;
         isUploadEnabled?: boolean;
     }
@@ -1247,6 +1248,13 @@ namespace kmodo {
                 x.set("Name", "?");
                 x.set("CompanyId", null);
             });
+        }
+
+        setOwners(owners: MoFileTreeOwnerDefinition[]) {
+            this.clearAllOwnerValues();
+            const items = this.owners.items as any as kendo.data.ObservableArray;
+            items.empty();
+            items.push(...owners);
         }
 
         setOwnerValues(ownerKind: string, value: MoFileTreeOwnerSetting): void {

@@ -129,13 +129,11 @@
             if (!args)
                 return;
 
-            // Dialog result builder function.
+            // Dialog result build function.
             if (this._options.isDialog) {
                 this.args.isCancelled = true;
                 this.args.isOk = false;
                 this.args.buildResult = () => {
-                    // KABU TODO: REMOVE selection
-                    // this.args.value = this.selection[this.keyName];
                     this.args.value = this.scope.get("item") ? this.scope.get("item")[this.keyName] : null;
                     this.args.item = this.scope.get("item");
                 };

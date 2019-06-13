@@ -1,37 +1,43 @@
 ﻿namespace kmodo {
 
-    interface ViewModel extends ComponentViewModel {
-        fileName: string;
-    }
-
-    interface ViewArgsItemContext {
-        companyId: string;
-        contractId: string;
-        projectId: string;
-        projectSegmentId: string;
-    }
+    //interface MoFileSaveDialogEntitiesContext {
+    //    companyId: string;
+    //    contractId: string;
+    //    projectId: string;
+    //    projectSegmentId: string;
+    //}
 
     interface ViewArgsItem {
         imageDataUrl: string;
-        context: ViewArgsItemContext;
+        context?: any;
     }
 
     interface ViewArgs extends ViewComponentArgs {
         item: ViewArgsItem;
     }
 
-    export class MoFileSaveDialog extends ViewComponent {
-        protected args: ViewArgs;
-        private fileExplorer: MoFileExplorerComponent;
-        private _dialogWindow: kendo.ui.Window;
+    interface ViewModel extends ComponentViewModel {
+        fileName: string;
+    }
 
-        constructor(options: ViewComponentOptions) {
+    export interface MoFileSaveDialogOptions extends ViewComponentOptions {
+        fileName?: string;
+        owners: MoFileTreeOwnerDefinition[];
+    }
+
+    export abstract class MoFileSaveDialog extends ViewComponent {
+        protected args: ViewArgs;
+        protected fileExplorer: MoFileExplorerComponent;
+        private _dialogWindow: kendo.ui.Window;
+        _options: MoFileSaveDialogOptions;
+
+        constructor(options: MoFileSaveDialogOptions) {
             super(options);
 
             this.$view = null;
 
             this.scope = kendo.observable({
-                fileName: "Karte XYZ"
+                fileName: this._options.fileName || "Neue Datei"
             });
 
             this._isViewInitialized = false;
@@ -41,37 +47,7 @@
             return super.getModel() as ViewModel;
         }
 
-        refresh(): Promise<void> {
-            // KABU TODO: Do we want to use images or not?
-            // const imageDataUrl = this.args.item.imageDataUrl;
-
-            let companyId = null;
-            let projectId = null;
-            let projectSegmentId = null;
-            let contractId = null;
-
-            const ctx = this.args.item.context;
-            if (ctx) {
-                companyId = ctx.companyId;
-                projectId = ctx.projectId;
-                projectSegmentId = ctx.projectSegmentId;
-                contractId = ctx.contractId;
-            }
-
-            this.fileExplorer.clearAllOwnerValues();
-            if (companyId) {
-                if (projectId)
-                    this.fileExplorer.setOwnerValues("Project", { Id: projectId, Name: "Projekt (alle Segmente)", CompanyId: companyId });
-                if (projectSegmentId)
-                    this.fileExplorer.setOwnerValues("ProjectSegment", { Id: projectSegmentId, Name: "Projekt-Segment", CompanyId: companyId });
-                if (contractId)
-                    this.fileExplorer.setOwnerValues("Contract", { Id: contractId, Name: "Auftrag", CompanyId: companyId });
-                this.fileExplorer.selectOwner();
-            }
-
-            // Return dummy promise to satisfy overridden refresh() method.
-            return Promise.resolve();
-        }
+        abstract refresh(): Promise<void>;
 
         createView(): void {
             if (this._isViewInitialized)
@@ -122,47 +98,18 @@
                 this._dialogWindow.close();
             });
 
-            // The actual Mo file explorer component.
+            // Mo file explorer component.
             this.fileExplorer = new kmodo.MoFileExplorerComponent({
                 $area: this.$view.find(".mo-file-system-view").first(),
                 isFileSystemTemplateEnabled: false,
                 areFileSelectorsVisible: false,
                 isRecycleBinEnabled: false,
                 isUploadEnabled: false,
-                owners: function () {
-                    const items = [];
-
-                    items.push({
-                        Name: "Projekt (für alle Segmente)",
-                        Kind: "Project",
-                        TypeId: cmodo.entityMappingService.getTypeKey("Project"),
-                        Id: null
-                    });
-
-                    items.push({
-                        Name: "Projekt-Segment",
-                        Kind: "ProjectSegment",
-                        TypeId: cmodo.entityMappingService.getTypeKey("ProjectSegment"),
-                        Id: null
-                    });
-
-                    // KABU TODO: IMPORTANT: How to get AUTH here?
-                    //if (cmodo.authContext.manager.hasUserRole("Manager")) {
-                    //items.push({
-                    //    Name: "Auftrag",
-                    //    Kind: "Contract",
-                    //    TypeId: modo.entityMappingService.getTypeKey("Contract"),
-                    //    // TODO: REMOVE?: IsManagement: true,
-                    //    Id: null
-                    //});
-                    //}
-
-                    return items;
-                }
+                owners: this._options.owners
             });
 
             this.fileExplorer.createView();
-        };
+        }
 
         _initDialogWindowTitle() {
             let title = "";
@@ -178,6 +125,6 @@
             }
 
             this._dialogWindow.title(title);
-        };
+        }
     }
 }

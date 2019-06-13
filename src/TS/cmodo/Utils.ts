@@ -389,4 +389,103 @@ namespace cmodo {
 
         return result;
     }
+
+    class Container {
+        select = "";
+        filter = "";
+        orderby = "";
+        expansions: ExpandContainer[] = [];
+    }
+
+    class ExpandContainer extends Container {
+        prop = "";
+    }
+
+    export class SimpleODataQueryBuilder {
+        private _url = "";
+        private _root = new Container();
+        private _current: ExpandContainer = null;
+
+        url(url: string): SimpleODataQueryBuilder {
+            this._url = url;
+            return this;
+        }
+
+        select(props: string): SimpleODataQueryBuilder {
+            this.getEffective().select = props;
+            return this;
+        }
+
+        filter(filter: string): SimpleODataQueryBuilder {
+            this.getEffective().filter = filter || "";
+            return this;
+        }
+
+        orderby(orderby: string): SimpleODataQueryBuilder {
+            this.getEffective().orderby = orderby || "";
+            return this;
+        }
+
+        private getEffective(): Container {
+            return this._current !== null ? this._current : this._root;
+        }
+
+        expand(prop: string, build: (builder: SimpleODataQueryBuilder) => void): SimpleODataQueryBuilder {
+            const expand = new ExpandContainer();
+            expand.prop = prop;
+            this.getEffective().expansions.push(expand);
+
+            const prev = this._current;
+            this._current = expand;
+            build(this);
+            this._current = prev;
+
+            return this;
+        }
+
+        toString(): string {
+            const query = this.serializeContainer(this._root, 0);
+            return (this._url || "") + (query ? "?" + query : "");
+        }
+
+        private _sep(expr: string, sep: string, nextExpr: string): string {
+            return expr ? sep + nextExpr : nextExpr;
+        }
+
+        private serializeContainer(item: Container, level: number): string {
+            const separator = level === 0 ? "&" : ";";
+            let result = "";
+
+            if (item.select) {
+                result += "$select=" + item.select;
+            }
+
+            if (item.filter) {
+                result += this._sep(result, separator, "$filter=" + item.filter);
+            }
+
+            if (item.orderby) {
+                result += this._sep(result, separator, "orderby=" + item.orderby);
+            }
+
+            if (item.expansions.length) {
+                result += this._sep(result, separator, "$expand=");
+                let expansion: ExpandContainer;
+                for (let i = 0; i < item.expansions.length; i++) {
+                    expansion = item.expansions[i];
+                    result += expansion.prop;
+                    if (expansion.select || expansion.expansions.length) {
+                        result += "(";
+                        result += this.serializeContainer(expansion, level + 1);
+                        result += ")";
+                    }
+                    if (i + 1 < item.expansions.length) {
+                        result += ",";
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
 }

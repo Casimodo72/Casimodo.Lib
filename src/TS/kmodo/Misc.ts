@@ -203,7 +203,7 @@
         // TODO: Eval which type of event we actually get here.
         kendoEvent.preventDefault();
         const $elem = kmodo.getEventTarget(kendoEvent);
-        let value = !!scope.get("propName");
+        let value = !!scope.get(propName);
         value = !value;
         scope.set(propName, value);
         kmodo.toggleButton($elem, value);

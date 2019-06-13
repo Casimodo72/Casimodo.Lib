@@ -39,7 +39,11 @@
 
     export interface EditableDataSourceViewOptions extends DataSourceViewOptions {
         dataTemplate?: string;
-        editing?: (e: EditableViewOnEditingEvent) => void;
+        editing?: (e: EditableViewOnEditingEvent) => void;       
+    }
+
+    interface IPropSetable {
+        set(field: string, value: any);
     }
 
     export abstract class EditableDataSourceViewComponent extends DataSourceViewComponent {
@@ -118,11 +122,12 @@
 
                             this._iedit.isDeleted = true;
 
+                            // TODO: LOCALIZE?
                             kmodo.openInfoDialog("Der Eintrag wurde gelöscht.", {
                                 kind: "info"
                             })
                                 .then(() => {
-                                    // KABU TODO: Should we do something else other than cancel?
+                                    // TODO: Should we do something else other than cancel?
                                     this._cancel();
                                 });
                         });
@@ -136,11 +141,6 @@
             this.args.isDeleted = this._iedit.isDeleted;
             this.args.isOk = false;
             this.args.isCancelled = true;
-        }
-
-        // Can be overriden by derived class.
-        protected onEditingGenerated(context) {
-            // NOP           
         }
 
         private getDataSourceModelFields(): any {
@@ -157,11 +157,8 @@
                 this._options.editing(e);
             }
 
-            //if (typeof this.onEditingGenerated === "function")
-            //    this.onEditingGenerated(context);
-
             if (e.mode === "create") {
-                kmodo.initDataItemOnCreating(e.item, this.getDataSourceModelFields());
+                kmodo.initDataItemDefaultValues(e.item, this.getDataSourceModelFields());
 
                 // Prepare domain object for editing.
                 // E.g. this will create nested complex properties if missing.
@@ -207,12 +204,11 @@
         */
         // override
         protected onDataSourceRequestEnd(e) {
-
             if (this._isDebugLogEnabled)
                 console.debug("- EDITOR: DS.requestEnd: type: '%s'", e.type);
 
-            // NOTE: On errors the data source will trigger "requestEnd" first and then "error".
-            //   e.type will be undified in this case.
+            // NOTE: On errors, the data source will trigger "requestEnd" first and then "error".
+            //   e.type will be undefined when an error occurs.
 
             if (typeof e.type === "undefined") {
                 // This happens when there was a request error.
@@ -249,19 +245,21 @@
             return message;
         }
 
-        _setNestedItem(prop: string, foreignKey: string, referencedKey: string, odataQuery: string, assignments?: PropAssignment[]) {
+        abstract set(field: string, value: any);
 
+        _setNestedItem(prop: string, foreignKey: string, referencedKey: string, odataQuery: string, assignments?: PropAssignment[]) {
             const item: kendo.data.Model = this.getCurrent();
             if (!item)
                 return;
 
             // Clear previously assigned referenced object.
-            item.set(prop, null);
+            this.set(prop, null);
+            // TODO: REMOVE: item.set(prop, null);
+
             const foreignKeyValue = item.get(foreignKey);
             if (!foreignKeyValue)
                 return;
 
-            // KABU TODO: MAGIC: assumes there's an "Id" property on the referenced object.
             cmodo.executeODataRequestCore("GET", odataQuery + "&$filter=" + referencedKey + " eq " + foreignKeyValue)
                 .then(refItems => {
 
@@ -269,11 +267,11 @@
 
                     if (!refItem) {
                         // Clear the foreign key property because no result was returned.
-                        item.set(foreignKey, null);
+                        this.set(foreignKey, null);
                     }
                     else {
                         // Set the referenced object.
-                        item.set(prop, refItem);
+                        this.set(prop, refItem);
                     }
 
                     // TODO: IMPORTANT: always allow assignment of properties.                    
@@ -297,6 +295,10 @@
             if (!assignments || !assignments.length)
                 return;
 
+            // Use this.set() method if applicable.
+            //   This avoids Kendo's messed up editable/validation mechanism.
+            const effectiveTarget: IPropSetable = target === this.getCurrent() ? this : target;
+
             const dataTemplate = this._options.dataTemplate;
 
             let item: PropAssignment;
@@ -309,10 +311,12 @@
                     item.t.indexOf(".") === -1 &&
                     typeof dataTemplate[item.t] !== "undefined") {
 
-                    target.set(item.t, dataTemplate[item.t]);
+                    effectiveTarget.set(item.t, dataTemplate[item.t]);
                 }
                 else {
-                    target.set(item.t, source ? cmodo.getValueAtPropPath(source, item.s) : null);
+                    // TODO: We should be able to use nested paths with ObservableObject.get().
+                    //   TODO: Evaluate if source.get(item.s) works. 
+                    effectiveTarget.set(item.t, source ? cmodo.getValueAtPropPath(source, item.s) : null);
                 }
             }
         }

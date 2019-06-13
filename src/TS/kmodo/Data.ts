@@ -9,13 +9,13 @@ namespace kmodo {
 
     // To be set by consumer app.
     export function initDomainDataItem(item: any, itemTypeName: string, scenario: string) {
-        throw new Error("The function 'initDomainDataItem' is expected to be set by the application.");
+        throw new Error("The function 'initDomainDataItem' is expected to be implemented by the application.");
     }
 
     // Sets empty string values to either default values or null.
     // This is needed because Kendo annoyingly insists in initializing string values to ""
     //   even if we explicitely specify NULL as default value.
-    export function initDataItemOnCreating (item: any, propInfos: Object) {
+    export function initDataItemDefaultValues(item: any, propInfos: Object) {
         const propNames = Object.getOwnPropertyNames(propInfos);
         let info;
 

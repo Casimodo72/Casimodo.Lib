@@ -32,8 +32,6 @@
                     this.setMapSizeMode(this.getModel().get("sizeMode"));
                 }
             });
-
-            // GeoMapLocationView.initCommuneList();
         }
 
         private onFreehandDrawingEnabledChanged(enabled: boolean): void {
@@ -47,60 +45,35 @@
             return this.refreshCore();
         }
 
-        setContextFilter(context: ContextPlaceInfo): void {
-            this._contextPlaceInfo = context;
+        private async refreshCore(): Promise<void> {
+            await this._loadMap();
+            this.createView();
+            this.clear();
+            await this.start();
         }
 
-        private refreshCore(): Promise<void> {
-            return this._loadMap()
-                .then(() => {
-                    this.createView();
-                    this.clear();
-                    this.displayContextLocation();
-                });
-        }
-
-        private displayContextLocation(): void {
-
-            const location = this._contextPlaceInfo;
-
-            // KABU TODO: Currently a ProjectSegment is expected as the context location.
-            if (!location.projectSegmentId)
+        private async start() {
+            const place = await this._options.contextPlaceProvider();
+            if (!this._hasDataLatLong(place))
                 return;
 
-            let url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
-            url += "&$filter=";
-            url += " Id eq " + location.projectSegmentId;
+            const address = this._buildAddressText(place.Street, place.ZipCode, place.City, place.CountryStateCode);
 
-            cmodo.oDataQuery(url)
-                .then((items: any[]) => {
-                    if (items.length === 1)
-                        this.addProjectSegment(items[0]);
-                });
-        }
-
-        private addProjectSegment(psegment: any): void {
-
-            if (!this._hasDataLatLong(psegment))
-                return;
-
-            const address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
-
-            const psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
+            // TODO: REMOVE?
+            // const psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
 
             this.addMarker({
                 position: {
-                    lat: psegment.Latitude,
-                    lng: psegment.Longitude
+                    lat: place.Latitude,
+                    lng: place.Longitude
                 },
-                //color: "#00ff00",
                 title: address,
-                content: psegmentLinkHtml
+                // content: psegmentLinkHtml
             });
 
             this.setMapCenter(new google.maps.LatLng(
-                psegment.Latitude,
-                psegment.Longitude));
+                place.Latitude,
+                place.Longitude));
 
             this.setMapZoom(this.standardZoom);
         }
@@ -142,7 +115,5 @@
 
             this._initMap();
         }
-
-
     }
 }

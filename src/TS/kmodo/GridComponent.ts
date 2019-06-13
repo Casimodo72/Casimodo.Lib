@@ -14,7 +14,7 @@
 
     interface InternalGridState {
         gridDataBindAction: string;
-        lastCurrentItemId: string;
+        lastCurrentId: string;
         gridLastScrollTop: number;
         isRestoringExpandedRows: boolean;
         isEditing: boolean;
@@ -45,7 +45,17 @@
 
     export interface GridCommand extends GenericComponentCommand<Grid, GridEvent> { }
 
+    interface IColumnInfo {
+        column: kendo.ui.GridColumn;
+        index: number;
+    }
+
+    interface IRowColumnsInfo {
+        [name: string]: IColumnInfo;
+    }
+
     export class Grid extends DataSourceViewComponent {
+        public readonly selectionManager: GridSelectionManager;
         private _kendoGrid: kendo.ui.Grid;
         private _$commandBox: JQuery;
         protected _options: GridOptions;
@@ -54,7 +64,6 @@
         private _commands: GridCommand[];
         private _rowCommands: GridCommand[];
         private _state: InternalGridState;
-        public selectionManager: GridSelectionManager;
         private _isItemRemoveCommandEnabled: boolean;
         private _$toolbar: JQuery;
         private _tagsFilterSelector: kendo.ui.MultiSelect;
@@ -80,7 +89,7 @@
 
             this._state = {
                 gridDataBindAction: null,
-                lastCurrentItemId: null,
+                lastCurrentId: null,
                 gridLastScrollTop: null,
                 isRestoringExpandedRows: false,
                 isEditing: false
@@ -158,7 +167,7 @@
 
                 // Save current item. It will be restored after the refresh.
                 const item = this.getCurrent();
-                this._state.lastCurrentItemId = item ? item[this.keyName] : null;;
+                this._state.lastCurrentId = item ? item[this.keyName] : null;;
                 this.setCurrent(null);
             }
 
@@ -178,6 +187,7 @@
             const action = this._state.gridDataBindAction;
 
             // Autofit columns.
+            // TODO: Won't work if cols are rearranged by the user.
             if (this._autofitColIndexes.length) {
                 for (const icol of this._autofitColIndexes) {
                     grid.autoFitColumn(icol);
@@ -186,14 +196,14 @@
 
             this._initGridRows();
 
-            if (action === "rebind" && this._state.lastCurrentItemId !== null) {
+            if (action === "rebind" && this._state.lastCurrentId !== null) {
 
                 // This is a refresh. Restore last current item.
                 try {
-                    this._trySetCurrentItemById(this._state.lastCurrentItemId);
+                    this._trySetCurrentItemById(this._state.lastCurrentId);
                 }
                 finally {
-                    this._state.lastCurrentItemId = null;
+                    this._state.lastCurrentId = null;
                 }
             }
 
@@ -247,19 +257,19 @@
             this._gridSelectByItem(item);
         }
 
-        _gridSelectByItem(item: any): void {
+        private _gridSelectByItem(item: any): void {
             this.grid().select(this._gridGetRowByItem(item));
         }
 
-        _gridGetRowByItem(item: any): JQuery {
+        private _gridGetRowByItem(item: any): JQuery {
             return this.grid().tbody.find("tr[role=row][data-uid='" + item.uid + "']");
         }
 
-        _gridSelectByRow($row: JQuery): void {
+        private _gridSelectByRow($row: JQuery): void {
             this.grid().select($row);
         }
 
-        getItemByRow($row: JQuery): kendo.data.ObservableObject {
+        private getItemByRow($row: JQuery): kendo.data.ObservableObject {
             return this.grid().dataItem($row);
         }
 
@@ -293,7 +303,7 @@
             Handler for kendo.ui.Grid's event "detailExpand".
         */
         private onComponentDetailExpanding(e): void {
-            // KABU TODO: Animation doesn't work, although advertised by Telerik.
+            // TODO: Animation doesn't work, although advertised by Telerik.
             // let detailRow = e.detailRow;
             // kendo.fx(detailRow).fadeIn().play();               
 
@@ -358,6 +368,27 @@
         }
 
         private _initGridRows(): void {
+            const grid = this._kendoGrid;
+
+            const styledColumnsInfo: IRowColumnsInfo = {};
+            for (const col of grid.options.columns) {
+                if (col.hidden)
+                    continue;
+
+                // Only columns with custom style.
+                if (!(col as any).style)
+                    continue;
+
+                const colIndex = this._getColIndex(col.field);
+                if (colIndex === -1)
+                    continue;
+
+                styledColumnsInfo[col.field] = {
+                    column: col,
+                    index: colIndex
+                };
+            }
+
             this.foreachGridRow(($row, item) => {
                 this._initRowExpander(item, $row);
                 this._initRowEditing(item, $row);
@@ -372,12 +403,32 @@
                     else
                         kendo.bind($row, item);
                 }
+
+                const $cells = $row.children("td");
+
+                for (const colName in styledColumnsInfo) {
+                    const icol = styledColumnsInfo[colName];
+
+                    const style = (icol.column as any).style;
+                    if (!style)
+                        continue;
+
+                    const $cell = $cells.eq(icol.index);
+                    if (style.color) {
+                        $cell.css("color", style.color);
+                    }
+                }
             });
 
             if (this._options.isRowAlwaysExpanded) {
+                // Expand all row detail views.
                 this.grid().wrapper.find(".k-hierarchy-cell").empty().hide();
                 this.grid().wrapper.find(".k-detail-row > td:first-child").hide();
             }
+        }
+
+        private _getColIndex(name: string): number {
+            return this.grid().element.find("th[data-field = '" + name + "']").index() || -1;
         }
 
         private _initRowEditing(item, $row: JQuery): void {
@@ -397,7 +448,7 @@
         }
 
         private _initRowImageCells(item, $row: JQuery): void {
-            // KABU TODO: DISABLED - REMOVE? Not used. Was intended for "PhotoCellTemplate".
+            // TODO: DISABLED - REMOVE? Not used. Was intended for "PhotoCellTemplate".
             //   But currently we don't display images anymore in the grid.
             //   KEEP: maybe we can use this in the future.
 
@@ -498,7 +549,7 @@
                 .hide();
 
             // Display button for deactivation of the "specific-item" filter.
-            const $command = this._$toolbar.find(".kmodo-clear-guid-filter-command");
+            const $command = this._$toolbar.find(".km-clear-key-filter-command");
 
             // Clear single object filter on demand.
             // Views can be called with a item GUID filter which loads only a single specific object.
@@ -559,6 +610,7 @@
                 itemId: item ? item[this.keyName] : null,
                 // Allow deletion if authorized.
                 canDelete: true,
+                // Dispatch editor events
                 events: {
                     editing: e => {
                         this.trigger("editing", e);
@@ -591,12 +643,6 @@
 
                             }
                             postprocess = this.dataSource.sync() as unknown as Promise<void>;
-                            //this.dataSource.sync()
-                            //    .then(() => {
-                            //        // "e.result.value" will be the ID of the edited data item.
-                            //        if (mode === "create" && e.result.value)
-                            //            this._trySetCurrentItemById(e.result.value);
-                            //    });
                         } else {
                             postprocess = Promise.resolve();
                         }
@@ -638,8 +684,8 @@
             if (this.createComponentOptionsOverride)
                 options = this.createComponentOptionsOverride(options);
 
-            // KABU TODO: VERY IMPORTANT: Check if this works.
-            // This is used by the MoFileExplorerView.
+            // TODO: IMPORTANT: Eval if this specific feature works.
+            // This is used only by the MoFileExplorerView.
             const extraOptions = this._options["componentOptions"];
             if (extraOptions) {
                 // Extend with privided extra options.
@@ -1040,7 +1086,6 @@
 
                 finished2: e => {
                     if (e.result.isOk) {
-                        // TODO: IMPORTANT: MAGIC ToTags. Move to entity mapping service somehow.
                         if (this._options.isLocalData &&
                             typeof dataItem["ToTags"] !== "undefined" &&
                             e.result.items &&
@@ -1086,7 +1131,7 @@
             this._dialogWindow = kmodo.findKendoWindow(this.grid().wrapper);
             this._initDialogWindowTitle();
 
-            // KABU TODO: IMPORTANT: There was no time yet to develop a
+            // TODO: IMPORTANT: There was no time yet to develop a
             //   decorator for dialog functionality. That's why the grid view model
             //   itself has to take care of the dialog commands which are located
             //   *outside* the grid widget.
@@ -1506,7 +1551,7 @@
 
                     // Sanity check: we don't want items to be selected if the
                     // selector is not visible since this would lead to confusion.
-                    // KABU TODO: Should we also remove from selection here?
+                    // TODO: Should we also remove from selection here?
                     if (isel.isSelected && !isel.isVisible)
                         isel.isSelected = false;
 

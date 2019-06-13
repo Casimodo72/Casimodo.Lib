@@ -1,7 +1,21 @@
 ﻿namespace kmodo {
 
+    export interface IContextPlaceInfo {
+        Street: string;
+        ZipCode: string;
+        City: string;
+        CountryStateCode: string;
+        Latitude: number;
+        Longitude: number;
+        UtmZone: string;
+        UtmEasting: number;
+        UtmNorthing: number;
+    }
+
     export interface GeoMapViewOptions extends ViewComponentOptions {
         isDrawingEnabled?: boolean;
+        contextPlaceProvider: () => Promise<IContextPlaceInfo>;
+        saveAsFile: (data: string) => Promise<void>;
     }
 
     interface GeoMapSurfaceListeners {
@@ -13,8 +27,6 @@
     export interface GeoMapMarkerOptions {
         map?: google.maps.Map;
         position: google.maps.LatLngLiteral;
-        //lat: number;
-        //lng: number;
         color?: string;
         symbol?: any; // E.g.: google.maps.SymbolPath.CIRCLE
         title: string;
@@ -23,15 +35,7 @@
         doubleClicked?: (marker: google.maps.Marker, info: any) => void;
         zIndex?: number;
         customData?: any
-    }
-
-    export interface ContextPlaceInfo {
-        companyId: string;
-        contractId: string;
-        projectId: string;
-        projectSegmentId?: string;
-    }
-
+    }    
 
     export abstract class GeoMapViewBase extends ViewComponent {
         _options: GeoMapViewOptions;
@@ -41,15 +45,13 @@
         _$coordinatesDisplay: JQuery;
         _$mapContainer: JQuery;
         _$addressInfo: JQuery = null;
-        standardZoom: 12;
+        standardZoom: 12;       
         map: google.maps.Map;
         drawingManager: google.maps.drawing.DrawingManager;
         _placesService: google.maps.places.PlacesService;
         _distanceMatrixService: google.maps.DistanceMatrixService;
         _directionsService: google.maps.DirectionsService;
         _directionsRenderer: google.maps.DirectionsRenderer;
-        // Define context place info.
-        _contextPlaceInfo: ContextPlaceInfo;
         _contextPlaceMarker: google.maps.Marker;
         _mapListeners: GeoMapSurfaceListeners;
         _drawingOverlays: google.maps.MVCObject[] = [];
@@ -75,8 +77,6 @@
 
             this.map = null;
 
-            // Context location
-            this._contextPlaceInfo = null;
             this._contextPlaceMarker = null;
 
             this._mapListeners = {
@@ -98,6 +98,14 @@
 
         setSearchText(value: string): void {
             this._$searchInput.val(value);
+        }       
+
+        setContextPlaceProvider(provider: () => Promise<any>) {
+            this._options.contextPlaceProvider = provider;
+        }
+
+        setSaveAsFileAction(action: (dataUrl: string) => Promise<any>) {
+            this._options.saveAsFile = action;
         }
 
         initSearchInputBox(): void {
@@ -174,7 +182,6 @@
         }
 
         _activateContextPlace(place: google.maps.places.PlaceResult | google.maps.GeocoderResult, options?: any): void {
-
             // TODO: Eliminate use of the "current item".
             // Set place values on data view model.
             this.getCurrentItem().buildFromGoogleMapsPlace(place);
@@ -568,13 +575,12 @@
                 circleOptions.radius = (i + 1) * 5000;
                 this._selectionCircles.push(new google.maps.Circle(circleOptions));
             }
-        };
+        }
 
         _hasDataLatLong(data) {
-            // KABU TODO: Inform the user somehow of the entities (e.g. ProjectSegments)
-            //   where lat/long is missing.
+            // TODO: Inform the user somehow when lat/long is missing.
             return data && data.Latitude && data.Longitude;
-        };
+        }
 
         setMapCenter(position: google.maps.LatLngLiteral | google.maps.LatLng): void {
             this.map.setCenter(position);
@@ -834,32 +840,17 @@
             });
         }
 
-        private initSaveToFileCommand(): void {
-            const $saveToFileCmd = this.$view.find(".geo-map-save-to-file-command");
-            if ($saveToFileCmd.length) {
-                $saveToFileCmd.on("click", () => {
-                    // Convert map to image as data URL.
-                    this.exportAsPng()
-                        .then((dataUrl) => {
-                            // Open save to Mo file system dialog. 
-                            kmodo.openById("16b14f2e-907a-4fba-adea-beca4f995c8c",
-                                {
-                                    title: "Karte als Bild (PNG) speichern",
-                                    item: {
-                                        imageDataUrl: dataUrl,
-                                        context: this._contextPlaceInfo
-                                    },
-                                    options: {
-                                    },
-                                    finished: (result) => {
-                                        if (result.isOk) {
-                                            // NOP
-                                        }
-                                    }
-                                });
-                        });
-                });
+        private async onSaveFileCommand() {
+            // Convert map to image as data URL.
+            const dataUrl = await this.exportAsPng();
+
+            if (this._options.saveAsFile) {
+                await this._options.saveAsFile(dataUrl);
             }
+        }
+
+        private async initSaveToFileCommand() {
+            this.$view.find(".geo-map-save-to-file-command").on("click", () => this.onSaveFileCommand());
         }
 
         protected initBasicComponents(): void {
@@ -946,7 +937,7 @@
         //        "</a>";
         //}
 
-        protected _buildAddressText(street: string, zipCode: string, city: string, countryStateObj: any): string {
+        protected _buildAddressText(street: string, zipCode: string, city: string, countryStateCode: any): string {
             let address = (street || "");
             if (zipCode || city) {
                 address += ",";
@@ -955,8 +946,8 @@
 
                 address += " " + (city || "???");
             }
-            if (countryStateObj)
-                address += ", " + countryStateObj.Code;
+            if (countryStateCode)
+                address += ", " + countryStateCode;
 
             return address;
         }

@@ -1,4 +1,6 @@
-﻿
+﻿// TODO: Some of this stuff here is too specific to be put in the lib.
+//   Think about moving this back to specific application.
+
 namespace kmodo {
 
     interface VicinityPaneInfo {
@@ -21,10 +23,12 @@ namespace kmodo {
         func: Function;
         times: number;
         delay: number;
-        retryErrorFilter: (ex: string) => boolean;
+        retryErrorFilter: (errorCode: string) => boolean;
     }
 
-    interface VicinityPlaceModel extends kendo.data.Model {
+    // TODO: REFACTORING: use async/await
+
+    export interface VicinityPlaceModel extends kendo.data.Model {
         categoryName: string;
         categoryDisplayName: string;
         isCandidate: boolean;
@@ -57,8 +61,7 @@ namespace kmodo {
 
     interface GeoMapLocationVicinityViewArgs extends ViewComponentArgs {
         contractId: string;
-        projectId: string;
-        projectSegmentId?: string;
+        contextPlaceQuery: () => string;
     }
 
     interface ViewModel extends ComponentViewModel {
@@ -66,7 +69,7 @@ namespace kmodo {
         views: kendo.data.ObservableArray;
     }
 
-    export class GeoMapLocationVicinityView extends GeoMapViewBase {
+    export abstract class GeoMapLocationVicinityView extends GeoMapViewBase {
         private $vicinityPanel: JQuery;
         protected args: GeoMapLocationVicinityViewArgs;
         private _isOnlyCurrentCategoryVisible: boolean;
@@ -100,6 +103,7 @@ namespace kmodo {
             // KABU TODO: IMPORTANT: Clarify which max radius to use.
             const defaultMaxRadius = 10000;
             const defaultMinNumPerCategory = 3;
+            // TODO: Make categories configurable. This is just hard-coded stuff right now.
             this._addVicinityPlaceCategory("Durchgangsarzt", "Durchgangsarzt",
                 doctorTypes, defaultRadius, defaultMaxRadius, defaultMinNumPerCategory,
                 "Durchgangsarzt");
@@ -139,10 +143,10 @@ namespace kmodo {
                 // Show overview intially.
                 currentView: this.views[0] as VicinityPaneInfo,
                 generateDocument: e => {
-                    this._generateDocumentAsync();
+                    this._generateDocumentAsync(this._allVicinityPlaces);
                 },
                 generateDocumentHtmlPreview: e => {
-                    this._generateDocumentHtmlPreviewAsync();
+                    this._generateDocumentHtmlPreviewAsync(this._allVicinityPlaces);
                 },
                 refresh: e => {
                     this.refreshCore();
@@ -168,23 +172,6 @@ namespace kmodo {
             this.views.push(info);
         }
 
-        setContextFilter(context: ContextPlaceInfo): void {
-            // TODO: INCONSISTENT: In GeoMapLocationView we use _contextPlaceInfo for this.
-            this.args = context;
-            this._contextPlaceLocation = null;
-
-            // TODO: REMOVE: return this.refreshCore();
-        }
-
-        // TODO: REMOVE
-        //refreshWith(settings: ContextPlaceInfo): Promise<void> {
-        //    // KABU TODO: INCONSISTENT: In GeoMapLocationView we use _contextPlaceInfo for this.
-        //    this.args = settings;
-        //    this._contextPlaceLocation = null;
-
-        //    return this.refreshCore();
-        //}
-
         refresh(): Promise<void> {
             return this.refreshCore();
         }
@@ -209,52 +196,38 @@ namespace kmodo {
                 .then(() => {
                     this.createView();
                     this.clear();
-                    this.displayContextLocation();
+                    this.start();
                 });
         }
 
-        private displayContextLocation(): void {
-            if (!this.args.projectSegmentId)
-                return;
-
-            let url = "/odata/ProjectSegments/Query()?$select=Id,Number,Latitude,Longitude,Street,ZipCode&$expand=Contract($select=City;$expand=CountryState($select=Code))";
-            url += "&$filter=";
-            url += " Id eq " + this.args.projectSegmentId;
-
-            cmodo.oDataQuery(url)
-                .then((items) => {
-                    if (items.length === 1)
-                        this.addProjectSegment(items[0]);
-                });
-        }
-
-        private addProjectSegment(psegment: any): void {
-            if (!this._hasDataLatLong(psegment))
+        private async start() {
+            const place = await this._options.contextPlaceProvider();
+            if (!this._hasDataLatLong(place))
                 return;
 
             this._contextPlaceLocation = {
-                lat: psegment.Latitude,
-                lng: psegment.Longitude
+                lat: place.Latitude,
+                lng: place.Longitude
             };
 
-            const address = this._buildAddressText(psegment.Street, psegment.ZipCode, psegment.Contract.City, psegment.Contract.CountryState);
+            const address = this._buildAddressText(place.Street, place.ZipCode,
+                place.City, place.CountryStateCode);
 
-            const psegmentLinkHtml = this._formatEntityLink("ProjectSegment", psegment.Id, this._formatTextStrong(address));
+            // TODO: REMOVE: const psegmentLinkHtml = this._formatEntityLink("ProjectSegment", contextPlace.Id, this._formatTextStrong(address));
 
             this.addMarker({
                 position: {
-                    lat: psegment.Latitude,
-                    lng: psegment.Longitude
+                    lat: this._contextPlaceLocation.lat,
+                    lng: this._contextPlaceLocation.lng
                 },
-                //color: "#00ff00",
                 title: address,
-                content: psegmentLinkHtml,
+                // TODO: REMOVE:  content: psegmentLinkHtml,
                 // We'll set a ZIndex lower than the vicinity place markers so they
                 //   should be easier to select via mouse (I guess).
                 zIndex: 0
             });
 
-            const loc = { lat: psegment.Latitude, lng: psegment.Longitude };
+            const loc = { lat: this._contextPlaceLocation.lat, lng: this._contextPlaceLocation.lng };
             this.setMapCenter(loc);
             this.setMapZoom(10);
 
@@ -307,7 +280,7 @@ namespace kmodo {
                                 });
                         });
 
-                    // KABU TODO: IMPORTANT: Remove places with erroneous distance results?
+                    // TODO: IMPORTANT: Remove places with erroneous distance results?
 
                     // Get all candidates.
                     candidates = Enumerable.from(allVicinityPlaces)
@@ -341,82 +314,9 @@ namespace kmodo {
                 });
         }
 
-        private _generateDocumentAsync(): Promise<any> {
-            kmodo.progress(true, this.$view);
+        protected abstract _generateDocumentAsync(places: VicinityPlaceModel[]): Promise<any>;
 
-            return this._callGeoMapDocumentGeneratorServiceAsync(
-                "/api/FlexEmailDocument/GenerateGeoMapProjectHealthInVicinityDocument")
-                .then(() => {
-                    cmodo.showInfo("Das Dokument wurde erstellt und gespeichert.");
-                })
-                .catch((ex) => {
-                    cmodo.showError("Fehler: Das Dokument konnte nicht erstellt/gespeichert werden.");
-                })
-                .finally(() => {
-                    kmodo.progress(false, this.$view);
-                });
-        }
-
-        private _generateDocumentHtmlPreviewAsync(): Promise<any> {
-            kmodo.progress(true, this.$view);
-
-            return this._callGeoMapDocumentGeneratorServiceAsync(
-                "/api/FlexEmailDocument/GetGeoMapProjectHealthInVicinityHtmlPreview",
-                { resultDataType: "html" })
-                .then((html) => {
-                    const win = window.open("", "_blank");
-                    win.document.write(html);
-                    win.document.close();
-                    win.document.title = "Dokument - Vorschau";
-                })
-                .finally(() => {
-                    kmodo.progress(false, this.$view);
-                });
-        }
-
-        private _callGeoMapDocumentGeneratorServiceAsync(url: string, transportOptions?: any): Promise<any> {
-            // Calls Web API in order to generate the final document and save it to the Mo file system.
-            return new Promise((resolve, reject) => {
-
-                kmodo.progress(true, this.$view);
-
-                // Convert vicinity places to Web API's place info.
-                const apiPlaces = Enumerable.from(this._allVicinityPlaces)
-                    .where(x => x.isCandidate)
-                    .toArray()
-                    .map(x => ({
-                        CategoryName: x.categoryName,
-                        Name: x.name,
-                        Address: x.address,
-                        Phone: x.phone,
-                        Distance: x.distance,
-                        DistanceText: x.dist.distance.text,
-                        Duration: x.duration,
-                        DurationText: x.dist.duration.text
-                    }));
-
-                const apiArgs = {
-                    ContractId: this.args.contractId,
-                    ProjectId: this.args.projectId,
-                    ProjectSegmentId: this.args.projectSegmentId,
-                    VicinityPlaces: apiPlaces
-                };
-
-                cmodo.webApiPost(url,
-                    apiArgs,
-                    transportOptions)
-                    .then((response) => {
-                        resolve(response);
-                    })
-                    .catch((ex) => {
-                        reject(ex);
-                    });
-
-            })
-                .finally(() => {
-                    kmodo.progress(false, this.$view);
-                });
-        }
+        protected abstract _generateDocumentHtmlPreviewAsync(places: VicinityPlaceModel[]): Promise<any>;     
 
         private _getVicinityPlaceDetailsAsync(vicintyPlaces: VicinityPlaceModel[]): Promise<void> {
             // Observed GM's limiting behavior:
@@ -446,7 +346,7 @@ namespace kmodo {
                         func: () => detailsRequest(place),
                         times: retryTimes,
                         delay: delay,
-                        retryErrorFilter: (ex) => ex === "OVER_QUERY_LIMIT"
+                        retryErrorFilter: (errorCode) => errorCode === "OVER_QUERY_LIMIT"
                     });
 
             return vicintyPlaces.reduce(
@@ -637,7 +537,7 @@ namespace kmodo {
                             func: () => this._perChunkDistanceMatrixRequestAsync(vicinityPlaces),
                             times: maxRetries,
                             delay: intervalDelay,
-                            retryErrorFilter: (ex) => ex === "OVER_QUERY_LIMIT"
+                            retryErrorFilter: (errorCode) => errorCode === "OVER_QUERY_LIMIT"
                         }));
 
             return new Promise((resolve, reject) => {
@@ -684,7 +584,7 @@ namespace kmodo {
                                 func: () => this._computeVicinityPlaceDistancesCoreAsync(places),
                                 times: maxRetries,
                                 delay: retryDelay,
-                                retryErrorFilter: (ex) => ex === "OVER_QUERY_LIMIT"
+                                retryErrorFilter: (errorCode) => errorCode === "OVER_QUERY_LIMIT"
                             })
                             .then((places: VicinityPlaceModel[]) => {
                                 this._totalDistanceRequestItems += places.length;
@@ -716,15 +616,15 @@ namespace kmodo {
 
                         options.func()
                             .then(resolve)
-                            .catch((ex) => {
-                                if (!options.retryErrorFilter(ex)) {
-                                    reject(ex);
+                            .catch((errorCode) => {
+                                if (!options.retryErrorFilter(errorCode)) {
+                                    reject(new Error(errorCode));
                                     return;
                                 }
 
                                 times--;
                                 attemptIndex++;
-                                error = ex;
+                                error = errorCode;
                                 setTimeout(() => { attempt(); }, options.delay);
                             });
                     }
@@ -837,7 +737,6 @@ namespace kmodo {
             vicinityPlace: VicinityPlaceModel,
             placeDetails: google.maps.places.PlaceResult): void {
 
-            // TODO: REMOVE: vicinityPlace.set("address", placeDetails.formatted_address);
             vicinityPlace.set("phone", placeDetails.formatted_phone_number);
             vicinityPlace._wasDetailsSet = true;
         }
@@ -1000,13 +899,6 @@ namespace kmodo {
                     : this._nonCandidateVicinityPlaceZIndex;
         }
 
-        // KABU TODO: REMOVE
-        //_openVicinityPlaceMarkerInfoWindow(marker) {
-        //    const vicinityPlace = this.getMarkerCustomData(marker).vicinityPlace;
-        //    const content = this._getVicinityPlaceInfoHtml(vicinityPlace);
-        //    this._openMarkerInfoWindow(marker, content);
-        //};
-
         private _selectVicinityPlace(vicinityPlace: VicinityPlaceModel): void {
 
             const prev = this._selectedVicinityPlace;
@@ -1023,9 +915,6 @@ namespace kmodo {
 
                 // Show route.
                 this._showVicinityPlaceRoute(vicinityPlace);
-                // KABU TODO: REMOVE
-                // Open info window.
-                //this._openVicinityPlaceMarkerInfoWindow(vicinityPlace.marker);
 
                 // Select in vicinity list panel.
                 this._selectVicinityPlaceInPanel(vicinityPlace);
@@ -1103,50 +992,19 @@ namespace kmodo {
 
             // Hide header.
             this._vicinitiesView.element.find(".k-grid-header").hide();
-
-            // KABU TODO: REMOVE? Tried to use kendoListView instead of kendoGrid.
-            //this._vicinitiesView = this.$view.find(".geo-map-vicinity-grid").kendoListView({
-            //    selectable: true,
-            //    dataSource: this._vicinitiesViewDataSource,
-            //    template: (data) => self._getVicinityListRowHtml(data),
-            //    change: function () {
-            //        const $row = this.select();
-            //        const dataItem = this.dataItem($row);
-            //        self._selectVicinityPlace(dataItem);
-            //    },
-            //    dataBound: function (e) {
-            //        const view = this;
-            //        view.element.children("div").each(function (idx, elem) {
-            //            const $row = $(this);
-            //            kendo.bind($row, view.dataItem($row));
-            //        });
-            //    }
-            //}).data("kendoListView");
-            // KABU TODO: Disabling selection of the row when a check-box is
-            //   on that row is clicked doesn't seem to be possible :-(
-            // The following attemmpts do not work. The row is always being selected.
-            //this._vicinitiesView.element.on('mousedown', 'input[type="checkbox"], label', function (e) {
-            //    //e.stopPropagation();
-            //    //e.stopImmediatePropagation();
-            //});
-            //this._vicinitiesView.element.on('mousedown', '>div', function (e) {
-            //    if ($(e.target).is("label.k-checkbox-label")) {
-            //        e.stopPropagation();
-            //        e.stopImmediatePropagation();
-            //        return false;
-            //    }    
-            //});
         }
 
         private _getVicinityListRowHtml(vicinityPlace: VicinityPlaceModel): string {
 
             const html = "<div style='background-color:white;color:black;margin-top:1px;margin-bottom:1px;padding:3px'>" +
-                // const html = "<div style='padding:3px'>" +
                 // Check-box for "isCandidate":
                 "<input id='check-" + vicinityPlace.id + "' class='k-checkbox' type='checkbox' data-bind='checked: isCandidate' />" +
                 "<label for='check-" + vicinityPlace.id + "' class='k-checkbox-label' style='display:inline-block'></label>" +
+
+                // TODO: REMOVE?
                 // Category of place
-                //"<span style='font-weight:bold'>" + vicinityPlace.categoryDisplayName + "</span>" + "<br/>" +
+                // "<span style='font-weight:bold'>" + vicinityPlace.categoryDisplayName + "</span>" + "<br/>" +
+
                 // Place info
                 this._getVicinityPlaceInfoHtml(vicinityPlace) +
                 "</div>";

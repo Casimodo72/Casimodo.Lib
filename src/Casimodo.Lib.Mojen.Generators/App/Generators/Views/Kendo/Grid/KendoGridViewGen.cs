@@ -35,8 +35,6 @@ namespace Casimodo.Lib.Mojen
 
         public bool CanModify { get; set; }
 
-        public bool CanDelete { get; set; }
-
         public KendoGridOptions Options { get; set; }
 
         public MojHttpRequestConfig TransportConfig { get; set; }
@@ -74,8 +72,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Edit capabilities
                 CanModify = view.CanModify && !view.Kind.Roles.HasFlag(MojViewRole.Lookup) && view.EditorView?.CanModify == true;
-                CanCreate = CanModify && view.EditorView != null && view.EditorView.CanCreate && Options.IsCreatable;
-                CanDelete = CanModify && Options.IsDeletable == true || (view.EditorView != null && view.EditorView.CanDelete && (Options.IsDeletable ?? true));
+                CanCreate = CanModify && view.CanCreate && view.EditorView != null && view.EditorView.CanCreate;                
 
                 GridScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
                 //GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");

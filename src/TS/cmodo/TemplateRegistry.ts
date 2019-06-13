@@ -44,9 +44,11 @@ namespace cmodo {
         private addDefaultTemplates(): void {
             this.add("Empty", "");
 
-            this.add("MoTreeView", `#const isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='kmodo-icon icon-delete'></span>#} else {#<span#if(isManager) {# style=''#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#};##if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}#`);
+            // TODO: No SCSS km-icon
+            this.add("MoTreeView", `#const isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='km-icon icon-delete'></span>#} else {#<span#if(isManager) {# style=''#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#};##if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}#`);
 
-            this.add("MoTreeViewOld", `#const isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='kmodo-icon icon-delete'></span>#} else {#<span#if(isManager) {# style='font-weight:bold'#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}}#`);
+            // TODO: No SCSS km-icon
+            this.add("MoTreeViewOld", `#const isManager=cmodo.hasMoManagerPermissionOnly(item);if(item.Role==="RecycleBin") {#<span class ='km-icon icon-delete'></span>#} else {#<span#if(isManager) {# style='font-weight:bold'#}#>#if(isManager) {#<span class ="mo-perm-manager">M</span>#}# #:item.Name #</span>#if(item.files.length) {#&nbsp; <sup>#: item.files.length#</sup>#}}#`);
 
             this.add("AllRowsCheckBoxSelectorGridCell", `#const randomId = cmodo.guid();#<input id='cb-all-#:randomId#' class='k-checkbox all-list-items-selector' type='checkbox' /><label class='k-checkbox-label' for='cb-all-#:randomId#' />`);
 

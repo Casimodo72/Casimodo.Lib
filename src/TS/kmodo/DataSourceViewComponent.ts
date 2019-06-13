@@ -16,6 +16,7 @@
         dataSourceOptions?: (e: DataSourceViewEvent) => kendo.data.DataSourceOptions;
         transport?: (e: DataSourceViewEvent) => kendo.data.DataSourceTransport;
         isCustomSave?: boolean;
+        isCustomErrorSummary?: boolean;
     }
 
     export interface EditorValidationError {
@@ -343,6 +344,9 @@
         }
 
         protected _showErrors(errors: EditorValidationError[]): void {
+            if (this._options.isCustomErrorSummary)
+                return;
+
             if (!errors || !errors.length)
                 return;
 

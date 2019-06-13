@@ -28,18 +28,19 @@ namespace kmodo {
 });
 
 // Kendo binder for GeoAssistant's PersonGender, which is an enum.
-(kendo.data as any).binders.personGender = kendo.data.Binder.extend({
-    init: function (element, bindings, options) {
-        kendo.data.Binder.fn.init.call(this, element, bindings, options);
-    },
-    refresh: function () {
-        let self = this as any;
-        let value = self.bindings["personGender"].get();
-        $(self.element).html(value
-            ? value === "Male" ? "männlich" : "weiblich"
-            : "");
-    }
-});
+// TODO: REMOVE: Not used anymore.
+//(kendo.data as any).binders.personGender = kendo.data.Binder.extend({
+//    init: function (element, bindings, options) {
+//        kendo.data.Binder.fn.init.call(this, element, bindings, options);
+//    },
+//    refresh: function () {
+//        let self = this as any;
+//        let value = self.bindings["personGender"].get();
+//        $(self.element).html(value
+//            ? value === "Male" ? "männlich" : "weiblich"
+//            : "");
+//    }
+//});
 
 // Kendo binder for human readable event recurrence rule.
 // Uses rrule.js.

@@ -138,7 +138,11 @@
                 options = info._options;
 
             if (info.componentType) {
-                return new info.componentType({ id: info.id, isDialog: info.isDialog, isLookup: info.isLookup });
+                let opts = { id: info.id, isDialog: info.isDialog, isLookup: info.isLookup };
+                if (options)
+                    opts = Object.assign(opts, options);
+
+                return new info.componentType(opts);
             } else {
                 return this._getComponentFactory(this._buidTypeName(info)).create(init, options);
             }
