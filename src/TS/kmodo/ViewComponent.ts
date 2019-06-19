@@ -67,6 +67,7 @@
         canDelete?: boolean; // Used by editor
         isDeleted?: boolean; // Used by editor
         isLookup?: boolean;
+        params?: any;
         value?: any;
         item?: any;
         itemId?: string;

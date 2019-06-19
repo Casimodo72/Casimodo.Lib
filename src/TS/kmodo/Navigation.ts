@@ -57,7 +57,6 @@
             null);
     }
 
-    // KABU TODO: Can we narrow down the options type?
     export function openById(viewId: string, options: NavigateToViewOptions, finished?: (result: any) => void) {
         _openCore(cmodo.componentRegistry.items.find(x => x.id === viewId), options, finished);
     }
@@ -88,7 +87,6 @@
 
         options = options || {} as NavigateToViewOptions;
 
-        // KABU TODO: Only wlloe options.finished.
         finished = finished || null;
 
         if (!options.finished)
@@ -96,8 +94,6 @@
 
         if (reg.role === "Page") {
             let listReg = reg;
-
-            // TODO: REMOVE
 
             // Try to find a matching "List" view in same group.
             listReg = cmodo.componentRegistry.items
@@ -109,7 +105,6 @@
             cmodo.navigationArgs.add({
                 id: listReg.id,
                 itemId: options.itemId
-                // TODO: REMOVE? filters: [{ field: "Id", operator: "eq", value: options.itemId }]
             });
 
             window.open(reg.url, "");
@@ -135,6 +130,7 @@
         }
         else if (reg.role === "Lookup" || reg.role === "List" || reg.role === "Details") {
             const args = new cmodo.DialogArgs(reg.id);
+            args.params = options.params;
             args.filters = options.filters;
             args.filterCommands = options.filterCommands;
             args.item = options.item;
@@ -221,16 +217,8 @@
 
             // Height            
             ownd.minHeight = options.minHeight || ownd.minHeight || null;
-            //if (ownd.minHeight > maxHeight)
-            //    ownd.minHeight = maxHeight;
-
-            ownd.maxHeight = options.maxHeight || ownd.maxHeight || null; //_windowComputeEstimatedMaxHeight();
-            //if (ownd.maxHeight > maxHeight)
-            //    ownd.maxHeight = maxHeight;
-
+            ownd.maxHeight = options.maxHeight || ownd.maxHeight || null;
             ownd.height = options.height || ownd.height || ownd.minHeight || ownd.maxHeight || null;
-            //if (ownd.height > maxHeight)
-            //    ownd.height = maxHeight;
 
             // See docs: https://docs.telerik.com/kendo-ui/api/javascript/ui/window
 
@@ -263,15 +251,15 @@
                     top: top
                 },
                 actions: [
-                    //"Pin",
-                    //"Minimize",
+                    // "Pin",
+                    // "Minimize",
                     "Maximize",
                     "Close"
                 ],
                 close: e => {
                     if (e.userTriggered === true) {
-                        // KABU TODO: IMPORTANT: Should we hand control over this to
-                        //   the view model?
+                        // TODO: Should we hand control over this to
+                        //   the component?
                         // This occurs when the user closes the dialog
                         //  via the dialog window title bar's close button.
                         args.isOk = false;
@@ -290,7 +278,7 @@
                 },
                 deactivate: e => {
 
-                    // $(window).off("resize", onResize);
+                    // TODO: REMOVE? $(window).off("resize", onResize);
                     if (!reg.isCached)
                         e.sender.destroy();
                 }
@@ -305,10 +293,7 @@
                 owindow.width = ownd.width;
             }
 
-            // Somehow the window is always too small for the content.
-            //   Maybe it's an effect of using Bootstrap.
-            //   We'll add a padding of 40px.
-            wnd = $("<div></div>") //  style='padding-right: 40px'
+            wnd = $("<div></div>")
                 .kendoWindow(owindow)
                 .data('kendoWindow');
         }
@@ -319,8 +304,8 @@
             if (options.finished) {
                 wnd.one("close", e => {
                     if (e.userTriggered === true) {
-                        // KABU TODO: IMPORTANT: Should we hand control over this to
-                        //   the view model?
+                        // TODO: Should we hand control over this to
+                        //   the component?
                         // This occurs when the user closes the dialog
                         //  via the dialog window title bar's close button.
                         args.isOk = false;
@@ -335,15 +320,6 @@
         }
 
         setModalWindowBehavior(wnd);
-
-        //wnd.content("<img src='content/bootstrap/loading-image.gif' style='" +
-        //    //"vertical-align: middle; display: inline-block; position: relative;"+
-        //    "display: block; margin: 0 auto; vertical-align: middle;" +
-        //    "' alt='Lade...'/>");
-
-        //wnd.wrapper.css({
-        //    "overflow-y": "auto"
-        //});
 
         _windoRestrictVertically(wnd);
 
@@ -366,23 +342,6 @@
         }
         else {
             wnd.one("refresh", e => {
-
-                //if (options.maximize === false) {
-                //    _centerKendoWindowHorizontally(wnd);
-                //    //wnd.center();
-                //}
-                if (!reg.isCached) {
-                    // TODO: REMOVE: width min/max must be now provided by the view itself.
-                    // const componentRoot = wnd.wrapper.find(".component-root").first();                   
-                    // if (ownd.maxWidth)
-                    //    componentRoot.css("max-width", ownd.maxWidth);
-                    // TODO: REMOVE: min-width because this could make the view
-                    //   too wide for bootstrap's min screen width layout.
-                    //   responsive layout.
-                    // if (ownd.minWidth && (ownd.maxWidth === null || ownd.minWidth <= ownd.maxWidth))
-                    //    componentRoot.css("min-width", ownd.minWidth);
-                }
-
                 _centerKendoWindowHorizontally(wnd);
 
                 if (reg.maximize === true || options.maximize === true)
@@ -398,10 +357,6 @@
                 setTimeout(function () {
                     wnd.open();
                 }, 20);
-
-                //if (options.maximize === false)
-                //    $(window).on("resize", onResize);
-
             });
 
             wnd.refresh({ url: reg.url, cache: false });
@@ -419,34 +374,23 @@
         }
     }
 
-    //function _windowComputeEstimatedMaxHeight() {
-    //    const wnd = $(window),
-    //        zoomLevel = kendo.support.zoomLevel; // KABU TODO: zoomLevel was a function.
-
-    //    return wnd.height() / zoomLevel - 30 - 6;
-    //}
-
     function _windoRestrictVertically(wnd: kendo.ui.Window) {
         const wrapper = wnd.wrapper;
         const $browserWindow = $(window);
         const zoomLevel = kendo.support.zoomLevel; // TODO: zoomLevel was a function.
 
-        // w = wnd.width() / zoomLevel;
         const h = $browserWindow.height() / zoomLevel - parseInt(wrapper.css('padding-top'), 10) - 6;
 
         if (wnd.options.maxHeight && h >= wnd.options.maxHeight)
             return;
 
         wrapper.css({
-            // width: w,
             height: h,
             maxHeight: h,
             minHeight: ""
         });
-        // that.options.width = w;
         wnd.options.height = h;
         wnd.options.maxHeight = h;
-        // that.resize();
     }
 
     function _centerKendoWindowHorizontally(wnd: kendo.ui.Window) {
@@ -462,16 +406,16 @@
         // }
 
         if (!wnd.options.pinned) {
-            //scrollTop = documentWindow.scrollTop();
+            // scrollTop = documentWindow.scrollTop();
             scrollLeft = $browserWindow.scrollLeft();
         }
         const newLeft = scrollLeft + Math.max(0, ($browserWindow.width() - $wnd.width()) / 2);
-        //newTop = scrollTop + Math.max(0, (documentWindow.height() - wrapper.height() - parseInt(wrapper.css('paddingTop'), 10)) / 2);
+        // newTop = scrollTop + Math.max(0, (documentWindow.height() - wrapper.height() - parseInt(wrapper.css('paddingTop'), 10)) / 2);
         $wnd.css({
             left: newLeft,
-            //top: newTop
+            // top: newTop
         });
-        //position.top = newTop;
+        // position.top = newTop;
         position.left = newLeft;
 
         return wnd;

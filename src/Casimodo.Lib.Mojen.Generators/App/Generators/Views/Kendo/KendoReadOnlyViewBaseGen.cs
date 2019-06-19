@@ -129,7 +129,7 @@
                 if (vprop.UseCodeRenderer != null)
                     ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
 
-                O($"<textarea data-bind='value:{binding}' readonly rows='{prop.RowCount}'{GetElemAttrs()}></textarea>");
+                O($"<textarea data-bind='value:{binding}' readonly rows='{vprop.RowCount}'{GetElemAttrs()}></textarea>");
             }
             else if (prop.Type.IsString && vprop.IsRenderedHtml)
             {

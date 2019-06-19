@@ -20,8 +20,6 @@
         constructor(options: FormReadOnlyFormOptions) {
             super(options);
 
-            // TODO: REMOVE: this._options = super._options as FormReadOnlyViewOptions;
-
             this.$view = null;
             this._$toolbar = null;
             this._renderers = [];
@@ -132,8 +130,8 @@
                 {
                     mode: "modify",
                     itemId: item[this.keyName],
-                    // NOTE: We don't allow deletion via the read-only detail views,
-                    //   but only via the grid view model.
+                    // NOTE: We don't allow deletion via the read-only form component,
+                    //   but only via the grid component.
                     canDelete: false,
                     finished: (result) => {
                         if (result.isOk) {

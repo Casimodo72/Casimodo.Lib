@@ -87,8 +87,11 @@ namespace Casimodo.Lib.Mojen
                     O("<button type='button' class='k-button btn edit-command' style='display:none'><span class='k-icon k-edit'></span></button>");
                 }
 
-                // Refresh button
-                O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
+                if (context.View.IsReloadable)
+                {
+                    // Refresh button
+                    O("<button type='button' class='k-button btn refresh-command'><span class='k-icon k-i-refresh'></span></button>");
+                }
 
                 XE("</div>"); // Commands
 

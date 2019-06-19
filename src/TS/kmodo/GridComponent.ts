@@ -33,7 +33,8 @@
         isTagsFilterEnabled?: boolean;
         $component?: JQuery;
         useRemoveCommand?: boolean;
-
+        canModify?: boolean;
+        canCreate?: boolean;
         bindRow?: boolean | Function;
         gridOptions?: (e: DataSourceViewEvent) => kendo.ui.GridOptions;
         companyId?: string;
@@ -73,6 +74,12 @@
 
         constructor(options: GridOptions) {
             super(options);
+
+            if (this._options.canModify === undefined)
+                this._options.canModify = true;
+
+            if (this._options.canCreate === undefined)
+                this._options.canCreate = true;
 
             const componentArgs = cmodo.componentArgs.consume(this._options.id);
             if (componentArgs) {
@@ -443,8 +450,12 @@
                 $btn.remove();
         }
 
+        private _canCreate(): boolean {
+            return this._options.canCreate && this.auth.canCreate;
+        }
+
         private _canModifyItem(item): boolean {
-            return item && this.auth.canModify === true && item.IsReadOnly === false;
+            return item && this._options.canModify && this.auth.canModify === true && item.IsReadOnly === false;
         }
 
         private _initRowImageCells(item, $row: JQuery): void {
@@ -488,7 +499,7 @@
         protected _applyAuth(): void {
             // Show "add" button in toolbar based on authorization.
             // See http://www.telerik.com/forums/disable-toolbar-button-on-kendo-ui-grid
-            this._initAddCommand(this.auth.canCreate);
+            this._initAddCommand(this._canCreate());
         }
 
         private _initAddCommand(activate: boolean): void {
@@ -582,7 +593,7 @@
 
         edit(): boolean {
             return this._addOrEdit("modify");
-        };
+        }
 
         private _addOrEdit(mode): boolean {
             if (this._state.isEditing)
@@ -594,7 +605,7 @@
             const item = this.getCurrent();
 
             if (mode === "create") {
-                if (!this.auth.canCreate)
+                if (!this._canCreate())
                     return false;
             }
             else if (mode === "modify") {
@@ -1046,14 +1057,7 @@
 
                     // Add row commands
                     for (const cmd of this._rowCommands) {
-                        menu.element.append(`<li class="k-item k-state-default k-first k-last" role="menuitem" data-name="${cmd.name}"><span class="k-link">${cmd.title}</span></li>`)
-                        //menu.append({
-                        //    text: cmd.title,
-                        //    // TODO: REVISIT: using attr does not work with out Kendo version.
-                        //    //attr: {
-                        //    //    'data-name': cmd.name
-                        //    //}
-                        //}, null).element.data("name", cmd.name);                       
+                        menu.element.append(`<li class="k-item k-state-default k-first k-last" role="menuitem" data-name="${cmd.name}"><span class="k-link">${cmd.title}</span></li>`);                     
                     }
 
                     // TODO: REVISIT: Anything to do here? Maybe apply auth? Let the command enabled/disable itself?

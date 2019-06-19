@@ -38,7 +38,7 @@
     }
 
     export interface EditableDataSourceViewOptions extends DataSourceViewOptions {
-        dataTemplate?: string;
+        dataTemplate?: any;
         editing?: (e: EditableViewOnEditingEvent) => void;       
     }
 

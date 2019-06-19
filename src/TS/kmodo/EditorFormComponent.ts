@@ -2,6 +2,7 @@
 
     export interface EditorFormOptions extends EditableDataSourceViewOptions {
         title?: string;
+        $finishCommands?: JQuery;
     }
 
     export class EditorForm extends EditableDataSourceViewComponent {
@@ -9,11 +10,14 @@
         private _editorWindow: kendo.ui.Window = null;
         private _editors: CustomPropViewComponentInfo[] = [];
         private kendoEditable: CustomEditable = null;
-        private _$dialogEditCommands: JQuery = null;
-        private _$dialogSaveCmd: JQuery;
+        private _$finishCommands: JQuery = null;
+        private _$dialogSaveCmd: JQuery = null;
+        private _saveAttempted = false;
 
         constructor(options: EditorFormOptions) {
             super(options);
+
+            this._$finishCommands = this._options.$finishCommands || null;
 
             this.getModel().set("item", {});
             this.createDataSource();
@@ -281,9 +285,12 @@
 
             this._initTextRenderers();
 
-            this._$dialogEditCommands = this.$view.find(".k-edit-buttons");
-            if (!this._options.isDialog) {
-                this._$dialogEditCommands.remove();
+            if (!this._$finishCommands) {
+                this._$finishCommands = this.$view.find(".k-edit-buttons");
+
+                if (!this._options.isDialog) {
+                    this._$finishCommands.remove();
+                }
             }
 
             this.dataSource.one("change", e => {
@@ -364,6 +371,42 @@
             return editable;
         }
 
+        initCancelAndConfirmBehavior() {
+            if (!this._$finishCommands)
+                return;
+
+            this._$dialogSaveCmd = this._$finishCommands.find(".k-button.k-update").on("click", e => {
+                if (this._iedit.isSaving)
+                    return false;
+
+                this._saveAttempted = true;
+
+                for (const ed of this._editors) {
+
+                    // Perform save() on code-mirror editor in order to
+                    //   populate the textarea with the current value.
+                    //   This is needed because code-mirror does not update
+                    //   the underlying textarea automatically.
+                    if (ed.type === "CodeMirror") {
+                        ed.component.save();
+                        ed.$el.change();
+                    }
+                }
+
+                // Save only if modified and valid.
+                if (this.getCurrent().dirty && this.validate().valid) {
+                    this._save();
+                }
+
+                return false;
+            });
+
+            this._$finishCommands.find(".k-button.k-cancel").on("click", () => {
+                this._cancel();
+                return false;
+            });
+        }
+
         private _initDataChangeBehavior() {
             if (!this.dataSource.data().length)
                 return;
@@ -372,39 +415,8 @@
 
             this.kendoEditable = this._createKendoEditable(dataItem);
 
-            let saveAttempted = false;
-
             if (this._options.isDialog) {
-                this._$dialogSaveCmd = this._$dialogEditCommands.find(".k-button.k-update").on("click", e => {
-                    if (this._iedit.isSaving)
-                        return false;
-
-                    saveAttempted = true;
-
-                    for (const ed of this._editors) {
-
-                        // Perform save() on code-mirror editor in order to
-                        //   populate the textarea with the current value.
-                        //   This is needed because code-mirror does not update
-                        //   the underlying textarea automatically.
-                        if (ed.type === "CodeMirror") {
-                            ed.component.save();
-                            ed.$el.change();
-                        }
-                    }
-
-                    // Save only if modified and valid.
-                    if (dataItem.dirty && this.validate().valid) {
-                        this._save();
-                    }
-
-                    return false;
-                });
-
-                this._$dialogEditCommands.find(".k-button.k-cancel").on("click", () => {
-                    this._cancel();
-                    return false;
-                });
+                this.initCancelAndConfirmBehavior();
             }
 
             dataItem.bind("set", e => {
@@ -427,7 +439,7 @@
                 if (!field)
                     return;
 
-                if (saveAttempted) {
+                if (this._saveAttempted) {
                     // Validate all if a save was already attempted.
                     this._validateCore(field);
                 }

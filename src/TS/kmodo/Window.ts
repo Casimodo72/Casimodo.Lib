@@ -2,7 +2,7 @@
 namespace kmodo {
 
     export function findKendoWindow($context: JQuery): kendo.ui.Window {
-        const $window = $context.closest('div [data-role=window], .k-popup-edit-form');
+        const $window = $context.closest("div [data-role=window]"); // TODO: REMOVE: , .k-popup-edit-form');
 
         return $window.data('kendoWindow');
     }
