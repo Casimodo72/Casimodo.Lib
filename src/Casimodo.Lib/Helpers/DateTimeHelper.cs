@@ -66,9 +66,36 @@ namespace Casimodo.Lib
             return formatProvider != null ? value.ToString(formatProvider) : value.ToString();
         }
 
+        public static DateTimeOffset? ZeroOffset(this DateTimeOffset? value)
+        {
+            if (value == null)
+                return value;
+
+            return ZeroOffset(value.Value);
+        }
+
+        public static DateTimeOffset ZeroOffset(this DateTimeOffset value)
+        {
+            return new DateTimeOffset(value.Year, value.Month, value.Day,
+                value.Hour, value.Minute, value.Second, value.Millisecond,
+                TimeSpan.Zero);
+        }
+
+        public static DateTimeOffset SetOffset(this DateTimeOffset value, TimeSpan offset)
+        {
+            return new DateTimeOffset(value.Year, value.Month, value.Day,
+                value.Hour, value.Minute, value.Second, value.Millisecond,
+                offset);
+        }
+
+        public static DateTimeOffset? TruncateTime(this DateTimeOffset? value)
+        {
+            return value != null ? TruncateTime(value.Value) : value;
+        }
+
         public static DateTimeOffset TruncateTime(this DateTimeOffset value)
         {
-            return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, TimeSpan.Zero);
+            return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, 0, value.Offset);
         }
 
         static DateTimeOffset ApplyTimeZone(DateTimeOffset value)
@@ -84,7 +111,37 @@ namespace Casimodo.Lib
             var val = value.Value;
             var dat = date.Value;
 
-            return new DateTimeOffset(dat.Year, dat.Month, dat.Day, val.Hour, val.Minute, val.Second, val.Millisecond, val.Offset);
+            return new DateTimeOffset(dat.Year, dat.Month, dat.Day,
+                val.Hour, val.Minute, val.Second, val.Millisecond,
+                val.Offset);
+        }
+
+        public static DateTimeOffset? ConvertToZone(this DateTimeOffset? value, TimeZoneInfo tzi)
+        {
+            if (value == null)
+                return value;
+
+            return TimeZoneInfo.ConvertTime(value.Value, tzi);
+        }
+
+        public static DateTimeOffset ConvertToZone(this DateTimeOffset value, TimeZoneInfo tzi)
+        {
+            return TimeZoneInfo.ConvertTime(value, tzi);
+        }
+    
+        public static DateTimeOffset? LocalStartOfDayUtc(this DateTimeOffset? value)
+        {
+            if (value == null) return null;
+
+            return LocalStartOfDayUtc(value.Value);
+        }
+
+        public static DateTimeOffset LocalStartOfDayUtc(this DateTimeOffset value)
+        {
+            var localDateTime = value.LocalDateTime;
+            return new DateTimeOffset(localDateTime.Year, localDateTime.Month, localDateTime.Day,
+                0, 0, 0, 0,
+                TimeSpan.Zero);
         }
 
         public static DateTimeOffset? StartOfDayUtc(this DateTimeOffset? value)
@@ -96,7 +153,7 @@ namespace Casimodo.Lib
 
         public static DateTimeOffset StartOfDayUtc(this DateTimeOffset value)
         {
-            return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, TimeSpan.Zero);
+            return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, 0, TimeSpan.Zero);
         }
 
         public static IEnumerable<DefaultPeriods> GetPeriods()
