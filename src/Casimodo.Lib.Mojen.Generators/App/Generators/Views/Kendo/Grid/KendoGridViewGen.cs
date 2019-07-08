@@ -72,7 +72,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Edit capabilities
                 CanModify = view.CanModify && !view.Kind.Roles.HasFlag(MojViewRole.Lookup) && view.EditorView?.CanModify == true;
-                CanCreate = CanModify && view.CanCreate && view.EditorView != null && view.EditorView.CanCreate;                
+                CanCreate = CanModify && view.CanCreate && view.EditorView != null && view.EditorView.CanCreate;
 
                 GridScriptFilePath = BuildTsScriptFilePath(view, suffix: ".vm.generated");
                 //GridScriptVirtualFilePath = BuildJsScriptVirtualFilePath(view, suffix: ".vm.generated");
@@ -505,6 +505,8 @@ namespace Casimodo.Lib.Mojen
             var propAliasPath = vinfo.PropAliasPath;
             var dprop = vinfo.TargetDisplayProp;
             var vpropType = vinfo.TargetDisplayProp.Type;
+            string template = null;
+            string valueTemplate = null;
 
             if (dprop.FileRef.Is && dprop.FileRef.IsImage)
                 // KABU TODO: IMPL: Photos are currently disabled
@@ -584,18 +586,29 @@ namespace Casimodo.Lib.Mojen
             // Date time formatting.
             if (vpropType.IsAnyTime)
             {
-                // KABU TODO: Should we use moment.js instead and use a template?
+                if (vprop.IsReferenced)
+                {
+                    var dateTimeFormat = "";
+                    if (vpropType.DateTimeInfo.IsDate)
+                        dateTimeFormat = "d";
+                    if (vpropType.DateTimeInfo.IsTime)
+                        dateTimeFormat += "t";
+                    valueTemplate = $"cmodo.toDisplayDateTime(data.get('{propPath}'), '{dateTimeFormat}')";
+                }
+                else
+                {
+#pragma warning disable CS0162 // Unreachable code detected
+                    var format = "{0:";
+#pragma warning restore CS0162 // Unreachable code detected
+                    if (vpropType.DateTimeInfo.IsDate)
+                        format += "dd.MM.yyyy ";
+                    if (vpropType.DateTimeInfo.IsTime)
+                        format += "HH:mm:ss";
+                    // TODO: Support milliseconds?
+                    format += "}";
 
-                // KABU TODO: LOCALIZE DateTime format.
-                var format = "{0:";
-                if (vpropType.DateTimeInfo.IsDate)
-                    format += "dd.MM.yyyy ";
-                if (vpropType.DateTimeInfo.IsTime)
-                    format += "HH:mm:ss";
-                // KABU TODO: Support milliseconds
-                format += "}";
-
-                O($"format: '{format}',");
+                    O($"format: '{format}',");
+                }
             }
 
             if (vprop.IsHtml)
@@ -603,12 +616,7 @@ namespace Casimodo.Lib.Mojen
                 O($"encoded: false,");
             }
 
-            // Column cell template
-            // KABU TODO: Nest templates so that we also can have colored booleans, times, etc.
-
-            string valueTemplate = null;
-            string template = null;
-
+            // TODO: Nest templates so that we also can have colored booleans, times, etc.
             // Value template part.
             if (vpropType.IsBoolean)
             {
