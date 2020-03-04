@@ -94,7 +94,7 @@ namespace Casimodo.Lib.Data
                     .FirstOrDefault();
 
                 if (attribute != null)
-                    decimalProperty.Relational().ColumnType = $"decimal({attribute.Precision},{attribute.Scale})";
+                    decimalProperty.SetColumnType($"decimal({attribute.Precision},{attribute.Scale})");
             }
         }
     }

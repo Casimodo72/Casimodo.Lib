@@ -27,8 +27,6 @@ namespace Casimodo.Lib.Mojen
             Scope = "Context";
         }
 
-       
-
         protected override void GenerateCore()
         {
             DataConfig = App.Get<DataLayerConfig>();

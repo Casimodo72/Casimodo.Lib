@@ -13,6 +13,8 @@
     {
         public string Name { get; set; }
 
+        public MojType InterfaceType { get; set; }
+
         public bool AddToStore { get; set; }
 
         public string Implementation { get; set; }

@@ -47,7 +47,8 @@ namespace Casimodo.Lib.Mojen
         {
             var context = App.Get<DataViewModelLayerConfig>();
 
-            if (string.IsNullOrEmpty(context.DataViewModelDirPath)) return;
+            if (string.IsNullOrEmpty(context.DataViewModelDirPath))
+                return;
 
             var models = App.AllModels.ToArray();
             foreach (MojType model in models)

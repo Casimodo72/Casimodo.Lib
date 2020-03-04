@@ -168,8 +168,9 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string DbRepoContainerName { get; set; }
 
-        [DataMember]
-        public string DbModelRepositoryCoreName { get; set; }
+        // TODO: REMOVE
+        //[DataMember]
+        //public string DbModelRepositoryCoreName { get; set; }
 
         public string DbContextConnectionStringName
         {

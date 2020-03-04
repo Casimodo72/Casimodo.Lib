@@ -11,11 +11,14 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Data
 {
+    // KABU TODO: REMOVE? Not used.
     public static partial class CustomExtensions
     {
+        [Obsolete]
         public static IQueryable Query(this DbContext context, string entityName) =>
             context.Query(context.Model.FindEntityType(entityName).ClrType);
 
+        [Obsolete]
         public static IQueryable Query(this DbContext context, Type entityType) =>
             (IQueryable)((IDbSetCache)context).GetOrAddSet(context.GetDependencies().SetSource, entityType);
     }

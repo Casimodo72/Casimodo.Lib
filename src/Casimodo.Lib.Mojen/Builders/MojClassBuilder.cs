@@ -124,6 +124,26 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TClassBuilder RemoveInterface(params string[] names)
+        {
+            foreach (var name in names)
+                RemoveInterfaceCore(TypeConfig, name, mustExist: true);
+
+            return This();
+        }
+
+        void RemoveInterfaceCore(MojType type, string name, bool mustExist = true)
+        {
+            var item = type.Interfaces.FirstOrDefault(x => x.Name == name);
+            if (item == null)
+                throw new MojenException($"Interface '{name}' not found in type '{type.Name}'.");
+
+            type.Interfaces.Remove(item);
+
+            if (type.IsStoreOwner)
+                RemoveInterfaceCore(type.Store, name, mustExist: false);
+        }
+
         public TClassBuilder HasManyParents()
         {
             TypeConfig.HasManyParents = true;
@@ -138,10 +158,20 @@ namespace Casimodo.Lib.Mojen
             if (iface.Kind != MojTypeKind.Interface)
                 throw new MojenException("The given MojType must be an interface type.");
 
-            return Interface(iface.ClassName, store);
+            var i = InterfaceCore(iface.ClassName, store);
+            i.InterfaceType = iface;
+
+            return This();
         }
 
         public TClassBuilder Interface(string name, bool store = true, string implementation = null)
+        {
+            InterfaceCore(name, store, implementation);
+
+            return This();
+        }
+
+        MojInterface InterfaceCore(string name, bool store = true, string implementation = null)
         {
             var item = TypeConfig.Interfaces.FirstOrDefault(x => x.Name == name);
             if (item != null)
@@ -153,15 +183,16 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 // Create
-                TypeConfig.Interfaces.Add(new MojInterface
+                item = new MojInterface
                 {
                     Name = name,
                     AddToStore = store,
                     Implementation = implementation
-                });
+                };
+                TypeConfig.Interfaces.Add(item);
             }
 
-            return This();
+            return item;
         }
 
         public TClassBuilder Size(MojDataSetSizeKind size)
@@ -365,12 +396,81 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        void RemoveLocalProp(MojType type, MojProp p)
+        {
+            if (p == null)
+                return;
+
+            type.LocalProps.Remove(p);
+
+            if (p.IsNavigation && p.Navigation.ForeignKey != null)
+                type.LocalProps.Remove(p.Navigation.ForeignKey);
+
+            var store = type.Store != null && type.IsStoreOwner ? type.Store : null;
+            if (store != null)
+            {
+                RemoveLocalProp(store, store.LocalProps.Find(x => x.Name == p.Name));
+            }
+        }
+
+        void RemoveInterface(MojInterface intf)
+        {
+            TypeConfig.Interfaces.Remove(intf);
+            if (TypeConfig.IsStoreOwner)
+            {
+                var sintf = TypeConfig.Store.Interfaces.Find(x => x.Name == intf.Name);
+                if (sintf != null)
+                    TypeConfig.Store.Interfaces.Remove(sintf);
+            }
+        }
+
+        void RemoveFilteredProps()
+        {
+            if (TypeConfig.PropsFilter.IsActive)
+            {
+                var allowedProps = TypeConfig.PropsFilter.Props;
+                var storeType = TypeConfig.Store != null && TypeConfig.IsStoreOwner ? TypeConfig.Store : null;
+                foreach (var prop in TypeConfig.LocalProps.ToArray())
+                {
+                    if (!allowedProps.Any(x => x.Name == prop.Name))
+                    {
+                        //// Keep reference props (e.g. "PersonId") if navigation prop (e.g. "Person") is allowed.
+                        //if (prop.Reference.Is && 
+                        //    prop.Navigation != null &&
+                        //    allowedProps.Any(x => x.Name == prop.Navigation.Name))
+                        //{
+                        //    continue;
+                        //}
+
+                        RemoveLocalProp(TypeConfig, prop);
+                    }
+                }
+
+                foreach (var intf in TypeConfig.Interfaces.ToArray())
+                {
+                    if (intf.InterfaceType != null)
+                    {
+                        foreach (var p in intf.InterfaceType.LocalProps)
+                        {
+                            if (TypeConfig.FindProp(p.Name) == null)
+                            {
+                                RemoveInterface(intf);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// NOTE: This method is reentrant. I.e. it can be called multiple times on the same type.
         /// </summary>
         /// <returns></returns>
         public override MojType Build()
         {
+            RemoveFilteredProps();
+
             if (TypeConfig.LocalPick != null &&
                 TypeConfig.LocalPick.KeyProp == null)
             {
@@ -381,6 +481,7 @@ namespace Casimodo.Lib.Mojen
             if (TypeConfig.Kind == MojTypeKind.Model ||
                 TypeConfig.Kind == MojTypeKind.Complex)
             {
+                TypeConfig.ChangeTrackingProps.Clear();
                 TypeConfig.ChangeTrackingProps.AddRangeDistinctBy(TypeConfig.GetLocalTrackedProps(), x => x.Name);
 
                 if (TypeConfig.BaseClass != null)
@@ -574,7 +675,7 @@ namespace Casimodo.Lib.Mojen
                 TypeConfig.Store.AddLocalProp(sprop);
             }
 
-            mprop.Store = sprop;
+            mprop.SetStore(sprop);
             mprop.IsStorePending = false;
         }
 

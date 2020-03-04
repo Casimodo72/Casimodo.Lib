@@ -48,6 +48,88 @@ namespace Casimodo.Lib.Mojen
         }
     }
 
+    public class MojPropFilter
+    {
+        public string Name { get; set; }
+
+        public MojProp Prop { get; set; }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+
+    public class MojTypePropsFilter
+    {
+        public MojType Owner { get; set; }
+        public bool IsActive { get; set; }
+        public List<MojPropFilter> Props { get; set; } = new List<MojPropFilter>();
+
+        public void AddBaseType()
+        {
+            IsActive = true;
+            Add(Owner.BaseClass.GetProps(custom: false).Select(x => x.Name).ToArray());
+        }
+
+        //public void Add(MojType type)
+        //{
+        //    Add(type.GetProps(custom: false).Select(x => x.Name).ToArray());
+        //}
+
+        public void AddAll()
+        {
+            IsActive = true;
+            Add(Owner.LocalProps.Select(x => x.Name).ToArray());
+        }
+
+        public bool Has(string prop)
+        {
+            return Props.Any(x => x.Name == prop);
+        }
+
+        public void Add(params string[] props)
+        {
+            IsActive = true;
+            foreach (var propName in props)
+            {
+                if (Has(propName))
+                    continue;
+
+                var prop = Owner.FindProp(propName);
+                if (prop == null)
+                    throw new MojenException($"Props filter error: prop '{propName}' not found in type '{Owner.Name}'.");
+
+                Props.Add(new MojPropFilter { Name = propName, Prop = prop });
+
+                // Implicitely add foreign key prop of a navigation prop.
+                if (prop.IsNavigation && prop.Navigation.ForeignKey != null)
+                {
+                    Add(prop.Navigation.ForeignKey.Name);
+                }
+            }
+        }
+
+        public void Remove(params string[] props)
+        {
+            IsActive = true;
+            foreach (var propName in props)
+            {
+                var item = Props.FirstOrDefault(x => x.Name == propName);
+                if (item == null)
+                    throw new MojenException($"Prop '{propName}' not found in filter.");
+
+                Props.Remove(item);
+
+                // Implicitely remove foreign key prop of a navigation prop.
+                if (item.Prop.IsNavigation && item.Prop.Navigation.ForeignKey != null)
+                {
+                    Remove(item.Prop.Navigation.ForeignKey.Name);
+                }
+            }
+        }
+    }
+
     [DataContract(Namespace = MojContract.Ns)]
     public class MojType : MojPartBase
     {
@@ -123,6 +205,7 @@ namespace Casimodo.Lib.Mojen
 
         MojType(string name)
         {
+            PropsFilter = new MojTypePropsFilter { Owner = this };
             InitName(name);
             ClassName = name;
         }
@@ -149,6 +232,14 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public MojTypeKind Kind { get; set; }
+
+        public MojTypePropsFilter PropsFilter { get; set; }
+
+        public MojTypePropsFilter ActivatePropsFilter()
+        {
+            PropsFilter.IsActive = true;
+            return PropsFilter;
+        }
 
         public bool IsOfKind(params MojTypeKind[] kinds)
         {

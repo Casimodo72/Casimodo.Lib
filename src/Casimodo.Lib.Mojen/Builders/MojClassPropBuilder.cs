@@ -1259,7 +1259,15 @@ namespace Casimodo.Lib.Mojen
             var sprop = mprop.Store;
 
             if (sprop == null)
+            {
                 sprop = storeType.GetProps().FirstOrDefault(x => x.Id == mprop.Id);
+                if (sprop == null)
+                {
+                    sprop = storeType.FindProp(mprop.Name);
+                    if (sprop != null)
+                        throw new MojenException($"The store type '{storeType.Name}' of model prop '{mprop.Name}' has a corresponding prop with different ID.");
+                }
+            }
 
             if (sprop != null)
             {
@@ -1290,7 +1298,7 @@ namespace Casimodo.Lib.Mojen
                 //}
             }
 
-            PropConfig.Store = sprop;
+            PropConfig.SetStore(sprop);
             PropConfig.IsStorePending = false;
 
             return sprop;

@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class AutoMapperGen : AppPartGenerator
+    public class AutoMapperModelToStoreGen : AppPartGenerator
     {
-        public AutoMapperGen()
+        public AutoMapperModelToStoreGen()
         {
             Scope = "ModelContext";
         }
@@ -20,7 +20,7 @@ namespace Casimodo.Lib.Mojen
 
             if (string.IsNullOrEmpty(context.DataViewModelAutoMapperDirPath)) return;
             if (context.DataConfig == null) return;
-            if (string.IsNullOrEmpty(context.DataConfig.DbModelRepositoryCoreName)) return;
+            if (string.IsNullOrEmpty(context.DataConfig.DbRepositoryCoreName)) return;
 
             PerformWrite(
                 Path.Combine(context.DataViewModelAutoMapperDirPath, "AutoMapperConfiguration.generated.cs"),
@@ -29,18 +29,15 @@ namespace Casimodo.Lib.Mojen
 
         void GenerateAutoMapperConfiguration(DataViewModelLayerConfig context)
         {
-            OUsing("System", "Microsoft.Practices.ServiceLocation", "Casimodo.Lib", "Casimodo.Lib.Data");
+            OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Data");
             //App.GetForeignDataNamespaces(context.DataConfig.DataNamespace));            
             ONamespace(context.DataConfig.DataNamespace);
             O("public static partial class AutoMapperConfiguration");
             Begin();
 
             // NOTE: We're using AutoMapper 4.2.1.
-            O("public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c)");
+            O($"public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c, {context.DataConfig.DbRepositoryCoreName} core)");
             Begin();
-
-            O("var core = ServiceLocator.Current.GetInstance<{0}>();", context.DataConfig.DbModelRepositoryCoreName);
-
             O();
 
             foreach (MojType model in App.AllModels.OrderBy(x => x.Name))

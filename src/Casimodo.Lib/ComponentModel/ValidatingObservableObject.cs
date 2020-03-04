@@ -242,7 +242,6 @@ namespace Casimodo.Lib.ComponentModel
                     RaisePropertyChangedCore(changedProperty);
                     OnPropertyErrorsChanged(changedProperty);
                 }
-                // KABU TODO: Use nameof(HasErrors) in C#6.
                 RaisePropertyChanged(nameof(HasErrors));
             }
         }

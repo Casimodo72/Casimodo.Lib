@@ -582,6 +582,17 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public MojProp Store { get; set; }
 
+        public void SetStore(MojProp sprop)
+        {
+            Store = sprop;
+            if (DeclaringType?.Store != null)
+            {
+                var p = DeclaringType.Store.FindProp(sprop.Name);
+                if (p != null && p != sprop)
+                    throw new MojenException("Store property mismatch.");
+            }
+        }
+
         /// <summary>
         /// Marks this property for subsequent creation of a store property.
         /// If a store property already exists, then this flag allows for 

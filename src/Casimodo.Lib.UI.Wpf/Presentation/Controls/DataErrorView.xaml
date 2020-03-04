@@ -1,0 +1,49 @@
+﻿<UserControl
+    x:Class="Casimodo.Lib.Presentation.Controls.DataErrorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"
+    d:DesignHeight="200"
+    d:DesignWidth="300"
+    FontSize="18">
+
+    <UserControl.Resources>
+
+        <DataTemplate
+            x:Key="ErrorViewerItemTemplate"
+            DataType="string">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition
+                        Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Ellipse
+                    Fill="Red"
+                    Width="5"
+                    Height="5"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Margin="5,0,0,0" />
+
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding}"                    
+                    Foreground="red"
+                    Padding="2"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    TextWrapping="Wrap"
+                    Margin="5,0,0,0" />
+            </Grid>
+        </DataTemplate>
+
+    </UserControl.Resources>
+
+    <ItemsControl
+        x:Name="itemsControl"
+        ItemsSource="{Binding}"
+        ItemTemplate="{StaticResource ErrorViewerItemTemplate}" />
+</UserControl>

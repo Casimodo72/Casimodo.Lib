@@ -95,7 +95,14 @@ namespace Casimodo.Lib
 
         public static DateTimeOffset TruncateTime(this DateTimeOffset value)
         {
+            // TODO: similar to DateTime(date.Ticks - date.Ticks % TimeSpan.TicksPerDay, date.Kind);
             return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, 0, value.Offset);
+        }
+
+        public static DateTimeOffset TruncateMinutes(this DateTimeOffset value)
+        {
+            // TODO: similar to DateTime(date.Ticks - date.Ticks % TimeSpan.TicksPerHour, date.Kind);
+            return new DateTimeOffset(value.Year, value.Month, value.Day, value.Hour, 0, 0, 0, value.Offset);
         }
 
         static DateTimeOffset ApplyTimeZone(DateTimeOffset value)

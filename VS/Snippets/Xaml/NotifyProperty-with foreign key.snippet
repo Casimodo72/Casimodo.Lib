@@ -9,22 +9,17 @@
       <Author>Kasimier Buchcik</Author>
       <Description/>      
       <HelpUrl/>        
-      <Shortcut>np2</Shortcut>
+      <Shortcut>npf</Shortcut>
     </Header>
     <Snippet>
       <Declarations>
         <Literal Editable="true">
           <ID>Property</ID>
           <ToolTip/>
-          <Default/>
+          <Default>Prop</Default>
           <Function/>
         </Literal>
-        <Literal Editable="true">
-          <ID>Field</ID>
-          <ToolTip></ToolTip>
-          <Default/>
-          <Function/>
-        </Literal>
+        
         <Object Editable="true">
           <ID>Type</ID>
           <ToolTip></ToolTip>
@@ -32,21 +27,17 @@
           <Function/>
           <Type/>
         </Object>
-        <Literal default="true" Editable="false">
-            <ID>classname</ID> 
-            <ToolTip>Class name</ToolTip> 
-            <Function>ClassName()</Function> 
-            <Default>ClassNamePlaceholder</Default> 
-        </Literal>
       </Declarations>
       <Code Language="csharp">
-        <![CDATA[public $Type$ $Property$ 
+<![CDATA[public $Type$ $Property$ 
 		{
-			get { return _$Field$; }
-			set { SetProperty($Property$Property, ref _$Field$, value); }
+			get { return _$Property$; }
+			set { if (SetProp(ref _$Property$, value)) { $Property$Id = value?.Id; } }
 		}
-		$Type$ _$Field$;
-        public static readonly ObservablePropertyMetadata $Property$Property = ObservablePropertyMetadata.Create("$Property$");]]></Code>
+		$Type$ _$Property$;
+    
+    public Guid? $Property$Id { get; set; }
+    ]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

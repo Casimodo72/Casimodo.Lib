@@ -14,8 +14,6 @@ namespace Casimodo.Lib.Mojen
             Lang = "C#";
         }
 
-        public DataLayerConfig DataConfig { get; set; }
-
         protected override void GenerateCore()
         {
             var config = App.Get<MojGlobalDataSeedConfig>();

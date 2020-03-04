@@ -24,12 +24,11 @@
           <Function/>          
         </Literal>
       </Declarations>
-      <Code Language="csharp"><![CDATA[using System.ComponentModel;
+      <Code Language="csharp">
+  <![CDATA[using System.ComponentModel;
     using System.ComponentModel.Composition;
     using Casimodo.Lib.ComponentModel;
     using Casimodo.Lib.Presentation;
-
-    #region Interfaces for the $Name$ ViewModel and View.
 
     public interface I$Name$View : IView<I$Name$ViewModel>
     { }
@@ -37,18 +36,9 @@
     public interface I$Name$ViewModel : IViewModel<I$Name$View>
     { }
 
-    #endregion
-
-    /// <summary>
-    /// The $Name$ ViewModel uses the "model first" strategy.
-    /// </summary>
-    [ViewModelExport(typeof(I$Name$ViewModel), Strategy = ViewModelStrategy.ModelFirst)]
-    [PartCreationPolicy(CreationPolicy.NonShared)]
+    [ViewModelExport(typeof(I$Name$ViewModel)), PartCreationPolicy(CreationPolicy.NonShared)]
     public class $Name$ViewModel : ViewModel2<I$Name$View, I$Name$ViewModel>, I$Name$ViewModel
     {
-        /// <summary>
-        /// Main constructor.
-        /// </summary>
         [ImportingConstructor]
         public $Name$ViewModel()
         { }      
@@ -85,14 +75,8 @@
     
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    /// <summary>
-    /// The the design time version of the $Name$ ViewModel.
-    /// </summary>
     public class $Name$ViewModelDesign : $Name$ViewModel
     {
-        /// <summary>
-        /// Design time constructor.
-        /// </summary>
         public $Name$ViewModelDesign()
         { }
     }    

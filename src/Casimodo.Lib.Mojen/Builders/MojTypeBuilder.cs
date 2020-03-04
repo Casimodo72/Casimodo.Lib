@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
                 var storeProp = prop.Store.Clone();
                 TypeConfig.Store.AddLocalProp(storeProp);
 
-                prop.Store = storeProp;
+                prop.SetStore(storeProp);
             }
 
             return _pbuilder;

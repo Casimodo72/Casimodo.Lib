@@ -303,7 +303,7 @@ namespace Casimodo.Lib.Mojen
                 return item;
 
             if (required)
-                throw new MojenException($"The type '{typeof(T).GetType().Name}' was not found in the Mojen App.");
+                throw new MojenException($"The type '{typeof(T).Name}' was not found in the Mojen App.");
 
             return null;
         }
@@ -337,6 +337,17 @@ namespace Casimodo.Lib.Mojen
                 return Items.OfType<T>().Concat(CurrentBuildContext.Items.OfType<T>()).Distinct().ToArray();
 
             return Items.OfType<T>().Concat(Contexts.SelectMany(x => x.Items.OfType<T>())).Distinct().ToArray();
+        }
+
+        public void RemoveItem(MojBase item)
+        {
+            Items.Remove(item);
+            if (CurrentBuildContext != null)
+                CurrentBuildContext.Items.Remove(item);
+            foreach (var ctx in Contexts)
+            {
+                ctx.Items.Remove(item);
+            }
         }
 
         public IEnumerable<string> GetForeignDataNamespaces(string ns)
