@@ -6,12 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.Standard.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.Standard.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

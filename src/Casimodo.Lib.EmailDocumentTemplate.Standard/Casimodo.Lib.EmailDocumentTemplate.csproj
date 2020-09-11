@@ -14,13 +14,13 @@
 
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.14.0" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="3.1.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.CSharp.Standard\Casimodo.Lib.CSharp.Standard.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.SimpleStringParser.Standard\Casimodo.Lib.SimpleStringParser.Standard.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.Standard.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.CSharp.Standard\Casimodo.Lib.CSharp.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.SimpleStringParser.Standard\Casimodo.Lib.SimpleStringParser.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
   </ItemGroup>
 
 </Project>

@@ -356,8 +356,7 @@ namespace Casimodo.Lib.Data
         // KABU TODO: REMOVE? Tenant mechanism has changed.
         protected void ApplyTenantKey(object entity)
         {
-            var multitenant = entity as IMultitenant;
-            if (multitenant == null)
+            if (!(entity is IMultitenant multitenant))
                 return;
 
             var tenantId = ServiceLocator.Current.GetInstance<ICurrentTenantProvider>().GetTenantId(required: false);
@@ -429,7 +428,7 @@ namespace Casimodo.Lib.Data
         {
             Guard.ArgNotNull(item, nameof(item));
 
-            now = now ?? GetTime();
+            now ??= GetTime();
 
             if (HasProp(item, CommonDataNames.CreatedOn))
             {
@@ -458,7 +457,7 @@ namespace Casimodo.Lib.Data
             if (!HasProp(item, CommonDataNames.ModifiedOn))
                 return;
 
-            now = now ?? GetTime();
+            now ??= GetTime();
 
             SetProp(item, CommonDataNames.ModifiedOn, now);
             SetProp(item, CommonDataNames.ModifiedBy, userName);
@@ -477,7 +476,7 @@ namespace Casimodo.Lib.Data
             if (!HasProp(item, CommonDataNames.IsDeleted))
                 return;
 
-            now = now ?? GetTime();
+            now ??= GetTime();
 
             SetProp(item, CommonDataNames.IsDeleted, true);
             if (GetProp<DateTimeOffset?>(item, CommonDataNames.DeletedOn) == null)
@@ -711,17 +710,17 @@ namespace Casimodo.Lib.Data
             return HProp.SetChangedProp<T>(item, name, value);
         }
 
-        public void MapProp<T>(object source, object target, string name, T defaultValue = default(T))
+        public void MapProp<T>(object source, object target, string name, T defaultValue = default)
         {
             HProp.MapProp<T>(source, target, name, defaultValue);
         }
 
-        public bool MapChangedProp<T>(object source, object target, string name, T defaultValue = default(T))
+        public bool MapChangedProp<T>(object source, object target, string name, T defaultValue = default)
         {
             return HProp.MapChangedProp<T>(source, target, name, defaultValue);
         }
 
-        public T GetProp<T>(object item, string name, T defaultValue = default(T))
+        public T GetProp<T>(object item, string name, T defaultValue = default)
         {
             return HProp.GetProp(item, name, defaultValue);
         }
