@@ -4,15 +4,12 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using Microsoft.CSharp;
 using System.Globalization;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Casimodo.Lib.Code
 {
     public static class CompilerHelper
     {
-        static readonly CSharpCodeProvider _compiler =
-           new CSharpCodeProvider(
-               new Dictionary<string, string>() { { "CompilerVersion", "v4.0" } });
-
         static readonly Dictionary<char, string> GermanReplacements = new Dictionary<char, string>() { { 'ä', "ae" }, { 'ö', "oe" }, { 'ü', "ue" }, { 'Ä', "Ae" }, { 'Ö', "Oe" }, { 'Ü', "Ue" }, { 'ß', "ss" } };
         // Compliant with item 2.4.2 of the C# specification
         static readonly Regex IdentifierRegEx = new Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]");
@@ -64,8 +61,8 @@ namespace Casimodo.Lib.Code
             if (string.IsNullOrEmpty(text))
                 return null;
 
-            //The identifier must start with a character or a "_"
-            if (!char.IsLetter(text, 0) && !_compiler.IsValidIdentifier(text))
+            // The identifier must start with a character or a "_"
+            if (!char.IsLetter(text, 0) && !SyntaxFacts.IsValidIdentifier(text))
                 text = string.Concat("_", text);
 
             return text;

@@ -70,6 +70,7 @@ namespace Casimodo.Lib.CSharp
             return result;
         }
 
+        // TODO: REMOVE? Not used
         public CSharpCompiledToAssemblyWrapper Compile(string code, params Type[] types)
         {
             var syntaxTree = Parse(code);
@@ -109,17 +110,16 @@ namespace Casimodo.Lib.CSharp
 
             options = options.AddReferences(referenceTypes.Select(x => GetAssembly(x)));
 
-            //var interactiveLoader = new InteractiveAssemblyLoader();
-            //foreach (var ass in referenceTypes.Select(x => GetAssembly(x)))
+            // TODO: REMOVE?
+            // var interactiveLoader = new InteractiveAssemblyLoader();
+            // foreach (var ass in referenceTypes.Select(x => GetAssembly(x)))
             //    interactiveLoader.RegisterDependency(ass);
 
-            //var references = referenceTypes.Select(x => MetadataReference.CreateFromFile(x.Assembly.Location)).ToList();
-            //if (references.Count != 0)
+            // var references = referenceTypes.Select(x => MetadataReference.CreateFromFile(x.Assembly.Location)).ToList();
+            // if (references.Count != 0)
             //    options = options.AddReferences(references);
 
-            options = options.AddImports("System", "System.Linq", "System.Collections.Generic");
-            //options.AddImports("System.Linq");
-            //options.AddImports("System.Collections.Generic");
+            options = options.AddImports("System", "System.Linq", "System.Collections.Generic");;
 
             if (namespaces != null)
                 options = options.AddImports(namespaces);
@@ -134,7 +134,7 @@ namespace Casimodo.Lib.CSharp
 
         public CSharpCompilation CompileCore(Type[] types, params SyntaxTree[] syntaxTrees)
         {
-            string assemblyName = System.IO.Path.GetRandomFileName();
+            string assemblyName = Path.GetRandomFileName();
             var referenceTypes = new List<Type>();
 
             referenceTypes.Add(typeof(object));
@@ -146,7 +146,7 @@ namespace Casimodo.Lib.CSharp
 
             var references = referenceTypes.Select(x => MetadataReference.CreateFromFile(x.Assembly.Location)).ToList();
 
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            var compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
                 references: references,
@@ -155,6 +155,7 @@ namespace Casimodo.Lib.CSharp
             return compilation;
         }
 
+        // TODO: REMOVE? Not used and not fully implemented.
         public CSharpCompiledToAssemblyWrapper EmitToAssembly(CSharpCompilation compilation)
         {
             var result = new CSharpCompiledToAssemblyWrapper();
@@ -172,6 +173,7 @@ namespace Casimodo.Lib.CSharp
 
                     result.ErrorMessages = failures.Select(x => x.GetMessage()).ToList();
 
+                    // TODO: REMOVE
                     //foreach (Diagnostic diagnostic in failures)
                     //{
                     //    Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
