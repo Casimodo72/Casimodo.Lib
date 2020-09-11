@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3645F8F3-9172-45F0-AD20-5651B00A7F45}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Casimodo.Lib.Mojen.Generators</RootNamespace>
+    <AssemblyName>Casimodo.Lib.Mojen.Generators</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-x64|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug-x64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-x64|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug-x64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-x64|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug-x64\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-GFA|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug-GFA\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-GFA|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug-GFA\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-GFA|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug-GFA\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity.Design" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App\Generators\Core\CoreODataMvcControllerGen.cs" />
+    <Compile Include="App\Generators\OData\MvcODataControllerGen.cs" />
+    <Compile Include="App\Generators\Controllers\DefaultMvcControllerGen.cs" />
+    <Compile Include="App\Generators\Controllers\MvcControllerBaseGen.cs" />
+    <Compile Include="App\Generators\Controllers\EmptyMvcControllerGen.cs" />
+    <Compile Include="App\Generators\Core\CoreODataControllerGen.cs" />
+    <Compile Include="App\Generators\Models\AutoMapperModelToStoreGen.cs" />
+    <Compile Include="App\Generators\OData\WebApiAuthConfigGen.cs" />
+    <Compile Include="App\Generators\Views\CustomPageWebViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\HardCodedKendoTagsIndyListEditorViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoIndyListEditorViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoDataSourceMex.cs" />
+    <Compile Include="App\Generators\Mex\MexGeneratorBase.cs" />
+    <Compile Include="App\Generators\Views\Kendo\HardCodedKendoTagsEditorViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoFormEditorViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoFormReadOnlyViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\PageWithKendoGridContentViewGen.cs" />
+    <Compile Include="App\Generators\Views\Infrastructure\WebScriptGen.cs" />
+    <Compile Include="App\Generators\Views\WebComponentApplyAmbientAuth.cs" />
+    <Compile Include="App\Generators\Views\WebComponentRegistryGen.cs" />
+    <Compile Include="App\Generators\Views\WebJsComponentRegistryGen.cs" />
+    <Compile Include="App\Generators\Models\WebDataEditViewModelGen.cs" />
+    <Compile Include="App\Generators\Models\XamlEntityViewModelGen.cs" />
+    <Compile Include="App\Generators\OData\Infrastructure\ODataControllerOptions.cs" />
+    <Compile Include="App\Generators\OData\Infrastructure\ODataHelper.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerContainerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataAppDataTreeControllerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerPart.GetNextSequenceValue.cs" />
+    <Compile Include="App\Generators\OData\ODataControllerPartGenBase.cs" />
+    <Compile Include="App\Generators\Repositories\WebPickItemsContainerGen.cs" />
+    <Compile Include="App\Generators\OData\ODataConfigGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridInlineDetailsViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridOptions.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Grid\KendoGridViewGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\MojHttpRequestConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoFxConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoPagerOptions.cs" />
+    <Compile Include="App\Generators\Views\Kendo\Infrastructure\KendoWindowConfig.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoFormEditorViewGen.InputComponents.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoPartGen.Edit.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoPartGen.DataSource.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoPartGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoReadOnlyViewBaseGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoViewBaseGen.cs" />
+    <Compile Include="App\Generators\Views\Kendo\KendoTypeViewGenBase.cs" />
+    <Compile Include="DataInteractionLayer\Infrastructure\DataInteractionLayerContext.cs" />
+    <Compile Include="DataInteractionLayer\Infrastructure\DataInteractionPartGenerator.cs" />
+    <Compile Include="Infrastructure\DataLayerExtensions.cs" />
+    <Compile Include="Infrastructure\Helpers\ObjectTreeHelper.cs" />
+    <Compile Include="Infrastructure\JsExtensions.cs" />
+    <Compile Include="Infrastructure\ODataExtensions.cs" />
+    <Compile Include="Objects\Generators\EFCore\CoreDbContextModelGen.cs" />
+    <Compile Include="Objects\Generators\EFCore\DbContextGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnSaving.MiscGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.RestoreIsCascadeDeleted.CascadeGen.cs" />
+    <Compile Include="Objects\Generators\EFCore\DbSeedGen.cs" />
+    <Compile Include="Objects\Generators\EFCore\EntityGen.cs" />
+    <Compile Include="Objects\Generators\EntityInitializerGen.cs" />
+    <Compile Include="Objects\Generators\TsXClassGen.cs" />
+    <Compile Include="Objects\Generators\TsObjectInitializerGen.cs" />
+    <Compile Include="Objects\Generators\TsXPrimitiveKeysGen.cs" />
+    <Compile Include="Objects\Infrastructure\EntityUserFromDbToSeedOptions.cs" />
+    <Compile Include="Objects\Infrastructure\EntityToDbTransformationOptions.cs" />
+    <Compile Include="Objects\Infrastructure\EntityFromDbTransformationGenBase.cs" />
+    <Compile Include="Objects\Infrastructure\EntityToDbTransformationGenBase.cs" />
+    <Compile Include="Objects\Generators\JsAnyKeysGen.cs" />
+    <Compile Include="Objects\Generators\DbContextCreateMapGen.cs" />
+    <Compile Include="Objects\Generators\DbRepositoriesGen.cs" />
+    <Compile Include="Objects\Generators\DbContextCreateModelGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCoreOperationContextGen.cs" />
+    <Compile Include="Objects\Generators\EntityUserFromDbToSeedGen.cs" />
+    <Compile Include="Objects\Generators\TsTypeKeysGen.cs" />
+    <Compile Include="Objects\Generators\AnyKeysGen.cs" />
+    <Compile Include="Objects\Infrastructure\EntityFromDbTransformationOptions.cs" />
+    <Compile Include="Objects\Generators\TypeKeysGen.cs" />
+    <Compile Include="Objects\Generators\InterfaceGen.cs" />
+    <Compile Include="Objects\Generators\EntityToDbFromXmlGen.cs" />
+    <Compile Include="Objects\Generators\EntityFromDbToXmlGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoContainerGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoBaseGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.GenBase.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.GetNextSequenceValueGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnAdded.NestedGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnAdded.SetNextSequenceValueGen.cs" />
+    <Compile Include="App\Generators\Repositories\WebRepoContainerGen.cs" />
+    <Compile Include="Objects\Generators\PrimitiveKeysGen.cs" />
+    <Compile Include="Objects\Generators\DbContextGen.cs" />
+    <Compile Include="Objects\Generators\DbMigrationSeedGen.cs" />
+    <Compile Include="Objects\Generators\ClassGen.cs" />
+    <Compile Include="Objects\Generators\DbMigrationSequenceGen.cs" />
+    <Compile Include="Objects\Generators\ComplexTypeGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnDeleted.CascadeGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnIsDeleted.CascadeGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnSaving.CheckUniqueGen.cs" />
+    <Compile Include="Objects\Generators\DbRepoCore.OnUpdate.NestedGen.cs" />
+    <Compile Include="Objects\Generators\EntityFromDbToSeedGen.cs" />
+    <Compile Include="Objects\Generators\JsObjectInitializerGen.cs" />
+    <Compile Include="Objects\Generators\TsClassGen.cs" />
+    <Compile Include="Objects\Generators\JsObjectGen.cs" />
+    <Compile Include="Objects\Generators\EntityGen.cs" />
+    <Compile Include="Objects\Generators\EnumGen.cs" />
+    <Compile Include="Objects\Generators\TsPrimitiveKeysGen.cs" />
+    <Compile Include="Objects\Infrastructure\DataLayerBuildContext.cs" />
+    <Compile Include="Objects\Infrastructure\DataLayerGenerator.cs" />
+    <Compile Include="Objects\Generators\LegacyGfaImportMapGen.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj">
+      <Project>{14682976-50a0-4ec3-adc2-f99b191fe432}</Project>
+      <Name>Casimodo.Lib.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen.Views\Casimodo.Lib.Mojen.Views.csproj">
+      <Project>{e7b30b2d-e791-4032-80e2-1b4db4be4f02}</Project>
+      <Name>Casimodo.Lib.Mojen.Views</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib.Mojen\Casimodo.Lib.Mojen.csproj">
+      <Project>{cebd4214-f8b6-4281-9a2e-389555171811}</Project>
+      <Name>Casimodo.Lib.Mojen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj">
+      <Project>{ab861142-b4e0-4299-9cd4-e17b8295159f}</Project>
+      <Name>Casimodo.Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DataInteractionLayer\Generators\DbRepositoryCore.OnEventGen.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App\Generators\Views\Trash\" />
+    <Folder Include="App\Models\" />
+    <Folder Include="DataInteractionLayer\Builders\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
+  </Target>
+  <Import Project="..\..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
