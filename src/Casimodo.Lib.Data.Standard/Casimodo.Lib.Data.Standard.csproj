@@ -5,19 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Casimodo.Lib.Data\IMultitenant.cs" Link="IMultitenant.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\KeyInfoAttribute.cs" Link="KeyInfoAttribute.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\LocallyRequiredAttribute.cs" Link="LocallyRequiredAttribute.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\Moj\MojCardinality.cs" Link="Moj\MojCardinality.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\Moj\MojContract.cs" Link="Moj\MojContract.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\Moj\MojCrudOp.cs" Link="Moj\MojCrudOp.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\Moj\MojReferenceBinding.cs" Link="Moj\MojReferenceBinding.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\TenantKeyInfoAttribute.cs" Link="TenantKeyInfoAttribute.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\TrackChangesAttribute.cs" Link="TrackChangesAttribute.cs" />
-    <Compile Include="..\Casimodo.Lib.Data\TypeDescriptorAttribute.cs" Link="TypeDescriptorAttribute.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Moj\" />
   </ItemGroup>
 
