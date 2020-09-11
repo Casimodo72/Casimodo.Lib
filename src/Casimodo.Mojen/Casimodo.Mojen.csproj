@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj" />
   </ItemGroup>
 
 </Project>
