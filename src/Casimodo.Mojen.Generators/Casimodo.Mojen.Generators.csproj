@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.Standard.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
     <ProjectReference Include="..\Casimodo.Mojen.Views\Casimodo.Mojen.Views.csproj" />
     <ProjectReference Include="..\Casimodo.Mojen\Casimodo.Mojen.csproj" />
   </ItemGroup>
