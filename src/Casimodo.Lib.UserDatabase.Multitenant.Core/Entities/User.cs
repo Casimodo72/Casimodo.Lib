@@ -15,24 +15,8 @@ namespace Casimodo.Lib.Identity
         public User()
         { }
 
-        //public User(string userName)
-        //{
-        //    UserName = userName;
-        //}
-
         public Guid? TenantId { get; set; }
 
-        //public string FullName { get; set; }
-
         public bool IsDeleted { get; set; }
-
-        // KABU TODO: IMPORTANT: Do we need this in NET Core?
-        //public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<User, Guid> manager)
-        //{
-        //    // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
-        //    var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
-        //    // Add custom user claims here
-        //    return userIdentity;
-        //}
     }
 }

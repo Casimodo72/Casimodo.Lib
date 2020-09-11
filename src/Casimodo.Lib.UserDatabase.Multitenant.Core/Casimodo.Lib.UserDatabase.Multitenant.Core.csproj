@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Casimodo.Lib.UserDatabase</RootNamespace>
   </PropertyGroup>
@@ -20,16 +20,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="2.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="3.1.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Core\Casimodo.Lib.Core.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Data.Core\Casimodo.Lib.Data.Core.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Database.Core\Casimodo.Lib.Database.Core.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.Standard.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Database.Standard\Casimodo.Lib.Database.Standard.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.Standard.csproj" />
   </ItemGroup>
 
 </Project>
