@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.CSharp.Standard\Casimodo.Lib.CSharp.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.SimpleStringParser.Standard\Casimodo.Lib.SimpleStringParser.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.CSharp\Casimodo.Lib.CSharp.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.SimpleStringParser\Casimodo.Lib.SimpleStringParser.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj" />
   </ItemGroup>
 
 </Project>

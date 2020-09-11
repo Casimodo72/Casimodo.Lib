@@ -10,14 +10,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Helpers\" />
     <Folder Include="Models\" />
     <Folder Include="Moj\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj" />
   </ItemGroup>
 
 </Project>

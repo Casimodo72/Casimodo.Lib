@@ -15,10 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casimodo.Lib.ActionAuth.Standard\Casimodo.Lib.ActionAuth.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Data.Standard\Casimodo.Lib.Data.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Database.Standard\Casimodo.Lib.Database.csproj" />
-    <ProjectReference Include="..\Casimodo.Lib.Standard\Casimodo.Lib.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.ActionAuth\Casimodo.Lib.ActionAuth.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Database\Casimodo.Lib.Database.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib.Data\Casimodo.Lib.Data.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj" />
   </ItemGroup>
 
 </Project>
