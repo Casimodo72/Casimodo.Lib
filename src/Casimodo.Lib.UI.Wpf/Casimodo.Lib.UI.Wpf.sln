@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Lib.UI.Wpf", "Casimodo.Lib.UI.Wpf.csproj", "{73AA0874-0F84-4FBE-B064-7269CEE731BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.UI.Wpf", "Casimodo.Lib.UI.Wpf.csproj", "{73AA0874-0F84-4FBE-B064-7269CEE731BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib", "..\Casimodo.Lib\Casimodo.Lib.csproj", "{7CFAF63B-F316-4AE4-B771-E6D0EFF73680}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{73AA0874-0F84-4FBE-B064-7269CEE731BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73AA0874-0F84-4FBE-B064-7269CEE731BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73AA0874-0F84-4FBE-B064-7269CEE731BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CFAF63B-F316-4AE4-B771-E6D0EFF73680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CFAF63B-F316-4AE4-B771-E6D0EFF73680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CFAF63B-F316-4AE4-B771-E6D0EFF73680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CFAF63B-F316-4AE4-B771-E6D0EFF73680}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
