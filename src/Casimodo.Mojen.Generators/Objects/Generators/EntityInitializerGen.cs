@@ -13,6 +13,9 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
+            if (DataConfig.IsOutputDisabled)
+                return;
+
             if (string.IsNullOrEmpty(DataConfig.EntityDirPath))
                 return;
 

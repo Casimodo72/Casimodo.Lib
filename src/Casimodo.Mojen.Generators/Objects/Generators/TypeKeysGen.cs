@@ -15,6 +15,9 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
+            if (DataConfig.IsOutputDisabled)
+                return;
+
             PerformWrite(Path.Combine(DataConfig.DataPrimitiveDirPath, "TypeKeys.generated.cs"),
                 () => GenerateTypeKeys());
         }

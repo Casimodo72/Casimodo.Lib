@@ -30,6 +30,8 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             DataConfig = App.Get<DataLayerConfig>();
+            if (DataConfig.IsOutputDisabled)
+                return;
 
             if (string.IsNullOrEmpty(DataConfig.EntityDirPath))
                 return;

@@ -733,16 +733,17 @@ namespace Casimodo.Lib.Mojen
             var exists = File.Exists(outputFilePath);
             if (exists)
             {
-                //###
+                // System.Diagnostics.Debug.WriteLine("# CodeGen: Comparing file: " + Path.GetFileName(outputFilePath));
 
                 if (!FileContentDiffers(outputFilePath, outputLength, outputData))
                 {
                     // The file content has not changed.
+                    // System.Diagnostics.Debug.WriteLine("# CodeGen: No change: " + Path.GetFileName(outputFilePath));
                     return;
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("# CodeGen: FileChanged: " + Path.GetFileName(outputFilePath));
+                    System.Diagnostics.Debug.WriteLine("# CodeGen: Changed: " + Path.GetFileName(outputFilePath));
                 }
             }
 

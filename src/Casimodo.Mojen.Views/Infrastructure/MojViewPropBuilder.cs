@@ -404,7 +404,8 @@ namespace Casimodo.Lib.Mojen
             bool hideOnDeactivated = true,
             string group = null,
             string fromPropDisplay = null,
-            string title = null)
+            string title = null,
+            Guid? filterId = null)
         {
             if (!Prop.IsSelector)
                 throw new MojenException($"Cascade from is allowed for selectors only.");
@@ -428,7 +429,8 @@ namespace Casimodo.Lib.Mojen
                 CommandBehavior = hideOnDeactivated
                     ? MojFilterCommandBehavior.HideOnDeactivated
                     : MojFilterCommandBehavior.None,
-                CommandTitle = title
+                CommandTitle = title,
+                FilterId = filterId
             });
 
             return this;

@@ -827,7 +827,7 @@ namespace Casimodo.Lib.Mojen
                                     $"field: '{reference.ForeignKey.Name}', " +
                                     $"value: cascadeFromVal, " +
                                     // Add an ID for easy removal of that filter.
-                                    $"_id: '{Guid.NewGuid()}', " +
+                                    $"_id: '{cascadeConfig.FilterId ?? Guid.NewGuid()}', " +
                                     $"_deactivatable: {Moj.JS(filterIsDeactivatable)}, " +
                                     $"_targetTypeId: '{filterTargetType.Id}', " +
                                     // TODO: REMOVE: _targetTypeName if the future

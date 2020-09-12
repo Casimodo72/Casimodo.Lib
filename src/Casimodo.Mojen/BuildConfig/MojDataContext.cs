@@ -75,6 +75,9 @@ namespace Casimodo.Lib.Mojen
         public bool IsMetadataEnabled { get; set; } = true;
 
         [DataMember]
+        public bool IsOutputDisabled { get; set; }
+
+        [DataMember]
         public string IODataDynamicPropertiesAccessor { get; set; } = "IODataDynamicPropertiesAccessor";
 
         [DataMember]

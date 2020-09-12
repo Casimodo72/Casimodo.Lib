@@ -20,9 +20,7 @@ namespace Casimodo.Lib.Mojen
     }
 
     public class DotNetCoreOptions
-    {
-        // TODO: REMOVE: public Action<MojModelBuilder> ConfigureManyToManyLinkType { get; set; }
-    }
+    { }
 
     public static class MojenAppExtensions
     {
