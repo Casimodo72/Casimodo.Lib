@@ -4,6 +4,7 @@ using System;
 
 namespace Casimodo.Lib.Mojen
 {
+    // TODO: RENAME to MojBinaryDataConfig or MojBlobConfig.
     [DataContract(Namespace = MojContract.Ns)]
     public class MojBinaryConfig : MojBase
     {

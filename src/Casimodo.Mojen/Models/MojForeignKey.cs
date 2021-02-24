@@ -7,14 +7,12 @@ namespace Casimodo.Lib.Mojen
     public enum MojReferenceAxis
     {
         None,
-        //Link,
         Value,
         ToParent,
         ToCollection,
         ToCollectionItem,
         ToChild,
-        ToAncestor,
-        // TODO: REMOVE? ToDescendant
+        ToAncestor
     }
 
     [DataContract(Namespace = MojContract.Ns)]
@@ -120,16 +118,8 @@ namespace Casimodo.Lib.Mojen
             get { return Is && Multiplicity.HasFlag(MojMultiplicity.Zero); }
         }
 
-        // TODO: REMOVE
-        //[DataMember]
-        //public bool IsNavigation { get; set; }
-
         [DataMember]
         public MojProp ForeignKey { get; set; }
-
-        // TODO: REMOVE
-        //[DataMember]
-        //public bool IsForeignKey { get; set; }
 
         [DataMember]
         public MojProp NavigationProp { get; set; }

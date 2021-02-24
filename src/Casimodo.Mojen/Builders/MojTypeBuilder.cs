@@ -190,7 +190,6 @@ namespace Casimodo.Lib.Mojen
         /// <summary>
         /// Indicates that this type was implemented manually and will not be generated.
         /// </summary>
-        /// <returns></returns>
         public TTypeBuilder Custom()
         {
             TypeConfig.ExistsAlready = true;

@@ -46,22 +46,11 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public string TypeScriptDataDirPath { get; set; }
 
-        //[DataMember]
-        //public string TypeScriptModuleEntitiesDirPath { get; set; }
-
         [DataMember]
         public string JavaScriptDataDirPath { get; set; }
 
         [DataMember]
         public string ODataNamespace { get; set; }
-
-        // KABU TODO: REMOVE: Not used anymore
-        //[DataMember]
-        //public string AngularDataStorageDirPath { get; set; }
-
-        // KABU TODO: REMOVE: Not used anymore
-        //[DataMember]
-        //public string AngularModuleName { get; set; }
 
         [DataMember]
         public string ScriptNamespace { get; set; }
@@ -170,10 +159,6 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public string DbRepoContainerName { get; set; }
-
-        // TODO: REMOVE
-        //[DataMember]
-        //public string DbModelRepositoryCoreName { get; set; }
 
         public string DbContextConnectionStringName
         {

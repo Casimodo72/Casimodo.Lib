@@ -5,8 +5,6 @@ using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
-    // Mia = My object interaction
-
     public enum MiaTypeTriggerEventKind
     {
         None = 0,

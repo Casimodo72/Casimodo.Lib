@@ -35,6 +35,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojCascadeFromConfig
     {
+        // TODO: RENAME to CommandId
         public Guid? FilterId { get; set; }
         public MojFormedType FromType { get; set; }
         public string CommandTitle { get; set; }
