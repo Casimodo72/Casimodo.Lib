@@ -11,7 +11,8 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Data
 {
-    // KABU TODO: REMOVE? Not used.
+    // TODO: REMOVE
+#if (false)
     public static partial class CustomExtensions
     {
         [Obsolete]
@@ -22,6 +23,7 @@ namespace Casimodo.Lib.Data
         public static IQueryable Query(this DbContext context, Type entityType) =>
             (IQueryable)((IDbSetCache)context).GetOrAddSet(context.GetDependencies().SetSource, entityType);
     }
+#endif
 
     public class DbRepositoryCoreProvider
     {

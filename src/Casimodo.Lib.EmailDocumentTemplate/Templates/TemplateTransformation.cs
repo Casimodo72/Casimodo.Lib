@@ -258,7 +258,7 @@ namespace Casimodo.Lib.Templates
 
     public abstract class TemplateCoreContext
     {
-        //public TemplateProcessor Processor { get; set; }
+        public Action<TemplateExpressionContext> TemplateExpressionContextConfiguring { get; set; }
 
         public TemplateDataContainer Data { get; set; }
 
