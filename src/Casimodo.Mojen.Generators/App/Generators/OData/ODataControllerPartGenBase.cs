@@ -7,10 +7,12 @@ using System.Xml.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    [Obsolete]
     public abstract class ODataControllerPartGenBase : WebPartGenerator
     {
         public ODataControllerPartGenBase()
         {
+            throw new Exception();
             Scope = "App";
         }
 

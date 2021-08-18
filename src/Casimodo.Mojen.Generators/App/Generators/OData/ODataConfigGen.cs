@@ -32,9 +32,10 @@ namespace Casimodo.Lib.Mojen
                 "System",
                 "System.Collections.Generic",
                 "System.Linq",
-                "System.Web",
-                "System.Web.Http",
-                "Microsoft.AspNet.OData.Builder",
+                // TODO: REMOVE
+                // "System.Web",
+                // "System.Web.Http",
+                "Microsoft.OData.ModelBuilder",
                 GetAllDataNamespaces());
 
             ONamespace(WebConfig.WebAppConfigNamespace);

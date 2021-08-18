@@ -1,9 +1,8 @@
 ﻿using Casimodo.Lib.Data;
-using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OData;
 using System;
 using System.Linq;
 using System.Net;

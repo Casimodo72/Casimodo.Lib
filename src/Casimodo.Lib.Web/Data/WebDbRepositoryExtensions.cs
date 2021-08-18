@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.OData;
+﻿using Microsoft.AspNetCore.OData.Deltas;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;

@@ -10,10 +10,12 @@ namespace Casimodo.Lib.Mojen
     /// <summary>
     /// Generates ASP.NET Web API OData controllers.
     /// </summary>
+    [Obsolete]
     public class ODataControllerGen : WebPartGenerator
     {
         public ODataControllerGen()
         {
+            throw new Exception();
             Scope = "App";
         }
 

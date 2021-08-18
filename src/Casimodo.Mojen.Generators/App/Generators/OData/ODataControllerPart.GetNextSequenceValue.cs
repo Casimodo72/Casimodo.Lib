@@ -6,10 +6,12 @@ using System.Xml.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
+    [Obsolete]
     public class ODataControllerPartGetNextSequenceValueGen : ODataControllerPartGenBase
     {
         public ODataControllerPartGetNextSequenceValueGen()
         {
+            throw new Exception();
             Name = "GetNextSequenceValue";
 
             // Process types which have sequence props with Unique.PerTypes.

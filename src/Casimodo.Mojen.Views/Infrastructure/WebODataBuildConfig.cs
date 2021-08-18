@@ -2,8 +2,23 @@
 {
     public class WebODataBuildConfig : MojenBuildConfig
     {
-        public string Path { get; set; }
+        /// <summary>
+        /// The prefix expression which is prepended in the controller's route
+        /// (e.g. "\"odata/\"", or "SomeGlobalConfig.SomePrefix").
+        /// Currently mandatory.
+        /// </summary>
+        public string ControllerRoutePrefixExpression { get; set; } = "\"odata/\"";
 
+        /// <summary>
+        /// The OData URL prefix which is prepended in the query.
+        /// Currently mandatory.
+        /// </summary>
+        public string QueryPrefix { get; set; } = "/odata";
+
+        /// <summary>
+        /// The OData namespace used for OData actions and functions.
+        /// Currently mandatory.
+        /// </summary>
         public string Namespace { get; set; }
 
         public bool IsMethodNamespaceQualified { get; set; }

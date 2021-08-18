@@ -190,7 +190,7 @@ namespace Casimodo.Lib.Mojen
                 string expression = this.BuildODataSelectAndExpand(queryNodes);
 
                 // Build OData query.
-                var odataQuery = $"{App.Get<WebODataBuildConfig>().Path}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}?{expression}";
+                var odataQuery = $"{App.Get<WebODataBuildConfig>().QueryPrefix}/{reference.ObjectPluralName}/{this.GetODataQueryFunc()}?{expression}";
 
                 // On create triggers.
                 var sourceAssignments = new List<string>();

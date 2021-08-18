@@ -86,9 +86,9 @@ namespace Casimodo.Lib.Mojen
 
                 foreach (var dbindex in indexes)
                 {
-                    // Index: entity.HasIndex("TenantId", "MySomeProp", "MyContextProp").HasName("UIX_MyContextProp").IsUnique();
+                    // Index: entity.HasIndex("TenantId", "MySomeProp", "MyContextProp").HasDatabaseName("UIX_MyContextProp").IsUnique();
                     var propNames = dbindex.Prop.DbAnno.Index.Members.Select(x => "\"" + x.Prop.Name + "\"").Join(", ");
-                    Oo($"b.HasIndex({propNames}).HasName(\"{dbindex.IndexName}\")");
+                    Oo($"b.HasIndex({propNames}).HasDatabaseName(\"{dbindex.IndexName}\")");
 
                     if (dbindex.Prop.DbAnno.Index.IsUnique)
                         o(".IsUnique()");

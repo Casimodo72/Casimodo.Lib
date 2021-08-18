@@ -24,13 +24,13 @@ namespace Casimodo.Lib.Mojen
 
     public static class MojenAppExtensions
     {
-        const string Name = "IsDotNetCore";
+        const string IsDotNetCoreName = "IsDotNetCore";
 
         public static void UseDotNetCore(this MojenApp app, DotNetCoreOptions options = null)
         {
             app.Extensions.Add(new MojenAppExtensionItem
             {
-                Name = Name,
+                Name = IsDotNetCoreName,
                 Options = options ?? new DotNetCoreOptions()
             });
         }
@@ -42,12 +42,12 @@ namespace Casimodo.Lib.Mojen
 
         static MojenAppExtensionItem GetExtension(MojenApp app)
         {
-            return app.Extensions.FirstOrDefault(x => x.Name == Name);
+            return app.Extensions.FirstOrDefault(x => x.Name == IsDotNetCoreName);
         }
 
         public static bool IsDotNetCore(this MojenApp app)
         {
-            return app.Extensions.Any(x => x.Name == Name);
+            return app.Extensions.Any(x => x.Name == IsDotNetCoreName);
         }
     }
 

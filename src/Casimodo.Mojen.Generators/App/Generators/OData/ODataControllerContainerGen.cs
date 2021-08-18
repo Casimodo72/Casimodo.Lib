@@ -10,10 +10,12 @@ namespace Casimodo.Lib.Mojen
     /// Generate a container file for all OData controllers.
     /// Used for registration of OData controllers.
     /// </summary>
+    [Obsolete]
     public class ODataControllerContainerGen : WebPartGenerator
     {
         public ODataControllerContainerGen()
         {
+            throw new Exception();
             Scope = "App";
         }
 

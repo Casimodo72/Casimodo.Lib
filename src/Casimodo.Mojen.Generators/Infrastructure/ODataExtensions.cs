@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
 
         public static string GetODataPath(this AppPartGenerator gen, MojType type, string customQueryBase = null)
         {
-            return gen.App.Get<WebODataBuildConfig>().Path + "/" +
+            return gen.App.Get<WebODataBuildConfig>().QueryPrefix + "/" +
                 (customQueryBase != null ? customQueryBase : type.PluralName);
         }
 

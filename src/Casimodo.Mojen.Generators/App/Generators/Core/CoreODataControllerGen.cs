@@ -92,9 +92,13 @@ namespace Casimodo.Lib.Mojen
                 "System.Collections.Generic",
                 "System.Threading",
                 "System.Threading.Tasks",
-                "Microsoft.AspNet.OData",
-                "Microsoft.AspNet.OData.Query",
-                "Microsoft.AspNet.OData.Routing",
+                "Microsoft.AspNetCore.OData",
+                "Microsoft.AspNetCore.OData.Query",
+                "Microsoft.AspNetCore.OData.Routing",
+                // For [FromODataUri]:
+                "Microsoft.AspNetCore.OData.Formatter",
+                // For SingleResult<T>:
+                "Microsoft.AspNetCore.OData.Results",
                 "System.Data",
                 "Casimodo.Lib",
                 "Casimodo.Lib.Data",
@@ -116,7 +120,7 @@ namespace Casimodo.Lib.Mojen
             // Generic entity repository
             var repoName = GetWebRepositoryName(Type);
 
-            O($@"[ODataRoutePrefix(""{Type.PluralName}"")]");
+            O($@"[Route({ODataConfig.ControllerRoutePrefixExpression} + ""{Type.PluralName}"")]");
             O($"public partial class {controllerName} : {GetControllerBaseClass()}");
             Begin();
 
@@ -240,7 +244,7 @@ namespace Casimodo.Lib.Mojen
                 O();
                 OApiActionAuthAttribute(Type, "Create");
                 O("[HttpPost]");
-                OODataRouteAttribute();
+                OODataMethodRouteAttribute();
                 O($"public async Task<IActionResult> Post([FromBody] {Type.ClassName} model)");
                 Begin();
                 O("return await CreateCore(model);");
@@ -293,12 +297,17 @@ namespace Casimodo.Lib.Mojen
                 return "";
         }
 
-        void OODataRouteAttribute(string route = null)
+        void OODataMethodRouteAttribute(string route = null)
         {
             if (!string.IsNullOrEmpty(route))
-                O($@"[ODataRoute(""{route}"")]");
+            {
+                O($@"[Route(""{route}"")]");
+            }
             else
-                O(@"[ODataRoute]");
+            {
+                // TODO: REMOVE? The Route attribute has no default constructor. 
+                // O(@"[Route]");
+            }
         }
 
         void OODataEnableQueryAttribute()
@@ -334,7 +343,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            OODataRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
+            OODataMethodRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
             OODataEnableQueryAttribute();
             O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();
@@ -345,7 +354,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            OODataRouteAttribute($@"({{{key}}})");
+            OODataMethodRouteAttribute($@"({{{key}}})");
             OODataEnableQueryAttribute();
             O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, keyProp.Type.Name, key);
             Begin();
@@ -423,7 +432,7 @@ namespace Casimodo.Lib.Mojen
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
                 O("[HttpPut]");
-                OODataRouteAttribute($@"({{{key.VName}}})");
+                OODataMethodRouteAttribute($@"({{{key.VName}}})");
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");
@@ -476,7 +485,7 @@ namespace Casimodo.Lib.Mojen
 
                 O();
                 O("[AcceptVerbs(\"PATCH\", \"MERGE\")]");
-                O("[ODataRoute(\"({{{0}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]", key.VName);
+                O("[Route(\"({{{0}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]", key.VName);
                 O("public async Task<IActionResult> Patch([FromODataUri] {0} {1}, Delta<{2}> delta, CancellationToken cancellationToken)",
                     key.Type.Name, key.VName, Type.ClassName);
                 Begin();
@@ -500,7 +509,7 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "Delete");
             O("[HttpDelete]");
-            OODataRouteAttribute($@"({{{key.VName}}})");
+            OODataMethodRouteAttribute($@"({{{key.VName}}})");
             O("public async Task<IActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
             O($"{RepoVar()}.ReferenceLoading(false);");
