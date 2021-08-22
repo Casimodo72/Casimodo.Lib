@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Results;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -101,16 +102,17 @@ namespace Casimodo.Lib.Web
     [Authorize]
     public class ODataControllerBase : ODataController
     {
+        
         [System.Diagnostics.DebuggerHidden]
         public void ThrowNotFound(string message = null)
         {
-            new ServerException(HttpStatusCode.NotFound, message);
+            throw new ServerException(HttpStatusCode.NotFound, message);
         }
 
         [System.Diagnostics.DebuggerHidden]
         public void ThrowBadRequest(string message = null)
         {
-            new ServerException(HttpStatusCode.BadRequest, message);
+            throw new ServerException(HttpStatusCode.BadRequest, message);
         }
     }
 }

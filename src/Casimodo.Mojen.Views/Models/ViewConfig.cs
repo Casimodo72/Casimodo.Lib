@@ -251,7 +251,7 @@ namespace Casimodo.Lib.Mojen
 
         public bool IsCustomSave { get; set; }
 
-        public bool IsCustomApi { get; set; }
+        public bool IsCustomSaveApi { get; set; }
 
         public bool IsCustomView { get; set; }
 

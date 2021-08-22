@@ -503,5 +503,14 @@ namespace Casimodo.Lib.Mojen
             else
                 O($@"<partial name=""{virtualPath}""/>");
         }
+
+        public void OAttribute(HttpVerb verb, string value = null)
+        {
+            O($@"[Http{verb}{
+                (string.IsNullOrEmpty(value) 
+                    ? ""
+                    : @$"(""{value}"")")
+                }]");
+        }
     }
 }

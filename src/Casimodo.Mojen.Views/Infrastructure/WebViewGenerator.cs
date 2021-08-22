@@ -5,10 +5,13 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public enum WebViewHttpVerb
+    public enum HttpVerb
     {
         Get,
-        Post
+        Post,
+        Put,
+        Patch,
+        Delete
     }
 
     public class HtmlStyleProp

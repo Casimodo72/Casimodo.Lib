@@ -63,13 +63,13 @@ namespace Casimodo.Lib.Mojen
             O($"read: {{ url: {readUrl} }},");
 
             // Create
-            if (config.CanCreate)
+            if (config.CanCreate && !context.View.IsCustomSave)
             {
                 O($"create: {{ url: '{config.TransportConfig.ODataCreateUrl}' }},");
             }
 
             // Update
-            if (config.CanModify)
+            if (config.CanModify && !context.View.IsCustomSave)
             {
                 var url = string.Format(config.TransportConfig.ODataUpdateUrlTemplate, $"' + data.{config.TypeConfig.Key.Name} + '");
                 var verb = config.UseODataActions ? "type: 'POST', " : "";
@@ -78,7 +78,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             // Delete
-            if (config.CanDelete)
+            if (config.CanDelete && !context.View.IsCustomSave)
                 O($"destroy: {{ url: function (data) {{ return '{config.TransportConfig.ODataDeleteUrl}(' + data.{config.TypeConfig.Key.Name} + ')'; }} }},");
         }
 

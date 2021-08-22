@@ -946,9 +946,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojViewBuilder CustomApi()
+        public MojViewBuilder CustomSaveApi()
         {
-            View.IsCustomApi = true;
+            View.IsCustomSaveApi = true;
             return this;
         }
 

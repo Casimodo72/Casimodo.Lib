@@ -243,8 +243,8 @@ namespace Casimodo.Lib.Mojen
             {
                 O();
                 OApiActionAuthAttribute(Type, "Create");
-                O("[HttpPost]");
-                OODataMethodRouteAttribute();
+                OAttribute(HttpVerb.Post);
+                // TODO: REMOVE: OODataMethodRouteAttribute();
                 O($"public async Task<IActionResult> Post([FromBody] {Type.ClassName} model)");
                 Begin();
                 O("return await CreateCore(model);");
@@ -297,8 +297,10 @@ namespace Casimodo.Lib.Mojen
                 return "";
         }
 
+#if (false)
         void OODataMethodRouteAttribute(string route = null)
         {
+            
             if (!string.IsNullOrEmpty(route))
             {
                 O($@"[Route(""{route}"")]");
@@ -309,8 +311,9 @@ namespace Casimodo.Lib.Mojen
                 // O(@"[Route]");
             }
         }
+#endif
 
-        void OODataEnableQueryAttribute()
+        void OEnableQueryAttribute()
         {
             var enableQueryAttrName = ODataConfig.EnableQueryAttributeName ?? "EnableQuery";
             Oo($"[{enableQueryAttrName}(");
@@ -331,9 +334,9 @@ namespace Casimodo.Lib.Mojen
 
             // Default query function.
             O();
-            OApiActionAuthAttribute(Type, "View");
-            O("[HttpGet]");
-            OODataEnableQueryAttribute();
+            OApiActionAuthAttribute(Type, "View");         
+            OEnableQueryAttribute();
+            OAttribute(HttpVerb.Get);
             O($"public IActionResult {ODataConfig.Query}()");
             Begin();
             O($"return Ok(CustomFilter({RepoVar()}.Query()));");
@@ -341,10 +344,10 @@ namespace Casimodo.Lib.Mojen
 
             // Distinct by property query function.
             O();
-            OApiActionAuthAttribute(Type, "View");
-            O("[HttpGet]");
-            OODataMethodRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
-            OODataEnableQueryAttribute();
+            OApiActionAuthAttribute(Type, "View");        
+            // TODO: REMOVE: OODataMethodRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
+            OEnableQueryAttribute();
+            OAttribute(HttpVerb.Get, $@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
             O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
             Begin();
             O($"return Ok(CustomFilter({RepoVar()}.Query()).GroupBy(ExpressionHelper.GetGroupKey<{type.ClassName}>(on.Trim('\\''))).Select(g => g.FirstOrDefault()));");
@@ -353,9 +356,9 @@ namespace Casimodo.Lib.Mojen
             // GET: odata/Entities(x)
             O();
             OApiActionAuthAttribute(Type, "View");
-            O("[HttpGet]");
-            OODataMethodRouteAttribute($@"({{{key}}})");
-            OODataEnableQueryAttribute();
+            // TODO: REMOVE: OODataMethodRouteAttribute($@"({{{key}}})");
+            OEnableQueryAttribute();
+            OAttribute(HttpVerb.Get, @"({" + key + "})");
             O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, keyProp.Type.Name, key);
             Begin();
             O($"return SingleResult.Create({RepoVar()}.QuerySingle({key}));");
@@ -431,8 +434,8 @@ namespace Casimodo.Lib.Mojen
                 // PUT: odata/ControllerName(x)
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
-                O("[HttpPut]");
-                OODataMethodRouteAttribute($@"({{{key.VName}}})");
+                // TODO: REMOVE: OODataMethodRouteAttribute($@"({{{key.VName}}})");
+                OAttribute(HttpVerb.Put, "({" + key.VName + "})");
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");
@@ -508,8 +511,8 @@ namespace Casimodo.Lib.Mojen
             // Async
             O();
             OApiActionAuthAttribute(Type, "Delete");
-            O("[HttpDelete]");
-            OODataMethodRouteAttribute($@"({{{key.VName}}})");
+            // TODO: REMOVE: OODataMethodRouteAttribute($@"({{{key.VName}}})");
+            OAttribute(HttpVerb.Delete, "({" + key.VName + "})");
             O("public async Task<IActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
             O($"{RepoVar()}.ReferenceLoading(false);");

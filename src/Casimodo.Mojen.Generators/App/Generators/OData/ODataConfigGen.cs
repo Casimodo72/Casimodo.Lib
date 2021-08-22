@@ -127,7 +127,7 @@ namespace Casimodo.Lib.Mojen
                             x.Kind.Roles.HasFlag(MojViewRole.Editor) &&
                             x.TypeConfig.StoreOrSelf == type.StoreOrSelf))
                     {
-                        if (editorOfViewGroup.CanCreate && !editorOfViewGroup.IsCustomApi)
+                        if (editorOfViewGroup.CanCreate && !editorOfViewGroup.IsCustomSaveApi)
                         {
                             // Add OData create action
                             O();
@@ -136,7 +136,7 @@ namespace Casimodo.Lib.Mojen
                             O($"action.ReturnsFromEntitySet<{typeName}>(\"{type.PluralName}\");");
                         }
 
-                        if (editorOfViewGroup.CanModify && !editorOfViewGroup.IsCustomApi)
+                        if (editorOfViewGroup.CanModify && !editorOfViewGroup.IsCustomSaveApi)
                         {
                             // Add OData update action
                             O();
