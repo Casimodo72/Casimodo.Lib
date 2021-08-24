@@ -81,13 +81,13 @@ namespace Casimodo.Lib.Mojen
                     O($@"public static {type.Name} = ""{type.Id}"";");
 
                 O();
-                OB("private static _id2Name =");
+                OB("private static _id2Name: { [id: string]: string } =");
                 foreach (var type in types)
                     O($@"""{type.Id}"": ""{type.Name}"",");
                 End(";");
 
                 O();
-                OB("public static getNameById(id)");
+                OB("public static getNameById(id: string): string");
                 O($"return {className}._id2Name[id] || null;");
                 End();
             });

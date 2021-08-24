@@ -105,8 +105,8 @@ namespace Casimodo.Lib.Mojen
                 return;
 
             string[] typeNames = Options.GenerateInterfaces && Options.PrefixInterfaces
-                ? typeNames = new[] { type.Name, "I" + type.Name }
-                : typeNames = new[] { type.Name };
+                ? new[] { type.Name, "I" + type.Name }
+                : new[] { type.Name };
 
             O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
         }
@@ -180,13 +180,17 @@ namespace Casimodo.Lib.Mojen
 
             O();
             OTsClass(type.Name,
-                extends: type.HasBaseClass ? type.BaseClass.Name : null,
-                implements: Options.GenerateInterfaces ? new string[] { iname } : null,
+                extends: type.HasBaseClass 
+                    ? type.BaseClass.Name 
+                    : null,
+                implements: Options.GenerateInterfaces 
+                    ? new string[] { iname } 
+                    : null,
                 propertyInitializer: true,
                 constructor: () =>
                 {
                     // TODO: Find a way to emit this only when used in the context of OData.
-                    O($@"this[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
+                    O($@"(this as any)[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
                 },
                 content: () =>
                 {
@@ -207,9 +211,6 @@ namespace Casimodo.Lib.Mojen
                 if (prop == tenantKey)
                     // Don't expose tenant information.
                     continue;
-
-                //if (i > 0)
-                //    O();
 
                 if (!isInterface)
                     OTsDoc(prop);
