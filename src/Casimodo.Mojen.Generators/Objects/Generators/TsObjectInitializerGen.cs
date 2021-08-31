@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
 {
     // TODO: Generate lower-case class methods.
 
-    public class TsObjectInitializerGen : DataLayerGenerator
+    public class TsObjectInitializerGen : TsGenBase
     {
         public TsObjectInitializerGen()
         {

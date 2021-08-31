@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public partial class TsPrimitiveKeysGen : DataLayerGenerator
+    public partial class TsPrimitiveKeysGen : TsGenBase
     {
         public TsPrimitiveKeysGen()
         {

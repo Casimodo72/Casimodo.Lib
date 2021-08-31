@@ -77,7 +77,7 @@ namespace Casimodo.Lib.Mojen
         {
             var isDerived = !string.IsNullOrEmpty(extends);
 
-            OB($"{(export ? "export " : "")}interface {name}{(isDerived ? " extends " + extends : "")}");
+            OB($"{ (export ? "export " : "")}interface {name}{(isDerived ? " extends " + extends : "")}");
 
             content.Invoke();
 

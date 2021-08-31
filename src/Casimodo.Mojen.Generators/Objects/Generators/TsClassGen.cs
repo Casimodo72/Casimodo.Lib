@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class TsClassGen : DataLayerGenerator
+    public class TsClassGen : TsGenBase
     {
         public TsClassGen()
         {

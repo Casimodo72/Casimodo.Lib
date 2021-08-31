@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Mojen
         public Func<MojType, string> FormatFileName { get; set; }
     }
 
-    public class TsXClassGen : DataLayerGenerator
+    public class TsXClassGen : TsGenBase
     {
         public TsXClassGenOptions Options { get; set; }
 

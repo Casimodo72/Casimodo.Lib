@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsModule { get; set; }
     }
 
-    public class TsTypeKeysGen : DataLayerGenerator
+    public class TsTypeKeysGen : TsGenBase
     {
         public TsTypeKeysGen()
         {

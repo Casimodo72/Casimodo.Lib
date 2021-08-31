@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
     /// Uses TypeScriptDataDirPath as output dir path by default.
     /// Override with options.OutputDirPath.
     /// </summary>
-    public partial class TsXPrimitiveKeysGen : DataLayerGenerator
+    public partial class TsXPrimitiveKeysGen : TsGenBase
     {
         readonly TsXPrimitiveKeysGenOptions _options;
         public TsXPrimitiveKeysGen(TsXPrimitiveKeysGenOptions options)

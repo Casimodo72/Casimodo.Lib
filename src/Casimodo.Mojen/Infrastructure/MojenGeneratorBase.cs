@@ -686,6 +686,11 @@ namespace Casimodo.Lib.Mojen
             _core = prevcore;
         }
 
+        protected virtual void OGeneratedFileDeclaration()
+        {
+            // NOP
+        }
+
         public void PerformWrite(string outputFilePath, Action callback)
         {
             PerformWrite(outputFilePath, (stream, writer) => callback());
@@ -719,6 +724,8 @@ namespace Casimodo.Lib.Mojen
             using (TextWriter writer = new StreamWriter(stream, MyUT8Encoding, 8192, leaveOpen: true))
             {
                 Use(writer);
+
+                OGeneratedFileDeclaration();
 
                 callback(stream, writer);
 
