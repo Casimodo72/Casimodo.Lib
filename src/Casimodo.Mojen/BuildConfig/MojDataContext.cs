@@ -6,19 +6,25 @@ using Casimodo.Lib.Data;
 namespace Casimodo.Lib.Mojen
 {
     [DataContract(Namespace = MojContract.Ns)]
-    public class DataViewModelLayerConfig : MojBase
+    public class ViewModelLayerConfig : MojBase
     {
         [DataMember]
         public DataLayerConfig DataConfig { get; set; }
 
         [DataMember]
-        public string DataViewModelNamespace { get; set; }
+        public string Namespace { get; set; }
 
         [DataMember]
-        public string DataViewModelDirPath { get; set; }
+        public string ModelsDirPath { get; set; }
 
         [DataMember]
-        public string DataViewModelAutoMapperDirPath { get; set; }
+        public string AutoMapperDirPath { get; set; }
+
+        [DataMember]
+        public string InterfacesDirPath { get; set; }
+
+        [DataMember]
+        public List<string> Namespaces { get; set; } = new List<string>();
     }
 
     [DataContract(Namespace = MojContract.Ns)]

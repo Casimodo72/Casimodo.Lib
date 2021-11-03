@@ -375,7 +375,7 @@ namespace Casimodo.Lib.Presentation
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        internal void Insert(int index, object item)
+        public void Insert(int index, object item)
         {
             if (item == null)
                 throw new ArgumentNullException("item");

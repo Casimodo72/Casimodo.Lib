@@ -97,18 +97,19 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TClassBuilder EnumEntity()
-        {
-            TypeConfig.IsEnumEntity = true;
+        // TODO: REMOVE
+        //public TClassBuilder EnumEntity()
+        //{
+        //    TypeConfig.IsEnumEntity = true;
 
-            return This();
-        }
+        //    return This();
+        //}
 
         public TClassBuilder ODataOpenType()
         {
             TypeConfig.IsODataOpenType = true;
 
-            Interface(App.Get<DataLayerConfig>().IODataDynamicPropertiesAccessor);
+            Interface(App.Get<DataLayerConfig>().IODataDynamicPropertiesAccessor, viewModel: false);
             return This();
         }
 
@@ -164,35 +165,37 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TClassBuilder Interface(string name, bool store = true, string implementation = null)
+        public TClassBuilder Interface(string name, bool store = true, bool viewModel = true, string implementation = null)
         {
-            InterfaceCore(name, store, implementation);
+            InterfaceCore(name, store, viewModel, implementation);
 
             return This();
         }
 
-        MojInterface InterfaceCore(string name, bool store = true, string implementation = null)
+        MojInterface InterfaceCore(string name, bool store = true, bool viewModel = true, string implementation = null)
         {
-            var item = TypeConfig.Interfaces.FirstOrDefault(x => x.Name == name);
-            if (item != null)
+            var @interface = TypeConfig.Interfaces.FirstOrDefault(x => x.Name == name);
+            if (@interface != null)
             {
                 // Update
-                item.AddToStore = store;
-                item.Implementation = implementation;
+                @interface.AddToStore = store;
+                @interface.AddToViewModel = viewModel;
+                @interface.Implementation = implementation;
             }
             else
             {
                 // Create
-                item = new MojInterface
+                @interface = new MojInterface
                 {
                     Name = name,
                     AddToStore = store,
+                    AddToViewModel = viewModel,
                     Implementation = implementation
                 };
-                TypeConfig.Interfaces.Add(item);
+                TypeConfig.Interfaces.Add(@interface);
             }
 
-            return item;
+            return @interface;
         }
 
         public TClassBuilder Size(MojDataSetSizeKind size)
@@ -382,8 +385,10 @@ namespace Casimodo.Lib.Mojen
             if (!TypeConfig.AssignFromConfig.Is)
                 TypeConfig.AssignFromConfig = new MojAssignFromCollectionConfig();
 
-            var assignment = new MojNamedAssignFromConfig();
-            assignment.Name = name;
+            var assignment = new MojNamedAssignFromConfig
+            {
+                Name = name
+            };
 
             foreach (var prop in props)
             {

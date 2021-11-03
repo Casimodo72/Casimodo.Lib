@@ -9,18 +9,6 @@ using System.Runtime.Serialization;
 
 namespace Casimodo.Lib.ComponentModel
 {
-    // KABU TODO: REMOVE?
-    //public static class ObservableObjectExtensions
-    //{
-    //    public static bool IsDisposed(this ObservableObject item)
-    //    {
-    //        // NOTE: I moved the property "IsDisposed" into an extension method in order
-    //        // to hide it from convention based machinery like EF CodeFirst (I would have
-    //        // had to annotate it with attribute [NotMapped] otherwise).
-    //        return item.IsDisposed;
-    //    }
-    //}
-
     public interface IDisposableEx : IDisposable
     {
         bool IsDisposed { get; }

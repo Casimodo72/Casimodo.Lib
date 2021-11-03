@@ -76,6 +76,7 @@ namespace Casimodo.Lib.Mojen
         public TTypeBuilder Id(string guid)
         {
             TypeConfig.Id = new Guid(guid);
+            TypeConfig.MetadataId = TypeConfig.Id.ToString();
 
             return This();
         }

@@ -116,7 +116,7 @@ namespace Casimodo.Lib.Mojen
                 CurrentScopeObject = null;
                 context.CurrentDataContext = null;
 
-                foreach (var ctx in GetItems<DataViewModelLayerConfig>())
+                foreach (var ctx in GetItems<ViewModelLayerConfig>())
                 {
                     CurrentScopeObject = ctx;
                     context.CurrentModelContext = ctx;
@@ -153,7 +153,7 @@ namespace Casimodo.Lib.Mojen
 
         public Action<string, string> ExecuteCustomGenerators = null;
 
-        public DateTimeOffset Now { get; set; }
+        public DateTimeOffset Now { get; set; } = DateTimeOffset.Now;
 
         public List<MojBase> Items { get; private set; }
 
@@ -187,16 +187,6 @@ namespace Casimodo.Lib.Mojen
             get { return GetItems<MojValueSetContainer>(); }
         }
 
-        //public string GetAppSetting(string name)
-        //{
-        //    string result;
-        //    foreach (var config in Configs)
-        //        if (config.Items.TryGetValue(name, out result))
-        //            return result;
-
-        //    throw new MojenException(string.Format("App configuration item not found ('{0}').", name));
-        //}
-
         public void Add(MojenBuildContext context)
         {
             if (context == null) throw new ArgumentNullException("context");
@@ -211,7 +201,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public T Config<T>()
-            where T : class
+            where T : MojBase
         {
             var result = Configs.OfType<T>().FirstOrDefault();
             if (result != null)
@@ -287,7 +277,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public T Get<T>(bool required = true)
-            where T : class
+            where T : MojBase
         {
             if (CurrentScopeObject != null && CurrentScopeObject.GetType() == typeof(T))
                 return (T)CurrentScopeObject;
@@ -311,11 +301,28 @@ namespace Casimodo.Lib.Mojen
             return GetItems<DataLayerConfig>().Where(x => x.Name == name).First();
         }
 
-        public IEnumerable<MojBase> GetItems(Type type)
+        internal IEnumerable<MojBase> GetItemsAndConfigs(Type type)
+        {
+            return GetItemsCore(type)
+                .Concat(Configs.Where(x => x.GetType() == type))
+                .Distinct()
+                .ToArray();
+        }
+
+        public IEnumerable<T> GetItems<T>()
+            where T : MojBase
+        {
+            return GetItemsCore(typeof(T)).Cast<T>();
+            // TODO: REMOVE
+            //if (CurrentBuildContext != null)
+            //    return Items.OfType<T>().Concat(CurrentBuildContext.Items.OfType<T>()).Distinct().ToArray();
+
+            //return Items.OfType<T>().Concat(Contexts.SelectMany(x => x.Items.OfType<T>())).Distinct().ToArray();
+        }
+
+        IEnumerable<MojBase> GetItemsCore(Type type)
         {
             var result = Items.Where(x => x.GetType() == type);
-
-            result = result.Concat(Configs.Where(x => x.GetType() == type));
 
             if (CurrentBuildContext != null)
             {
@@ -327,14 +334,6 @@ namespace Casimodo.Lib.Mojen
             }
 
             return result.Distinct().ToArray();
-        }
-
-        public IEnumerable<T> GetItems<T>()
-        {
-            if (CurrentBuildContext != null)
-                return Items.OfType<T>().Concat(CurrentBuildContext.Items.OfType<T>()).Distinct().ToArray();
-
-            return Items.OfType<T>().Concat(Contexts.SelectMany(x => x.Items.OfType<T>())).Distinct().ToArray();
         }
 
         public void RemoveItem(MojBase item)

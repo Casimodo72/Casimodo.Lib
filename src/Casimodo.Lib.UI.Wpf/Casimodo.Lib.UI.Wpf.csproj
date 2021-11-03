@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.UI\Casimodo.Lib.UI.csproj" />
     <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj" />
   </ItemGroup>
 

@@ -60,12 +60,10 @@ namespace Casimodo.Lib.Mojen.Meta
                 if (t == typeof(MojType))
                     continue;
 
-                foreach (var item in App.GetItems(t).ToArray())
+                foreach (var item in App.GetItemsAndConfigs(t).ToArray())
                 {
                     container.Add(item);
                     GenerateMeta(item as DataLayerConfig);
-                    // Disabled for now.
-                    //GenerateMeta(item as MojValueSetContainer);
                 }
             }
 

@@ -11,6 +11,8 @@ namespace Casimodo.Lib.ComponentModel
 
         string Text { get; set; }
 
+        public void Dispose();
+
 #if (SILVERLIGHT && DEBUG)
         /// <summary>
         /// Returns the number of currently referenced handlers associated with the

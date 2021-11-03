@@ -1,37 +1,34 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-
-    public class EntityInterfaceGen : ClassGen
+    public class ViewModelInterfaceGen : ClassGen
     {
-        public EntityInterfaceGen()
+        public ViewModelInterfaceGen()
         {
             Scope = "Context";
         }
 
-        // TODO: REMOVE: public DataLayerConfig DataConfig { get; set; }
+        public ViewModelLayerConfig ViewModelConfig { get; set; }
 
         protected override void GenerateCore()
         {
-            DataConfig = App.Get<DataLayerConfig>();
+            ViewModelConfig = App.Get<ViewModelLayerConfig>();
 
-            if (DataConfig == null) return;
+            if (ViewModelConfig == null) return;
             if (string.IsNullOrEmpty(DataConfig.InterfaceDirPath)) return;
 
             foreach (var iface in App.GetTypes(MojTypeKind.Interface))
             {
-                PerformWrite(Path.Combine(DataConfig.InterfaceDirPath, iface.ClassName + ".generated.cs"),
+                PerformWrite(Path.Combine(ViewModelConfig.InterfacesDirPath, iface.ClassName + ".generated.cs"),
                     () => GenerateInterface(iface));
             }
         }
 
         public void GenerateInterface(MojType type)
         {
-            OUsing(DataConfig.DataNamespaces);
+            OUsing(ViewModelConfig.Namespaces);
 
             ONamespace(type.Namespace);
 
@@ -76,9 +73,9 @@ namespace Casimodo.Lib.Mojen
 
         string GetPropertyType(MojType type, MojProp prop)
         {
-            // Ensure that we reference an entity and not a view model here.
-            if (prop.Type.IsMojType && prop.Type.TypeConfig.IsEntityOrModel())
-                return prop.Type.TypeConfig.RequiredStore.Name;
+            // Ensure that we reference a view model.
+            if (prop.Type.IsMojType && !prop.Type.TypeConfig.IsModel())
+                throw new MojenException("Property on interface is expected to be a view model.");
 
             return prop.Type.Name;
         }

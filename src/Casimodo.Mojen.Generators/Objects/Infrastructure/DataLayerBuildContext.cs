@@ -6,6 +6,7 @@ namespace Casimodo.Lib.Mojen
     public class DataLayerBuildContext : MojenBuildContext
     {
         public MojType Tenant { get; set; }
+        public MojType EnumModel { get; set; }
         public MojType EnumEntity { get; set; }
 
         public void PropToTenant(MojModelBuilder builder, Action<MojModelPropBuilder> build = null)
@@ -47,6 +48,12 @@ namespace Casimodo.Lib.Mojen
             set { Parent.Tenant = value; }
         }
 
+        public MojType EnumModel
+        {
+            get { return Parent.EnumModel; }
+            set { Parent.EnumModel = value; }
+        }
+
         public MojType EnumEntity
         {
             get { return Parent.EnumEntity; }
@@ -63,13 +70,13 @@ namespace Casimodo.Lib.Mojen
             return Parent.BuildModel(type);
         }
 
-        public MojEntityBuilder AddEnumEntity(string name, string displayName, string displayNamePlural)
+        public MojModelBuilder AddEnumModelAndStore(string name, string displayName, string displayNamePlural)
         {
-            var builder = AddEntity(name)
-                .Base(EnumEntity)
-                .EnumEntity()
+            var builder = AddModel(name)
+                .Base(EnumModel)
                 .Display(displayName, displayNamePlural)
-                .Use<ODataConfigGen>();
+                .Use<ODataConfigGen>()
+                .Store();
 
             return builder;
         }

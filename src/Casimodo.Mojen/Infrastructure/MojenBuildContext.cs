@@ -29,13 +29,13 @@ namespace Casimodo.Lib.Mojen
 
         public DataLayerConfig CurrentDataContext { get; set; }
 
-        public DataViewModelLayerConfig CurrentModelContext { get; set; }
+        public ViewModelLayerConfig CurrentModelContext { get; set; }
 
         public MojModelBuilder AddModel(string name, string pluralName = null)
         {
             var context = GetDataContext();
             var type = MojType.CreateModel(name, pluralName);
-            type.ClassName = type.Name + "Model";
+            type.ClassName = type.Name; // TOOD: REMOVE: + "Model";
             type.DataContextName = context.Name;
             Items.Add(type);
 
@@ -176,7 +176,7 @@ namespace Casimodo.Lib.Mojen
             if (typeof(T) == typeof(DataLayerConfig) && CurrentDataContext != null)
                 return (T)(object)CurrentDataContext;
 
-            if (typeof(T) == typeof(DataViewModelLayerConfig) && CurrentModelContext != null)
+            if (typeof(T) == typeof(ViewModelLayerConfig) && CurrentModelContext != null)
                 return (T)(object)CurrentModelContext;
 
             return GetItems<T>().First();

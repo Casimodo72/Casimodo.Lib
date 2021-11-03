@@ -203,7 +203,7 @@ namespace Casimodo.Lib.Mojen
                 throw new MojenException("If the backref name is specified, then backrefExplicit must *not* be specified.");
 
             // @backrefNew defaults to true, but is nullable because we need to know whether specified.
-            backrefNew = backrefNew ?? true;
+            backrefNew ??= true;
 
             if (TypeConfig.Kind == MojTypeKind.Entity)
                 type = type.StoreOrSelf;
@@ -630,9 +630,9 @@ namespace Casimodo.Lib.Mojen
 
             if (multiplicity.HasFlag(MojMultiplicity.Many))
             {
-                collectionPropName = collectionPropName ?? prop.DeclaringType.Name;
+                collectionPropName ??= prop.DeclaringType.Name;
                 // Create parent's collection property.
-                MojPropBuilder pbuilder = null;
+                MojPropBuilder pbuilder;
                 if (parentType.Kind == MojTypeKind.Model)
                 {
                     pbuilder = MojTypeBuilder.Create<MojModelBuilder>(App, parentType)
@@ -691,22 +691,22 @@ namespace Casimodo.Lib.Mojen
         }
 
         public TPropBuilder Type(MojType type, bool nullable = true, bool nested = false, bool? required = null,
-            // @navigation is implicitly false but we need to know whether specified.
-            bool? navigation = null,
+            bool navigation = true,
             // @navigationOnModel is implicitly false but we need to know whether specified.
             bool? navigationOnModel = null)
         {
             Guard.ArgNotNull(type, nameof(type));
 
-            if (navigation != null && navigationOnModel != null)
-                throw new ArgumentNullException("The arguments 'navigation' are 'navigationOnModel' are mutually exclusive.");
+            // TODO: REMOVE
+            //if (navigation != null && navigationOnModel != null)
+            //    throw new ArgumentNullException("The arguments 'navigation' are 'navigationOnModel' are mutually exclusive.");
 
-            navigation = navigationOnModel == true ? false : (navigation != false);
+            navigation = navigation != false;
 
             if (TypeConfig.IsEntityOrModel() && type.IsEntityOrModel())
             {
                 return ReferenceCore(to: type, axis: MojReferenceAxis.Value,
-                    navigation: navigation.Value,
+                    navigation: navigation,
                     navigationOnModel: navigationOnModel,
                     nullable: nullable,
                     nested: nested,
@@ -827,21 +827,21 @@ namespace Casimodo.Lib.Mojen
         /// <param name="condition"></param>
         /// <returns></returns>  
         internal TPropBuilder ReferenceCore(MojType to,
-        MojReferenceAxis axis = MojReferenceAxis.None,
-        bool navigation = false,
-        bool? navigationOnModel = null,
-        bool nullable = true,
-        bool? required = null,
-        bool nested = false,
-        bool owned = false,
-        Action<MexConditionBuilder> condition = null,
-        bool storename = false,
-        string suffix = "Id",
-        bool hiddenNavigation = false,
-        MojProp ownedByProp = null,
-        bool backref = false,
-        IMojClassPropBuilder backrefProp = null,
-        string backrefPropName = null)
+            MojReferenceAxis axis = MojReferenceAxis.None,
+            bool navigation = false,
+            bool? navigationOnModel = null,
+            bool nullable = true,
+            bool? required = null,
+            bool nested = false,
+            bool owned = false,
+            Action<MexConditionBuilder> condition = null,
+            bool storename = false,
+            string suffix = "Id",
+            bool hiddenNavigation = false,
+            MojProp ownedByProp = null,
+            bool backref = false,
+            IMojClassPropBuilder backrefProp = null,
+            string backrefPropName = null)
         {
             if (to == null) throw new ArgumentNullException("to");
 
@@ -892,9 +892,9 @@ namespace Casimodo.Lib.Mojen
             // Reference binding
             var binding = nested ? MojReferenceBinding.Nested : MojReferenceBinding.Loose;
             if (owned)
-                binding = binding | MojReferenceBinding.Owned;
+                binding |= MojReferenceBinding.Owned;
             else
-                binding = binding | MojReferenceBinding.Associated;
+                binding |= MojReferenceBinding.Associated;
 
             // Reference
             referenceProp.IsForeignKey = true;
@@ -1071,11 +1071,11 @@ namespace Casimodo.Lib.Mojen
             PropConfig.IsGroupable = false;
             PropConfig.IsSortable = false;
 
-            PropConfig.FileRef = new MojBinaryConfig();
-            PropConfig.FileRef.Is = true;
-            PropConfig.FileRef.IsImage = image;
-            // KABU TODO: REMOVE: since UI specific.
-            //PropConfig.FileRef.IsUploadable = uploadable;
+            PropConfig.FileRef = new MojBinaryConfig
+            {
+                Is = true,
+                IsImage = image
+            };
 
             // KABU TODO: REMOVE
 #if (false)
@@ -1127,7 +1127,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public TPropBuilder LocallyRequired(string error = null)
         {
-            //return Attr(new MojAttr("LocallyRequired", 3).ErrorArg(error));
+            // TODO: REMOVE? return Attr(new MojAttr("LocallyRequired", 3).ErrorArg(error));
             PropConfig.UseRules().IsLocallyRequired = true;
             return This();
         }

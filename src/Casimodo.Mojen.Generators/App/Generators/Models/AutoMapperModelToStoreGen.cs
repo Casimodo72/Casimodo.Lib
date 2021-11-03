@@ -16,18 +16,18 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
-            var context = App.Get<DataViewModelLayerConfig>();
+            var context = App.Get<ViewModelLayerConfig>();
 
-            if (string.IsNullOrEmpty(context.DataViewModelAutoMapperDirPath)) return;
+            if (string.IsNullOrEmpty(context.AutoMapperDirPath)) return;
             if (context.DataConfig == null) return;
             if (string.IsNullOrEmpty(context.DataConfig.DbRepositoryCoreName)) return;
 
             PerformWrite(
-                Path.Combine(context.DataViewModelAutoMapperDirPath, "AutoMapperConfiguration.generated.cs"),
+                Path.Combine(context.AutoMapperDirPath, "AutoMapperConfiguration.generated.cs"),
                 () => GenerateAutoMapperConfiguration(context));
         }
 
-        void GenerateAutoMapperConfiguration(DataViewModelLayerConfig context)
+        void GenerateAutoMapperConfiguration(ViewModelLayerConfig context)
         {
             OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Data");
             //App.GetForeignDataNamespaces(context.DataConfig.DataNamespace));            

@@ -52,20 +52,6 @@ namespace Casimodo.Lib.Mojen
             // Class declaration
             GenerateClassHead(type);
 
-            // Static constructor
-#if (false)
-            O("static {0}()", entity.ClassName);
-            B();
-            E();
-            O();
-#endif
-            // Constructor
-#if (false)
-            O("public {0}()", entity.ClassName);
-            B();
-            E();
-#endif
-
             // Properties
             O();
             MojProp prop;
@@ -89,15 +75,6 @@ namespace Casimodo.Lib.Mojen
                 if (prop.IsExcludedFromDb)
                     O("[NotMapped]");
 
-                //var dbAnnotations = prop.ContainingType.GetIndexesWhereIsMember(prop).ToArray();
-                //foreach (var anno in dbAnnotations)
-                //{
-                //    O($"[Index(\"{anno.GetIndexName()}\", {anno.GetIndexMemberIndex(prop)}, IsUnique = {MojenUtils.TOValue(anno.Unique.Is)})]");
-                //}
-
-                // Ignore tenant ID.
-                //if (prop.IsTenantKey) O("[IgnoreDataMember]");
-
                 if (!type.NoDataContract && !prop.IsTenantKey)
                     O("[DataMember]");
 
@@ -111,7 +88,7 @@ namespace Casimodo.Lib.Mojen
                 }
 
                 // NOTE: We don't specify the [Required] attribute by design.
-                // The "required" constraint is established using the EF model generator only.
+                // The "required" constraint is established using the EF DbContext fluent model generator only.
                 // ORequiredAttribute(prop);
 
                 ODefaultValueAttribute(prop, null);

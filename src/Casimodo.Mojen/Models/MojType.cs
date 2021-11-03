@@ -146,15 +146,17 @@ namespace Casimodo.Lib.Mojen
             if (!text.EndsWith(endsWith))
                 return false;
 
-            text = text + "s"; // text.Substring(0, text.LastIndexOf(endsWith)) + endsWith + "s";
+            text += "s";
 
             return true;
         }
 
         public static MojType CreateEntity(string name)
         {
-            var entity = new MojType(name);
-            entity.Kind = MojTypeKind.Entity;
+            var entity = new MojType(name)
+            {
+                Kind = MojTypeKind.Entity
+            };
 
             return entity;
         }
@@ -172,28 +174,34 @@ namespace Casimodo.Lib.Mojen
 
         public static MojType CreateComplexType(string name)
         {
-            var entity = new MojType(name);
-            entity.Kind = MojTypeKind.Complex;
+            var entity = new MojType(name)
+            {
+                Kind = MojTypeKind.Complex
+            };
 
             return entity;
         }
 
         public static MojType CreateEnum(string name)
         {
-            var enu = new MojType(name);
-            enu.Kind = MojTypeKind.Enum;
-            enu.IsObservable = false;
-            enu.TableName = null;
+            var enu = new MojType(name)
+            {
+                Kind = MojTypeKind.Enum,
+                IsObservable = false,
+                TableName = null
+            };
 
             return enu;
         }
 
         public static MojType CreateInterface(string name)
         {
-            var iface = new MojType(name);
-            iface.Kind = MojTypeKind.Interface;
-            iface.IsObservable = false;
-            iface.TableName = null;
+            var iface = new MojType(name)
+            {
+                Kind = MojTypeKind.Interface,
+                IsObservable = false,
+                TableName = null
+            };
 
             return iface;
         }
@@ -585,8 +593,9 @@ namespace Casimodo.Lib.Mojen
         [DataMember]
         public bool IsKeyAccessible { get; set; }
 
-        [DataMember]
-        public bool IsEnumEntity { get; set; }
+        // TODO: REMOVE
+        //[DataMember]
+        //public bool IsEnumEntity { get; set; }
 
         public bool IsKeyAccessibleEffective()
         {
@@ -863,14 +872,8 @@ namespace Casimodo.Lib.Mojen
                     && (!x.Reference.Is || x.IsForeignKey));
         }
 
-        // KABU TODO: REMOVE? Not used
-        //public IEnumerable<Tuple<MojType, MojProp>> GetPropsWithObjects(bool inherited = true, bool custom = false, bool overriden = false, bool hidden = false)
-        //{
-        //    return TraverseProps(null, inherited, custom, overriden, hidden).ToArray();
-        //}
-
         protected IEnumerable<Tuple<MojType, MojProp>> TraverseProps(
-        List<MojProp> descendantProps, bool hidden = true, bool custom = true, bool inherited = true, bool overriden = false)
+            List<MojProp> descendantProps, bool hidden = true, bool custom = true, bool inherited = true, bool overriden = false)
         {
             if (descendantProps == null)
                 descendantProps = new List<MojProp>();
@@ -951,7 +954,7 @@ namespace Casimodo.Lib.Mojen
             }
             while (cur != null);
 
-            return default(T);
+            return default;
         }
 
         Tuple<T, bool> First<T>(T item)

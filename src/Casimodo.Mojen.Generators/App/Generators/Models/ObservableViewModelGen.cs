@@ -9,10 +9,8 @@ namespace Casimodo.Lib.Mojen
     /// <summary>
     /// Generates entity view models for WPF/Universal Apps (XAML).
     /// </summary>
-    public class XamlEntityViewModelGen : ClassGen
+    public class ObservableViewModelGen : ClassGen
     {
-        // KABU TODO: 
-
         static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new ReadOnlyCollection<string>(new string[] {
             // NOTE: [Required] will be applied via the OData model builder.
             "Required",
@@ -23,7 +21,7 @@ namespace Casimodo.Lib.Mojen
             "UIHint", "DataType"
         });
 
-        public XamlEntityViewModelGen()
+        public ObservableViewModelGen()
         {
             Scope = "App";
 
@@ -45,17 +43,17 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
-            var context = App.Get<DataViewModelLayerConfig>();
+            var context = App.Get<ViewModelLayerConfig>();
 
-            if (string.IsNullOrEmpty(context.DataViewModelDirPath))
+            if (string.IsNullOrEmpty(context.ModelsDirPath))
                 return;
 
             var models = App.AllModels.ToArray();
             foreach (MojType model in models)
             {
                 string outputDirPath = model.OutputDirPath != null
-                    ? Path.Combine(context.DataViewModelDirPath, model.OutputDirPath)
-                    : context.DataViewModelDirPath;
+                    ? Path.Combine(context.ModelsDirPath, model.OutputDirPath)
+                    : context.ModelsDirPath;
 
                 string outputFilePath = Path.Combine(outputDirPath, model.ClassName + ".generated.cs");
 
@@ -77,7 +75,7 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(type.Namespace);
 
-            GenerateClassHead(type);
+            GenerateClassHead(type, interfaces: type.Interfaces.Where(x => x.AddToViewModel).ToList());
 
             // Static constructor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             O("static {0}()", type.ClassName);
@@ -211,10 +209,6 @@ namespace Casimodo.Lib.Mojen
             GenerateIKeyAccessorImpl(type);
 
             GenerateIGuidGenerateableImpl(type);
-
-            GenerateIMultitenantImpl(type);
-
-            GenerateODataOpenTypePropsContainer(type);
 
             GenerateTypeComparisons(type);
 

@@ -23,7 +23,7 @@ namespace Casimodo.Lib.ComponentModel
     {
         public DataErrorsChangedEventArgs(string propertyName)
         {
-            this.PropertyName = propertyName;
+            PropertyName = propertyName;
         }
 
         public string PropertyName { get; private set; }
@@ -36,7 +36,7 @@ namespace Casimodo.Lib.ComponentModel
         {
             if (string.IsNullOrWhiteSpace(propertyName))
                 throw new ArgumentNullException("propertyName");
-            this.PropertyName = propertyName;
+            PropertyName = propertyName;
         }
 
         public string PropertyName { get; private set; }
@@ -56,7 +56,7 @@ namespace Casimodo.Lib.ComponentModel
         {
             _errors.Clear();
 
-            var propertyNames = ValidationRules.GetProperties(this.GetType());
+            var propertyNames = ValidationRules.GetProperties(GetType());
             if (propertyNames == null)
                 return true;
 
@@ -83,7 +83,7 @@ namespace Casimodo.Lib.ComponentModel
             // We will validate the property...
             // 1)    if it is annotated with at least one ValidationAttribute
             // 2) OR if it was registered with a custom validation rule.
-            if (!ValidationRules.IsValidationNeeded(this.GetType(), propertyName))
+            if (!ValidationRules.IsValidationNeeded(GetType(), propertyName))
                 return;
 
             var context = GetValidationContext();
@@ -222,7 +222,7 @@ namespace Casimodo.Lib.ComponentModel
             context.InvolvedPropertyNames = null;
 
             // Validate using rules per type.
-            ValidateUsingRules(context, ValidationRules.GetCustomRulesPerType(this.GetType(), propertyName));
+            ValidateUsingRules(context, ValidationRules.GetCustomRulesPerType(GetType(), propertyName));
 
             // Validate using rules per instance.
             ValidateUsingRules(context, ValidationRules.GetCustomRulesPerInstance(this, propertyName));
@@ -323,7 +323,7 @@ namespace Casimodo.Lib.ComponentModel
         {
             string errorMsg;
             object errorCode;
-            AttributeRulesInfo rules = ValidationRules.GetAttributeRules(this.GetType(), context.ContextPropertyName);
+            AttributeRulesInfo rules = ValidationRules.GetAttributeRules(GetType(), context.ContextPropertyName);
             ValidationContext ctx = new ValidationContext(this, null, null);
             object value = rules.Prop.GetValue(this, null);
 

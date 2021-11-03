@@ -17,6 +17,8 @@
 
         public bool AddToStore { get; set; }
 
+        public bool AddToViewModel { get; set; }
+
         public string Implementation { get; set; }
 
         public override string ToString()

@@ -77,7 +77,6 @@ namespace Casimodo.Lib.Mojen
             var serializer = new DataContractSerializer(type, _serializerSettings);
             using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var zip = new ZipOutputStream(fs))
-            // NOTE: Zipping adds ~ 100ms (in pre .NET Core).
             using (var writer = XmlDictionaryWriter.CreateBinaryWriter(zip))
             {
                 zip.ParallelDeflateThreshold = -1;

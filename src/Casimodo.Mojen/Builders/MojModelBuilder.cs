@@ -15,6 +15,13 @@ namespace Casimodo.Lib.Mojen
     {
         MojProp _lastProp;
 
+        public MojModelBuilder Content(Action<MojModelBuilder> build)
+        {
+            build(This());
+
+            return this;
+        }
+
         protected override void OnPropAdding(MojProp modelProp)
         {
             if (modelProp.IsAutoRelated)

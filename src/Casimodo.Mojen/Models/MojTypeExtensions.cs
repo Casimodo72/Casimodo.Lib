@@ -64,11 +64,12 @@ namespace Casimodo.Lib.Mojen
             return type.Kind == MojTypeKind.Enum;
         }
 
-        public static bool IsEnumEntity(this MojType type)
-        {
-            if (type == null) return false;
-            return type.Kind == MojTypeKind.Entity && type.IsEnumEntity;
-        }
+        // TODO: REMOVE
+        //public static bool IsEnumEntity(this MojType type)
+        //{
+        //    if (type == null) return false;
+        //    return type.Kind == MojTypeKind.Entity && type.IsEnumEntity;
+        //}
 
         public static bool IsComplex(this MojType type)
         {

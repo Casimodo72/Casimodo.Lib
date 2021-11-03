@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Mojen
 
         bool IsPartialChangeMethodEnabled { get; set; }
 
-        public void GenerateClassHead(MojType type)
+        public void GenerateClassHead(MojType type, IList<MojInterface> interfaces = null)
         {
             OSummary(type.Summary);
 
@@ -47,14 +47,15 @@ namespace Casimodo.Lib.Mojen
                 (type.EffectiveBaseClassName != null ? " : " + type.EffectiveBaseClassName : ""));
 
             // Interfaces
-            if (type.Interfaces.Any())
+            var effectiveInterfaces = interfaces ?? type.Interfaces;
+            if (effectiveInterfaces.Any())
             {
                 if (type.HasBaseClass)
                     Oo("    , ");
                 else
                     Oo("    : ");
 
-                o(type.Interfaces.Select(x => x.Name).Join(", "));
+                o(effectiveInterfaces.Select(x => x.Name).Join(", "));
                 Br();
             }
             Begin();

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Casimodo.Lib.UI\Casimodo.Lib.UI.csproj" />
+    <ProjectReference Include="..\Casimodo.Lib\Casimodo.Lib.csproj" />
+  </ItemGroup>
+
+</Project>
