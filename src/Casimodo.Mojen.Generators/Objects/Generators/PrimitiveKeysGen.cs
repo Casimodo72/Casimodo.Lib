@@ -177,8 +177,6 @@ namespace Casimodo.Lib.Mojen
         {
             var type = config.TypeConfig;
 
-            var first = config.Items.First();
-
             var fromPropName = mapping.From.First();
             var fromProp = type.FindProp(fromPropName);
             var fromType = fromProp.Type.NameNormalized;

@@ -28,6 +28,8 @@ namespace Casimodo.Lib.Mojen
 
         public static void UseDotNetCore(this MojenApp app, DotNetCoreOptions options = null)
         {
+            Guard.ArgNotNull(app, nameof(app));
+
             app.Extensions.Add(new MojenAppExtensionItem
             {
                 Name = IsDotNetCoreName,
@@ -35,19 +37,42 @@ namespace Casimodo.Lib.Mojen
             });
         }
 
-        public static DotNetCoreOptions GetDotNetCoreOptions(this MojenApp app)
-        {
-            return (DotNetCoreOptions)GetExtension(app).Options;
-        }
-
-        static MojenAppExtensionItem GetExtension(MojenApp app)
-        {
-            return app.Extensions.FirstOrDefault(x => x.Name == IsDotNetCoreName);
-        }
-
         public static bool IsDotNetCore(this MojenApp app)
         {
+            Guard.ArgNotNull(app, nameof(app));
+
             return app.Extensions.Any(x => x.Name == IsDotNetCoreName);
+        }
+
+        public static void AddExtension(this MojenApp app, MojenAppExtensionItem extension)
+        {
+            Guard.ArgNotNull(app, nameof(app));
+            Guard.ArgNotNull(extension, nameof(extension));
+
+            app.Extensions.Add(extension);
+        }
+
+        public static DotNetCoreOptions GetDotNetCoreOptions(this MojenApp app)
+        {
+            Guard.ArgNotNull(app, nameof(app));
+
+            return (DotNetCoreOptions)app.GetExtension(IsDotNetCoreName)?.Options;
+        }
+
+        public static MojenAppExtensionItem GetExtension(this MojenApp app, string extensionName)
+        {
+            Guard.ArgNotNull(app, nameof(app));
+            Guard.ArgNotEmpty(extensionName, nameof(extensionName));
+
+            return app.Extensions.FirstOrDefault(x => x.Name == extensionName);
+        }
+
+        public static bool HasExtension(this MojenApp app, string extensionName)
+        {
+            Guard.ArgNotNull(app, nameof(app));
+            Guard.ArgNotEmpty(extensionName, nameof(extensionName));
+
+            return app.Extensions.Any(x => x.Name == extensionName);
         }
     }
 
@@ -144,7 +169,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public TGenerator Initialize<TGenerator>(TGenerator generator)
-            where TGenerator: MojenGenerator
+            where TGenerator : MojenGenerator
         {
             generator.Initialize(this);
 
