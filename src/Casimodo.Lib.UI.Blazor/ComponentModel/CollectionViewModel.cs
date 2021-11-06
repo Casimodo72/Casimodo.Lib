@@ -40,10 +40,10 @@ namespace Casimodo.Lib.UI
     {
         protected CustomObservableCollection<TData> _effectiveItems;
         protected CustomObservableCollection<TData> _sourceItems;
-        CollectionView<TData> _view;
+        readonly CollectionView<TData> _view;
 
         public CollectionViewModel()
-            : this(false, default(TData))
+            : this(false, default)
         { }
 
         public CollectionViewModel(TData nullObject)
@@ -404,8 +404,7 @@ namespace Casimodo.Lib.UI
         protected virtual void OnCurrentItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             // Note that we are setting this as the sender of the event.
-            if (CurrentItemPropertyChanged != null)
-                CurrentItemPropertyChanged(this, e);
+            CurrentItemPropertyChanged?.Invoke(this, e);
         }
 
         public bool IsCurrentItemPropertyChangedNoficiationEnabled

@@ -231,7 +231,7 @@ namespace Casimodo.Lib.Mojen
 
         void OPropGet(string getter)
         {
-            O($"get {{ return {getter}; }}");
+            O($"get => {getter};");
         }
 
         void OPropSet(MojProp prop, string target, bool leading = true)
@@ -535,7 +535,7 @@ namespace Casimodo.Lib.Mojen
             }
             else
             {
-                O($"set {{ {expression}; }} ");
+                O($"set => {expression};");
             }
         }
 

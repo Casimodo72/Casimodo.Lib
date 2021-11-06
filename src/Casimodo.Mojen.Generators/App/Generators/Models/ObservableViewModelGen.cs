@@ -143,8 +143,8 @@ namespace Casimodo.Lib.Mojen
                 O();
                 O("public {0}{1} Store", (type.IsDerivedFromStoreWrapper ? "new " : ""), type.Store.ClassName);
                 Begin();
-                O("get { return _store; }");
-                O("set { SetStore(value); }");
+                O("get => _store;");
+                O("set => SetStore(value);");
                 End();
                 O("{0} _store;", type.Store.ClassName);
 
@@ -163,7 +163,6 @@ namespace Casimodo.Lib.Mojen
             foreach (MojProp prop in type.GetLocalProps(custom: false))
             {
                 if (prop.IsODataDynamicPropsContainer)
-                    // OData dynamic properties container is handled at a later stage.
                     continue;
 
                 O();

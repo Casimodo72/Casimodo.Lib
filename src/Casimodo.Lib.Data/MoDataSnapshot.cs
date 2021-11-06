@@ -26,8 +26,7 @@ namespace Casimodo.Lib.Data
             if (item == null)
                 return true;
 
-            var snapshotObj = item as IMoDataSnapshot;
-            if (snapshotObj == null)
+            if (!(item is IMoDataSnapshot snapshotObj))
                 return true;
 
             var snapshot = snapshotObj.GetSnapshot();
@@ -42,11 +41,10 @@ namespace Casimodo.Lib.Data
                 return true;
 
             // Check tracked properties for changes.
-            object originalValue;
             object currentValue;
             foreach (var prop in properties)
             {
-                if (snapshot.Properties.TryGetValue(prop, out originalValue))
+                if (snapshot.Properties.TryGetValue(prop, out object originalValue))
                 {
                     // Get the current property value.
                     currentValue = type.GetProperty(prop).GetValue(item, null);
@@ -69,8 +67,7 @@ namespace Casimodo.Lib.Data
             if (item == null)
                 return false;
 
-            var snapshotObj = item as IMoDataSnapshot;
-            if (snapshotObj == null)
+            if (!(item is IMoDataSnapshot snapshotObj))
                 return false;
 
             Type type = item.GetType();
@@ -113,8 +110,7 @@ namespace Casimodo.Lib.Data
             if (type == null)
                 throw new ArgumentNullException("type");
 
-            List<string> properties;
-            if (!_items.TryGetValue(type, out properties))
+            if (!_items.TryGetValue(type, out List<string> properties))
             {
                 properties = new List<string>();
                 _items.Add(type, properties);
@@ -126,8 +122,7 @@ namespace Casimodo.Lib.Data
 
         public static List<string> Get(Type type)
         {
-            List<string> properties;
-            if (_items.TryGetValue(type, out properties))
+            if (_items.TryGetValue(type, out List<string> properties))
                 return properties;
 
             return null;

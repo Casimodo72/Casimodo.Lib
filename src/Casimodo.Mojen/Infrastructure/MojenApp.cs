@@ -347,15 +347,15 @@ namespace Casimodo.Lib.Mojen
 
         IEnumerable<MojBase> GetItemsCore(Type type)
         {
-            var result = Items.Where(x => x.GetType() == type);
+            var result = Items.Where(x => type.IsAssignableFrom(x.GetType()));
 
             if (CurrentBuildContext != null)
             {
-                result = result.Concat(CurrentBuildContext.Items.Where(x => x.GetType() == type));
+                result = result.Concat(CurrentBuildContext.Items.Where(x => type.IsAssignableFrom(x.GetType())));
             }
             else
             {
-                result = result.Concat(Contexts.SelectMany(ctx => ctx.Items.Where(x => x.GetType() == type)));
+                result = result.Concat(Contexts.SelectMany(ctx => ctx.Items.Where(x => type.IsAssignableFrom(x.GetType()))));
             }
 
             return result.Distinct().ToArray();

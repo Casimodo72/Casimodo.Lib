@@ -697,12 +697,6 @@ namespace Casimodo.Lib.Mojen
         {
             Guard.ArgNotNull(type, nameof(type));
 
-            // TODO: REMOVE
-            //if (navigation != null && navigationOnModel != null)
-            //    throw new ArgumentNullException("The arguments 'navigation' are 'navigationOnModel' are mutually exclusive.");
-
-            navigation = navigation != false;
-
             if (TypeConfig.IsEntityOrModel() && type.IsEntityOrModel())
             {
                 return ReferenceCore(to: type, axis: MojReferenceAxis.Value,
