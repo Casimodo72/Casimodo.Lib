@@ -201,10 +201,5 @@ namespace Casimodo.Lib.ComponentModel
         public MathSignDef Negative { get; set; }
 
         public MathSignDef Positive { get; set; }
-
-        static bool ParseSign(string text, ref int pos)
-        {
-            return true;
-        }
     }
 }

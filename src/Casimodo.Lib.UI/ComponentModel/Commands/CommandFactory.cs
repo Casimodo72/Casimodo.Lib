@@ -11,7 +11,7 @@ namespace Casimodo.Lib.ComponentModel
 
     public static class CommandFactory
     {
-        // TODO: ELIMINATE
+        // TODO: ELIMINATE: Temporarily added while moving to Blazor.
         public static ICommandFactoryStrategy Strategy;
 
         public static ICommandEx Create<T>(Action<T> execute, Func<T, bool> canExecute)

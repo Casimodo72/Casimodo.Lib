@@ -783,18 +783,6 @@ namespace Casimodo.Lib.Presentation
 
         #region Event raisers -------------------------------------------------
 
-        void RaiseCollectionChanged(NotifyCollectionChangedEventArgs args)
-        {
-            if (IsUpdating)
-                return;
-
-            NotifyCollectionChangedEventHandler handler = CollectionChanged;
-            if (handler == null)
-                return;
-
-            handler(this, args);
-        }
-
         void RaiseCollectionChanged(NotifyCollectionChangedAction action, object item, int index)
         {
             if (IsUpdating)
@@ -809,7 +797,7 @@ namespace Casimodo.Lib.Presentation
                 case NotifyCollectionChangedAction.Add:
                 case NotifyCollectionChangedAction.Remove:
                     handler(this, new NotifyCollectionChangedEventArgs(action, item, index));
-                    return;
+                    break;
 
                 case NotifyCollectionChangedAction.Reset:
                     handler(this, ResetNotifyCollectionArgs);
