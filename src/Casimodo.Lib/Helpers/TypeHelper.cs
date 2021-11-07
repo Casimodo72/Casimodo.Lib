@@ -31,7 +31,7 @@ namespace Casimodo.Lib
             return GetTypeInfo(type).GetCustomAttribute(typeof(TAttr)) as TAttr;
         }
 
-        public static T GetPropValueOrDefault<T>(object item, string name, T defaultValue = default(T))
+        public static T GetPropValueOrDefault<T>(object item, string name, T defaultValue = default)
         {
             var prop = item.GetTypeProperty(name);
             if (prop == null)
@@ -60,8 +60,6 @@ namespace Casimodo.Lib
         public static bool IsNullableType(Type type)
         {
             return Nullable.GetUnderlyingType(type) != null;
-
-            // return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
 
         public static bool IsSimple(Type type)

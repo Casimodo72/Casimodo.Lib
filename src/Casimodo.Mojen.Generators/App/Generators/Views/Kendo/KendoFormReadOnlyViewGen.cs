@@ -120,9 +120,8 @@ namespace Casimodo.Lib.Mojen
 
         public override void OProp(WebViewGenContext context)
         {
-            var vitem = context.PropInfo;
-            var prop = vitem.Prop;
-            var propPath = vitem.PropPath;
+            var vprop = context.PropInfo;
+            var prop = vprop.Prop;
 
             if (prop.Reference.Is || prop.FileRef.Is || prop.Type.IsEnum)
             {

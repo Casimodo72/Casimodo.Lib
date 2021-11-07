@@ -34,16 +34,12 @@ namespace Casimodo.Lib.Presentation
 
         protected virtual void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var handler = ItemsCollectionChanged;
-            if (handler != null)
-                handler(this, e);
+            ItemsCollectionChanged?.Invoke(this, e);
         }
 
         protected virtual void OnItemsOrViewCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var handler = ItemsOrViewCollectionChanged;
-            if (handler != null)
-                handler(this, e);
+            ItemsOrViewCollectionChanged?.Invoke(this, e);
         }
     }
 }

@@ -119,7 +119,7 @@ namespace Casimodo.Lib.Data
 
         DbRepositoryCore _core;
         Guid? _tenantGuid;
-        object _lock = new object();
+        readonly object _lock = new object();
 
         static DbRepository()
         {
@@ -170,37 +170,33 @@ namespace Casimodo.Lib.Data
 
         public void PerformTransaction(Action<DbTransactionContext<TContext>> action)
         {
-            using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
+            using var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted);
+            try
             {
-                try
-                {
-                    action(new DbTransactionContext<TContext>(Context, trans));
+                action(new DbTransactionContext<TContext>(Context, trans));
 
-                    trans.Commit();
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                trans.Commit();
+            }
+            catch
+            {
+                trans.Rollback();
+                throw;
             }
         }
 
         public async Task PerformTransactionAsync(Func<DbTransactionContext<TContext>, Task> action)
         {
-            using (var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted))
+            using var trans = Context.Database.BeginTransaction(IsolationLevel.ReadCommitted);
+            try
             {
-                try
-                {
-                    await action(new DbTransactionContext<TContext>(Context, trans));
+                await action(new DbTransactionContext<TContext>(Context, trans));
 
-                    trans.Commit();
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                trans.Commit();
+            }
+            catch
+            {
+                trans.Rollback();
+                throw;
             }
         }
 
@@ -214,13 +210,6 @@ namespace Casimodo.Lib.Data
                 throw new InvalidOperationException("The CurrentTenantGuid is not assigned.");
 
             return _tenantGuid.Value;
-        }
-
-        public void ReferenceLoading(bool enabled)
-        {
-            // KABU TODO: IMPORTANT: EF Core: disabled by default.
-            //Context.Configuration.LazyLoadingEnabled = enabled;
-            //Context.Configuration.ProxyCreationEnabled = enabled;
         }
 
         // Get: Single ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -464,7 +453,7 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        public T GetProp<T>(object item, string name, T defaultValue = default(T))
+        public T GetProp<T>(object item, string name, T defaultValue = default)
         {
             return HProp.GetProp(item, name, defaultValue);
         }

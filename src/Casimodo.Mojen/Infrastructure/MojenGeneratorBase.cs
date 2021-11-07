@@ -147,7 +147,9 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public void o(string text, params object[] args)
+#pragma warning restore IDE1006 // Naming Styles
         {
             Write(false, text, args);
         }
@@ -165,7 +167,9 @@ namespace Casimodo.Lib.Mojen
                 Write("".PadLeft(GetIndent(indent) * IndentWidth, ' ') + string.Format(text, args));
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public void oO(string text, params object[] args)
+#pragma warning restore IDE1006 // Naming Styles
         {
             Write(false, text, args);
             Br();
@@ -284,13 +288,14 @@ namespace Casimodo.Lib.Mojen
 
         Tuple<string, string> GetJsObjectLiteralNameAndValue(string expression)
         {
+            // TODO: Will break if the name contains a colon.
             var index = expression.IndexOf(":");
             if (index == -1)
                 throw new MojenException("Syntax error: a colon was expected in JS object literal.");
 
-            return Tuple.Create<string, string>(
-                expression.Truncate(index).Trim(),
-                expression.Substring(index + 1).Trim()
+            return Tuple.Create(
+                expression[0..index].Trim(),
+                expression[(index + 1)..].Trim()
             );
         }
 
@@ -377,7 +382,9 @@ namespace Casimodo.Lib.Mojen
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.
         /// </summary>
+#pragma warning disable IDE1006 // Naming Styles
         public void ob(string text, params object[] args)
+#pragma warning restore IDE1006 // Naming Styles
         {
             Guard.ArgNotNull(text, nameof(text));
 
@@ -547,15 +554,15 @@ namespace Casimodo.Lib.Mojen
                     foreach (var ns in enumstring)
                         OUsingSingle(ns);
                 }
-                else if (obj is string)
+                else if (obj is string @string)
                 {
-                    OUsingSingle((string)obj);
+                    OUsingSingle(@string);
                 }
                 else if (obj == null)
                 {
                     // NOP
                 }
-                else throw new MojenException($"Unknown namespace type (object: '{obj.ToString()}').");
+                else throw new MojenException($"Unknown namespace type (object: '{obj}').");
             }
         }
 
@@ -588,8 +595,7 @@ namespace Casimodo.Lib.Mojen
         public void ORazorSection(string name, Action content)
         {
             OB("@section " + name);
-            if (content != null)
-                content();
+            content?.Invoke();
             End();
         }
 
@@ -631,9 +637,8 @@ namespace Casimodo.Lib.Mojen
             if (obj == null)
                 return;
 
-            if (obj is MojSummaryConfig)
+            if (obj is MojSummaryConfig summary)
             {
-                var summary = obj as MojSummaryConfig;
                 if (summary.Descriptions.Any())
                 {
                     O("/// <summary>");
@@ -649,12 +654,12 @@ namespace Casimodo.Lib.Mojen
                     O("/// </remarks>");
                 }
             }
-            else if (obj is string[])
-                OSummary((string[])obj);
-            else if (obj is string)
-                OSummary((string)obj);
-            else if (obj is IEnumerable<string>)
-                OSummary((IEnumerable<string>)obj);
+            else if (obj is string[] stringArray)
+                OSummary(stringArray);
+            else if (obj is string @string)
+                OSummary(@string);
+            else if (obj is IEnumerable<string> enumerableString)
+                OSummary(enumerableString);
             else throw new MojenException(string.Format("Unexpected summary object type '{0}'.", obj.GetType().Name));
         }
 
@@ -675,7 +680,7 @@ namespace Casimodo.Lib.Mojen
             while (str[pre.Length] == '_')
                 pre += "_";
 
-            return pre + char.ToLowerInvariant(str[pre.Length]) + str.Substring(pre.Length + 1);
+            return pre + char.ToLowerInvariant(str[pre.Length]) + str[(pre.Length + 1)..];
         }
 
         public void WriteTo(MojenGeneratorBase generator, Action action)
@@ -702,7 +707,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         static readonly UTF8Encoding MyUT8Encoding = new UTF8Encoding(true, true);
-        static MemoryStream SharedOutputStream = new MemoryStream(129024);
+        static readonly MemoryStream SharedOutputStream = new MemoryStream(129024);
         static readonly byte[] SharedComparisonBuffer = new byte[4096];
 
         static readonly List<string> AllOutputFilePaths = new List<string>();
@@ -1093,9 +1098,9 @@ namespace Casimodo.Lib.Mojen
 
         void Value(object value, bool text = false)
         {
-            if (value is Action)
+            if (value is Action action)
             {
-                ValueAction((Action)value);
+                ValueAction(action);
             }
             else
             {

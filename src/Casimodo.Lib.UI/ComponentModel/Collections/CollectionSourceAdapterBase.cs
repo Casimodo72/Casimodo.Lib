@@ -53,9 +53,7 @@ namespace Casimodo.Lib.Presentation
 
         protected void RaiseCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            var handler = this.CollectionChanged;
-            if (handler != null)
-                handler(this, e);
+            CollectionChanged?.Invoke(this, e);
         }
     }
 }

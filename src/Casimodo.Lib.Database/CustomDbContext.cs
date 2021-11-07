@@ -43,37 +43,33 @@ namespace Casimodo.Lib.Data
             // KABU TODO: EF Core's BeginTransaction does 
             //   not have an isolation level parameter (i.e. IsolationLevel.ReadCommitted).
             //   Which isolation level does it use?
-            using (var trans = Database.BeginTransaction())
+            using var trans = Database.BeginTransaction();
+            try
             {
-                try
-                {
-                    action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
+                action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
 
-                    trans.Commit();
-                }
-                catch
-                {
-                    trans.Rollback();
-                    throw;
-                }
+                trans.Commit();
+            }
+            catch
+            {
+                trans.Rollback();
+                throw;
             }
         }
 
         public async Task PerformTransactionAsync(Func<DbTransactionContext<TDbContext>, Task> action)
         {
-            using (var trans = Database.BeginTransaction())
+            using var trans = Database.BeginTransaction();
+            try
             {
-                try
-                {
-                    await action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
+                await action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
 
-                    trans.Commit();
-                }
-                catch (Exception ex)
-                {
-                    trans.Rollback();
-                    throw ex;
-                }
+                trans.Commit();
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                throw ex;
             }
         }
 

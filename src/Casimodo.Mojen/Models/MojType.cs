@@ -651,8 +651,21 @@ namespace Casimodo.Lib.Mojen
             {
                 if (Store != null) return Store;
                 if (Kind == MojTypeKind.Entity) return this;
-                throw new MojenException("The type is not a store type and has no store type assigned.");
+                throw GetRequiredStoreMissingException();
             }
+        }
+
+        public bool IsOrHasStore => Kind == MojTypeKind.Entity || Store != null;
+
+        public void CheckRequiredStore()
+        {
+            if (!IsOrHasStore)
+                throw GetRequiredStoreMissingException();
+        }
+
+        public MojenException GetRequiredStoreMissingException()
+        {
+            return new MojenException("The type is not a store type and has no store type assigned.");
         }
 
         public MojType GetUnderlyingDataType()
@@ -664,11 +677,6 @@ namespace Casimodo.Lib.Mojen
                 return this;
 
             throw new MojenException("The MojType no underlying data type assigned.");
-        }
-
-        public void CheckRequiredStore()
-        {
-            var dummy = RequiredStore;
         }
 
         /// <summary>

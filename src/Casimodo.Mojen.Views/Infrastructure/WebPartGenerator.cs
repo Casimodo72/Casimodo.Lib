@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Mojen
 
             if (view.Group != null && view.Group != name)
             {
-                name = name ?? "";
+                name ??= "";
                 // Prepend group name.
                 name = (name.StartsWith("_") ? "_" : "") + view.Group + (!string.IsNullOrEmpty(name) ? "." + name : "");
             }

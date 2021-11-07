@@ -14,19 +14,13 @@ namespace Casimodo.Lib.Presentation
     {
         public CollectionViewModelSourceAdapter(CollectionViewModel source)
         {
-            if (source == null)
-                throw new ArgumentNullException("source");
-
-            _source = source;
+            _source = source ?? throw new ArgumentNullException(nameof(source));
             _source.ItemsOrViewCollectionChanged += OnSourceCollectionChanged;
         }
 
-        CollectionViewModel _source;
+        readonly CollectionViewModel _source;
 
-        public override int Count
-        {
-            get { return _source.Count; }
-        }
+        public override int Count => _source.Count;
 
         public override void Add(object item)
         {
@@ -38,20 +32,11 @@ namespace Casimodo.Lib.Presentation
             _source.RemoveObject(item);
         }
 
-        public override bool IsReadOnly
-        {
-            get { return _source.IsReadOnly; }
-        }
+        public override bool IsReadOnly => _source.IsReadOnly;
 
-        public override bool CanAdd
-        {
-            get { return _source.CanAdd; }
-        }
+        public override bool CanAdd => _source.CanAdd;
 
-        public override bool CanRemove
-        {
-            get { return _source.CanRemove; }
-        }
+        public override bool CanRemove => _source.CanRemove;
 
         protected override IEnumerator GetEnumeratorInternal()
         {

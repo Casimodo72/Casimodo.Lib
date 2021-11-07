@@ -45,8 +45,7 @@ namespace Casimodo.Lib.Mojen
             var prop = EnsureStoreProp();
             var builder = MojPropBuilder.Create<MojEntityPropBuilder>(TypeBuilder.GetEntityBuilder(), prop, this);
 
-            if (build != null)
-                build(builder);
+            build?.Invoke(builder);
 
             return builder;
         }

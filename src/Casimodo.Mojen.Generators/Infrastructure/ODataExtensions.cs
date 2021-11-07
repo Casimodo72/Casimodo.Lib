@@ -15,8 +15,7 @@ namespace Casimodo.Lib.Mojen
 
         public static string GetODataPath(this AppPartGenerator gen, MojType type, string customQueryBase = null)
         {
-            return gen.App.Get<WebODataBuildConfig>().QueryPrefix + "/" +
-                (customQueryBase != null ? customQueryBase : type.PluralName);
+            return gen.App.Get<WebODataBuildConfig>().QueryPrefix + "/" + customQueryBase ?? type.PluralName;
         }
 
         public static string NamespaceQualifyODataFunc(this AppPartGenerator gen, string function)
@@ -47,7 +46,7 @@ namespace Casimodo.Lib.Mojen
         {
             var config = gen.App.Get<WebODataBuildConfig>();
 
-            string func = null;
+            string func;
             if (!string.IsNullOrWhiteSpace(customMethod))
                 func = distinct ? customMethod + "Distinct" : customMethod;
             else
@@ -289,20 +288,18 @@ namespace Casimodo.Lib.Mojen
             if (op == MexOp.None)
                 throw new ArgumentException("The operator must not be none.", nameof(op));
 
-            switch (op)
+            return op switch
             {
-                case MexOp.Eq: return "eq";
-                case MexOp.Neq: return "ne";
-                case MexOp.Gr: return "gt";
-                case MexOp.GrOrEq: return "ge";
-                case MexOp.Less: return "lt";
-                case MexOp.LessOrEq: return "le";
-                case MexOp.And: return "and";
-                case MexOp.Or: return "or";
-                // TODO: IMPL more operators?
-                default:
-                    throw new NotImplementedException($"Conversion to OData operator of {op.ToString()} is not implemented.");
-            }
+                MexOp.Eq => "eq",
+                MexOp.Neq => "ne",
+                MexOp.Gr => "gt",
+                MexOp.GrOrEq => "ge",
+                MexOp.Less => "lt",
+                MexOp.LessOrEq => "le",
+                MexOp.And => "and",
+                MexOp.Or => "or",
+                _ => throw new NotImplementedException($"Conversion to OData operator of '{op}' is not implemented."),
+            };
         }
     }
 }

@@ -133,8 +133,7 @@ namespace Casimodo.Lib.Mojen
                     {
                         if (value is IEnumerable)
                         {
-                            var listValue = value as IList;
-                            if (listValue == null)
+                            if (!(value is IList listValue))
                                 throw new MojenException($"Cannot convert enumerable type '{p.Prop.PropertyType.Name}' to list of entitiy items.");
 
                             var listValueCopy = (IList)Activator.CreateInstance(p.Prop.PropertyType);
@@ -153,15 +152,13 @@ namespace Casimodo.Lib.Mojen
                     }
                     else if (p.Mapping.Clone)
                     {
-                        var cloneableConfigValue = value as IMojCloneableConfig;
-                        if (cloneableConfigValue != null)
+                        if (value is IMojCloneableConfig cloneableConfigValue)
                         {
                             value = cloneableConfigValue.Clone();
                         }
                         else
                         {
-                            var clonableValue = value as ICloneable;
-                            if (clonableValue == null)
+                            if (!(value is ICloneable clonableValue))
                                 throw new MojenException($"The type '{p.Prop.PropertyType.Name}' must be cloneable.");
 
                             value = clonableValue.Clone();
@@ -180,26 +177,21 @@ namespace Casimodo.Lib.Mojen
             if (item == null)
                 return null;
 
-            var type = item as MojType;
-            if (type != null)
+            if (item is MojType type)
                 return type.IsEntity() ? type : type.RequiredStore;
 
-            var propType = item as MojPropType;
-            if (propType != null)
+            if (item is MojPropType propType)
                 return propType.IsModel() ? propType.Clone().ConvertToEntity() : propType;
 
-            var prop = item as MojProp;
-            if (prop != null)
+            if (item is MojProp prop)
                 return prop.IsEntity() ? prop : prop.RequiredStore;
 
-            var dvalue = item as MojDefaultValuesConfig;
-            if (dvalue != null)
+            if (item is MojDefaultValuesConfig dvalue)
             {
                 return dvalue;
             }
 
-            var reference = item as MojReference;
-            if (reference != null)
+            if (item is MojReference reference)
             {
                 if (reference == MojReference.None)
                     return reference;
@@ -210,8 +202,7 @@ namespace Casimodo.Lib.Mojen
                 return reference.CloneToEntity(source, entity);
             }
 
-            var path = item as MojFormedNavigationPath;
-            if (path != null)
+            if (item is MojFormedNavigationPath path)
             {
                 if (path != MojFormedNavigationPath.None)
                     throw new MojenException($"Formed navigation paths are not expected to be used at data layer level.");
@@ -570,7 +561,7 @@ namespace Casimodo.Lib.Mojen
         // KABU TODO: Move to MojReference.
         public List<MexExpressionNode> ForeignKeyConditions
         {
-            get { return _foreignKeyConditions ?? (_foreignKeyConditions = new List<MexExpressionNode>()); }
+            get { return _foreignKeyConditions ??= new List<MexExpressionNode>(); }
             set { _foreignKeyConditions = value; }
         }
         List<MexExpressionNode> _foreignKeyConditions;

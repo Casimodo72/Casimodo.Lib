@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
 
     public class Mex : MojenGeneratorBase
     {
-        StringBuilder _sb = new StringBuilder();
+        readonly StringBuilder _sb = new StringBuilder();
 
         public static string ToLinqPredicate(MexExpressionNode node)
         {
@@ -86,7 +86,9 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         void O(MexValue value)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             if (value.Value == null)
                 o("null");
@@ -96,10 +98,8 @@ namespace Casimodo.Lib.Mojen
 
         void O(MexItem item)
         {
-            if (item is MexExpressionNode)
+            if (item is MexExpressionNode node)
             {
-                var node = (MexExpressionNode)item;
-
                 if (node.Left != null)
                     O(node.Left);
 
@@ -109,19 +109,18 @@ namespace Casimodo.Lib.Mojen
                 if (node.Right != null)
                     O(node.Right);
             }
-            else if (item is MexCondition)
+            else if (item is MexCondition condition)
             {
-                Build((MexCondition)item);
+                Build(condition);
             }
-            else if (item is MexProp)
+            else if (item is MexProp prop)
             {
-                var prop = (MexProp)item;
                 var path = char.IsLower(prop.PropPath[0]) ? prop.PropPath : "x." + prop.PropPath;
                 o(path);
             }
-            else if (item is MexValue)
+            else if (item is MexValue value)
             {
-                o(Moj.CS(((MexValue)item).Value, parse: true));
+                o(Moj.CS(value.Value, parse: true));
             }
             else throw new MojenException($"Unexpected Mex item '{item.GetType().Name}'.");
         }
@@ -131,7 +130,7 @@ namespace Casimodo.Lib.Mojen
             o(_ops[op]);
         }
 
-        Dictionary<MexOp, string> _ops = new Dictionary<MexOp, string>
+        readonly Dictionary<MexOp, string> _ops = new Dictionary<MexOp, string>
         {
             { MexOp.Eq, " == "},
             { MexOp.Neq, " != "},
@@ -257,8 +256,7 @@ namespace Casimodo.Lib.Mojen
     {
         public static MexProp AsProp(this MexItem item)
         {
-            var prop = item as MexProp;
-            if (prop == null)
+            if (!(item is MexProp prop))
                 throw new MexException($"The item is not a {nameof(MexProp)}.");
 
             return prop;
@@ -266,8 +264,7 @@ namespace Casimodo.Lib.Mojen
 
         public static MexValue AsValue(this MexItem item)
         {
-            var value = item as MexValue;
-            if (value == null)
+            if (!(item is MexValue value))
                 throw new MexException($"The item is not a {nameof(MexValue)}.");
 
             return value;

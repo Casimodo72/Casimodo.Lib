@@ -150,28 +150,29 @@ namespace Casimodo.Lib.Data
             //if (options.Db.ChangeTracker.AutoDetectChangesEnabled)
             //    throw new Exception("Modifying collection: 'Auto detect changes' must not be enabled for this operation.");
 
-            var context = new UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>();
-            context.Db = options.Db;
-            context.OwnerDbSet = options.Db.Set<TOwner>();
-            context.ItemDbSet = options.Db.Set<TItem>();
+            var context = new UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>
+            {
+                Db = options.Db,
+                OwnerDbSet = options.Db.Set<TOwner>(),
+                ItemDbSet = options.Db.Set<TItem>(),
+                ItemIds = options.ItemIds,
+                ForeignKeyToOwnerPropName = options.ForeignKeyToOwner,
+                ForeignKeyToItemPropName = options.ForeignKeyToItem,
+                ValidateItem = options.ValidateItem,
+                OwnerId = options.OwnerId
+            };
 
-            context.ItemIds = options.ItemIds;
-
-            // Property names.
             context.PropPath = options.PropPath;
             var propPathSteps = context.PropPath.Split('.');
             context.LinksPropName = propPathSteps[0];
             context.ItemPropName = propPathSteps[1];
-            context.ForeignKeyToOwnerPropName = options.ForeignKeyToOwner;
-            context.ForeignKeyToItemPropName = options.ForeignKeyToItem;
 
-            context.ValidateItem = options.ValidateItem;
-
-            context.OwnerId = options.OwnerId;
             // Load owner with collection items.
             context.Owner = await context.OwnerDbSet
                 .Include(context.PropPath)
                 .FirstOrDefaultAsync(x => x.Id == context.OwnerId);
+
+           
 
             if (context.Owner == null)
                 throw new EntityNotFoundException($"Owner of unidirectional many to many collection not found (ID: {context.OwnerId}).");

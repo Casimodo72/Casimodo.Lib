@@ -11,13 +11,12 @@ namespace Casimodo.Lib.ComponentModel
         {
             object curObject = source;
             Type curType = source.GetType();
-            PropertyInfo curProp = null;
             string[] steps = path.Split(new char[] { '.' });
             int max = steps.Length - 1;
-            int i = 0;
+            int i;
             for (i = 0; i < steps.Length; i++)
             {
-                curProp = curType.GetProperty(steps[i]);
+                PropertyInfo curProp = curType.GetProperty(steps[i]);
 
                 if (curProp == null)
                 {
@@ -69,13 +68,12 @@ namespace Casimodo.Lib.ComponentModel
 
             object curInstance = source;
             Type curType = source.GetType();
-            PropertyInfo curProp = null;
             string[] steps = path.Split(new char[] { '.' });
             int max = steps.Length - 1;
-            int i = 0;
+            int i;
             for (i = 0; i < steps.Length; i++)
             {
-                curProp = curType.GetProperty(steps[i]);
+                PropertyInfo curProp = curType.GetProperty(steps[i]);
 
                 if (curProp == null)
                 {
@@ -99,10 +97,12 @@ namespace Casimodo.Lib.ComponentModel
 
                 if (i == max)
                 {
-                    BindingSourceInfo result = new BindingSourceInfo();
-                    result.SourceItem = curInstance;
-                    result.SourceProperty = curProp;
-                    result.SourceValue = curProp.GetValue(curInstance, null);
+                    BindingSourceInfo result = new BindingSourceInfo
+                    {
+                        SourceItem = curInstance,
+                        SourceProperty = curProp,
+                        SourceValue = curProp.GetValue(curInstance, null)
+                    };
                     return result;
                 }
 

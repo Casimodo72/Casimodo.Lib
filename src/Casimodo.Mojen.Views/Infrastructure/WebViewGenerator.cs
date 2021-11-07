@@ -211,8 +211,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojXAttribute GetOrCreateAttr(string name, string target = null)
         {
-            var attr = Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) as MojXAttribute;
-            if (attr == null)
+            if (!(Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) is MojXAttribute attr))
             {
                 attr = XA(name, "");
                 attr.Target = target;

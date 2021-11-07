@@ -9,10 +9,6 @@ namespace Casimodo.Lib.Mojen
 {
     public class LegacyGfaImportMapGen : DataLayerGenerator
     {
-        static readonly ReadOnlyCollection<string> _IgnoredProps = new ReadOnlyCollection<string>(new string[] {
-            ""
-        });
-
         public LegacyGfaImportMapGen()
         {
             Scope = "Context";
@@ -351,11 +347,13 @@ namespace Casimodo.Lib.Mojen
                 type.Name = (string)etype.Attr("Name");
                 foreach (var eprop in etype.Elem("Props").Elements("Prop"))
                 {
-                    var prop = new SourceProp();
-                    prop.Name = (string)eprop.Attr("Name");
-                    prop.TypeName = (string)eprop.Attr("TypeName");
-                    prop.TypeNameNormalized = (string)eprop.Attr("TypeNameNormalized", optional: true) ?? prop.TypeName;
-                    prop.IsNullable = (bool?)eprop.Attr("IsNullable", optional: true) ?? false;
+                    var prop = new SourceProp
+                    {
+                        Name = (string)eprop.Attr("Name"),
+                        TypeName = (string)eprop.Attr("TypeName"),
+                        IsNullable = (bool?)eprop.Attr("IsNullable", optional: true) ?? false
+                    };
+                    prop.TypeNameNormalized = (string)eprop.Attr("TypeNameNormalized", optional: true) ?? prop.TypeName;                 
 
                     type.Props.Add(prop);
                 }

@@ -10,8 +10,7 @@ namespace Casimodo.Lib.Mojen
     {
         public string Get(string name)
         {
-            string value;
-            if (TryGetValue(name, out value))
+            if (TryGetValue(name, out string value))
                 return value;
 
             return null;

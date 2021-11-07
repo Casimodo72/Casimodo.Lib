@@ -51,10 +51,7 @@ namespace Casimodo.Lib.Mojen
                 if (propertyInitializer)
                     O("if (value) Object.assign(this, value);");
 
-                if (constructor != null)
-                {
-                    constructor();
-                }
+                constructor?.Invoke();
 
                 End(); // End of constructor
             }
@@ -109,10 +106,7 @@ namespace Casimodo.Lib.Mojen
             if (isDerived)
                 O($"super({(hasOptions ? constructorOptions : "")});");
 
-            if (constructor != null)
-            {
-                constructor();
-            }
+            constructor?.Invoke();
 
             End(); // End of constructor
 

@@ -75,14 +75,12 @@ namespace Casimodo.Lib.Mojen
         {
             //var sw = new SimpleStopwatch().Start();
             var serializer = new DataContractSerializer(type, _serializerSettings);
-            using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            using (var zip = new ZipOutputStream(fs))
-            using (var writer = XmlDictionaryWriter.CreateBinaryWriter(zip))
-            {
-                zip.ParallelDeflateThreshold = -1;
-                zip.PutNextEntry("data");
-                serializer.WriteObject(writer, item);
-            }
+            using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+            using var zip = new ZipOutputStream(fs);
+            using var writer = XmlDictionaryWriter.CreateBinaryWriter(zip);
+            zip.ParallelDeflateThreshold = -1;
+            zip.PutNextEntry("data");
+            serializer.WriteObject(writer, item);
             //sw.O("# Serialization");
         }
 

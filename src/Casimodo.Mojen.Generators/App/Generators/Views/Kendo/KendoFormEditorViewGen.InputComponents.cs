@@ -10,10 +10,10 @@ namespace Casimodo.Lib.Mojen
         {
             var vprop = context.PropInfo.ViewProp;
             var dprop = context.PropInfo.TargetDisplayProp;
-            ppath = ppath ?? context.PropInfo.PropPath;
+            ppath ??= context.PropInfo.PropPath;
 
-            min = min ?? dprop.Rules.Min;
-            max = max ?? dprop.Rules.Max;
+            min ??= dprop.Rules.Min;
+            max ??= dprop.Rules.Max;
 
             // TODO:REMOVE? XB("<div class='km-input-control-container'>");
 
@@ -223,7 +223,9 @@ namespace Casimodo.Lib.Mojen
             O($@"<label class='k-checkbox-label' for='{ppath}'>{GetDisplayNameFor(context)}</label>");
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         void oLengthValidationAttrs(WebViewGenContext context)
+#pragma warning restore IDE1006 // Naming Styles
         {
             var vprop = context.PropInfo.ViewProp;
             var dprop = context.PropInfo.Prop;
@@ -272,8 +274,7 @@ namespace Casimodo.Lib.Mojen
             // time
             // url
             // week
-            string result;
-            if (_textInputTypeByDataType.TryGetValue(type.Value, out result))
+            if (_textInputTypeByDataType.TryGetValue(type.Value, out string result))
                 return result;
 
             return null;

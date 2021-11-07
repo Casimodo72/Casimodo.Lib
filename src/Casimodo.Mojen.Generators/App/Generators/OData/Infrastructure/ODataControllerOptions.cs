@@ -22,6 +22,8 @@ namespace Casimodo.Lib.Mojen
 
         public bool UpdateMask { get; set; } = true;
 
+        public int? MaxPageSize { get; set; }
+
         public int MaxExpansionDepth { get; set; } = 2;
     }
 

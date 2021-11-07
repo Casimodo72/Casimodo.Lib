@@ -145,19 +145,11 @@ namespace Casimodo.Lib.Mojen
         {
             O($"export const {context.ViewModelFactoryName} = cmodo.createComponentFactory();");
             OB($"{context.ViewModelFactoryName}.createCore = function (options)");
-
-            // TODO: REMOVE
-            //OJsImmediateBegin("factory");
-            //O();
-            //OB("factory.createCore = function (options)");
         }
 
         public void OEndComponentFactory(WebViewGenContext context)
         {
             End();
-            // TODO: REMOVE:
-            //End(";"); // View model factory.
-            //OJsImmediateEnd(BuildJSGetOrCreate(context.ViewModelFactoryName, "cmodo.createComponentFactory()"));
         }
 
         public WebViewGenContext InitComponentNames(WebViewGenContext context)
@@ -171,7 +163,7 @@ namespace Casimodo.Lib.Mojen
         }
 
 
-        // KABU TODO: REMOVE? Not used anymore because we're accessing nested objects via the
+        // KABU TODO: REMOVE? Not used anymore because we're accessing nested objects via
         //  kendo observable's accessor function now.
         void GetNotNullExpressionTemplate(StringBuilder sb, MojViewProp prop, bool checkLastProp = false)
         {
@@ -328,7 +320,7 @@ namespace Casimodo.Lib.Mojen
         {
             var view = context.View;
 
-            title = title ?? context.View.Title;
+            title ??= context.View.Title;
             if (string.IsNullOrWhiteSpace(title))
                 title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
 

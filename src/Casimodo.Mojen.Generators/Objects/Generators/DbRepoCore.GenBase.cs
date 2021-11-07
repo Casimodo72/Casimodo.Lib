@@ -113,9 +113,8 @@ namespace Casimodo.Lib.Mojen
                 "System.Collections.Generic",
                 "System.Linq",
                 "Casimodo.Lib",
-                "Casimodo.Lib.Data"});
-
-            ns.Add("Microsoft.EntityFrameworkCore");
+                "Casimodo.Lib.Data",
+                "Microsoft.EntityFrameworkCore"});
 
             OUsing(ns.ToArray());
 

@@ -8,13 +8,13 @@ namespace Casimodo.Lib
     public class CancelableChangingEventArgs<T> : EventArgs
     {
         bool _isCancelled;
-        bool _isCancelable;
+        readonly bool _isCancelable;
 
         public CancelableChangingEventArgs(T oldValue, T newValue, bool isCancelable)
         {
-            this._isCancelable = isCancelable;
-            this.OldValue = OldValue;
-            this.NewValue = NewValue;
+            _isCancelable = isCancelable;
+            OldValue = oldValue;
+            NewValue = newValue;
         }
 
         /// <summary>
@@ -34,18 +34,12 @@ namespace Casimodo.Lib
         /// <summary>
         /// Indicates whether the operation is cancelable.
         /// </summary>
-        public bool IsCancelable
-        {
-            get { return _isCancelable; }
-        }
+        public bool IsCancelable => _isCancelable;
 
         /// <summary>
         /// Indicates whether the operation should be canceled.
         /// </summary>
-        public bool IsCancelled
-        {
-            get { return _isCancelled; }
-        }
+        public bool IsCancelled => _isCancelled;
 
         public T OldValue { get; private set; }
 

@@ -13,7 +13,7 @@ namespace Casimodo.Lib.Mojen
             if (!config.Is)
                 yield break;
 
-            scenarios = scenarios ?? new string[] { null };
+            scenarios ??= new string[] { null };
             foreach (var scenario in scenarios)
                 foreach (var item in config.Items.Where(x => x.TargetScenario == scenario))
                     yield return item;
@@ -254,7 +254,7 @@ namespace Casimodo.Lib.Mojen
         {
             Guard.ArgNotNullOrWhitespace(name, nameof(name));
 
-            type = type ?? (value != null ? (Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType()) : null);
+            type ??= (value != null ? (Nullable.GetUnderlyingType(value.GetType()) ?? value.GetType()) : null);
 
             Add(new MojAttrArg { IsConstructorArg = isConstructor, Name = name, Value = value, ValueType = type, IsVerbatim = verbatim });
 

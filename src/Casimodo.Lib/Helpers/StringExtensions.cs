@@ -50,7 +50,10 @@ namespace Casimodo.Lib
                     if ((upper && char.IsUpper(ch)) || (!upper && char.IsLower(ch)))
                         return text;
 
-                    return text.Substring(0, i) + (upper ? char.ToUpperInvariant(ch) : char.ToLowerInvariant(ch)) + text.Substring(i + 1);
+                    return text.Substring(0, i) + 
+                        (upper 
+                            ? char.ToUpperInvariant(ch) 
+                            : char.ToLowerInvariant(ch)) + text[(i + 1)..];
                 }
             }
 
@@ -126,12 +129,16 @@ namespace Casimodo.Lib
             return sb.AppendLine(value);
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public static StringBuilder o(this StringBuilder sb, string value)
+#pragma warning restore IDE1006 // Naming Styles
         {
             return sb.Append(value);
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public static StringBuilder o(this StringBuilder sb, char value)
+#pragma warning restore IDE1006 // Naming Styles
         {
             return sb.Append(value);
         }

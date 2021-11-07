@@ -14,10 +14,7 @@ namespace Casimodo.Lib.Presentation
 
         public CustomObservableCollection Items { get; set; }
 
-        public override int Count
-        {
-            get { return Items.Count; }
-        }
+        public override int Count => Items.Count;
 
         public override void Add(object item)
         {
@@ -29,20 +26,11 @@ namespace Casimodo.Lib.Presentation
             // NOP.
         }
 
-        public override bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public override bool IsReadOnly => false;
 
-        public override bool CanAdd
-        {
-            get { return true; }
-        }
+        public override bool CanAdd => true;
 
-        public override bool CanRemove
-        {
-            get { return true; }
-        }
+        public override bool CanRemove => true;
 
         protected override IEnumerator GetEnumeratorInternal()
         {

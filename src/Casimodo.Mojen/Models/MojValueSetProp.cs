@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Mojen
 
         public string ValueToString()
         {
-            return Value != null ? Value.ToString() : null;
+            return Value?.ToString();
         }
     }
 }

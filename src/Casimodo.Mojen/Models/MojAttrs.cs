@@ -20,11 +20,6 @@ namespace Casimodo.Lib.Mojen
             _registeredAttrs.Add(attr);
         }
 
-        void Test()
-        {
-            Type t = typeof(MojPrecisionAttr);
-        }
-
         public MojAttrArg GetDefaultValueArg()
         {
             var item = this.FirstOrDefault(x => x.Name == "DefaultValue");

@@ -117,14 +117,6 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        MojProp GetProp(MojType type, string propName)
-        {
-            var prop = type.FindProp(propName);
-            throw new MojenException(
-                string.Format("Property '{0}' not found on type '{1}'.",
-                    propName, type.ClassName));
-        }
-
         internal void UIHint(string hint)
         {
             Attr(new MojAttr("UIHint", 99).CSArg("uiHint", hint));

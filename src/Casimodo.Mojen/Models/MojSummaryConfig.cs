@@ -13,14 +13,14 @@ namespace Casimodo.Lib.Mojen
     {
         public List<string> Descriptions
         {
-            get { return _descriptions ?? (_descriptions = new List<string>()); }
+            get { return _descriptions ??= new List<string>(); }
         }
         [DataMember]
         List<string> _descriptions;
 
         public List<string> Remarks
         {
-            get { return _remarks ?? (_remarks = new List<string>()); }
+            get { return _remarks ??= new List<string>(); }
         }
         [DataMember]
         List<string> _remarks;

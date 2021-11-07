@@ -14,6 +14,7 @@ namespace Casimodo.Lib.ComponentModel
         bool IsDisposed { get; }
     }
 
+    // TODO: REVISIT: Do we need INotifyPropertyChanging?
     [DataContract]
     public abstract partial class ObservableObject : INotifyPropertyChanged, IDisposable, IDisposableEx
     {
@@ -42,6 +43,7 @@ namespace Casimodo.Lib.ComponentModel
             _internalFlags &= ~InternalFlags.IsDeserializing;
         }
 
+        // TODO: ELIMINATE
         public void FirePropertyChanged(string propertyName)
         {
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
@@ -101,10 +103,10 @@ namespace Casimodo.Lib.ComponentModel
         /// <param name="args"></param>
         public void RaisePropertyChangedNoVerification(PropertyChangedEventArgs args)
         {
-            Guard.ArgNotNull(args, nameof(args));
-
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
                 return;
+
+            Guard.ArgNotNull(args, nameof(args));
 
             OnPropertyChanged(args.PropertyName);
 
@@ -120,12 +122,13 @@ namespace Casimodo.Lib.ComponentModel
             // NOP
         }
 
-        // KABU TODO: ELIMINATE
+        // KABU TODO: REMOVE
+#if (false)
         public bool SetProperty<T>(ref T oldValue, T newValue, [CallerMemberName] string propertyName = null)
         {
             return SetProp<T>(ref oldValue, newValue, propertyName);
         }
-
+#endif
         public bool SetProp<T>(ref T oldValue, T newValue, [CallerMemberName] string propertyName = null)
         {
             VerifyProperty(propertyName);
@@ -166,11 +169,13 @@ namespace Casimodo.Lib.ComponentModel
             return true;
         }
 
-        // KABU TODO: ELIMINATE?
+        // KABU TODO: REMOVE
+#if (false)
         public bool SetProperty<T>(T oldValue, T newValue, Action setter, [CallerMemberName] string propertyName = null)
         {
             return SetProp<T>(oldValue, newValue, setter, propertyName);
         }
+#endif
 
         public bool SetProp<T>(T oldValue, T newValue, Action setter, [CallerMemberName] string propertyName = null)
         {
@@ -192,8 +197,8 @@ namespace Casimodo.Lib.ComponentModel
             return true;
         }
 
-        // KABU TODO: ELIMINATE?
-        // KABU TODO: Still used?
+        // KABU TODO: REMOVE
+#if (false)
         protected bool SetProperty<T>(string propertyName, ref T oldValue, T newValue)
             where T : class
         {
@@ -213,13 +218,14 @@ namespace Casimodo.Lib.ComponentModel
             RaisePropertyChanged(propertyName);
             return true;
         }
+#endif
 
         // Dispose ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         protected void CheckNotDisposed()
         {
             if (IsDisposed)
-                throw new ObjectDisposedException(this.GetType().Name);
+                throw new ObjectDisposedException(GetType().Name);
         }
 
         /// <summary>
@@ -230,19 +236,22 @@ namespace Casimodo.Lib.ComponentModel
             // NOP.
         }
 
-        protected virtual void OnDispose()
+        protected virtual void OnDisposed()
         {
-            IsDisposed = true;
+            // NOP.
         }
 
         protected bool IsDisposed { get; private set; }
 
-        bool IDisposableEx.IsDisposed
-        {
-            get { return IsDisposed; }
-        }
+        bool IDisposableEx.IsDisposed => IsDisposed;
 
         public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
         {
             if (IsDisposed)
                 return;
@@ -253,7 +262,7 @@ namespace Casimodo.Lib.ComponentModel
 
             PropertyChanged = null;
 
-            OnDispose();
+            OnDisposed();
         }
 
         // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -263,10 +272,10 @@ namespace Casimodo.Lib.ComponentModel
         {
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
                 return;
-            ValidatePropertyExistance(this.GetType(), propertyName);
+            ThrowIfPropertyNotFound(GetType(), propertyName);
         }
 
-        public static void ValidatePropertyExistance(Type type, string propertyName)
+        public static void ThrowIfPropertyNotFound(Type type, string propertyName)
         {
             Guard.ArgNotNull(type, nameof(type));
             Guard.ArgNotNullOrWhitespace(propertyName, nameof(propertyName));

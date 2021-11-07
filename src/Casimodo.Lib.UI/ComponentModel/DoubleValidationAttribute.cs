@@ -128,7 +128,7 @@ namespace Casimodo.Lib.ComponentModel
             return true;
         }
 
-        int ParseDigits(string text, ref int pos)
+        static int ParseDigits(string text, ref int pos)
         {
             char c;
             int numDigits = 0;
@@ -202,7 +202,7 @@ namespace Casimodo.Lib.ComponentModel
 
         public MathSignDef Positive { get; set; }
 
-        bool ParseSign(string text, ref int pos)
+        static bool ParseSign(string text, ref int pos)
         {
             return true;
         }

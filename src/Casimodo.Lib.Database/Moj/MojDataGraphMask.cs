@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,12 +30,14 @@ namespace Casimodo.Lib.Data
 
         internal static MojReferenceDataGraphMask Parse(XElement elem)
         {
-            var reference = new MojReferenceDataGraphMask();
-            reference.Name = (string)elem.Attr("Name");
-            reference.Binding = elem.EnumAttr<MojReferenceBinding>("Binding");
-            reference.Multiplicity = elem.EnumAttr<MojMultiplicity>("Multiplicity");
-            reference.ForeignKey = (string)elem.Attr("ForeignKey", optional: true);
-            reference.To = new MojDataGraphMask().Parse(elem.Elem("To"));
+            var reference = new MojReferenceDataGraphMask
+            {
+                Name = (string)elem.Attr("Name"),
+                Binding = elem.EnumAttr<MojReferenceBinding>("Binding"),
+                Multiplicity = elem.EnumAttr<MojMultiplicity>("Multiplicity"),
+                ForeignKey = (string)elem.Attr("ForeignKey", optional: true),
+                To = new MojDataGraphMask().Parse(elem.Elem("To"))
+            };
 
             return reference;
         }
@@ -73,9 +76,9 @@ namespace Casimodo.Lib.Data
         }
 
         MojDataMaskBuilder _parent;
-        MojDataGraphMask _mask = new MojDataGraphMask();
-        List<MojDataMaskBuilder> _propTypeBuilders = new List<MojDataMaskBuilder>();
-        Type _targetType;
+        readonly MojDataGraphMask _mask = new MojDataGraphMask();
+        readonly List<MojDataMaskBuilder> _propTypeBuilders = new List<MojDataMaskBuilder>();
+        readonly Type _targetType;
 
         public MojDataMaskBuilder Prop(string name)
         {
@@ -100,9 +103,7 @@ namespace Casimodo.Lib.Data
             };
 
             var prop = _targetType.GetProperty(name);
-            var foreignKeyAttr = prop
-                .GetCustomAttributes(typeof(ForeignKeyAttribute), true)
-                .FirstOrDefault() as ForeignKeyAttribute;
+            var foreignKeyAttr = prop.GetCustomAttribute<ForeignKeyAttribute>(true);
 
             // KABU TODO: REVISIT: We may allow non foreign key references (e.g. collections) in the future.
             if (foreignKeyAttr == null)

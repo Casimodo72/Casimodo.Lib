@@ -181,13 +181,13 @@ namespace Casimodo.Lib.Mojen
 
             if (targetProp != null)
             {
-                if (targetProp.Type.TypeNormalized == typeof(Guid) && value is string)
+                if (targetProp.Type.TypeNormalized == typeof(Guid) && value is string guidString)
                 {
-                    value = new Guid((string)value);
+                    value = new Guid(guidString);
                 }
-                else if (targetProp.Type.TypeNormalized == typeof(DateTimeOffset) && value is string)
+                else if (targetProp.Type.TypeNormalized == typeof(DateTimeOffset) && value is string dateTimeString)
                 {
-                    value = DateTimeOffset.Parse((string)value);
+                    value = DateTimeOffset.Parse(dateTimeString);
                 }
 
                 CheckValidTypes(targetProp, value);
@@ -219,7 +219,7 @@ namespace Casimodo.Lib.Mojen
         [OnSerializing]
         void OnSerializing(StreamingContext context)
         {
-            _valueType = ValueType != null ? ValueType.FullName : null;
+            _valueType = ValueType?.FullName;
         }
 
         [OnDeserialized]

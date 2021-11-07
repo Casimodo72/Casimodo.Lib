@@ -84,8 +84,6 @@ namespace Casimodo.Lib.Mojen
 
         public void ODataSourceOptions(WebViewGenContext context, KendoDataSourceConfig config)
         {
-            var transport = config.TransportConfig;
-
             O($"type: '{config.TransportType}',");
 
             // Sort
@@ -287,7 +285,9 @@ namespace Casimodo.Lib.Mojen
         }
 
 
+#pragma warning disable IDE1006 // Naming Styles
         public void oOKendoJsLookupDataSource(string url, string valueProp, string displayProp, bool async = true) //, string parametersFunc = null)
+#pragma warning restore IDE1006 // Naming Styles
         {
             // OData data source
             oO($"kmodo.oDataLookupValueAndDisplay('{url}', '{valueProp}', '{displayProp}', {Moj.JS(async)});");

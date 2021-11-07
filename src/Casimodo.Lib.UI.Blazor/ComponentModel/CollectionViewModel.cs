@@ -137,7 +137,7 @@ namespace Casimodo.Lib.UI
             return (TData)_view.CurrentItem;
         }
 
-        object _previousCurrent;
+        readonly object _previousCurrent;
 
         /// <summary>
         /// Gets the enumeration over the items in the view.
@@ -170,7 +170,7 @@ namespace Casimodo.Lib.UI
         public void SetSource(CustomObservableCollection<TData> collection)
         {
             if (collection == null)
-                throw new ArgumentNullException("collection");
+                throw new ArgumentNullException(nameof(collection));
 
             _effectiveItems.BeginUpdate();
             try
@@ -190,7 +190,7 @@ namespace Casimodo.Lib.UI
         public void ApplySortOnce<TKey>(Func<TData, TKey> keySelector, IComparer<TKey> comparer)
         {
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             SetSortedItems(_sourceItems.OrderBy<TData, TKey>(keySelector, comparer).Cast<object>().ToArray());
         }
@@ -201,7 +201,7 @@ namespace Casimodo.Lib.UI
         public void ApplySortOnce(IComparer comparer)
         {
             if (comparer == null)
-                throw new ArgumentNullException("comparer");
+                throw new ArgumentNullException(nameof(comparer));
 
             object[] sortedItems = _sourceItems.ToObjectArray();
             Array.Sort(sortedItems, comparer);
@@ -304,7 +304,7 @@ namespace Casimodo.Lib.UI
             CheckNotDisposed();
 
             if (data == null)
-                throw new ArgumentNullException("data");
+                throw new ArgumentNullException(nameof(data));
 
             if (IsReadOnly)
                 throw new InvalidOperationException("This collection view model is read-only and cannot be added to.");
@@ -342,7 +342,7 @@ namespace Casimodo.Lib.UI
         public virtual bool Remove(TData data)
         {
             if (data == null)
-                throw new ArgumentNullException("data");
+                throw new ArgumentNullException(nameof(data));
 
             if (IsReadOnly)
                 throw new InvalidOperationException("This collection view model is read-only and cannot be removed from.");
@@ -426,15 +426,13 @@ namespace Casimodo.Lib.UI
 
         void AttachToCurrentItem()
         {
-            INotifyPropertyChanged propChanged = _view.CurrentItem as INotifyPropertyChanged;
-            if (propChanged != null)
+            if (_view.CurrentItem is INotifyPropertyChanged propChanged)
                 propChanged.PropertyChanged += OnCurrentItemPropertyChanged;
         }
 
         void DetachFromPreviousCurrentItem()
         {
-            INotifyPropertyChanged propChanged = _previousCurrent as INotifyPropertyChanged;
-            if (propChanged != null)
+            if (_previousCurrent is INotifyPropertyChanged propChanged)
                 propChanged.PropertyChanged -= OnCurrentItemPropertyChanged;
         }
 

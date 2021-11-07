@@ -17,10 +17,10 @@ namespace Casimodo.Lib
                 throw new ArgumentNullException("source");
             if (destination == null)
                 throw new ArgumentNullException("destination");
-
-            int bytesRead = 0;
             byte[] buffer = new byte[bufferSize];
 
+
+            int bytesRead;
             while ((bytesRead = source.Read(buffer, 0, bufferSize)) != 0)
                 destination.Write(buffer, 0, bytesRead);
         }
@@ -31,11 +31,11 @@ namespace Casimodo.Lib
                 throw new ArgumentNullException("source");
             if (destination == null)
                 throw new ArgumentNullException("destination");
-
-            int bytesRead = 0;
             const int bufferSize = 4096;
             char[] buffer = new char[bufferSize];
 
+
+            int bytesRead;
             while ((bytesRead = source.Read(buffer, 0, bufferSize)) != 0)
                 destination.Write(buffer, 0, bytesRead);
         }
@@ -48,15 +48,13 @@ namespace Casimodo.Lib
             if (string.IsNullOrEmpty(outputFile))
                 throw new ArgumentNullException("outputFile");
 
-            using (FileStream outputStream = new FileStream(outputFile, fileMode, FileAccess.Write))
-            {
-                int bytesRead = 0;
-                const int bufferSize = 4096;
-                byte[] buffer = new byte[bufferSize];
+            using FileStream outputStream = new FileStream(outputFile, fileMode, FileAccess.Write);
+            int bytesRead = 0;
+            const int bufferSize = 4096;
+            byte[] buffer = new byte[bufferSize];
 
-                while ((bytesRead = inputStream.Read(buffer, 0, bufferSize)) != 0)
-                    outputStream.Write(buffer, 0, bytesRead);
-            }
+            while ((bytesRead = inputStream.Read(buffer, 0, bufferSize)) != 0)
+                outputStream.Write(buffer, 0, bytesRead);
         }
     }
 }

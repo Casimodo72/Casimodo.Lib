@@ -59,7 +59,7 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(str) || char.IsLower(str, 0))
                 return str;
 
-            return char.ToLowerInvariant(str[0]) + str.Substring(1);
+            return char.ToLowerInvariant(str[0]) + str[1..];
         }
 
         public static string FirstCharToUpper(string str)
@@ -67,7 +67,7 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(str) || char.IsUpper(str, 0))
                 return str;
 
-            return char.ToUpperInvariant(str[0]) + str.Substring(1);
+            return char.ToUpperInvariant(str[0]) + str[1..];
         }
 
         public static bool IsDateTimeOrOffset(Type type)
@@ -205,7 +205,7 @@ namespace Casimodo.Lib.Mojen
             if (value == null)
                 return "null";
 
-            if (nullIfEmptyString && value is string && string.IsNullOrEmpty((string)value))
+            if (nullIfEmptyString && value is string text && string.IsNullOrEmpty(text))
                 return "null";
 
             return JS(value, value.GetType(), parse: parse, quote: quote);

@@ -8,7 +8,7 @@ namespace Casimodo.Lib
 {
     public static class DictionaryHelper
     {
-        public static TResult GetOrDefault<TResult>(this IDictionary<string, object> dictionary, string key, TResult defaultValue = default(TResult))
+        public static TResult GetOrDefault<TResult>(this IDictionary<string, object> dictionary, string key, TResult defaultValue = default)
         {
             if (dictionary.TryGetValue(key, out object value))
                 return (TResult)value;
@@ -16,7 +16,7 @@ namespace Casimodo.Lib
             return defaultValue;
         }
 
-        public static TValue FindOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
+        public static TValue FindOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default)
         {
             if (dictionary.TryGetValue(key, out TValue value))
                 return value;

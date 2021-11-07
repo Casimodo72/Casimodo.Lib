@@ -15,16 +15,14 @@ namespace Casimodo.Lib.Mojen
         {
             var builder = This();
 
-            if (build != null)
-                build(builder);
+            build?.Invoke(builder);
 
             return builder;
         }
 
         public MojModelPropBuilder Model()
         {
-            var modelBuilder = ParentPropBuilder as MojModelPropBuilder;
-            if (modelBuilder == null)
+            if (!(ParentPropBuilder is MojModelPropBuilder modelBuilder))
                 throw new InvalidOperationException("This store property builder has no parent model property builder assigned.");
 
             return modelBuilder;
@@ -81,8 +79,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojEntityPropBuilder Error(string error)
         {
-            var target = LastErrorHolder as IMojErrorMessageHolder;
-            if (target != null)
+            if (LastErrorHolder is IMojErrorMessageHolder target)
                 target.ErrorMessage = error;
             else
                 throw new MojenException("There is no previous definition this error can be assigned to.");

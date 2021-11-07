@@ -8,7 +8,7 @@ namespace Casimodo.Lib.ComponentModel
     /// </summary>
     public class ServiceLocator
     {
-        private IServiceProvider _currentServiceProvider;
+        private readonly IServiceProvider _currentServiceProvider;
         private static IServiceProvider _serviceProvider;
 
         public ServiceLocator(IServiceProvider currentServiceProvider)

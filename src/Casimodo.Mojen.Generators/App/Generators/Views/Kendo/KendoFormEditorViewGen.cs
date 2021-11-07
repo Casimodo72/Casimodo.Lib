@@ -302,14 +302,15 @@ namespace Casimodo.Lib.Mojen
             OPropEditableCore(context);
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public void oAttr(string name, object value)
+#pragma warning restore IDE1006 // Naming Styles
         {
             o($" {name}='{Moj.ToJsXAttrValue(value)}'");
         }
 
         public void OPropEditableCore(WebViewGenContext context)
         {
-            var type = context.View.TypeConfig;
             var vinfo = context.PropInfo;
             var vprop = vinfo.ViewProp;
             var ppath = vinfo.PropPath;
@@ -350,9 +351,7 @@ namespace Casimodo.Lib.Mojen
             }
             // Uploadable image property
             else if (dprop.FileRef.Is && dprop.FileRef.IsImage &&
-#pragma warning disable CS0618 // Type or member is deprecated
                 dprop.FileRef.IsUploadable)
-#pragma warning restore CS0618 // Type or member is deprecated
             {
                 // NOTE: File upload is not supported.
                 OFileUpload(context);
@@ -443,7 +442,6 @@ namespace Casimodo.Lib.Mojen
 
         void OSelectorControlInvisibleInput(WebViewGenContext context)
         {
-            var vprop = context.PropInfo.ViewProp;
             var prop = context.PropInfo.Prop;
             var propPath = context.PropInfo.PropPath;
 
@@ -994,7 +992,7 @@ namespace Casimodo.Lib.Mojen
 
             // OData order by
             var odataOrderBy = targetType.GetODataOrderBy();
-            odataOrderBy = odataOrderBy != null ? odataOrderBy : display;
+            odataOrderBy ??= display;
 
             // Build OData query
             odataQuery = $"{this.GetODataQueryFunc(prop.Reference.ToType)}()?$select={key},{display}&$orderby={odataOrderBy}";

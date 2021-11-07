@@ -48,7 +48,7 @@ namespace Casimodo.Lib
 
             // Get the enum field.
             var field = type.GetField(value.ToString());
-            return field == null ? null : field.GetCustomAttribute<DisplayAttribute>();
+            return field?.GetCustomAttribute<DisplayAttribute>();
         }
 
         public static List<TEnum> GetActiveFlags<TEnum>(this TEnum flags)

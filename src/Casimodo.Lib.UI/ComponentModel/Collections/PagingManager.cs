@@ -10,16 +10,13 @@ namespace Casimodo.Lib.Presentation
     /// Encapsulates paging logic and states.
     /// </summary>
     public class PagingManager : ObservableObject
-#if (SILVERLIGHT)
-        ,IPagedCollectionView
-#endif
     {
-        static readonly public PropertyChangedEventArgs ItemCountChangedArgs = new PropertyChangedEventArgs("ItemCount");
-        static readonly public PropertyChangedEventArgs TotalItemCountChangedArgs = new PropertyChangedEventArgs("TotalItemCount");
-        static readonly public PropertyChangedEventArgs PageIndexChangedArgs = new PropertyChangedEventArgs("PageIndex");
-        static readonly public PropertyChangedEventArgs PageSizeChangedArgs = new PropertyChangedEventArgs("PageSize");
-        static readonly public PropertyChangedEventArgs CanChangePageChangedArgs = new PropertyChangedEventArgs("CanChangePage");
-        static readonly public PropertyChangedEventArgs IsPageChangingChangedArgs = new PropertyChangedEventArgs("IsPageChanging");
+        static readonly public PropertyChangedEventArgs ItemCountChangedArgs = new(nameof(ItemCount));
+        static readonly public PropertyChangedEventArgs TotalItemCountChangedArgs = new(nameof(TotalItemCount));
+        static readonly public PropertyChangedEventArgs PageIndexChangedArgs = new(nameof(PageIndex));
+        static readonly public PropertyChangedEventArgs PageSizeChangedArgs = new(nameof(PageSize));
+        static readonly public PropertyChangedEventArgs CanChangePageChangedArgs = new(nameof(CanChangePage));
+        static readonly public PropertyChangedEventArgs IsPageChangingChangedArgs = new(nameof(IsPageChanging));
 
         public PagingManager()
         {
@@ -57,10 +54,7 @@ namespace Casimodo.Lib.Presentation
         /// <summary>
         /// Member of IPagedCollectionView.
         /// </summary>
-        public bool CanChangePage
-        {
-            get { return !IsFrozen; }
-        }
+        public bool CanChangePage => !IsFrozen;
 
         /// <summary>
         /// Member of IPagedCollectionView.
@@ -77,17 +71,14 @@ namespace Casimodo.Lib.Presentation
         /// Gets the number of known items in the view before paging is applied.
         /// Member of IPagedCollectionView.
         /// </summary>
-        public int ItemCount
-        {
-            get { return _itemCount; }
-        }
+        public int ItemCount => _itemCount;
 
         int _itemCount;
 
         public void SetItemCount(int value)
         {
             if (value < 0)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(value));
 
             CheckNotFrozen();
             SetProp(ref _itemCount, value, ItemCountChangedArgs);
@@ -97,10 +88,7 @@ namespace Casimodo.Lib.Presentation
         /// Paging is disabled when PageIndex is -1.
         /// Member of IPagedCollectionView.
         /// </summary>
-        public int PageIndex
-        {
-            get { return _pageIndex; }
-        }
+        public int PageIndex => _pageIndex;
 
         int _pageIndex;
 
@@ -115,7 +103,7 @@ namespace Casimodo.Lib.Presentation
             set
             {
                 if (value < 0)
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(value));
 
                 if (_pageSize == value)
                     return;
@@ -149,17 +137,14 @@ namespace Casimodo.Lib.Presentation
         //  the total number is unknown.
         /// Member of IPagedCollectionView.
         /// </summary>
-        public int TotalItemCount
-        {
-            get { return _totalItemCount; }
-        }
+        public int TotalItemCount => _totalItemCount;
 
         int _totalItemCount;
 
         public void SetTotalItemCount(int value)
         {
             if (value < -1)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(value));
 
             CheckNotFrozen();
             SetProp(ref _totalItemCount, value, TotalItemCountChangedArgs);
@@ -205,7 +190,7 @@ namespace Casimodo.Lib.Presentation
         public bool MoveToPage(int index)
         {
             if (index < -1)
-                throw new ArgumentOutOfRangeException("index",
+                throw new ArgumentOutOfRangeException(nameof(index),
                     "The given page index must be greater than or equal to -1.");
 
             if (index == _pageIndex)
@@ -219,13 +204,12 @@ namespace Casimodo.Lib.Presentation
             // Note that TotalItemCount *can* be -1 (e.g. when using RIA Services),
             // so we must allow to move to *any* page in this case.
             if ((index != 0) && (_totalItemCount != -1) && (index > _totalItemCount / _pageSize))
-                throw new ArgumentOutOfRangeException(
-                    "PageIndex must be less than the page count");
+                throw new InvalidOperationException("PageIndex must be less than the page count.");
 
             if (IsFrozen)
                 return false;
 
-            PageChangingEventArgs args = new PageChangingEventArgs(index);
+            var args = new PageChangingEventArgs(index);
 
             try
             {
@@ -294,25 +278,17 @@ namespace Casimodo.Lib.Presentation
 
         void RaisePageChanging(PageChangingEventArgs e)
         {
-            var handler = this.PageChanging;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            PageChanging?.Invoke(this, e);
         }
 
         void RaisePageChanged()
         {
-            var handler = this.PageChanged;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            PageChanged?.Invoke(this, EventArgs.Empty);
         }
 
         void RaiseRefreshRequested()
         {
-            var handler = this.RefreshRequested;
+            var handler = RefreshRequested;
             // We really want the handler to be assigned.
             if (handler == null)
                 throw new InvalidOperationException("There's no handler assigned for the event 'RefreshRequested'.");

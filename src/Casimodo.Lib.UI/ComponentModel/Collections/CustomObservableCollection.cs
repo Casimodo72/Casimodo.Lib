@@ -49,26 +49,28 @@ namespace Casimodo.Lib.Presentation
         IChangeTracking,
         IRevertibleChangeTracking
     {
-        static readonly PropertyChangedEventArgs IsChangedChangedArgs = new PropertyChangedEventArgs("IsChanged");
-        static readonly PropertyChangedEventArgs CountChangedArgs = new PropertyChangedEventArgs("Count");
-        static readonly PropertyChangedEventArgs IndexerChangedArgs = new PropertyChangedEventArgs("Item[]");
-        protected readonly object _syncRoot = new object();
+        static readonly PropertyChangedEventArgs IsChangedChangedArgs = new(nameof(IsChanged));
+        static readonly PropertyChangedEventArgs CountChangedArgs = new(nameof(Count));
+        static readonly PropertyChangedEventArgs IndexerChangedArgs = new("Item[]");
+        protected readonly object _syncRoot = new();
         protected CollectionSourceAdapterBase _source;
 
+#pragma warning disable IDE1006 // Naming Styles
         protected Collection<object> _items { get; private set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         public CustomObservableCollection(CollectionSourceAdapterBase source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
-            this._items = new MyCollection(this);
-            this._source = source;
+            _items = new MyCollection(this);
+            _source = source;
             AttachToSource();
 
-            this.IsModificationAllowed = true;
-            this.IsAdditionAllowed = true;
-            this.IsRemovalAllowed = true;
+            IsModificationAllowed = true;
+            IsAdditionAllowed = true;
+            IsRemovalAllowed = true;
         }
 
         public CustomObservableCollection()
@@ -80,7 +82,7 @@ namespace Casimodo.Lib.Presentation
         public void SetSource(CollectionSourceAdapterBase source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             BeginUpdate();
             try
@@ -102,7 +104,7 @@ namespace Casimodo.Lib.Presentation
         public void ApplySort(IComparer comparer)
         {
             if (comparer == null)
-                throw new ArgumentNullException("comparer");
+                throw new ArgumentNullException(nameof(comparer));
 
             object[] sortedItems = _items.ToArray();
             Array.Sort(sortedItems, comparer);
@@ -139,10 +141,10 @@ namespace Casimodo.Lib.Presentation
         {
             if (startPosition < 0)
                 throw new ArgumentOutOfRangeException(
-                    "startPosition", "The given start position must be greator or equal to 0");
+                    nameof(startPosition), "The given start position must be greator or equal to 0");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(
-                    "count", "The given count must be greator or equal to 0");
+                    nameof(count), "The given count must be greator or equal to 0");
 
             if (_startPosition == startPosition && _maximumCount == count)
                 return;
@@ -221,10 +223,7 @@ namespace Casimodo.Lib.Presentation
             }
         }
 
-        public bool IsUpdating
-        {
-            get { return _updateTransactionCounter > 0; }
-        }
+        public bool IsUpdating => _updateTransactionCounter > 0;
 
         internal event CollectionModificationRequestedEventHandler ModificationRequested;
 
@@ -236,7 +235,7 @@ namespace Casimodo.Lib.Presentation
         public void AddLocal(object item)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             CheckIsModificationAllowedByConsumer();
 
@@ -251,7 +250,7 @@ namespace Casimodo.Lib.Presentation
         public void AddRangeLocal(object[] items)
         {
             if (items == null)
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
 
             CheckIsModificationAllowedByConsumer();
 
@@ -355,7 +354,7 @@ namespace Casimodo.Lib.Presentation
         internal void Add(object item)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             if (!CanAdd)
                 throw new NotSupportedException("The collection cannot be added to.");
@@ -378,7 +377,7 @@ namespace Casimodo.Lib.Presentation
         public void Insert(int index, object item)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             if (!CanAdd)
                 throw new NotSupportedException("The collection cannot be added to.");
@@ -417,7 +416,7 @@ namespace Casimodo.Lib.Presentation
         internal bool Remove(object item)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             if (!CanRemove)
                 throw new NotSupportedException(
@@ -450,26 +449,17 @@ namespace Casimodo.Lib.Presentation
         /// The underlying source collection.
         /// Not a member of any interface.
         /// </summary>
-        internal IEnumerable SourceCollection
-        {
-            get { return _source as IEnumerable; }
-        }
+        internal IEnumerable SourceCollection => _source as IEnumerable;
 
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        internal bool CanAdd
-        {
-            get { return (!IsReadOnly) && IsAdditionAllowed && _source.CanAdd; }
-        }
+        internal bool CanAdd => (!IsReadOnly) && IsAdditionAllowed && _source.CanAdd;
 
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        internal bool CanRemove
-        {
-            get { return (!IsReadOnly) && IsRemovalAllowed && _source.CanRemove; }
-        }
+        internal bool CanRemove => (!IsReadOnly) && IsRemovalAllowed && _source.CanRemove;
 
         // Interfaces =========================================================
 
@@ -499,26 +489,17 @@ namespace Casimodo.Lib.Presentation
         /// <summary>
         /// Member of ICollection
         /// </summary>
-        public int Count
-        {
-            get { return _items.Count; }
-        }
+        public int Count => _items.Count;
 
         /// <summary>
         /// Member of ICollection
         /// </summary>
-        public bool IsSynchronized
-        {
-            get { return ((ICollection)_items).IsSynchronized; }
-        }
+        public bool IsSynchronized => ((ICollection)_items).IsSynchronized;
 
         /// <summary>
         /// Member of ICollection
         /// </summary>
-        public object SyncRoot
-        {
-            get { return ((ICollection)_items).SyncRoot; }
-        }
+        public object SyncRoot => ((ICollection)_items).SyncRoot;
 
         /// <summary>
         /// Member of ICollection
@@ -609,22 +590,17 @@ namespace Casimodo.Lib.Presentation
         void IList.Insert(int index, object value)
         {
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             Insert(index, (object)value);
         }
 
-        bool IList.IsFixedSize
-        {
-            // AFAIK, this is the only way to inform the System.Windows.Data.PagedCollectionView
-            // that this collection is read-only.
-            get { return IsReadOnly; }
-        }
+        bool IList.IsFixedSize => IsReadOnly;
 
         void IList.Remove(object value)
         {
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             Remove((object)value);
         }
@@ -681,13 +657,7 @@ namespace Casimodo.Lib.Presentation
         /// <summary>
         /// Member of IChangeTracking.
         /// </summary>
-        public bool IsChanged
-        {
-            get
-            {
-                return HasChanges;
-            }
-        }
+        public bool IsChanged => HasChanges;
 
         #endregion IChangeTracking Members ---------------------------------------
 
@@ -799,10 +769,7 @@ namespace Casimodo.Lib.Presentation
         /// Indicates whether an item is added explicitely to the source,
         /// so that we skip related collection events of the source.
         /// </summary>
-        protected bool IsAddingToSource
-        {
-            get { return _isAddingToSource; }
-        }
+        protected bool IsAddingToSource => _isAddingToSource;
 
         bool _isAddingToSource;
 
@@ -810,10 +777,7 @@ namespace Casimodo.Lib.Presentation
         /// Indicates whether an item is removed explicitely from the source,
         /// so that we skip related collection events of the source.
         /// </summary>
-        protected bool IsRemovingFromSource
-        {
-            get { return _isRemovingFromSource; }
-        }
+        protected bool IsRemovingFromSource => _isRemovingFromSource;
 
         bool _isRemovingFromSource;
 
@@ -824,7 +788,7 @@ namespace Casimodo.Lib.Presentation
             if (IsUpdating)
                 return;
 
-            NotifyCollectionChangedEventHandler handler = this.CollectionChanged;
+            NotifyCollectionChangedEventHandler handler = CollectionChanged;
             if (handler == null)
                 return;
 
@@ -836,7 +800,7 @@ namespace Casimodo.Lib.Presentation
             if (IsUpdating)
                 return;
 
-            NotifyCollectionChangedEventHandler handler = this.CollectionChanged;
+            NotifyCollectionChangedEventHandler handler = CollectionChanged;
             if (handler == null)
                 return;
 
@@ -858,7 +822,7 @@ namespace Casimodo.Lib.Presentation
             }
         }
 
-        static readonly NotifyCollectionChangedEventArgs ResetNotifyCollectionArgs = new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset);
+        static readonly NotifyCollectionChangedEventArgs ResetNotifyCollectionArgs = new(NotifyCollectionChangedAction.Reset);
 
         protected void RaiseBulkChanged()
         {
@@ -902,7 +866,7 @@ namespace Casimodo.Lib.Presentation
             }
         }
 
-        void PerformFlaggedAction(Action action, ref bool flag, bool value)
+        static void PerformFlaggedAction(Action action, ref bool flag, bool value)
         {
             bool prevFlag = flag;
             try
@@ -936,9 +900,9 @@ namespace Casimodo.Lib.Presentation
             }
         }
 
-        protected override void OnDispose()
+        protected override void OnDisposed()
         {
-            base.OnDispose();
+            base.OnDisposed();
 
             DetachFromSource();
             _source = null;
@@ -954,7 +918,7 @@ namespace Casimodo.Lib.Presentation
 
             public MyCollection(CustomObservableCollection owner)
             {
-                this._owner = owner;
+                _owner = owner;
             }
 
             protected override void InsertItem(int index, object item)

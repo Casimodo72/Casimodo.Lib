@@ -141,9 +141,8 @@ namespace Casimodo.Lib.Mojen
                     string userName = "";
                     foreach (var prop in dbprops)
                     {
-                        object value = null;
 
-                        if (!TryGetPwSourceValue(prop.Name, pwitem, out value))
+                        if (!TryGetPwSourceValue(prop.Name, pwitem, out object value))
                         {
                             value = Casimodo.Lib.TypeHelper.GetTypeProperty(entity, prop.Name, required: true)
                                 .GetValue(entity);

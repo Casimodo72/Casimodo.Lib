@@ -39,7 +39,7 @@ namespace Casimodo.Lib.Mojen
             // By default set an automatically increasing "Index" value.
             if (ContainerBuilder.IndexName != null && Container.Items.Count > 1)
             {
-                var prevSet = Container.Items[Container.Items.Count - 2];
+                var prevSet = Container.Items[^2];
                 var index = (int)prevSet.Get(ContainerBuilder.IndexName).Value;
                 index++;
 

@@ -38,7 +38,7 @@ namespace Casimodo.Lib.Mojen
         public string TargetName { get; set; }
 
         [DataMember]
-        public List<string> IgnoreSourceProps { get { return _ignorePreviousProps ?? (_ignorePreviousProps = new List<string>()); } }
+        public List<string> IgnoreSourceProps { get { return _ignorePreviousProps ??= new List<string>(); } }
         List<string> _ignorePreviousProps;
 
         [DataMember]

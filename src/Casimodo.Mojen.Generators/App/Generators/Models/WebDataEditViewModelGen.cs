@@ -91,7 +91,7 @@ namespace Casimodo.Lib.Mojen
                 type.Namespace);
             ONamespace(App.Get<WebAppBuildConfig>().WebDataViewModelNamespace);
 
-            viewGroup = viewGroup ?? "";
+            viewGroup ??= "";
 
             // Class
             O($"public partial class {viewGroup}{type.Name}Model");

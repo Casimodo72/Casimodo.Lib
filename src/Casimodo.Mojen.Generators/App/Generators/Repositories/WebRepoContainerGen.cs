@@ -77,8 +77,9 @@ namespace Casimodo.Lib.Mojen
                     // KABU TODO: REVISIT: We don't use model repositories anymore (or currently).
                     if (false)
                     {
-#pragma warning disable CS0162
+#pragma warning disable CS0162 // Unreachable code detected
                         O(accessModifier + "public class {0} : WebModelRepository<{1}, {2}, {3}, {4}, {5}>{6}",
+#pragma warning restore CS0162 // Unreachable code detected
                             repositoryName,
                             type.ClassName,
                             GetWebRepositoryName(type.Store),
@@ -89,8 +90,6 @@ namespace Casimodo.Lib.Mojen
                             (context.DbRepositoryName != null ? ", I" + context.DbRepositoryName : ""));
 
                         O("{ }");
-
-#pragma warning restore CS0162
                     }
 
                 }

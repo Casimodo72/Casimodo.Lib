@@ -35,22 +35,14 @@ namespace Casimodo.Lib.Mojen
                         O();
                         OTsClass(name: item.KeysContainerName, export: true,
                             hasconstructor: false,
-                            content: () => GeneratePrimitiveDefinition(moduleName, item));
+                            content: () => GeneratePrimitiveDefinition(item));
                     }
                 });
             });
         }
 
-        void GeneratePrimitiveDefinition(string moduleName, MojValueSetContainer config)
+        void GeneratePrimitiveDefinition(MojValueSetContainer config)
         {
-            // ES6:
-            // const myConst = 123;
-            // const myConstObj = { "key": "value" };
-            // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
-
-            // ES5:
-            // Object.defineProperty (mymodule, 'myConstObj', { value : 5, writable: false });
-
             Options = config.GetGeneratorOptions<PrimitiveKeysOptions>() ?? new PrimitiveKeysOptions();
 
             var typeName = config.KeysContainerName;
@@ -62,8 +54,6 @@ namespace Casimodo.Lib.Mojen
                 var props = config.Items.Where(x => !x.IsNull).ToList();
                 for (int i = 0; i < props.Count; i++)
                 {
-                    //if (i > 0) O();
-
                     item = props[i];
 
                     // Summary of member                

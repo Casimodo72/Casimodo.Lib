@@ -8,20 +8,16 @@ namespace Casimodo.Lib
     {
         public static string ReadTextFile(string filePath)
         {
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var reader = new StreamReader(stream))
-            {
-                return reader.ReadToEnd();
-            }
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var reader = new StreamReader(stream);
+            return reader.ReadToEnd();
         }
 
         public static async Task<string> ReadTextFileAsync(string filePath)
         {
-            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var reader = new StreamReader(stream))
-            {
-                return await reader.ReadToEndAsync();
-            }
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
         }
     }
 
@@ -61,7 +57,7 @@ namespace Casimodo.Lib
             ext = ext.ToLowerInvariant();
 
             if (ext.StartsWith("."))
-                return ext.Substring(1);
+                return ext[1..];
 
             return ext;
         }

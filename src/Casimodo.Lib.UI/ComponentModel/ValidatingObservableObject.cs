@@ -35,7 +35,7 @@ namespace Casimodo.Lib.ComponentModel
         public ErrorInfoContainer(string propertyName)
         {
             if (string.IsNullOrWhiteSpace(propertyName))
-                throw new ArgumentNullException("propertyName");
+                throw new ArgumentNullException(nameof(propertyName));
             PropertyName = propertyName;
         }
 
@@ -45,12 +45,12 @@ namespace Casimodo.Lib.ComponentModel
     [DataContract]
     public class ValidatingObservableObject : ObservableObject, IDataErrorInfo, INotifyDataErrorInfo
     {
-        static readonly MyValidationContext InternalValidationContext = new MyValidationContext();
+        static readonly MyValidationContext InternalValidationContext = new();
 
         /// <summary>
         /// Used to register validation rules.
         /// </summary>
-        public static readonly ValidationRulesManager ValidationRules = new ValidationRulesManager();
+        public static readonly ValidationRulesManager ValidationRules = new();
 
         public bool Validate()
         {
@@ -154,8 +154,7 @@ namespace Casimodo.Lib.ComponentModel
 
         void RaiseErrorsChanged(string property)
         {
-            if (ErrorsChanged != null)
-                ErrorsChanged(this, new DataErrorsChangedEventArgs(property));
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(property));
         }
 
         // IDataErrorInfo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -275,25 +274,23 @@ namespace Casimodo.Lib.ComponentModel
 
                 RemoveDataErrors(context, rule.ErrorCode);
             }
-            else if (errorObj is WrapperDataErrorInfo)
+            else if (errorObj is WrapperDataErrorInfo wrapperDataErrorInfo)
             {
-                var error = (WrapperDataErrorInfo)errorObj;
-                error.ErrorCode = rule.ErrorCode;
+                wrapperDataErrorInfo.ErrorCode = rule.ErrorCode;
 
-                RemoveDataErrors(context, error.ErrorCode);
-                AddDataErrors(context, error);
+                RemoveDataErrors(context, wrapperDataErrorInfo.ErrorCode);
+                AddDataErrors(context, wrapperDataErrorInfo);
             }
-            else if (errorObj is DataErrorInfo)
+            else if (errorObj is DataErrorInfo dataError)
             {
-                AddDataErrors(context, (DataErrorInfo)errorObj);
+                AddDataErrors(context, dataError);
             }
-            else if (errorObj is IEnumerable<DataErrorInfo>)
+            else if (errorObj is IEnumerable<DataErrorInfo> dataErrorList)
             {
-                IEnumerable<DataErrorInfo> collection = (IEnumerable<DataErrorInfo>)errorObj;
-                foreach (DataErrorInfo error in collection)
+                foreach (DataErrorInfo error in dataErrorList)
                     AddDataErrors(context, error);
             }
-            else if (errorObj is string)
+            else if (errorObj is string errorMessage)
             {
                 // We need an error code in this.
                 if (rule.ErrorCode == null)
@@ -301,9 +298,9 @@ namespace Casimodo.Lib.ComponentModel
                         string.Format("The validation for property(ies) '{0}' returned a string, " +
                             "but no ErrorCode was registered.", ExpandPropertyNames(rule.PropertyNames)));
 
-                DataErrorInfo error = new DataErrorInfo();
+                DataErrorInfo error = new();
                 error.ErrorCode = rule.ErrorCode;
-                error.ErrorMessage = (string)errorObj;
+                error.ErrorMessage = errorMessage;
 
                 AddDataErrors(context, error);
             }
@@ -324,7 +321,7 @@ namespace Casimodo.Lib.ComponentModel
             string errorMsg;
             object errorCode;
             AttributeRulesInfo rules = ValidationRules.GetAttributeRules(GetType(), context.ContextPropertyName);
-            ValidationContext ctx = new ValidationContext(this, null, null);
+            ValidationContext ctx = new(this, null, null);
             object value = rules.Prop.GetValue(this, null);
 
             // Process ValidationAttribute(s).
@@ -372,18 +369,18 @@ namespace Casimodo.Lib.ComponentModel
 
         DataErrorInfo CreateDataError(object errorCode, string errorMessage)
         {
-            var error = new DataErrorInfo();
-            error.ErrorCode = errorCode;
-            error.ErrorMessage = errorMessage;
+            var error = new DataErrorInfo
+            {
+                ErrorCode = errorCode,
+                ErrorMessage = errorMessage
+            };
 
             return error;
         }
 
         ErrorInfoContainer GetErrorInfoContainer(string propertyName, bool createIfMissing = true)
         {
-            ErrorInfoContainer propErrors = null;
-
-            if (!_errors.TryGetValue(propertyName, out propErrors) && createIfMissing)
+            if (!_errors.TryGetValue(propertyName, out ErrorInfoContainer propErrors) && createIfMissing)
             {
                 propErrors = new ErrorInfoContainer(propertyName);
                 _errors.Add(propertyName, propErrors);
@@ -485,8 +482,7 @@ namespace Casimodo.Lib.ComponentModel
 
             // Deregister the validation rule.
             // Side note: http://english.stackexchange.com/questions/25931/unregister-vs-deregister
-            List<CustomRuleInfo> rules = null;
-            if (CustomRulesPerInstance.TryGetValue(propertyName, out rules))
+            if (CustomRulesPerInstance.TryGetValue(propertyName, out List<CustomRuleInfo> rules))
             {
                 CustomRuleInfo rule = rules.FirstOrDefault(x => x.ErrorCode.Equals(errorCode));
                 if (rule != null)
@@ -503,23 +499,17 @@ namespace Casimodo.Lib.ComponentModel
         /// <summary>
         /// Holds the current data errors.
         /// </summary>
-        Dictionary<string, ErrorInfoContainer> _errors = new Dictionary<string, ErrorInfoContainer>();
+        Dictionary<string, ErrorInfoContainer> _errors = new();
 
-        internal Dictionary<string, List<CustomRuleInfo>> CustomRulesPerInstance
-        {
-            get { return _customRulesPerInstance ?? (_customRulesPerInstance = new Dictionary<string, List<CustomRuleInfo>>()); }
-        }
+        internal Dictionary<string, List<CustomRuleInfo>> CustomRulesPerInstance => _customRulesPerInstance ??= new();
 
         Dictionary<string, List<CustomRuleInfo>> _customRulesPerInstance;
 
-        internal bool HasCustomRulesPerInstance
-        {
-            get { return (_customRulesPerInstance != null && _customRulesPerInstance.Count != 0); }
-        }
+        internal bool HasCustomRulesPerInstance => (_customRulesPerInstance != null && _customRulesPerInstance.Count != 0);
 
-        protected override void OnDispose()
+        protected override void OnDisposed()
         {
-            base.OnDispose();
+            base.OnDisposed();
 
             ErrorsChanged = null;
 

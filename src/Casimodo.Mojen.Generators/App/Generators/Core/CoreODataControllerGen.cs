@@ -72,11 +72,6 @@ namespace Casimodo.Lib.Mojen
             return "_repo";
         }
 
-        string DbVar()
-        {
-            return "_db";
-        }
-
         void GenerateController()
         {
             Options = Controller.GetGeneratorConfig<ODataControllerOptions>() ?? new ODataControllerOptions();
@@ -317,10 +312,10 @@ namespace Casimodo.Lib.Mojen
         {
             var enableQueryAttrName = ODataConfig.EnableQueryAttributeName ?? "EnableQuery";
             Oo($"[{enableQueryAttrName}(");
-            if (false)
-#pragma warning disable CS0162
-                o("PageSize = 20, ");
-#pragma warning restore CS0162
+
+            if (Options.MaxPageSize != null)
+                o($"PageSize = {Options.MaxPageSize}, ");
+
             oO($"AllowedQueryOptions = LookupQueryOptions, MaxExpansionDepth = {Options.MaxExpansionDepth})]");
         }
 
@@ -334,7 +329,7 @@ namespace Casimodo.Lib.Mojen
 
             // Default query function.
             O();
-            OApiActionAuthAttribute(Type, "View");         
+            OApiActionAuthAttribute(Type, "View");
             OEnableQueryAttribute();
             OAttribute(HttpVerb.Get);
             O($"public IActionResult {ODataConfig.Query}()");
@@ -344,7 +339,7 @@ namespace Casimodo.Lib.Mojen
 
             // Distinct by property query function.
             O();
-            OApiActionAuthAttribute(Type, "View");        
+            OApiActionAuthAttribute(Type, "View");
             // TODO: REMOVE: OODataMethodRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
             OEnableQueryAttribute();
             OAttribute(HttpVerb.Get, $@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
@@ -483,9 +478,9 @@ namespace Casimodo.Lib.Mojen
             // Async, delta
             if (false)
             {
-#pragma warning disable 0162
+#pragma warning disable CS0162 // Unreachable code detected
                 var key = Type.Key;
-
+#pragma warning restore CS0162 // Unreachable code detected
                 O();
                 O("[AcceptVerbs(\"PATCH\", \"MERGE\")]");
                 O("[Route(\"({{{0}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]", key.VName);
@@ -497,7 +492,6 @@ namespace Casimodo.Lib.Mojen
                 O($"{RepoVar()}.ReferenceLoading(false);");
                 O($"return Updated(await {RepoVar()}.PatchAsync({0}, delta, save: true, token: cancellationToken));", key.VName);
                 End();
-#pragma warning restore 0162
             }
         }
 

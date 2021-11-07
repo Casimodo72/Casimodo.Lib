@@ -11,6 +11,7 @@ namespace Casimodo.Lib.ComponentModel
 
     public static class CommandFactory
     {
+        // TODO: ELIMINATE
         public static ICommandFactoryStrategy Strategy;
 
         public static ICommandEx Create<T>(Action<T> execute, Func<T, bool> canExecute)

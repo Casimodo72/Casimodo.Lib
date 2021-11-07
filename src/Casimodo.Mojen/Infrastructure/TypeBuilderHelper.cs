@@ -32,13 +32,6 @@ namespace Casimodo.Lib
             return typeBuilder;
         }
 
-        static void test()
-        {
-            
-        }
-
-
-
         public static void CreateAutoImplementedProperty(TypeBuilder builder, string propertyName, Type propertyType)
         {
             const string PrivateFieldPrefix = "_";

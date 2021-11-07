@@ -17,7 +17,7 @@ namespace Casimodo.Lib
         {
             var attr = elem.Attr(name, optional);
             if (attr == null)
-                return default(TEnum);
+                return default;
 
             return (TEnum)Enum.Parse(typeof(TEnum), (string)attr);
         }

@@ -39,7 +39,7 @@ namespace Casimodo.Lib.Mojen
         [OnSerializing]
         void OnSerializing(StreamingContext context)
         {
-            _typeQName = Type != null ? Type.AssemblyQualifiedName : null;
+            _typeQName = Type?.AssemblyQualifiedName;
         }
 
         [OnDeserialized]

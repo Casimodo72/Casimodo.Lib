@@ -458,8 +458,6 @@ namespace Casimodo.Lib.Mojen
 
         void GenGridCustomControlColumn(WebViewGenContext context, MojViewCustomControl control)
         {
-            var view = context.View;
-
             OB("");
 
             if (control.Type == "CheckBox")
@@ -568,7 +566,7 @@ namespace Casimodo.Lib.Mojen
             }
             else
             {
-                var label = vinfo.CustomDisplayLabel != null ? vinfo.CustomDisplayLabel : vprop.DisplayLabel;
+                var label = vinfo.CustomDisplayLabel ?? vprop.DisplayLabel;
                 if (label == null)
                     throw new MojenException("No label found for grid column.");
 
@@ -597,9 +595,7 @@ namespace Casimodo.Lib.Mojen
                 }
                 else
                 {
-#pragma warning disable CS0162 // Unreachable code detected
                     var format = "{0:";
-#pragma warning restore CS0162 // Unreachable code detected
                     if (vpropType.DateTimeInfo.IsDate)
                         format += "dd.MM.yyyy ";
                     if (vpropType.DateTimeInfo.IsTime)
@@ -649,7 +645,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (dprop.UseColor)
             {
-                valueTemplate = valueTemplate ?? $"data.get('{propPath}' || '')";
+                valueTemplate ??= $"data.get('{propPath}' || '')";
                 template = $"<div class='km-cellcol'><div class='km-cellmarker' style='background-color:#:data.get('{vprop.ColorProp.FormedTargetPath}')#'></div>#:data.get('{propPath}') || ''#</div>";
             }
 

@@ -226,9 +226,7 @@ namespace Casimodo.Lib.Mojen
         {
             foreach (var node in nodes)
             {
-                var reference = node as MojReferenceDataGraphNode;
-
-                if (reference != null)
+                if (node is MojReferenceDataGraphNode reference)
                 {
                     // Operate on entity types.
                     var targetType = reference.TargetType.RequiredStore;

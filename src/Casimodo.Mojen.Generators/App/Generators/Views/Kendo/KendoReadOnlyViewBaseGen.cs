@@ -91,7 +91,7 @@
         {
             var vprop = context.PropInfo.ViewProp;
             var prop = context.PropInfo.TargetDisplayProp;
-            binding = binding ?? GetBinding(context);
+            binding ??= GetBinding(context);
 
             CustomElemStyle(context);
 

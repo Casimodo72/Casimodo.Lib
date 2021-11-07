@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Presentation
         public ItemViewModel(TData data)
         {
             if (data == null)
-                throw new ArgumentNullException("data");
+                throw new ArgumentNullException(nameof(data));
 
             SetData(data);
         }

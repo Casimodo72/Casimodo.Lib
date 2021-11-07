@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
     public abstract class MexGeneratorBase<TThis> : MojenGeneratorBase
         where TThis : MexGeneratorBase<TThis>
     {
-        StringBuilder _sb = new StringBuilder();
+        readonly StringBuilder _sb = new StringBuilder();
 
         public MexGeneratorBase()
         {
@@ -63,10 +63,8 @@ namespace Casimodo.Lib.Mojen
 
         protected void O(MexItem item)
         {
-            if (item is MexExpressionNode)
+            if (item is MexExpressionNode node)
             {
-                var node = (MexExpressionNode)item;
-
                 if (node.Left != null)
                     O(node.Left);
 
@@ -76,9 +74,9 @@ namespace Casimodo.Lib.Mojen
                 if (node.Right != null)
                     O(node.Right);
             }
-            else if (item is MexCondition)
+            else if (item is MexCondition condition)
             {
-                Build((MexCondition)item);
+                Build(condition);
             }
             else if (item is MexProp)
             {

@@ -278,8 +278,7 @@ namespace Casimodo.Lib.Mojen
 
         public virtual string GetCssStyle(WebViewGenContext context, ViewTemplateItem cur)
         {
-            var config = cur.Style as Style;
-            if (config == null)
+            if (!(cur.Style is Style config))
                 return "";
 
             var modal = context.View.IsModal || context.IsModalView;
@@ -306,9 +305,7 @@ namespace Casimodo.Lib.Mojen
 
         public virtual string GetColumnClasses(WebViewGenContext context, ViewTemplateItem cur)
         {
-            var col = cur.Style as Style;
-
-            if (col != null && col.Col != null)
+            if (cur.Style is Style col && col.Col != null)
                 return col.Col;
 
             // Get number of columns
@@ -486,11 +483,8 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 throw new NotSupportedException("Display names via data attributes are not supported anymore.");
-                // TODO: REMOVE
-                // TODO: This is never hit in our current project. 
-#pragma warning disable CS0162 // Unreachable code detected
-                return $"@(Html.DisplayNameFor(m => m.{info.PropPath}))";
-#pragma warning restore CS0162 // Unreachable code detected
+                // TODO: REMOVE? This is never hit in our current project. 
+                // return $"@(Html.DisplayNameFor(m => m.{info.PropPath}))";
             }
         }
 

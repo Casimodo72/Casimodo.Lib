@@ -127,7 +127,7 @@ namespace Casimodo.Lib.Mojen
                         if (val.Kind == "FileName")
                         {
                             // Read and set file content.
-                            var filePath = DataConfig.DbSeedBinariesDirPath.Substring(DataConfig.DbDirPath.Length + 1);
+                            var filePath = DataConfig.DbSeedBinariesDirPath[(DataConfig.DbDirPath.Length + 1)..];
                             filePath += "\\" + val.Value;
                             assignments.Add(string.Format("{0} = ReadFileContent(@\"{1}\")",
                                 prop.Name,

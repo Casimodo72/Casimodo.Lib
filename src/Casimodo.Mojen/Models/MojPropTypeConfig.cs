@@ -118,7 +118,9 @@ namespace Casimodo.Lib.Mojen
         public Type Type { get; set; }
 
         [DataMember]
+#pragma warning disable IDE1006 // Naming Styles
         string _typeFullName { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <summary>
         /// NOTE: Will be int if the type is an enum.
@@ -126,7 +128,9 @@ namespace Casimodo.Lib.Mojen
         public Type TypeNormalized { get; set; }
 
         [DataMember]
+#pragma warning disable IDE1006 // Naming Styles
         string _typeNormalizedFullName { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         public bool IsModel()
         {
@@ -289,7 +293,7 @@ namespace Casimodo.Lib.Mojen
 
         public List<MojPropType> GenericTypeArguments
         {
-            get { return _genericTypeArguments ?? (_genericTypeArguments = new List<MojPropType>()); }
+            get { return _genericTypeArguments ??= new List<MojPropType>(); }
         }
 
         [DataMember]
@@ -314,8 +318,7 @@ namespace Casimodo.Lib.Mojen
                 // Allow strings for GUIDs.
                 if (TypeNormalized == typeof(Guid) && valueType == typeof(string))
                 {
-                    Guid g;
-                    if (Guid.TryParse((string)value, out g))
+                    if (Guid.TryParse((string)value, out _))
                         return value;
                 }
 
@@ -411,16 +414,20 @@ namespace Casimodo.Lib.Mojen
 
             if (Moj.IsDateTimeOrOffset(normalizedType))
             {
-                DateTimeInfo = new MojDateTimeInfo();
-                DateTimeInfo.IsDate = true;
-                DateTimeInfo.IsTime = true;
+                DateTimeInfo = new MojDateTimeInfo
+                {
+                    IsDate = true,
+                    IsTime = true
+                };
             }
 
             if (normalizedType == typeof(TimeSpan))
             {
-                TimeSpanInfo = new MojTimeSpanInfo();
-                TimeSpanInfo.IsHours = true;
-                TimeSpanInfo.IsMinutes = true;
+                TimeSpanInfo = new MojTimeSpanInfo
+                {
+                    IsHours = true,
+                    IsMinutes = true
+                };
             }
         }
 
@@ -486,8 +493,8 @@ namespace Casimodo.Lib.Mojen
         [OnSerializing]
         void OnSerializing(StreamingContext context)
         {
-            _typeNormalizedFullName = TypeNormalized != null ? TypeNormalized.FullName : null;
-            _typeFullName = Type != null ? Type.FullName : null;
+            _typeNormalizedFullName = TypeNormalized?.FullName;
+            _typeFullName = Type?.FullName;
         }
 
         [OnDeserialized]

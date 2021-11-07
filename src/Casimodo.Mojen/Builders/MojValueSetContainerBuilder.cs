@@ -277,8 +277,7 @@ namespace Casimodo.Lib.Mojen
         {
             var builder = new MojValueSetBuilder(this).Add().O(values);
             _onAdded?.Invoke(builder);
-            if (buildValueSet != null)
-                buildValueSet(builder);
+            buildValueSet?.Invoke(builder);
 
             return this;
         }

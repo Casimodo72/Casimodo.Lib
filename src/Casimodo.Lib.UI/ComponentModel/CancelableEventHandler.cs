@@ -8,11 +8,11 @@ namespace Casimodo.Lib
     public class CancelableEventArgs : EventArgs
     {
         bool _isCancelled;
-        bool _isCancelable;
+        readonly bool _isCancelable;
 
         public CancelableEventArgs(bool isCancelable = true)
         {
-            this._isCancelable = isCancelable;
+            _isCancelable = isCancelable;
         }
 
         /// <summary>
@@ -32,17 +32,11 @@ namespace Casimodo.Lib
         /// <summary>
         /// Indicates whether the operation is cancelable.
         /// </summary>
-        public bool IsCancelable
-        {
-            get { return _isCancelable; }
-        }
+        public bool IsCancelable => _isCancelable;
 
         /// <summary>
         /// Indicates whether the operation should be canceled.
         /// </summary>
-        public bool IsCancelled
-        {
-            get { return _isCancelled; }
-        }
+        public bool IsCancelled => _isCancelled;
     }
 }

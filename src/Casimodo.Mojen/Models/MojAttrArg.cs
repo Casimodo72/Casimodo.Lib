@@ -77,7 +77,7 @@ namespace Casimodo.Lib.Mojen
         [OnSerializing]
         void OnSerializing(StreamingContext context)
         {
-            _valueTypeName = ValueType != null ? ValueType.FullName : null;
+            _valueTypeName = ValueType?.FullName;
         }
 
         [OnDeserialized]

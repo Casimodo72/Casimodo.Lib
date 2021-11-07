@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
 
         public MexConditionBuilder Where(string path, MexOp op, object value)
         {
-            return Where(Prop(path), op, value is MexItem ? (MexItem)value : Value(value));
+            return Where(Prop(path), op, value is MexItem item ? item : Value(value));
         }        
 
         public MexConditionBuilder Where(MexItem left, MexOp op, MexItem right)

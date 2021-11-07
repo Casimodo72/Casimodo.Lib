@@ -90,7 +90,9 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public TPropBuilder _UnidirManyToManyCollectionOf(MojType itemType,
+#pragma warning restore IDE1006 // Naming Styles
             string linkTypeGuid,
             string ownerPropName = null,
             Action<MojModelBuilder> buildLinkType = null)
@@ -353,7 +355,7 @@ namespace Casimodo.Lib.Mojen
                         else
                             effectiveBackrefPropName = PropConfig.SingleName + "Of" + TypeConfig.Name;
 
-                        MojReferenceAxis backrefAxis = MojReferenceAxis.None;
+                        MojReferenceAxis backrefAxis;
                         if (axis == MojReferenceAxis.ToChild)
                             backrefAxis = MojReferenceAxis.ToParent;
                         else if (axis == MojReferenceAxis.ToCollectionItem)

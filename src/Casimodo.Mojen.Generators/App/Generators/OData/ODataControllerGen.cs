@@ -283,10 +283,8 @@ namespace Casimodo.Lib.Mojen
             O("[HttpGet]");
             O($"[ODataRoute(\"{ODataConfig.Namespace}.{ODataConfig.Query}()\")]");
             Oo("[EnableQuery(");
-            if (false)
-#pragma warning disable CS0162
-                o("PageSize = 20, ");
-#pragma warning restore CS0162
+            if (Options.MaxPageSize != null)
+                o($"PageSize = {Options.MaxPageSize}, ");
             oO($"AllowedQueryOptions = LookupQueryOptions, MaxExpansionDepth = {Options.MaxExpansionDepth})]");
             O($"public System.Web.Http.IHttpActionResult {ODataConfig.Query}()");
             Begin();

@@ -176,9 +176,11 @@ namespace Casimodo.Lib.Mojen
             foreach (var pathsByProp in pathsAtDepth.GroupBy(path => path.Steps[depth].SourceProp.Id))
             {
                 step = pathsByProp.First().Steps[depth];
-                var result = new MojReferenceDataGraphNode();
-                result.SourceProp = step.SourceProp;
-                result.TargetType = step.TargetType;
+                var result = new MojReferenceDataGraphNode
+                {
+                    SourceProp = step.SourceProp,
+                    TargetType = step.TargetType
+                };
                 result.TargetPredicate = predicates?.FirstOrDefault(x => x.Type == result.TargetType)?.Predicate;
 
                 key = null;
@@ -244,9 +246,8 @@ namespace Casimodo.Lib.Mojen
 
         static MojProp TryGetForeignKey(MojDataGraphNode node, bool includeForeignKey)
         {
-            MojReferenceDataGraphNode navigation = null;
             if (includeForeignKey &&
-                (navigation = node as MojReferenceDataGraphNode) != null &&
+                node is MojReferenceDataGraphNode navigation &&
                 // One-To-Many navigation properties do not have foreign keys.
                 !navigation.SourceProp.Reference.IsToMany)
             {
@@ -298,8 +299,7 @@ namespace Casimodo.Lib.Mojen
 
         public override bool Equals(MojDataGraphNode node)
         {
-            var other = node as MojPropDataGraphNode;
-            if (other == null) return false;
+            if (!(node is MojPropDataGraphNode other)) return false;
 
             return Prop.Id == other.Prop.Id;
         }
@@ -322,8 +322,7 @@ namespace Casimodo.Lib.Mojen
 
         public override bool Equals(MojDataGraphNode node)
         {
-            var other = node as MojReferenceDataGraphNode;
-            if (other == null) return false;
+            if (!(node is MojReferenceDataGraphNode other)) return false;
             if (other.TargetType != TargetType) return false;
             if (other.SourceProp.Id != SourceProp.Id) return false;
 
