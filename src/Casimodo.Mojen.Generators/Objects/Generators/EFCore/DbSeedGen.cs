@@ -20,8 +20,6 @@ namespace Casimodo.Lib.Mojen
             if (!config.IsDbSeedGeneratorEnabled)
                 return;
 
-            DataConfig = App.Get<DataLayerConfig>();
-
             var outputDirPath = DataConfig.DbSeedRegistryDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;

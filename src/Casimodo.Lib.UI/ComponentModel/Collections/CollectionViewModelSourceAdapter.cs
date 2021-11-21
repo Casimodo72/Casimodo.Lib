@@ -9,7 +9,6 @@ namespace Casimodo.Lib.Presentation
     /// This adapter is intended to chain a CustomObservableCollection
     /// with an underlying CollectionViewModel.
     /// </summary>
-    // TODO: Never tried this one in Silverlight yet.
     public class CollectionViewModelSourceAdapter : CollectionSourceAdapterBase
     {
         public CollectionViewModelSourceAdapter(CollectionViewModel source)

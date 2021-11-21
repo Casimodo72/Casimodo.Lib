@@ -10,7 +10,6 @@ namespace Casimodo.Lib.Presentation
     /// <summary>
     /// Base class adapter intended to be used as the source of the CustomObservableCollection.
     /// </summary>
-    // TODO: Never tried this one in Silverlight yet.
     public abstract class CollectionSourceAdapterBase : ObservableObject, IEnumerable, INotifyCollectionChanged
     {
         public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -31,6 +30,7 @@ namespace Casimodo.Lib.Presentation
         public abstract bool CanRemove
         { get; }
 
+        // TODO: REMOVE
 #if (false)
         public abstract bool CanEdit
         { get; }

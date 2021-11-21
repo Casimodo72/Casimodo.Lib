@@ -67,8 +67,8 @@ namespace Casimodo.Lib.UI
 
             Pager = new PagingManager();
             Pager.PageSize = 0;
-            // Pager.PageChanged += new EventHandler<EventArgs>(OnPagerPageChanged);
-            // Pager.RefreshRequested += new EventHandler(OnPagerRefreshRequested);
+            Pager.PageChanged += new EventHandler<EventArgs>(OnPagerPageChanged);
+            Pager.RefreshRequested += new EventHandler(OnPagerRefreshRequested);
 
             //MoveToNextCommand = CommandFactory.Create(
             //   () => View.MoveCurrentToNext(),
@@ -182,6 +182,16 @@ namespace Casimodo.Lib.UI
             {
                 _effectiveItems.EndUpdate();
             }
+        }
+
+        void OnPagerRefreshRequested(object sender, EventArgs e)
+        {
+            // TODO: IMPL.
+        }
+
+        void OnPagerPageChanged(object sender, EventArgs e)
+        {
+            // TODO: IMPL.
         }
 
         /// <summary>

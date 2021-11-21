@@ -21,12 +21,12 @@ namespace Casimodo.Lib.Mojen
 
         protected override void GenerateCore()
         {
-            foreach (var item in App.AllValueCollections.Where(x => x.Uses(this)))
+            foreach (var valueSetContainer in App.AllValueCollections.Where(x => x.Uses(this)))
             {
-                PerformWrite(Path.Combine(App.Get<DataLayerConfig>().DataPrimitiveDirPath, item.KeysContainerName + ".generated.cs"), () =>
+                PerformWrite(Path.Combine(DataConfig.DataPrimitiveDirPath, valueSetContainer.KeysContainerName + ".generated.cs"), () =>
                 {
                     OComment($"Generator: {nameof(PrimitiveKeysGen)}");
-                    GeneratePrimitiveDefinition(item);
+                    GeneratePrimitiveDefinition(valueSetContainer);
                 });
             }
         }

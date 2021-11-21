@@ -4,7 +4,7 @@ namespace Casimodo.Lib.ComponentModel
 {
     /// <summary>
     /// Holds the info of a single data error.
-    /// Source: http://mtaulty.com/CommunityServer/blogs/mike_taultys_blog/archive/2009/11/18/silverlight-4-rough-notes-binding-with-inotifydataerrorinfo.aspx
+    /// Source: Copied from Mike Taulty community server blog entry (this blog entry does not exist anymore)
     /// </summary>
     public class DataErrorInfo
     {
@@ -21,6 +21,5 @@ namespace Casimodo.Lib.ComponentModel
     }
 
     public class WrapperDataErrorInfo : DataErrorInfo
-    {
-    }
+    { }
 }

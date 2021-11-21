@@ -1,6 +1,6 @@
-﻿// TODO: There's no IPagedCollectionView and no PageChangingEventArgs in WPF.
-#if (!SILVERLIGHT)
+﻿// There's no IPagedCollectionView and no PageChangingEventArgs in WPF.
 
+// This was copied from Silverlight.
 namespace System.ComponentModel
 {
     // Summary:
@@ -28,5 +28,3 @@ namespace System.ComponentModel
         public int NewPageIndex { get; private set; }
     }
 }
-
-#endif

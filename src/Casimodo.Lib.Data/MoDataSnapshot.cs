@@ -62,7 +62,7 @@ namespace Casimodo.Lib.Data
             return false;
         }
 
-        public bool Snapshot(object item)
+        public static bool Snapshot(object item)
         {
             if (item == null)
                 return false;
@@ -73,14 +73,14 @@ namespace Casimodo.Lib.Data
             Type type = item.GetType();
 
             // Evaluate whether there are any tracked properties.
-            List<string> properties = MoDataSnapshot.Get(type);
+            List<string> properties = Get(type);
             if (properties == null)
                 throw new InvalidOperationException("Cannot make snapshot: No properties registered for change tracking.");
 
             var snapshot = new MoDataSnapshot();
             foreach (var prop in properties)
             {
-                snapshot.Properties.Add(prop, type.GetProperty(prop).GetValue(this, null));
+                snapshot.Properties.Add(prop, type.GetProperty(prop).GetValue(item, null));
             }
 
             snapshotObj.SetSnapshot(snapshot);
