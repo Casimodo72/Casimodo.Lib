@@ -16,7 +16,7 @@ namespace Casimodo.Lib.ComponentModel
 
     // TODO: REVISIT: Do we need INotifyPropertyChanging?
     [DataContract]
-    public abstract partial class ObservableObject : INotifyPropertyChanged, IDisposable, IDisposableEx
+    public abstract partial class ObservableObject : INotifyPropertyChanged, INotifyPropertyChanging, IDisposable, IDisposableEx
     {
         [Flags]
         protected enum InternalFlags
@@ -30,6 +30,9 @@ namespace Casimodo.Lib.ComponentModel
         protected InternalFlags _internalFlags;
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <inheritdoc cref="INotifyPropertyChanging.PropertyChanging"/>
+        public event PropertyChangingEventHandler PropertyChanging;
 
         [OnDeserializing]
         void OnDeserializing(StreamingContext context)
@@ -78,11 +81,7 @@ namespace Casimodo.Lib.ComponentModel
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
                 return;
 
-            var handler = PropertyChanged;
-            if (handler == null)
-                return;
-
-            handler(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         protected void RaisePropertyChangedCore(PropertyChangedEventArgs args)
@@ -90,11 +89,7 @@ namespace Casimodo.Lib.ComponentModel
             if (_internalFlags.HasFlag(InternalFlags.IsDeserializing))
                 return;
 
-            var handler = PropertyChanged;
-            if (handler == null)
-                return;
-
-            handler(this, args);
+            PropertyChanged?.Invoke(this, args);
         }
 
         /// <summary>
@@ -110,11 +105,21 @@ namespace Casimodo.Lib.ComponentModel
 
             OnPropertyChanged(args.PropertyName);
 
-            var handler = PropertyChanged;
-            if (handler == null)
-                return;
+            PropertyChanged?.Invoke(this, args);
+        }
 
-            handler(this, args);
+        /// <summary>
+        /// Raises the <see cref="PropertyChanging"/> event.
+        /// </summary>
+        /// <param name="e">The input <see cref="PropertyChangingEventArgs"/> instance.</param>
+        protected virtual void NotifyPropertyChanging(PropertyChangingEventArgs e)
+        {
+            PropertyChanging?.Invoke(this, e);
+        }
+
+        protected virtual void NotifyPropertyChanging(string propName)
+        {
+            PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propName));
         }
 
         protected virtual void OnPropertyChanged(string name)

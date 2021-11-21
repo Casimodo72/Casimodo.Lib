@@ -72,6 +72,7 @@ namespace Casimodo.Lib.Mojen
                     InitialSeed(SeedBuilder);
                 else
                     AlwaysSeed?.Invoke(SeedBuilder);
+
                 SeedBuilder.Build();
             }
             else if (SeedConfig.IsDbImportEnabled)
@@ -87,7 +88,7 @@ namespace Casimodo.Lib.Mojen
                 AlwaysSeed?.Invoke(SeedBuilder);
                 SeedBuilder.Build();
             }
-            else if (SeedConfig.IsDbSeedGeneratorEnabled)
+            else if (SeedConfig.IsDbSeedEnabled)
             {
                 if (Seeder != null)
                 {
@@ -121,9 +122,11 @@ namespace Casimodo.Lib.Mojen
     public class MojGlobalDataSeedConfig : MojBase
     {
         public List<MojDataSeedSectionConfig> Sections { get; set; } = new List<MojDataSeedSectionConfig>();
-        public bool IsDbSeedGeneratorEnabled { get; set; }
-        public bool IsDbImportEnabled { get; set; }
+        public bool IsDbSeedEnabled { get; set; }
+       
         public bool IsInitialSeedEnabled { get; set; }
+
+        public bool IsDbImportEnabled { get; set; }
         public string DbImportConnectionString { get; set; }
         public string DbImportOutputXmlDirPath { get; set; }
         public string DbImportOutputSeedDirPath { get; set; }

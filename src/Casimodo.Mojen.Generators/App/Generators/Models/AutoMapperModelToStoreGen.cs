@@ -27,16 +27,23 @@ namespace Casimodo.Lib.Mojen
                 () => GenerateAutoMapperConfiguration(context));
         }
 
-        void GenerateAutoMapperConfiguration(ViewModelLayerConfig context)
+        void GenerateAutoMapperConfiguration(ViewModelLayerConfig viewModelConfig)
         {
+            bool useModelAlias = false;
+            if (!string.IsNullOrEmpty(viewModelConfig.AutoMapperModelsExternAlias))
+            {
+                useModelAlias = true;
+                O($"extern alias {viewModelConfig.AutoMapperModelsExternAlias};");
+                O($"using Models = {viewModelConfig.AutoMapperModelsExternAlias}::{viewModelConfig.Namespace};");
+            }
             OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Data");
             //App.GetForeignDataNamespaces(context.DataConfig.DataNamespace));            
-            ONamespace(context.DataConfig.DataNamespace);
+            ONamespace(viewModelConfig.DataConfig.DataNamespace);
             O("public static partial class AutoMapperConfiguration");
             Begin();
 
             // NOTE: We're using AutoMapper 4.2.1.
-            O($"public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c, {context.DataConfig.DbRepositoryCoreName} core)");
+            O($"public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c, {viewModelConfig.DataConfig.DbRepositoryCoreName} core)");
             Begin();
             O();
 
@@ -47,18 +54,26 @@ namespace Casimodo.Lib.Mojen
 
                 O("// " + model.Name);
 
+                var storeClassName = model.Store.ClassName;
+                var modelClassName = model.ClassName;
+                if (useModelAlias)
+                {
+                    modelClassName = "Models." + modelClassName;
+                }
+
                 // Mapping: entity --> model
 
-                Oo("c.CreateMap<{0}, {1}>()", model.Store.ClassName, model.ClassName);
+                Oo($"c.CreateMap<{storeClassName}, {modelClassName}>()");
 
-                // Ignore non-mapped properties
-                foreach (var prop in model
+                var props = model
                     .GetProps()
                     .Where(x =>
                         x.Store == null
                         // || x.IsMappedToStore == false
-                        || x.Store.IsExcludedFromDb))
+                        || x.Store.IsExcludedFromDb);
 
+                // Ignore non-mapped properties
+                foreach (var prop in props)
                 {
                     Br();
                     if (prop.Store != null && prop.Store.IsExcludedFromDb)
@@ -71,20 +86,24 @@ namespace Casimodo.Lib.Mojen
                         //
                         // AutoMapper: ExplicitExpansion: Ignores this member for LINQ projections
                         //  unless explicitly expanded during projection.
-                        Oo("    .ForMember(s => s.{0}, o => o.ExplicitExpansion())", prop.Name);
+                        Oo($"    .ForMember(d => d.{prop.Name}, o => o.ExplicitExpansion())");
                     }
                     else
                     {
-                        Oo("    .ForMember(s => s.{0}, o => o.Ignore())", prop.Name);
+                        Oo($"    .ForMember(d => d.{ prop.Name}, o => o.Ignore())");
                     }
                 }
-                // KABU TODO: For now, just ignore the built-in DynamicProperties.
+
                 Br();
-                if (model.IsODataOpenTypeEffective)
-                {
-                    Oo("    .ForMember(s => s.DynamicProperties, o => o.Ignore())");
-                    Br();
-                }
+
+                // TODO: REMOVE? View model mapping with OData is not supported anymore.
+                //if (model.IsODataOpenTypeEffective)
+                //{
+                //    // TODO: For now, just ignore the built-in DynamicProperties.
+                //    Oo("    .ForMember(s => s.DynamicProperties, o => o.Ignore())");
+                //    Br();
+                //}
+
                 Oo("    .AfterMap((s, d) => core.OnLoaded(d))");
 
                 o(";");
@@ -92,7 +111,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Mapping: model --> entity
 
-                O("MoAutoMapperInitializer.CreateMap<{0}, {1}>(c);", model.ClassName, model.Store.ClassName);
+                O($"MoAutoMapperInitializer.CreateModelToStoreMap<{modelClassName}, {storeClassName}>(c);");
                 // KABU TODO: REVISIT: AfterMap is of no use to us, because it won't be called when projecting entity queries.
                 //O("AutoMapper.Mapper.CreateMap<{0}, {1}>().AfterMap((e, m) => factory.OnLoaded(m));", model.Store.ClassName, model.ClassName);
                 O();

@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             var config = App.Get<MojGlobalDataSeedConfig>();
-            if (!config.IsDbSeedGeneratorEnabled)
+            if (!config.IsDbSeedEnabled)
                 return;
 
             var outputDirPath = DataConfig.DbSeedRegistryDirPath;

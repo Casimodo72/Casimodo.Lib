@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 
 namespace Casimodo.Lib.Data
 {
@@ -7,11 +8,7 @@ namespace Casimodo.Lib.Data
     {
         public static Guid? GetTypeGuid(Type type)
         {
-            var attrs = type.GetCustomAttributes(typeof(TypeIdentityAttribute), false);
-            if (attrs.Length == 0)
-                return null;
-
-            return ((TypeIdentityAttribute)attrs[0]).Guid;
+            return type.GetCustomAttribute<TypeIdentityAttribute>(false)?.Guid;
         }
     }
 

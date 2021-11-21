@@ -110,21 +110,42 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public void Remove(params string[] props)
+        public void Remove(params string[] propNames)
         {
             IsActive = true;
-            foreach (var propName in props)
+            foreach (var propName in propNames)
             {
-                var item = Props.FirstOrDefault(x => x.Name == propName);
-                if (item == null)
+                var propFilterToRemove = Props.FirstOrDefault(x => x.Name == propName);
+                if (propFilterToRemove == null)
                     throw new MojenException($"Prop '{propName}' not found in filter.");
 
-                Props.Remove(item);
+                // TODO: Think about removing the props directly from the MojType.
+                Props.Remove(propFilterToRemove);
+
+                if (Owner.StoreOrSelf.IsEntity())
+                {
+                    foreach (var prop in Owner.StoreOrSelf.GetProps())
+                    {
+                        if (prop.DbAnno.Index.Is)
+                        {
+                            var indexMemberToRemove = prop.DbAnno.Index.Members
+                                // Compare using IDs because the index member props
+                                // are always entity props and the prop to remove might
+                                // be model prop; i.e. instance comparison won't work.
+                                .FirstOrDefault(x => x.Prop.Id == propFilterToRemove.Prop.Id);
+                            if (indexMemberToRemove != null)
+                            {
+                                prop.DbAnno.Index.Members.Remove(indexMemberToRemove);
+                            }
+                        }
+                    }
+                }
 
                 // Implicitely remove foreign key prop of a navigation prop.
-                if (item.Prop.IsNavigation && item.Prop.Navigation.ForeignKey != null)
+                if (propFilterToRemove.Prop.IsNavigation && 
+                    propFilterToRemove.Prop.Navigation.ForeignKey != null)
                 {
-                    Remove(item.Prop.Navigation.ForeignKey.Name);
+                    Remove(propFilterToRemove.Prop.Navigation.ForeignKey.Name);
                 }
             }
         }

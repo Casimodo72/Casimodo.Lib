@@ -13,8 +13,6 @@ namespace Casimodo.Lib.Mojen
             Scope = "DataContext";
         }
 
-        // TODO: REMOVE: public DataLayerConfig DataConfig { get; set; }
-
         protected override void GenerateCore()
         {
             var outputDirPath = DataConfig.DbSeedRegistryDirPath;

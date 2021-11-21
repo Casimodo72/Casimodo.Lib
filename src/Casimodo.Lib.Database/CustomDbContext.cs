@@ -2,6 +2,7 @@
 using System;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
@@ -83,11 +84,10 @@ namespace Casimodo.Lib.Data
                 .GetEntityTypes()
                 .SelectMany(e => e.GetProperties())
                 .Where(p => p.PropertyInfo != null
-                            && (p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?))))
+                    && (p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?))))
             {
-                var attribute = (PrecisionAttribute)decimalProperty.PropertyInfo
-                    .GetCustomAttributes(typeof(PrecisionAttribute), true)
-                    .FirstOrDefault();
+                var attribute = decimalProperty.PropertyInfo
+                    .GetCustomAttribute<PrecisionAttribute>(true);
 
                 if (attribute != null)
                     decimalProperty.SetColumnType($"decimal({attribute.Precision},{attribute.Scale})");

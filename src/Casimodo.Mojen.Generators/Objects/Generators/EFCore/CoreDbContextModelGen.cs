@@ -79,7 +79,8 @@ namespace Casimodo.Lib.Mojen
                     {
                         IndexName = GetIndexName(x),
                         Prop = x
-                    });
+                    })
+                    .ToList();
 
                 if (indexes.HasDuplicates(x => x.IndexName))
                     throw new MojenException("Duplicate index names.");

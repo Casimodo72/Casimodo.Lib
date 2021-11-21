@@ -210,14 +210,14 @@ namespace Casimodo.Lib.ComponentModel
         {
             // TODO: Currently not thread-safe.
 
-
             // Try to find matching type.
             if (!_propertiesHolder.TryGetValue(type, out Dictionary<string, object> props))
             {
                 props = new Dictionary<string, object>();
 
                 // Add all public properties which are annotated with at least one ValidationAttribute.
-                foreach (var prop in type.GetProperties().Where(x => x.GetCustomAttributes(true).OfType<ValidationAttribute>().Any()))
+                foreach (var prop in type.GetProperties()
+                    .Where(x => x.GetCustomAttributes<ValidationAttribute>(true).Any()))
                 {
                     props.Add(prop.Name, null);
                 }

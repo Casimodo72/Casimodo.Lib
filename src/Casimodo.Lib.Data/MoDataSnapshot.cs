@@ -97,8 +97,7 @@ namespace Casimodo.Lib.Data
 
             string[] propertyNames =
                 type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Where(x => x.GetCustomAttributes(typeof(TrackChangesAttribute), true)
-                    .Any())
+                    .Where(x => x.GetCustomAttribute(typeof(TrackChangesAttribute), true) != null)
                     .Select(x => x.Name)
                     .ToArray();
 
