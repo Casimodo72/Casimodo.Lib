@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
     /// <summary>
     /// Generates entity view models for WPF/Universal Apps (XAML).
     /// </summary>
-    public class ObservableViewModelGen : ClassGen
+    public class ObservableDataViewModelGen : ClassGen
     {
         static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new ReadOnlyCollection<string>(new string[] {
             // NOTE: [Required] will be applied via the OData model builder.
@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Mojen
             "UIHint", "DataType"
         });
 
-        public ObservableViewModelGen()
+        public ObservableDataViewModelGen()
         {
             Scope = "App";
 
@@ -39,21 +39,23 @@ namespace Casimodo.Lib.Mojen
             };
         }
 
+        public ViewModelLayerConfig ViewModelConfig { get; set; }
+
         public List<string> Namespaces { get; private set; }
 
         protected override void GenerateCore()
         {
-            var context = App.Get<ViewModelLayerConfig>();
+            ViewModelConfig = App.Get<ViewModelLayerConfig>();
 
-            if (string.IsNullOrEmpty(context.ModelsDirPath))
+            if (string.IsNullOrEmpty(ViewModelConfig.ModelsDirPath))
                 return;
 
             var models = App.AllModels.ToArray();
             foreach (MojType model in models)
             {
                 string outputDirPath = model.OutputDirPath != null
-                    ? Path.Combine(context.ModelsDirPath, model.OutputDirPath)
-                    : context.ModelsDirPath;
+                    ? Path.Combine(ViewModelConfig.ModelsDirPath, model.OutputDirPath)
+                    : ViewModelConfig.ModelsDirPath;
 
                 string outputFilePath = Path.Combine(outputDirPath, model.ClassName + ".generated.cs");
 
@@ -73,7 +75,9 @@ namespace Casimodo.Lib.Mojen
                 (type.StoreOrSelf.Namespace != type.Namespace ? type.StoreOrSelf.Namespace : null),
                 GetFriendNamespaces(type));
 
-            ONamespace(type.Namespace);
+            ONamespace(ViewModelConfig.Namespace);
+
+            // ONamespace(type.Namespace);
 
             GenerateClassHead(type, interfaces: type.Interfaces.Where(x => x.AddToViewModel).ToList());
 

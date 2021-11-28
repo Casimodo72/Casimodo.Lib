@@ -489,7 +489,6 @@ namespace Casimodo.Lib.Mojen
                 Begin();
                 O("Validate(delta.GetEntity());");
                 O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-                O($"{RepoVar()}.ReferenceLoading(false);");
                 O($"return Updated(await {RepoVar()}.PatchAsync({0}, delta, save: true, token: cancellationToken));", key.VName);
                 End();
             }
@@ -509,8 +508,6 @@ namespace Casimodo.Lib.Mojen
             OAttribute(HttpVerb.Delete, "({" + key.VName + "})");
             O("public async Task<IActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
-            O($"{RepoVar()}.ReferenceLoading(false);");
-            O();
             // Operate on the entity repository (i.e. not the model repository).
             var repository = Type.Kind == MojTypeKind.Model ? $"{RepoVar()}.Entities" : RepoVar();
             O($"var item = {repository}.Get({key.VName});");

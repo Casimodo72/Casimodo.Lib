@@ -125,9 +125,8 @@ namespace Casimodo.Lib.Mojen
 
             if (mapping.From.Count > 1)
             {
-                // KABU TODO: REMOVE? We don't use multiple key props anywhere.
-                keyType = $"Tuple<{keyType}>";
-                keyTemplate = $"Tuple.Create({keyTemplate})";
+                keyType = $"({keyType})";
+                keyTemplate = $"({keyTemplate})";
             }
 
             var dictionaryType = $"Dictionary<{keyType}, {toPropType}>";
@@ -153,20 +152,20 @@ namespace Casimodo.Lib.Mojen
             O($"static readonly {dictionaryType} {dictionary} = new {dictionaryType}");
             Begin();
             string value;
-            foreach (MojValueSet item in config.Items)
+            foreach (MojValueSet valueSet in config.Items)
             {
                 if (isFromNamedValue)
-                    key = (string)item.Get(config.NamePropName).Value;
+                    key = (string)valueSet.Get(config.NamePropName).Value;
                 else
                     key = string.Format(keyTemplate,
                         mapping.From.Select(x =>
-                            Moj.CS(item.Get(x).Value, parse: true))
+                            Moj.CS(valueSet.Get(x).Value, parse: true))
                        .ToArray());
 
                 if (isToNamedValue)
-                    value = (string)item.Get(config.NamePropName).Value;
+                    value = (string)valueSet.Get(config.NamePropName).Value;
                 else
-                    value = Moj.CS(item.Get(toPropName).Value, parse: true);
+                    value = Moj.CS(valueSet.Get(toPropName).Value, parse: true);
 
                 O($"[{key}] = {value},");
             }
@@ -195,10 +194,10 @@ namespace Casimodo.Lib.Mojen
 
             O($"static readonly {dictionaryType} {dictionary} = new {dictionaryType}");
             Begin();
-            foreach (MojValueSet item in config.Items)
+            foreach (MojValueSet valueSet in config.Items)
             {
-                var fromVal = item.Get(fromPropName);
-                var toVal = item.Get(mapping.To);
+                var fromVal = valueSet.Get(fromPropName);
+                var toVal = valueSet.Get(mapping.To);
 
                 O("[{0}] = {1},",
                     Moj.CS(fromVal.Value, parse: true),
@@ -207,12 +206,12 @@ namespace Casimodo.Lib.Mojen
             End(";");
         }
 
-        void AddDescription(MojValueSet item, string name, List<string> descriptions)
+        void AddDescription(MojValueSet valueSet, string name, List<string> descriptions)
         {
-            if (!item.Has(name))
+            if (!valueSet.Has(name))
                 return;
 
-            var text = item.Get(name).Value as string;
+            var text = valueSet.Get(name).Value as string;
             if (string.IsNullOrWhiteSpace(text))
                 return;
 

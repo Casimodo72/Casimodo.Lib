@@ -50,28 +50,28 @@ namespace Casimodo.Lib.Mojen
             if (Options.IsNamedValueEnabled)
             {
                 O();
-                MojValueSet item;
-                var props = config.Items.Where(x => !x.IsNull).ToList();
-                for (int i = 0; i < props.Count; i++)
+                MojValueSet valueSet;
+                var valueSetList = config.Items.Where(x => !x.IsNull).ToList();
+                for (int i = 0; i < valueSetList.Count; i++)
                 {
-                    item = props[i];
+                    valueSet = valueSetList[i];
 
                     // Summary of member                
-                    if (item.Has("DisplayValue"))
-                        O("// DisplayValue: " + item.Get("DisplayValue").Value);
+                    if (valueSet.Has("DisplayValue"))
+                        O("// DisplayValue: " + valueSet.Get("DisplayValue").Value);
 
-                    if (item.Has("DisplayName"))
-                        O("// DisplayName: " + item.Get("DisplayName").Value);
+                    if (valueSet.Has("DisplayName"))
+                        O("// DisplayName: " + valueSet.Get("DisplayName").Value);
 
-                    if (item.Has("Display"))
-                        O("// Display: " + item.Get("Display").Value);
+                    if (valueSet.Has("Display"))
+                        O("// Display: " + valueSet.Get("Display").Value);
 
-                    if (item.Has("Description"))
-                        O("// Description: " + item.Get("Description").Value);
+                    if (valueSet.Has("Description"))
+                        O("// Description: " + valueSet.Get("Description").Value);
 
                     // Public static member
-                    var name = item.Get(config.NamePropName);
-                    var val = item.Get(config.ValuePropName);
+                    var name = valueSet.Get(config.NamePropName);
+                    var val = valueSet.Get(config.ValuePropName);
                     O("public static {0} = {1};", name.Value, Moj.JS(val.Value));
                 }
             }
@@ -119,17 +119,17 @@ namespace Casimodo.Lib.Mojen
             OB($"private static {dictionary} =");
             string key;
             string value;
-            foreach (MojValueSet item in config.Items)
+            foreach (MojValueSet valueSet in config.Items)
             {
                 key = string.Format(keyTemplate,
                     mapping.From.Select(x =>
-                        Moj.JS(item.Get(x).Value, parse: true))
+                        Moj.JS(valueSet.Get(x).Value, parse: true))
                    .ToArray());
 
                 if (isToNamedValue)
-                    value = config.KeysContainerName + "." + item.Get(config.NamePropName).Value;
+                    value = config.KeysContainerName + "." + valueSet.Get(config.NamePropName).Value;
                 else
-                    value = Moj.JS(item.Get(toPropName).Value, parse: true);
+                    value = Moj.JS(valueSet.Get(toPropName).Value, parse: true);
 
                 O($"{key}: {value},");
             }

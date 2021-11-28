@@ -28,9 +28,9 @@ namespace Casimodo.Lib.Mojen
             var aggNameDupls = Aggregate.GroupBy(x => x).Where(g => g.Count() > 1).Select(y => y.Key).ToList();
             if (aggNameDupls.Count != 0)
                 throw new MojenException(
-                    string.Format("Duplicate aggregate value names (aggregate {0}: {1})",
+                    string.Format("Duplicate aggregate value names (aggregate name: '{0}', duplicates: {1})",
                         Aggregate.Name,
-                        aggNameDupls.Join(", ")));
+                        aggNameDupls.Select(x => $"'{x}'").Join(", ")));
         }
     }
 }

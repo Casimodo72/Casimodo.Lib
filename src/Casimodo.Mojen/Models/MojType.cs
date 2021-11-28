@@ -88,6 +88,17 @@ namespace Casimodo.Lib.Mojen
             return Props.Any(x => x.Name == prop);
         }
 
+        public void AddInterface(MojType @interface)
+        {
+            foreach (var prop in @interface.GetProps())
+            {
+                if (prop.IsForeignKey)
+                    continue;
+
+                Add(prop.Name);
+            }
+        }
+
         public void Add(params string[] props)
         {
             IsActive = true;
@@ -112,41 +123,52 @@ namespace Casimodo.Lib.Mojen
 
         public void Remove(params string[] propNames)
         {
-            IsActive = true;
             foreach (var propName in propNames)
             {
-                var propFilterToRemove = Props.FirstOrDefault(x => x.Name == propName);
-                if (propFilterToRemove == null)
+                Remove(propName);
+            }
+        }
+
+        public void Remove(string propName, bool mustExist = true)
+        {
+            IsActive = true;
+
+            var propFilterToRemove = Props.FirstOrDefault(x => x.Name == propName);
+            if (propFilterToRemove == null)
+            {
+                if (mustExist)
                     throw new MojenException($"Prop '{propName}' not found in filter.");
 
-                // TODO: Think about removing the props directly from the MojType.
-                Props.Remove(propFilterToRemove);
+                return;
+            }
 
-                if (Owner.StoreOrSelf.IsEntity())
+            // TODO: Think about removing the props directly from the MojType.
+            Props.Remove(propFilterToRemove);
+
+            if (Owner.StoreOrSelf.IsEntity())
+            {
+                foreach (var prop in Owner.StoreOrSelf.GetProps())
                 {
-                    foreach (var prop in Owner.StoreOrSelf.GetProps())
+                    if (prop.DbAnno.Index.Is)
                     {
-                        if (prop.DbAnno.Index.Is)
+                        var indexMemberToRemove = prop.DbAnno.Index.Members
+                            // Compare using IDs because the index member props
+                            // are always entity props and the prop to remove might
+                            // be model prop; i.e. instance comparison won't work.
+                            .FirstOrDefault(x => x.Prop.Id == propFilterToRemove.Prop.Id);
+                        if (indexMemberToRemove != null)
                         {
-                            var indexMemberToRemove = prop.DbAnno.Index.Members
-                                // Compare using IDs because the index member props
-                                // are always entity props and the prop to remove might
-                                // be model prop; i.e. instance comparison won't work.
-                                .FirstOrDefault(x => x.Prop.Id == propFilterToRemove.Prop.Id);
-                            if (indexMemberToRemove != null)
-                            {
-                                prop.DbAnno.Index.Members.Remove(indexMemberToRemove);
-                            }
+                            prop.DbAnno.Index.Members.Remove(indexMemberToRemove);
                         }
                     }
                 }
+            }
 
-                // Implicitely remove foreign key prop of a navigation prop.
-                if (propFilterToRemove.Prop.IsNavigation && 
-                    propFilterToRemove.Prop.Navigation.ForeignKey != null)
-                {
-                    Remove(propFilterToRemove.Prop.Navigation.ForeignKey.Name);
-                }
+            // Implicitely remove foreign key prop of a navigation prop.
+            if (propFilterToRemove.Prop.IsNavigation &&
+                propFilterToRemove.Prop.Navigation.ForeignKey != null)
+            {
+                Remove(propFilterToRemove.Prop.Navigation.ForeignKey.Name);
             }
         }
     }
@@ -426,7 +448,7 @@ namespace Casimodo.Lib.Mojen
 
         public IEnumerable<MojProp> GetLocalProps(bool custom = true)
         {
-            return LocalProps.Where(x => (custom || !x.IsCustom));
+            return LocalProps.Where(x => custom || !x.IsCustom);
         }
 
         public IEnumerable<MojProp> GetLocalTrackedProps()
@@ -638,9 +660,6 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public bool IsMultitenant { get; set; }
-
-        [DataMember]
-        public List<MojValueSetContainer> Seedings { get; private set; } = new List<MojValueSetContainer>();
 
         [DataMember]
         public List<MojProp> ChangeTrackingProps { get; private set; } = new List<MojProp>();

@@ -235,7 +235,6 @@ namespace Casimodo.Lib.Mojen
             Begin();
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-            O("_db.ReferenceLoading(false);");
             O();
 
             O("OnCreatingExtended(model);");
@@ -411,9 +410,6 @@ namespace Casimodo.Lib.Mojen
 
             O("if (!ModelState.IsValid) return BadRequest(ModelState);");
 
-            // Disable loading of referenced entities.
-            O("_db.ReferenceLoading(false);");
-
             // TODO: REMOVE: O("OnUpdatingExtended(model, group);");
 
             // Update the item.
@@ -452,7 +448,6 @@ namespace Casimodo.Lib.Mojen
                 Begin();
                 O("Validate(delta.GetEntity());");
                 O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-                O("_db.ReferenceLoading(false);");
                 O("return Updated(await _db.PatchAsync({0}, delta, save: true, token: cancellationToken));", key.VName);
                 End();
 #pragma warning restore 0162
@@ -473,7 +468,6 @@ namespace Casimodo.Lib.Mojen
             O("[ODataRoute(\"({{{0}}})\")]", key.VName);
             O("public async Task<IHttpActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
             Begin();
-            O("_db.ReferenceLoading(false);");
             O();
             // Operate on the entity repository (i.e. not the model repository).
             var repository = Type.Kind == MojTypeKind.Model ? "_db.Entities" : "_db";

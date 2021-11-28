@@ -50,36 +50,24 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        public MojValueSetContainerBuilder To(MojType type)
-        {
-            Config.TypeConfig = type;
+        // TODO: REMOVE? Not used
+        //public MojValueSetContainerBuilder To(MojType type)
+        //{
+        //    Config.TypeConfig = type;
 
-            // Set value type and key prop name.
-            var key = Config.TypeConfig.Key;
-            Config.ValueType = key.Type.TypeNormalized;
-            Config.ValuePropName = key.Name;
+        //    // Set value type and key prop name.
+        //    var key = Config.TypeConfig.Key;
+        //    Config.ValueType = key.Type.TypeNormalized;
+        //    Config.ValuePropName = key.Name;
 
-            type.Seedings.Add(Config);
+        //    type.Seedings.Add(Config);
 
-            return this;
-        }
+        //    return this;
+        //}
 
         public MojValueSetContainerBuilder ProducePrimitiveKeys()
         {
             Config.ProducesPrimitiveKeys = true;
-            return this;
-        }
-
-        // KABU TODO: ELIMINATE
-        [Obsolete("Will be removed")]
-        MojValueSetContainerBuilder Ignore(params string[] propertyNames)
-        {
-            foreach (var prop in propertyNames)
-            {
-                if (!Config.IgnoredSeedMappings.Contains(prop))
-                    Config.IgnoredSeedMappings.Add(prop);
-            }
-
             return this;
         }
 
@@ -122,6 +110,26 @@ namespace Casimodo.Lib.Mojen
             Config.SeedMappings.AddRange(effectiveNames);
             foreach (var propName in effectiveNames)
                 Config.UseProp(propName);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the value of mapped property "Description".
+        /// </summary>
+        public MojValueSetContainerBuilder SetDescription(string description)
+        {
+            Values.Description(description);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the value of the given mapped property.
+        /// </summary>
+        public MojValueSetContainerBuilder Set(string name, object value)
+        {
+            Values.Set(name, value);
 
             return this;
         }
@@ -173,15 +181,25 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        public MojValueSetContainerBuilder UseDefault(string name, Func<MojValueSet, object> provider)
+        {
+            var item = Defaults.FirstOrDefault(x => x.Name == name);
+            if (item == null)
+            {
+                item = CreateUseDefaultProp(name);
+            }
+
+            item.ProvideValue = provider;
+
+            return this;
+        }
+
         public MojValueSetContainerBuilder UseDefault(string name, object value)
         {
             var item = Defaults.FirstOrDefault(x => x.Name == name);
             if (item == null)
             {
-                item = new MojValueSetProp { Name = name };
-                Defaults.Add(item);
-                Config.UseDefaultProp(name);
-                Config.UseProp(name);
+                item = CreateUseDefaultProp(name);
             }
 
             item.Value = Config.ConvertFromLiteral(name, value);
@@ -189,12 +207,32 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
+        MojValueSetProp CreateUseDefaultProp(string name)
+        {
+            var item = new MojValueSetProp { Name = name };
+            Defaults.Add(item);
+            Config.UseDefaultProp(name);
+            Config.UseProp(name);
+
+            return item;
+        }
+
         public string IndexName { get; set; }
+
+        internal MojValueSetProp GetIndexProp(bool required = true)
+        {
+            var indexProp = Defaults.FirstOrDefault(x => x.Name == IndexName);
+            if (indexProp == null && required)
+            {
+                throw new MojenException($"Not index prop defined on type '{Config.TypeConfig.Name}'.");
+            }
+
+            return indexProp;
+        }
 
         public MojValueSetContainerBuilder ResetIndex()
         {
-            var item = Defaults.First(x => x.Name == IndexName);
-            item.Value = 0;
+            GetIndexProp().Value = 0;
             return this;
         }
 
@@ -250,42 +288,41 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetBuilder Add()
         {
-            return new MojValueSetBuilder(this).Add();
+            _currentValueSetBuilder = new MojValueSetBuilder(this).Add();
+
+            return _currentValueSetBuilder;
         }
+
+        MojValueSetBuilder _currentValueSetBuilder;
+
+        public MojValueSetBuilder Values => _currentValueSetBuilder;
 
         /// <summary>
         /// Sets the value of an index mapped property.
         /// </summary>
-        public MojValueSetBuilder Add(params object[] values)
+        public MojValueSetContainerBuilder Add(params object[] values)
         {
-            var builder = new MojValueSetBuilder(this).Add().O(values);
+            var builder = Add().O(values);
 
-            _onAdded?.Invoke(builder);
+            var indexProp = GetIndexProp(required: false);
+            if (indexProp != null)
+            {
+                indexProp.Value = ((int)indexProp.Value) + 1;
+            }
 
-            return builder;
-        }
-
-        public MojValueSetContainerBuilder With(params object[] values)
-        {
-            var builder = new MojValueSetBuilder(this).Add().O(values);
             _onAdded?.Invoke(builder);
 
             return this;
         }
 
-        public MojValueSetContainerBuilder With(object[] values, Action<MojValueSetBuilder> buildValueSet = null)
-        {
-            var builder = new MojValueSetBuilder(this).Add().O(values);
-            _onAdded?.Invoke(builder);
-            buildValueSet?.Invoke(builder);
-
-            return this;
-        }
-
-        public MojValueSetBuilder AddDummy()
-        {
-            return new MojValueSetBuilder(this).AddDummy();
-        }
+        // TODO: REMOVE
+        //public MojValueSetContainerBuilder With(object[] values, Action<MojValueSetBuilder> buildValueSet = null)
+        //{
+        //    var builder = Add().O(values);
+        //    _onAdded?.Invoke(builder);
+        //    buildValueSet?.Invoke(builder);
+        //    return this;
+        //}
 
         public MojValueSetContainerBuilder Mapping(string from, string to)
         {
@@ -317,21 +354,45 @@ namespace Casimodo.Lib.Mojen
             return builder;
         }
 
+        public bool IsAutoAggregateByNameDisabled { get; set; }
+
+        public MojValueSetContainerBuilder DisableAutoAggregateByName()
+        {
+            IsAutoAggregateByNameDisabled = true;
+
+            return this;
+        }
+
         public MojValueSetContainer Build()
         {
-            if (Config.Items.Any() &&
-                Config.Items.First().Has("Name") &&
-                Config.Items.All(x => x.Get("Name").Value != null))
+            if (Config.Items.Any())
             {
-                Aggregate("All", Config.Items.Select(x => x.Get("Name").Value.ToString()).ToArray());
+                foreach (var valueSet in Config.Items)
+                {
+                    valueSet.Build();
+                }
+
+                if (!IsAutoAggregateByNameDisabled)
+                {
+                    var namePropName = Config.NamePropName ?? "Name";
+
+                    // TODO: Get rid of auto "All" aggretage generation.
+                    if (Config.Items.First().Has(namePropName) &&
+                        Config.Items.All(valueSet => valueSet.Get(namePropName).Value != null))
+                    {
+                        Aggregate("All", Config.Items.Select(valueSet => valueSet.Get(namePropName).Value.ToString()).ToArray());
+                    }
+                }
             }
 
-            Validate();
+            ValidateCore();
+
+            Config.WasBuild = true;
 
             return Config;
         }
 
-        void Validate()
+        void ValidateCore()
         {
             if (Config.Items.Any())
             {
@@ -340,11 +401,6 @@ namespace Casimodo.Lib.Mojen
 
                 if (Config.Items.Where(x => x.IsDefault).Count() > 1)
                     throw new MojenException("More than one default value item defined.");
-
-                //var defaultDupls = Items.GroupBy(x => x.IsDefault).Where(g => g.Count() > 1).ToList();
-                //if (defaultDupls.Count != 0) // ValueConfig
-                //    throw new CodeGenException(
-                //        string.Format("More than one default items ({0}).", defaultDupls.First().Select(x => x.Name).Aggregate((acc, n) => acc + ", " + n)));
 
                 if (Config.NamePropName != null && Config.Items.First().Has(Config.NamePropName))
                 {

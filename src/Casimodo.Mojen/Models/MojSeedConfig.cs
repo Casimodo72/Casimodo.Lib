@@ -16,16 +16,16 @@ namespace Casimodo.Lib.Mojen
         public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
         public Action<MojValueSetContainerBuilder> Seed { get; set; }
-        public Action<MojSeedItem, MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
+        public Action<MojSeedConfig, MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
         public Action<MojValueSetContainerBuilder> ConfigureSeeder { get; set; }
     }
 
-    public class MojSeedItem : MojBase
+    public class MojSeedConfig : MojBase
     {
-        public MojSeedItem(MojenApp app, MojSeedItemOptions options)
+        public MojSeedConfig(MojenApp app, MojSeedItemOptions options)
         {
             App = app;
-            SeedConfig = app.Get<MojGlobalDataSeedConfig>();
+            GlobalSeedConfig = app.Get<MojGlobalDataSeedConfig>();
 
             Section = options.Section;
             ImportOrderBy = options.OrderBy;
@@ -37,14 +37,14 @@ namespace Casimodo.Lib.Mojen
             ConfigureSeeder = options.ConfigureSeeder;
             Seed = options.Seed;
 
-            IsEnabled = SeedConfig.IsSectionEnabled(Section);
-            SeedBuilder.DbSeedEnabled(SeedConfig.IsSectionEnabledForDbSeed(Section));
+            IsEnabled = GlobalSeedConfig.IsSectionEnabled(Section);
+            SeedBuilder.DbSeedEnabled(GlobalSeedConfig.IsSectionEnabledForDbSeed(Section));
             IsDbImportEnabled = AlwaysSeed == null && options.IsDbImportEnabled;
             Seeder = options.Seeder;
         }
 
         public MojenApp App { get; set; }
-        public MojGlobalDataSeedConfig SeedConfig { get; set; }
+        public MojGlobalDataSeedConfig GlobalSeedConfig { get; set; }
         public MojType TypeConfig { get; set; }
         public string Section { get; set; }
         public bool IsEnabled { get; set; }
@@ -55,7 +55,7 @@ namespace Casimodo.Lib.Mojen
         public Action<MojValueSetContainerBuilder> AlwaysSeed { get; set; }
         public Action<MojValueSetContainerBuilder> InitialSeed { get; set; }
         public Action<MojValueSetContainerBuilder> Seed { get; set; }
-        public Action<MojSeedItem, MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
+        public Action<MojSeedConfig, MojValueSetContainerBuilder> ConfigureDbImport { get; set; }
         public Action<MojValueSetContainerBuilder> ConfigureSeeder { get; set; }
         public MojGeneratedDbSeed Seeder { get; set; }
 
@@ -66,7 +66,7 @@ namespace Casimodo.Lib.Mojen
 
             var config = App.Get<MojGlobalDataSeedConfig>();
 
-            if (SeedConfig.IsInitialSeedEnabled)
+            if (GlobalSeedConfig.IsInitialSeedEnabled)
             {
                 if (InitialSeed != null)
                     InitialSeed(SeedBuilder);
@@ -75,7 +75,7 @@ namespace Casimodo.Lib.Mojen
 
                 SeedBuilder.Build();
             }
-            else if (SeedConfig.IsDbImportEnabled)
+            else if (GlobalSeedConfig.IsDbImportEnabled)
             {
                 SeedBuilder.SeedAllProps();
                 ConfigureDbImport?.Invoke(this, SeedBuilder);
@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Mojen
                 AlwaysSeed?.Invoke(SeedBuilder);
                 SeedBuilder.Build();
             }
-            else if (SeedConfig.IsDbSeedEnabled)
+            else if (GlobalSeedConfig.IsDbSeedEnabled)
             {
                 if (Seeder != null)
                 {

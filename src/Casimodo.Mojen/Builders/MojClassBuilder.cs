@@ -380,8 +380,18 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
+        public TClassBuilder NamedAssignAllFrom(string name)
+        {
+            Guard.ArgNotEmpty(name, nameof(name));
+
+            return NamedAssignFrom(name, TypeConfig.GetProps().Select(x => x.Name).ToArray());
+        }
+
         public TClassBuilder NamedAssignFrom(string name, params string[] props)
         {
+            Guard.ArgNotEmpty(name, nameof(name));
+            Guard.ArgNotNull(props, nameof(props));
+
             if (!TypeConfig.AssignFromConfig.Is)
                 TypeConfig.AssignFromConfig = new MojAssignFromCollectionConfig();
 

@@ -100,11 +100,6 @@ namespace Casimodo.Lib.Mojen.Meta
             MojenMetaSerializer.Serialize(container.GetType(), container, DataOutputFilePath);
         }
 
-        bool FilterOutModels(MojBase item)
-        {
-            return (!(item is MojType) || (item as MojType).Kind != MojTypeKind.Model);
-        }
-
         void GenerateContainerFile(List<MetaItem> items)
         {
             PerformWrite(ContainerOutputFilePath, () =>
@@ -148,11 +143,6 @@ namespace Casimodo.Lib.Mojen.Meta
                 End();
                 End();
             });
-        }
-
-        bool IsNavigateable(MojProp prop)
-        {
-            return prop.IsNavigation && !prop.Reference.IsToMany;
         }
 
         MetaItem GenerateMeta(MojType type, List<MojType> types)
@@ -336,6 +326,8 @@ namespace Casimodo.Lib.Mojen.Meta
             });
         }
 
+        // TODO: REMOVE: Values (seeding) are not transferred to the next layer.
+#if (false)
         void GenerateMeta(MojValueSetContainer container)
         {
             if (container == null)
@@ -373,19 +365,17 @@ namespace Casimodo.Lib.Mojen.Meta
                 // Properties
                 foreach (MojValueSet set in container.Items)
                 {
-                    O("public static {0} {1} {{ get {{ return Class.Get({2}); }} }}", typeof(MojValueSet).Name, set.Get(container.NamePropName).Value, set.SetId);
+                    O("public static {0} {1} {{ get {{ return Class.Get({2}); }} }}", 
+                        typeof(MojValueSet).Name, 
+                        set.Get(container.NamePropName).Value, 
+                        set.SetId);
                 }
 
                 End();
                 End();
             });
         }
-
-        void DeleteFile(string filePath)
-        {
-            if (File.Exists(filePath))
-                File.Delete(filePath);
-        }
+#endif
 
         void CheckType(MojType type)
         {

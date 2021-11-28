@@ -63,9 +63,6 @@ namespace Casimodo.Lib.Web
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // TODO: REMOVE for NET Core
-            _repo.ReferenceLoading(false);
-
             if (OnCreatingExtended != null)
                 await OnCreatingExtended(model);
 
@@ -82,9 +79,6 @@ namespace Casimodo.Lib.Web
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
-            // TODO: REMOVE for NET Core
-            _repo.ReferenceLoading(false);
 
             var item = _repo.Update(id, model, mask);
 

@@ -18,13 +18,13 @@ namespace Casimodo.Lib.Mojen
             SeedCore<EntityUserFromDbToSeedGen>(app, options);
         }
 
-        public static void SeedEnumEntity(this MojenDataLayerPackageBuildContext context, MojType type,
+        public static void SeedEnumEntity(this MojenDataLayerPackage package, MojType type,
             Action<MojValueSetContainerBuilder> build)
         {
-            var builder = context.Parent.AddItemsOfType(type)
+            var builder = package.Context.AddItemsOfType(type)
                 .UsePrimitiveKeys().Name("Name").Value("Id");
 
-            context.App.Seed(new MojSeedItemOptions
+            package.App.Seed(new MojSeedItemOptions
             {
                 Section = "StaticData",
                 SeedBuilder = builder,
@@ -53,27 +53,27 @@ namespace Casimodo.Lib.Mojen
             if (!options.IsEnabled)
                 return;
 
-            var seed = new MojSeedItem(app, options);
-            if (!seed.IsEnabled)
+            var seedConfig = new MojSeedConfig(app, options);
+            if (!seedConfig.IsEnabled)
                 return;
 
-            if (seed.SeedConfig.IsDbImportEnabled)
+            if (seedConfig.GlobalSeedConfig.IsDbImportEnabled)
             {
-                if (!seed.IsDbImportEnabled)
+                if (!seedConfig.IsDbImportEnabled)
                     return;
 
                 // Remove all other generators when importing data from DB.
-                seed.SeedBuilder.Config.UsingGenerators.Clear();
+                seedConfig.SeedBuilder.Config.UsingGenerators.Clear();
                 // Add DB to seed transformation.
-                seed.SeedBuilder.Use<TTransformation>(new EntityFromDbTransformationOptions
+                seedConfig.SeedBuilder.Use<TTransformation>(new EntityFromDbTransformationOptions
                 {
-                    OrderBy = seed.ImportOrderBy
+                    OrderBy = seedConfig.ImportOrderBy
                 });
             }
 
-            seed.Build();
+            seedConfig.Build();
 
-            app.Add(seed);
+            app.Add(seedConfig);
         }
     }
 }

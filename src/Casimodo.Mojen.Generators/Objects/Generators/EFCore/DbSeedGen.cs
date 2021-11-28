@@ -6,7 +6,31 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class CoreDbSeedGen : DataLayerGenerator
+    public abstract class DbSeedGenBase : DataLayerGenerator
+    {
+        protected class SeedGenItem
+        {
+            public MojType Type;
+            public List<MojValueSetContainer> Seedings;
+        }
+
+        protected List<SeedGenItem> GetSeedItems()
+        {
+            var types = App.GetTopTypes();
+            return App.GetItems<MojValueSetContainer>()
+                .Where(seedConfig => types.Any(type => type.StoreOrSelf == seedConfig.TypeConfig))
+                .GroupBy(x => x.TypeConfig)
+                .Select(group => new SeedGenItem
+                {
+                    Type = group.Key,
+                    Seedings = group.ToList()
+                })
+                .OrderBy(x => x.Type.Name)
+                .ToList();
+        }
+    }
+
+    public class CoreDbSeedGen : DbSeedGenBase
     {
         public CoreDbSeedGen()
         {
@@ -24,31 +48,32 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            var types = App.GetTopTypes().Where(x => x.Seedings.Count != 0).ToArray();
-            if (!types.Any())
+            var items = GetSeedItems();
+            if (!items.Any())
                 return;
 
             // Write seed container.
             PerformWrite(Path.Combine(outputDirPath, DataConfig.TypePrefix + "DbSeed" + ".generated.cs"),
-                () => GenerateSeedContainer(types));
+                () => GenerateSeedContainer(items));
 
             // Generate seed file for each type.
             outputDirPath = DataConfig.DbSeedDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            foreach (var type in types)
+            foreach (var item in items)
             {
-                type.CheckRequiredStore();
+                item.Type.CheckRequiredStore();
 
-                PerformWrite(Path.Combine(outputDirPath, string.Format("Seed.{0}.generated.cs", type.PluralName)),
-                    () => GenerateSeed(type));
+                PerformWrite(Path.Combine(outputDirPath, string.Format("Seed.{0}.generated.cs", item.Type.PluralName)),
+                    () => GenerateSeed(item));
             }
         }
 
-        public void GenerateSeedContainer(MojType[] types)
+        void GenerateSeedContainer(List<SeedGenItem> items)
         {
-            OUsing("System", "System.Globalization", "System.Threading.Tasks", "Casimodo.Lib.Data", types.First().Namespace);
+            OUsing("System", "System.Globalization", "System.Threading.Tasks", "Casimodo.Lib.Data",
+                items.First().Type.Namespace);
 
             ONamespace(DataConfig.DataNamespace + ".Seed");
 
@@ -56,21 +81,24 @@ namespace Casimodo.Lib.Mojen
 
             // Seed info class
             var infoClassName = DataConfig.TypePrefix + "DbSeedInfo";
-            var seedItems = App.GetItems<MojSeedItem>().ToList();
+            var seedConfigs = App.GetItems<MojSeedConfig>().ToList();
             OB($"public class {infoClassName} : DbSeedInfo");
             OB($"public {infoClassName}()");
 
-            foreach (var section in seedItems.GroupBy(x => x.Section))
+            foreach (var section in seedConfigs.GroupBy(x => x.Section))
             {
                 OB($@"AddSection(""{section.Key}"", new string[]");
-                foreach (var seedItem in section)
-                    O($@"""{seedItem.TypeConfig.PluralName}"",");
+                foreach (var seedConfig in section.OrderBy(x => x.TypeConfig.Name))
+                {
+                    O($@"""{seedConfig.TypeConfig.PluralName}"",");
+                }
                 End(");");
             }
 
-            foreach (var type in types)
+            foreach (var item in items)
             {
-                var isseedAsync = type.Seedings.Any(x => x.IsAsync);
+                var type = item.Type;
+                var isseedAsync = item.Seedings.Any(x => x.IsAsync);
                 O($@"Items.Add(""{type.PluralName}"", {(isseedAsync ? "async " : "")}seed => {(isseedAsync ? "await " : "")}(seed as {className}).Seed{type.PluralName}());");
             }
             End();
@@ -80,18 +108,19 @@ namespace Casimodo.Lib.Mojen
             // Seed class with main seed method calling all other seed methods.
             OB($"public partial class {className} : DbSeed<{DataConfig.DbContextName}>");
 
-            var isasync = types.SelectMany(x => x.Seedings).Any(x => x.IsAsync);
+            var isasync = items.SelectMany(x => x.Seedings).Any(x => x.IsAsync);
             O($"{GetAsyncMethod(isasync)} SeedCore()");
             Begin();
             O("if (!IsEnabled) return;");
             O("SeedTime = DateTimeOffset.Parse(\"{0}\", CultureInfo.InvariantCulture);", App.Now.ToString(CultureInfo.InvariantCulture));
             O();
-            foreach (var type in types)
+            foreach (var item in items)
             {
-                var enabled = type.Seedings.All(x => x.IsDbSeedEnabled);
+                var type = item.Type;
+                var enabled = item.Seedings.All(x => x.IsDbSeedEnabled);
                 O("{0}{1}Seed{2}();",
                     (enabled ? "" : "// DISABLED: "),
-                    GetAsyncAwait(type.Seedings.Any(x => x.IsAsync)),
+                    GetAsyncAwait(item.Seedings.Any(x => x.IsAsync)),
                     type.PluralName);
             }
             End();
@@ -119,10 +148,12 @@ namespace Casimodo.Lib.Mojen
             return isasync ? "await " : "";
         }
 
-        public void GenerateSeed(MojType type)
+        void GenerateSeed(SeedGenItem item)
         {
-            if (type.Seedings.Count == 0)
+            if (item.Seedings.Count == 0)
                 return;
+
+            var type = item.Type;
 
             MojType storeType = type.Kind == MojTypeKind.Entity ? type : type.GetNearestStore();
 
@@ -135,14 +166,14 @@ namespace Casimodo.Lib.Mojen
             Begin();
 
             // Seed method for this MojType.
-            O($"internal {GetAsyncMethod(type.Seedings.Any(x => x.IsAsync))} Seed{type.PluralName}()");
+            O($"internal {GetAsyncMethod(item.Seedings.Any(x => x.IsAsync))} Seed{type.PluralName}()");
             Begin();
 
-            var enabled = type.Seedings.All(x => x.IsDbSeedEnabled);
+            var enabled = item.Seedings.All(x => x.IsDbSeedEnabled);
             if (enabled)
             {
                 var assignments = new List<string>();
-                foreach (MojValueSetContainer valueSetContainer in type.Seedings)
+                foreach (MojValueSetContainer valueSetContainer in item.Seedings)
                 {
                     var userNameProp = type.FindStoreProp("UserName");
                     if (valueSetContainer.ClearExistingData)

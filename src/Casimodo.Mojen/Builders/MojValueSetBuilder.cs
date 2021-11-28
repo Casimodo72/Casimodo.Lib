@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetContainer Container { get; set; }
 
-        public MojValueSet Config { get; set; }
+        public MojValueSet ValuesConfig { get; set; }
 
         public List<string> TypeProps { get; set; } = new List<string>();
 
@@ -28,45 +28,36 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojValueSetBuilder Add()
         {
-            var set = new MojValueSet<string>();
-            set.SetId = Container.Items.Count;
-            Container.Items.Add(set);
+            var valueSet = new MojValueSet();
+            valueSet.SetId = Container.Items.Count;
+            Container.Items.Add(valueSet);
+
+            // Increase "Index" value if applicable.
+           
+            //if (ContainerBuilder.IndexName != null && Container.Items.Count > 1)
+            //{
+            //    var index = (int)ContainerBuilder.IndexProp.Value;
+            //    ContainerBuilder.IndexProp.Value = index + 1;
+            //}
 
             // Set default values specified on the container builder.
             foreach (var defaultValue in ContainerBuilder.Defaults)
-                set.Get(defaultValue.Name, create: true).Value = defaultValue.Value;
-
-            // By default set an automatically increasing "Index" value.
-            if (ContainerBuilder.IndexName != null && Container.Items.Count > 1)
             {
-                var prevSet = Container.Items[^2];
-                var index = (int)prevSet.Get(ContainerBuilder.IndexName).Value;
-                index++;
-
-                set.Get(ContainerBuilder.IndexName, create: true).Value = index;
+                valueSet.Get(defaultValue.Name, create: true)
+                    .AssignValueFrom(defaultValue);
             }
 
-            Config = set;
-            MappingIndex = 0;
+            // TODO: REMOVE
+            //if (ContainerBuilder.IndexName != null && Container.Items.Count > 1)
+            //{
+            //    var prevSet = Container.Items[^2];
+            //    var index = (int)prevSet.Get(ContainerBuilder.IndexName).GetValue(prevSet);
+            //    index++;
 
-            return this;
-        }
+            //    valueSet.Get(ContainerBuilder.IndexName, create: true).Value = index;
+            //}
 
-        public object GetValue(string name)
-        {
-            return Config.Get(name, create: false).Value;
-        }
-
-        public T GetValue<T>(string name)
-        {
-            return (T)GetValue(name);
-        }
-
-        public MojValueSetBuilder AddDummy()
-        {
-            var set = new MojValueSet<string>();
-
-            Config = set;
+            ValuesConfig = valueSet;
             MappingIndex = 0;
 
             return this;
@@ -136,12 +127,12 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojValueSetBuilder Description(string description)
         {
-            Config.Description = Config.Description != null
-                ? Config.Description + " " + description
+            ValuesConfig.Description = ValuesConfig.Description != null
+                ? ValuesConfig.Description + " " + description
                 : description;
 
             if (TypeProps.Contains("Description"))
-                Config.Get("Description", create: true).Value = Config.Description;
+                ValuesConfig.Get("Description", create: true).Value = ValuesConfig.Description;
 
             return this;
         }
@@ -151,7 +142,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojValueSetBuilder Default()
         {
-            Config.IsDefault = true;
+            ValuesConfig.IsDefault = true;
             return this;
         }
 
@@ -160,7 +151,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojValueSetBuilder Null()
         {
-            Config.IsNull = true;
+            ValuesConfig.IsNull = true;
             return this;
         }
 
@@ -193,7 +184,7 @@ namespace Casimodo.Lib.Mojen
             if (!TypeProps.Contains(name))
                 throw new MojenException($"Property '{name}' not found in type '{Container.TypeConfig.ClassName}'.");
 
-            MojValueSetProp prop = Config.Get(name, create: true);
+            MojValueSetProp prop = ValuesConfig.Get(name, create: true);
 
             if (ContainerBuilder._mapPropValue != null)
                 value = ContainerBuilder._mapPropValue(name, value);
@@ -209,7 +200,7 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojValueSetBuilder SetSeedFileName(string name, string fileName)
         {
-            var item = Config.Get(name, create: true);
+            var item = ValuesConfig.Get(name, create: true);
             var targetProp = Container.TypeConfig.GetProp(name);
             // Check valid type.
             if (!targetProp.Type.IsByteArray)
@@ -231,8 +222,8 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var role in items)
             {
-                if (!Config.AuthRoles.Contains(role))
-                    Config.AuthRoles.Add(role);
+                if (!ValuesConfig.AuthRoles.Contains(role))
+                    ValuesConfig.AuthRoles.Add(role);
             }
 
             return this;
@@ -240,7 +231,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetBuilder Pw(string pw)
         {
-            Config.Pw = pw;
+            ValuesConfig.Pw = pw;
 
             return this;
         }

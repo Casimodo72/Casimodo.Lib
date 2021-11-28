@@ -28,46 +28,54 @@ namespace Casimodo.Lib.Mojen
         }
     }
 
-    public class MojenDataLayerPackageBuildContext : MojenGeneratorBase
+    public class MojenDataLayerPackage : MojenGeneratorBase
     {
-        public MojenDataLayerPackageBuildContext(DataLayerBuildContext parent)
+        public MojenDataLayerPackage(DataLayerBuildContext parent)
         {
-            Parent = parent;
+            Context = parent;
         }
 
         public MojenApp App
         {
-            get { return Parent.App; }
+            get { return Context.App; }
         }
 
-        public DataLayerBuildContext Parent { get; set; }
+        public DataLayerBuildContext Context { get; set; }
+
+        public List<MojBase> Items { get; set; } = new List<MojBase>();
+
+        T Add<T>(T builder) where T : MojTypeBuilder
+        {          
+            Items.Add(builder.TypeConfig);
+            return builder;
+        }
 
         public MojType Tenant
         {
-            get { return Parent.Tenant; }
-            set { Parent.Tenant = value; }
+            get { return Context.Tenant; }
+            set { Context.Tenant = value; }
         }
 
         public MojType EnumModel
         {
-            get { return Parent.EnumModel; }
-            set { Parent.EnumModel = value; }
+            get { return Context.EnumModel; }
+            set { Context.EnumModel = value; }
         }
 
         public MojType EnumEntity
         {
-            get { return Parent.EnumEntity; }
-            set { Parent.EnumEntity = value; }
+            get { return Context.EnumEntity; }
+            set { Context.EnumEntity = value; }
         }
 
         public MojModelBuilder AddModel(string name, string pluralName = null)
         {
-            return Parent.AddModel(name, pluralName);
+            return Add(Context.AddModel(name, pluralName));
         }
 
         public MojModelBuilder BuildModel(MojType type)
         {
-            return Parent.BuildModel(type);
+            return Add(Context.BuildModel(type));
         }
 
         public MojModelBuilder AddEnumModelAndStore(string name, string displayName, string displayNamePlural)
@@ -78,47 +86,49 @@ namespace Casimodo.Lib.Mojen
                 .Use<ODataConfigGen>()
                 .Store();
 
+            Add(builder);
+
             return builder;
         }
 
         public MojEntityBuilder AddEntity(string name)
         {
-            return Parent.AddEntity(name);
+            return Add(Context.AddEntity(name));
         }
 
         public MojEntityBuilder BuildEntity(MojType type)
         {
-            return Parent.BuildEntity(type);
+            return Add(Context.BuildEntity(type));
         }
 
         public MojComplexTypeBuilder AddComplex(string name)
         {
-            return Parent.AddComplex(name);
+            return Add(Context.AddComplex(name));
         }
 
         public MojEnumBuilder AddEnum(string name)
         {
-            return Parent.AddEnum(name);
+            return Add(Context.AddEnum(name));
         }
 
         public MojInterfaceBuilder AddInterface(string name)
         {
-            return Parent.AddInterface(name);
+            return Add(Context.AddInterface(name));
         }
 
         public MojAnyKeysBuilder AddKeys(string className, Type valueType)
         {
-            return Parent.AddKeys(className, valueType);
+            return Context.AddKeys(className, valueType);
         }
 
         public MojValueSetContainerBuilder AddItemsOfType(MojType type)
         {
-            return Parent.AddItemsOfType(type);
+            return Context.AddItemsOfType(type);
         }
 
         public void PropTenantReference(MojModelBuilder builder, Action<MojModelPropBuilder> build = null)
         {
-            Parent.PropToTenant(builder, build);
+            Context.PropToTenant(builder, build);
         }
 
         public MojModelPropBuilder PropDescription(MojModelBuilder builder)
@@ -168,7 +178,7 @@ namespace Casimodo.Lib.Mojen
 
         public void PropTenantReference(MojEntityBuilder builder, Action<MojEntityPropBuilder> build = null)
         {
-            Parent.PropToTenant(builder, build);
+            Context.PropToTenant(builder, build);
         }
 
         readonly List<Action> _referenceResolutionActions = new List<Action>();

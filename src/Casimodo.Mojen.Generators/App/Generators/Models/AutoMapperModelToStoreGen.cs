@@ -12,38 +12,46 @@ namespace Casimodo.Lib.Mojen
             Scope = "ModelContext";
         }
 
+        public ViewModelLayerConfig ViewModelConfig { get; set; }
+
         public List<string> Namespaces { get; private set; }
 
         protected override void GenerateCore()
         {
-            var context = App.Get<ViewModelLayerConfig>();
+            ViewModelConfig = App.Get<ViewModelLayerConfig>();
 
-            if (string.IsNullOrEmpty(context.AutoMapperDirPath)) return;
-            if (context.DataConfig == null) return;
-            if (string.IsNullOrEmpty(context.DataConfig.DbRepositoryCoreName)) return;
+            if (string.IsNullOrEmpty(ViewModelConfig.AutoMapperDirPath)) return;
+            if (ViewModelConfig.DataConfig == null) return;
+            if (string.IsNullOrEmpty(ViewModelConfig.DataConfig.DbRepositoryCoreName)) return;
 
             PerformWrite(
-                Path.Combine(context.AutoMapperDirPath, "AutoMapperConfiguration.generated.cs"),
-                () => GenerateAutoMapperConfiguration(context));
+                Path.Combine(ViewModelConfig.AutoMapperDirPath, "AutoMapperConfiguration.generated.cs"),
+                () => GenerateAutoMapperConfiguration());
         }
 
-        void GenerateAutoMapperConfiguration(ViewModelLayerConfig viewModelConfig)
+        void GenerateAutoMapperConfiguration()
         {
-            bool useModelAlias = false;
-            if (!string.IsNullOrEmpty(viewModelConfig.AutoMapperModelsExternAlias))
+            bool useStoreAlias = false;
+            if (!string.IsNullOrEmpty(ViewModelConfig.AutoMapperStoreExternAlias))
             {
-                useModelAlias = true;
-                O($"extern alias {viewModelConfig.AutoMapperModelsExternAlias};");
-                O($"using Models = {viewModelConfig.AutoMapperModelsExternAlias}::{viewModelConfig.Namespace};");
+                useStoreAlias = true;
+                O($"extern alias {ViewModelConfig.AutoMapperStoreExternAlias};");
+                O($"using StoreTypes = {ViewModelConfig.AutoMapperStoreExternAlias}::{ViewModelConfig.DataConfig.DataNamespace};");
             }
+
             OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Data");
-            //App.GetForeignDataNamespaces(context.DataConfig.DataNamespace));            
-            ONamespace(viewModelConfig.DataConfig.DataNamespace);
+            if (string.IsNullOrEmpty(ViewModelConfig.AutoMapperStoreExternAlias))
+            {
+                OUsing(ViewModelConfig.DataConfig.DataNamespace);
+            }
+         
+            ONamespace(ViewModelConfig.Namespace);
+
             O("public static partial class AutoMapperConfiguration");
             Begin();
 
-            // NOTE: We're using AutoMapper 4.2.1.
-            O($"public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c, {viewModelConfig.DataConfig.DbRepositoryCoreName} core)");
+            // NOTE: We're using AutoMapper 8.
+            O($"public static void ConfigureCore(AutoMapper.IMapperConfigurationExpression c, IDataMappingCore core)");
             Begin();
             O();
 
@@ -55,11 +63,11 @@ namespace Casimodo.Lib.Mojen
                 O("// " + model.Name);
 
                 var storeClassName = model.Store.ClassName;
-                var modelClassName = model.ClassName;
-                if (useModelAlias)
+                if (useStoreAlias)
                 {
-                    modelClassName = "Models." + modelClassName;
+                    storeClassName = "StoreTypes." + storeClassName;
                 }
+                var modelClassName = model.ClassName;
 
                 // Mapping: entity --> model
 

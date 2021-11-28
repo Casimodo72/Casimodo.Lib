@@ -30,7 +30,7 @@ namespace Casimodo.Lib.Mojen
         {
             OUsing(ViewModelConfig.Namespaces);
 
-            ONamespace(type.Namespace);
+            ONamespace(ViewModelConfig.Namespace);
 
             // Interface declaration
 

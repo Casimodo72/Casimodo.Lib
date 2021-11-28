@@ -21,7 +21,7 @@ namespace Casimodo.Lib.Mojen
         public string AutoMapperDirPath { get; set; }
 
         [DataMember]
-        public string AutoMapperModelsExternAlias { get; set; }
+        public string AutoMapperStoreExternAlias { get; set; }
 
         [DataMember]
         public string InterfacesDirPath { get; set; }

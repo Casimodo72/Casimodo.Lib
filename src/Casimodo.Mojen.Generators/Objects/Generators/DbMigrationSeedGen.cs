@@ -6,12 +6,12 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    public class DbMigrationSeedGen : DataLayerGenerator
+    public class DbMigrationSeedGen : DbSeedGenBase
     {
         public DbMigrationSeedGen()
         {
             Scope = "DataContext";
-        }
+        }  
 
         protected override void GenerateCore()
         {
@@ -19,31 +19,56 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            var types = App.GetTopTypes().Where(x => x.Seedings.Count != 0).ToArray();
-            if (!types.Any())
+            var items = GetSeedItems();
+            if (!items.Any())
                 return;
 
             // Write seed container.
             PerformWrite(Path.Combine(outputDirPath, "Seed." + DataConfig.DbContextName + ".generated.cs"),
-                () => GenerateSeedContainer(types));
+                () => GenerateSeedContainer(items));
 
             // Generate seed file for each type.
             outputDirPath = DataConfig.DbSeedDirPath;
             if (string.IsNullOrWhiteSpace(outputDirPath))
                 return;
 
-            foreach (var type in types)
+            foreach (var item in items)
             {
-                type.CheckRequiredStore();
+                item.Type.CheckRequiredStore();
 
-                PerformWrite(Path.Combine(outputDirPath, string.Format("Seed.{0}.generated.cs", type.PluralName)),
-                    () => GenerateSeed(type));
+                PerformWrite(Path.Combine(outputDirPath, string.Format("Seed.{0}.generated.cs", item.Type.PluralName)),
+                    () => GenerateSeed(item));
             }
+
+            return;
+            // ---
+
+            //var types = App.GetTopTypes().Where(x => x.Seedings.Count != 0).ToArray();
+            //if (!types.Any())
+            //    return;
+
+            //// Write seed container.
+            //PerformWrite(Path.Combine(outputDirPath, "Seed." + DataConfig.DbContextName + ".generated.cs"),
+            //    () => GenerateSeedContainer(types));
+
+            //// Generate seed file for each type.
+            //outputDirPath = DataConfig.DbSeedDirPath;
+            //if (string.IsNullOrWhiteSpace(outputDirPath))
+            //    return;
+
+            //foreach (var type in types)
+            //{
+            //    type.CheckRequiredStore();
+
+            //    PerformWrite(Path.Combine(outputDirPath, string.Format("Seed.{0}.generated.cs", type.PluralName)),
+            //        () => GenerateSeed(type));
+            //}
         }
 
-        public void GenerateSeedContainer(MojType[] types)
+        void GenerateSeedContainer(List<SeedGenItem> items)
         {
-            OUsing("System", "System.Globalization", "Casimodo.Lib.Data", types.First().Namespace);
+            OUsing("System", "System.Globalization", "Casimodo.Lib.Data",
+                items.First().Type.Namespace);
 
             ONamespace(DataConfig.DataNamespace + ".Migrations");
 
@@ -56,21 +81,23 @@ namespace Casimodo.Lib.Mojen
             O("if (!IsEnabled) return;");
             O("Context = context;");
             O("SeedTime = DateTimeOffset.Parse(\"{0}\", CultureInfo.InvariantCulture);", App.Now.ToString(CultureInfo.InvariantCulture));
-            O();            
-            foreach (var type in types)
+            O();
+            foreach (var item in items)
             {
-                var enabled = type.Seedings.All(x => x.IsDbSeedEnabled);
-                O("{0}Seed{1}();", (enabled ? "" : "// DISABLED: "), type.PluralName);
+                var enabled = item.Seedings.All(x => x.IsDbSeedEnabled);
+                O("{0}Seed{1}();", (enabled ? "" : "// DISABLED: "), item.Type.PluralName);
             }
             End();
             End();
             End();
         }
 
-        public void GenerateSeed(MojType type)
+        void GenerateSeed(SeedGenItem item)
         {
-            if (type.Seedings.Count == 0)
+            if (item.Seedings.Count == 0)
                 return;
+
+            var type = item.Type;
 
             MojType storeType = type.Kind == MojTypeKind.Entity ? type : type.GetNearestStore();
 
@@ -86,7 +113,7 @@ namespace Casimodo.Lib.Mojen
             Begin();
 
             var assignments = new List<string>();
-            foreach (MojValueSetContainer valueSetContainer in type.Seedings)
+            foreach (MojValueSetContainer valueSetContainer in item.Seedings)
             {
                 var userNameProp = type.FindStoreProp("UserName");
                 if (valueSetContainer.ClearExistingData)

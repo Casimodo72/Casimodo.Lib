@@ -423,7 +423,7 @@ namespace Casimodo.Lib.Mojen
                         props.Remove(prop);
 
                 // Description
-                var description = "Returns true if this properties are equal: ";
+                var description = "Returns true if these properties are equal: ";
                 if (comparison.Mode == "all")
                 {
                     description += "All";

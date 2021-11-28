@@ -35,7 +35,8 @@ namespace Casimodo.Lib.Mojen
         {
             var context = GetDataContext();
             var type = MojType.CreateModel(name, pluralName);
-            type.ClassName = type.Name; // TOOD: REMOVE: + "Model";
+            // TODO: REVISIT: Maybe we want to introduce an optional suffix for data view models.
+            type.ClassName = type.Name;
             type.DataContextName = context.Name;
             Items.Add(type);
 
@@ -125,7 +126,7 @@ namespace Casimodo.Lib.Mojen
             builder.Config.ValueType = key.Type.TypeNormalized;
             builder.Config.ValuePropName = key.Name;
 
-            type.Seedings.Add(builder.Config);
+            // TODO: REMOVE: type.Seedings.Add(builder.Config);
 
             return builder;
         }

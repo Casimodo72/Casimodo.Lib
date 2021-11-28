@@ -12,8 +12,7 @@ namespace Casimodo.Lib.Mojen
         public string ImportPropName { get; set; }
     }
 
-    [DataContract(Namespace = MojContract.Ns)]
-    public class MojValueSetContainer : MojPartBase
+    public class MojValueSetContainer : MojPartBase, IMojValidatable
     {
         public MojValueSetContainer(string name)
         {
@@ -79,17 +78,11 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public List<string> SeedMappings { get; private set; } = new List<string>();
 
-        // KABU TODO: ELIMINATE
-        [Obsolete("Will be removed. Not used.")]
-        [DataMember]
-        public List<string> IgnoredSeedMappings { get; private set; } = new List<string>();
-
-        [DataMember]
+        // TODO: REMOVE: [DataMember]
         public List<MojValueSet> Items { get; private set; } = new List<MojValueSet>();
 
         [DataMember]
         public List<MojValueSetAggregate> Aggregates { get; private set; } = new List<MojValueSetAggregate>();
-
 
         [DataMember]
         public List<MojValueSetMapping> Mappings { get; set; } = new List<MojValueSetMapping>();
@@ -227,6 +220,16 @@ namespace Casimodo.Lib.Mojen
         {
             if (_valueType != null)
                 ValueType = Type.GetType(_valueType);
+        }
+
+        public bool WasBuild { get; set; }
+
+        void IMojValidatable.Validate()
+        {
+            if (!WasBuild)
+            {
+                throw new MojenException($"Seed container for type '{TypeConfig.Name}' was not build.");
+            }
         }
     }
 }

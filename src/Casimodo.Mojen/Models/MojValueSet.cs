@@ -2,31 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {
-    [DataContract(Namespace = MojContract.Ns)]
-    [KnownType("GetKnownTypes")]
-    public class MojValueSet<TValue> : MojValueSet
-        where TValue : IComparable
-    {
-        //public sealed override object ValueObject
-        //{
-        //    get { return Value; }
-        //}
-
-        //[DataMember]
-        //public TValue Value { get; set; }
-
-        static Type[] GetKnownTypes()
-        {
-            return new Type[] { typeof(MojValueSet<TValue>) };
-        }
-    }
-
-    [DataContract(Namespace = MojContract.Ns)]
-    public abstract class MojValueSet : MojBase
+    public class MojValueSet : MojBase
     {
         public MojValueSet()
         {
@@ -48,7 +27,7 @@ namespace Casimodo.Lib.Mojen
 
         [DataMember]
         public bool IsDefault { get; set; }
-        
+
         public string Description { get; set; }
 
         [DataMember]
@@ -59,6 +38,8 @@ namespace Casimodo.Lib.Mojen
 
         public MojValueSetProp Get(string name, bool create = false)
         {
+            Guard.ArgNotNull(name, nameof(name));
+
             var prop = Find(name);
             if (prop == null)
             {
@@ -74,6 +55,12 @@ namespace Casimodo.Lib.Mojen
             return prop;
         }
 
+        public void Build()
+        {
+            foreach (var prop in Values)
+                prop.Build(this);
+        }
+
         public MojValueSetProp Find(string name)
         {
             return Values.FirstOrDefault(x => x.Name == name);
@@ -84,14 +71,14 @@ namespace Casimodo.Lib.Mojen
             return null != Find(name);
         }
 
-        public bool TryGetValueOf(string name, out object value)
+        public bool TryGetValue(string name, out object value)
         {
             value = null;
             for (int i = 0; i < Values.Count; i++)
             {
                 if (Values[i].Name == name)
                 {
-                    value = Values[i].Value;
+                    value = Values[i].GetValue(this);
                     return true;
                 }
             }

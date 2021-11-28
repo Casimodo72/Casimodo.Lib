@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
         protected override void GenerateCore()
         {
             foreach (var enu in App.GetTopTypes(MojTypeKind.Enum).Where(x => !x.WasGenerated))
-                PerformWrite(Path.Combine(App.Get<DataLayerConfig>().DataPrimitiveDirPath, enu.ClassName + ".generated.cs"),
+                PerformWrite(Path.Combine(DataConfig.DataPrimitiveDirPath, enu.ClassName + ".generated.cs"),
                     () => Generate(enu));
         }
 

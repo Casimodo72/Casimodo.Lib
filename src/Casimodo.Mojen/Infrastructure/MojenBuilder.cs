@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Mojen
         public static T GetGeneratorOptions<T>(this IMojenGenerateable generateable)
             where T : class
         {
-            return generateable.UsingGenerators.Select(x => x.Args).FirstOrDefault(x => x != null && x is T) as T;
+            return generateable.UsingGenerators.SelectMany(x => x.Args).FirstOrDefault(x => x != null && x is T) as T;
         }
 
         public static bool Uses(this IMojenGenerateable generateable, MojenGenerator generator)

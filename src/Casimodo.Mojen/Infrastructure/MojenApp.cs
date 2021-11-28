@@ -112,8 +112,13 @@ namespace Casimodo.Lib.Mojen
 
             Prepare?.Invoke(this);
 
+            foreach (var item in GetItems<MojBase>().OfType<IMojValidatable>())
+            {
+                item.Validate();
+            }
+
             ExecuteStage("Prepare");
-            ExecuteStage(null);
+            ExecuteStage(null);         
 
             // Generate meta data (e.g. for transfer to a higher level builder layer).
             foreach (var meta in GetItems<MojenAppMetadataConfig>())

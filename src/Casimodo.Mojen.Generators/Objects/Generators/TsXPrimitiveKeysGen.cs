@@ -75,13 +75,12 @@ namespace Casimodo.Lib.Mojen
 
             if (Options.IsNamedValueEnabled)
             {
-                MojValueSet item;
                 var props = config.Items.Where(x => !x.IsNull).ToList();
                 for (int i = 0; i < props.Count; i++)
                 {
                     //if (i > 0) O();
 
-                    item = props[i];
+                    MojValueSet valueSet = props[i];
 
                     // TODO: Do we need a summary?
 #if (false)
@@ -100,8 +99,8 @@ namespace Casimodo.Lib.Mojen
 #endif
 
                     // Public static member
-                    var name = item.Get(config.NamePropName);
-                    var val = item.Get(config.ValuePropName);
+                    var name = valueSet.Get(config.NamePropName);
+                    var val = valueSet.Get(config.ValuePropName);
                     O("public static {0} = {1};", name.Value, Moj.JS(val.Value));
                 }
             }
