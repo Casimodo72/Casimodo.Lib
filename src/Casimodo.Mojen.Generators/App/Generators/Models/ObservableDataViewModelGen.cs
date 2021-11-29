@@ -72,6 +72,7 @@ namespace Casimodo.Lib.Mojen
         {
             OUsing(Namespaces,
                 "System.ComponentModel.DataAnnotations.Schema",
+                "System.Text.Json.Serialization",
                 (type.StoreOrSelf.Namespace != type.Namespace ? type.StoreOrSelf.Namespace : null),
                 GetFriendNamespaces(type));
 
@@ -96,10 +97,9 @@ namespace Casimodo.Lib.Mojen
                     if (type.ChangeTrackingProps.Count != 0)
                     {
                         O("MoDataSnapshot.Add(typeof({0}),", type.ClassName);
-                        var props = type.ChangeTrackingProps;
                         int i = 0;
-                        foreach (var prop in props)
-                            O("    nameof({0}){1}", prop.Name, Sep(i++, props.Count));
+                        foreach (var prop in type.ChangeTrackingProps)
+                            O("    nameof({0}){1}", prop.Name, Sep(i++, type.ChangeTrackingProps.Count));
 
                         O(");");
                     }
@@ -163,7 +163,31 @@ namespace Casimodo.Lib.Mojen
                 End();
             }
 
-            // Properties
+            var allProps = type.GetProps(custom: false)
+                .Where(x => !x.IsODataDynamicPropsContainer)
+                .ToList();
+
+            // Constructor for JSON deserialization.
+            O();
+            O("[JsonConstructor]");
+            Oo($"public {type.ClassName}(");
+            o(allProps
+                .Select(prop => $"{prop.Type.Name} {prop.Name}")
+                .Join(", "));
+            oO(")");
+            Begin();
+            O(allProps
+                .Select(prop =>
+                {
+                    var name = prop.IsObservable && prop.ProxyOfInheritedProp == null
+                        ? $"_{Moj.FirstCharToLower(prop.Name)}"
+                        : prop.Name;
+                    return $"this.{name} = {prop.Name}; ";
+                })
+                .Join(""));
+            End();
+
+            // Local properties.
             foreach (MojProp prop in type.GetLocalProps(custom: false))
             {
                 if (prop.IsODataDynamicPropsContainer)
