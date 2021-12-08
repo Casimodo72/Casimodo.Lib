@@ -19,7 +19,6 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Presentation
 {
-    // TODO: I never tried yet to use this in Silverlight yet.
     public class CollectionViewModel<TData> : CollectionViewModel, IEnumerable<TData>
     {
         protected static readonly PropertyChangedEventArgs CurrentItemChangedArgs = new PropertyChangedEventArgs("CurrentItem");

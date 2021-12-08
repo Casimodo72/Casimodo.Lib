@@ -48,6 +48,8 @@ namespace Casimodo.Lib.Presentation
             return base.Contains(item);
         }
 
+        public T ItemAt(int index) => (T)base[index];
+
         /// <summary>
         /// Member of ICollection&lt;T&gt;.
         /// </summary>

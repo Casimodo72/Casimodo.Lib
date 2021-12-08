@@ -1,4 +1,5 @@
-﻿using Casimodo.Lib.Presentation;
+﻿using Casimodo.Lib.ComponentModel;
+using Casimodo.Lib.Presentation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,38 +10,39 @@ using System.Linq;
 
 namespace Casimodo.Lib.UI
 {
-    public class CollectionView<TData> : List<TData>
-    {
-        public CollectionView(IEnumerable<TData> collection)
-            : base(collection)
-        { }
+    // TODO: REMOVE
+    //public class CollectionView<TData> : List<TData>
+    //{
+    //    public CollectionView(IEnumerable<TData> collection)
+    //        : base(collection)
+    //    { }
 
-        public TData CurrentItem { get; set; }
+    //    public TData CurrentItem { get; set; }
 
-        public bool MoveCurrentToPosition(int position)
-        {
-            // TODO
-            return false;
-        }
+    //    public bool MoveCurrentToPosition(int position)
+    //    {
+    //        // TODO
+    //        return false;
+    //    }
 
-        public bool MoveCurrentTo(object data)
-        {
-            return false;
-            // TODO:
-        }
+    //    public bool MoveCurrentTo(object data)
+    //    {
+    //        return false;
+    //        // TODO:
+    //    }
 
-        public void Refresh()
-        {
-            // TODO
-        }
-    }
+    //    public void Refresh()
+    //    {
+    //        // TODO
+    //    }
+    //}
 
     public class CollectionViewModel<TData> : CollectionViewModel, IEnumerable<TData>
         where TData : class
     {
         protected CustomObservableCollection<TData> _effectiveItems;
         protected CustomObservableCollection<TData> _sourceItems;
-        readonly CollectionView<TData> _view;
+        //readonly CollectionView<TData> _view;
 
         public CollectionViewModel()
             : this(false, default)
@@ -59,7 +61,7 @@ namespace Casimodo.Lib.UI
             _effectiveItems = new CustomObservableCollection<TData>(new ChainedCollectionSourceAdapter(_sourceItems));
             _effectiveItems.CollectionChanged += OnItemsCollectionChanged;
 
-            _view = CreateView();
+            // TODO: REMOVE: _view = CreateView();
 
             //_view.CurrentChanging += OnViewCurrentChanging;
             //_view.CurrentChanged += OnViewCurrentChanged;
@@ -86,16 +88,19 @@ namespace Casimodo.Lib.UI
             //    () => MoveCurrentTo(this.Last()),
             //    () => CanMoveToLast());
 
-            //DeselectAllCommand = CommandFactory.Create(
-            //    () => Deselect(), () => _isChangingAllowed && CurrentItem != null);
+            DeselectAllCommand = CommandFactory.Create(
+                () => Deselect(), () => _isChangingAllowed && CurrentItem != null);
         }
 
-        protected virtual CollectionView<TData> CreateView()
-        {
-            return new CollectionView<TData>(_effectiveItems);
-        }
+        //public ICommandEx MoveToPreviousCommand { get; private set; }
 
-        public CollectionView<TData> View => _view;
+        //public ICommandEx MoveToNextCommand { get; private set; }
+
+        //public ICommandEx MoveToFirstCommand { get; private set; }
+
+        //public ICommandEx MoveToLastCommand { get; private set; }
+
+        public ICommandEx DeselectAllCommand { get; private set; }
 
         public string Name
         {
@@ -107,44 +112,74 @@ namespace Casimodo.Lib.UI
         /// <summary>
         /// Gets the number of items in the view.
         /// </summary>
-        public override int Count
-        {
-            get
-            {
-                return _view.Count;
-            }
-        }
+        public override int Count => _effectiveItems.Count;
 
         public bool IsEmpty => Count == 0;
 
-        public TData this[int index]
-        {
-            get { return _view[index]; }
-        }
+        public TData this[int index] => _effectiveItems.ItemAt(index);
 
-        public bool ViewContains(TData data)
+        public bool Contains(TData data)
         {
-            return _view.Contains(data);
+            return _effectiveItems.Contains(data);
         }
 
         public TData CurrentItem
         {
-            get { return GetCurrentItem(); }
-        }
+            get => _currentItem;
+            set
+            {
+                if (_currentItem == value)
+                    return;
 
-        protected virtual TData GetCurrentItem()
+                _currentItem = value;
+                OnViewCurrentChanged(this, EventArgs.Empty);
+            }
+        }
+        TData _currentItem;
+
+        TData _previousCurrent;
+
+        protected virtual void OnViewCurrentChanged(object sender, EventArgs e)
         {
-            return (TData)_view.CurrentItem;
+            CheckNotDisposed();
+
+            if (_previousCurrent == CurrentItem)
+            {
+                // Yes, we do want to be *only* notified when the current item *really* changes.
+                return;
+            }
+
+            if (IsCurrentItemPropertyChangedNoficiationEnabled)
+            {
+                DetachFromPreviousCurrentItem();
+            }
+
+            _previousCurrent = CurrentItem;
+
+            UpdateCommands();
+            DeselectAllCommand.RaiseCanExecuteChanged();
+
+            RaiseCurrentItemChanged();
+
+            if (IsCurrentItemPropertyChangedNoficiationEnabled)
+            {
+                AttachToCurrentItem();
+            }
         }
 
-        readonly object _previousCurrent;
+        protected void RaiseCurrentItemChanged()
+        {
+            RaisePropertyChanged(nameof(CurrentItem));
+
+            CurrentChanged?.Invoke(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Gets the enumeration over the items in the view.
         /// </summary>
         public IEnumerable<TData> Items
         {
-            get { return _view.Cast<TData>(); }
+            get { return _effectiveItems.Cast<TData>(); }
         }
 
         public override bool IsReadOnly
@@ -285,7 +320,7 @@ namespace Casimodo.Lib.UI
 
         public bool MoveCurrentToFirst()
         {
-            var first = _view.FirstOrDefault();
+            var first = _effectiveItems.FirstOrDefault();
             if (first == null)
                 return false;
 
@@ -294,15 +329,28 @@ namespace Casimodo.Lib.UI
 
         public bool MoveCurrentTo(TData data)
         {
-            if (data == null)
-                return _view.MoveCurrentTo(null);
+            CurrentItem = data;
+            // TODO: REMOVE when clarified what to do with GetViewItemOfData.
+            //if (data == null)
+            //{
+            //    CurrentItem = null;
+            //}
+            //else
+            //{
+            //    return _effectiveItems.MoveCurrentTo(GetViewItemOfData(data));
+            //}
 
-            return _view.MoveCurrentTo(GetViewItemOfData(data));
+            return true;
         }
 
         public bool MoveToPosition(int position)
         {
-            return _view.MoveCurrentToPosition(position);
+            if (position < 0 || position >= _effectiveItems.Count)
+                return false;
+
+            CurrentItem = _effectiveItems.ItemAt(position);
+
+            return true;
         }
 
         /// <summary>
@@ -380,15 +428,19 @@ namespace Casimodo.Lib.UI
         {
             CheckNotDisposed();
 
-            _view.MoveCurrentToPosition(-1);
+            MoveToPosition(-1);
             _effectiveItems.Clear();
             if (refreshView)
-                _view.Refresh();
+            {
+                // TODO: Raise collection changed event.
+                // _view.Refresh();
+            }
         }
-
+       
         public void RefreshView()
         {
-            _view.Refresh();
+            // TODO: Raise collection changed event.?
+            //_view.Refresh();
         }
 
         public void Insert(int index, TData data)
@@ -436,7 +488,7 @@ namespace Casimodo.Lib.UI
 
         void AttachToCurrentItem()
         {
-            if (_view.CurrentItem is INotifyPropertyChanged propChanged)
+            if (CurrentItem is INotifyPropertyChanged propChanged)
                 propChanged.PropertyChanged += OnCurrentItemPropertyChanged;
         }
 
@@ -467,7 +519,7 @@ namespace Casimodo.Lib.UI
             //MoveToLastCommand.RaiseCanExecuteChanged();
             //MoveToPreviousCommand.RaiseCanExecuteChanged();
             //MoveToNextCommand.RaiseCanExecuteChanged();
-            //DeselectAllCommand.RaiseCanExecuteChanged();
+            DeselectAllCommand.RaiseCanExecuteChanged();
         }
 
         public void Deselect()
@@ -477,8 +529,8 @@ namespace Casimodo.Lib.UI
             if (!_isChangingAllowed)
                 return;
 
-            if (_view.CurrentItem != null)
-                _view.MoveCurrentToPosition(-1);
+            if (CurrentItem != null)
+                MoveToPosition(-1);
         }
 
         public int PositionOf(TData item)
@@ -505,7 +557,7 @@ namespace Casimodo.Lib.UI
 
         public virtual IEnumerator<TData> GetEnumerator()
         {
-            return ((IEnumerable<TData>)_view).GetEnumerator();
+            return ((IEnumerable<TData>)_effectiveItems).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
