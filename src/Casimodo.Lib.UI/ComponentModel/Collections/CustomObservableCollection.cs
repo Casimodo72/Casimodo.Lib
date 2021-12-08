@@ -615,15 +615,10 @@ namespace Casimodo.Lib.Presentation
 
         object IList.this[int index]
         {
-            get
-            {
-                return _items[index];
-            }
-            set
-            {
+            get => _items[index];
+            set =>
                 // TODO: How to replace an item in the source collection as well?
                 throw new NotImplementedException();
-            }
         }
 
         #endregion IList (nasty) -------------------------

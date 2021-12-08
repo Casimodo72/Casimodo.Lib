@@ -144,7 +144,7 @@ namespace Casimodo.Lib.Data
 
         DbContext IDbRepository.Context
         {
-            get { return Context; }
+            get => Context;
             set
             {
                 Guard.ArgNotNull(value, nameof(value));

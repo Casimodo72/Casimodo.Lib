@@ -22,14 +22,14 @@ namespace Casimodo.Lib.Presentation
 
         public sealed override object DataObject
         {
-            get { return _data; }
-            set { SetData((TData)value); }
+            get => _data;
+            set => SetData((TData)value);
         }
 
         public TData Data
         {
-            get { return _data; }
-            set { SetData(value); }
+            get => _data;
+            set => SetData(value);
         }
 
         /// <summary>

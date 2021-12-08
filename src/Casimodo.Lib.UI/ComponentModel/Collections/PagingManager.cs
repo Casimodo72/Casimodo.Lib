@@ -36,7 +36,7 @@ namespace Casimodo.Lib.Presentation
         /// </summary>
         public bool IsFrozen
         {
-            get { return _isFrozen; }
+            get => _isFrozen;
             set
             {
                 if (_isFrozen != value)
@@ -61,8 +61,8 @@ namespace Casimodo.Lib.Presentation
         /// </summary>
         public bool IsPageChanging
         {
-            get { return _isPageChanging; }
-            private set { SetProp(ref _isPageChanging, value, IsPageChangingChangedArgs); }
+            get => _isPageChanging;
+            private set => SetProp(ref _isPageChanging, value, IsPageChangingChangedArgs);
         }
 
         bool _isPageChanging;
@@ -99,7 +99,7 @@ namespace Casimodo.Lib.Presentation
         /// </summary>
         public int PageSize
         {
-            get { return _pageSize; }
+            get => _pageSize;
             set
             {
                 if (value < 0)

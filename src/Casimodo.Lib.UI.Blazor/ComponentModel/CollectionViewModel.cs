@@ -99,8 +99,8 @@ namespace Casimodo.Lib.UI
 
         public string Name
         {
-            get { return _name; }
-            set { SetProp(ref _name, value); }
+            get => _name;
+            set => SetProp(ref _name, value);
         }
         string _name;
 
@@ -419,7 +419,7 @@ namespace Casimodo.Lib.UI
 
         public bool IsCurrentItemPropertyChangedNoficiationEnabled
         {
-            get { return _isCurrentItemPropertyChangedNoficiationEnabled; }
+            get => _isCurrentItemPropertyChangedNoficiationEnabled;
             set
             {
                 if (_isCurrentItemPropertyChangedNoficiationEnabled != value)
@@ -448,7 +448,7 @@ namespace Casimodo.Lib.UI
 
         public bool IsChangingAllowed
         {
-            get { return _isChangingAllowed; }
+            get => _isChangingAllowed;
             set
             {
                 if (SetProp(ref _isChangingAllowed, value))
