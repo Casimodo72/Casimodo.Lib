@@ -6,53 +6,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-// This is just a non functional stub in order to get rid of the WPF dependencies while moving to Blazor.
-
 namespace Casimodo.Lib.UI
 {
-    // TODO: REMOVE
-    //public class CollectionView<TData> : List<TData>
-    //{
-    //    public CollectionView(IEnumerable<TData> collection)
-    //        : base(collection)
-    //    { }
-
-    //    public TData CurrentItem { get; set; }
-
-    //    public bool MoveCurrentToPosition(int position)
-    //    {
-    //        // TODO
-    //        return false;
-    //    }
-
-    //    public bool MoveCurrentTo(object data)
-    //    {
-    //        return false;
-    //        // TODO:
-    //    }
-
-    //    public void Refresh()
-    //    {
-    //        // TODO
-    //    }
-    //}
-
     public class CollectionViewModel<TData> : CollectionViewModel, IEnumerable<TData>
         where TData : class
     {
         protected CustomObservableCollection<TData> _effectiveItems;
         protected CustomObservableCollection<TData> _sourceItems;
-        //readonly CollectionView<TData> _view;
 
         public CollectionViewModel()
-            : this(false, default)
-        { }
-
-        public CollectionViewModel(TData nullObject)
-            : this(true, nullObject)
-        { }
-
-        protected CollectionViewModel(bool useNullObject, TData nullObject)
         {
             // We'll use the source items for sorting.
             _sourceItems = new CustomObservableCollection<TData>();
@@ -104,7 +66,7 @@ namespace Casimodo.Lib.UI
         string _name;
 
         /// <summary>
-        /// Gets the number of items in the view.
+        /// Gets the number of items.
         /// </summary>
         public override int Count => _effectiveItems.Count;
 
@@ -122,24 +84,23 @@ namespace Casimodo.Lib.UI
             get => _currentItem;
             set
             {
-                if (_currentItem == value)
-                    return;
-
-                _currentItem = value;
-                OnViewCurrentChanged(this, EventArgs.Empty);
+                if (SetProp(ref _currentItem, value))
+                {
+                    OnCurrentItemChanged(this, EventArgs.Empty);
+                }
             }
         }
         TData _currentItem;
 
         TData _previousCurrent;
 
-        protected virtual void OnViewCurrentChanged(object sender, EventArgs e)
+        protected virtual void OnCurrentItemChanged(object sender, EventArgs e)
         {
             CheckNotDisposed();
 
+            // TODO: Use equality comparer.
             if (_previousCurrent == CurrentItem)
             {
-                // Yes, we do want to be *only* notified when the current item *really* changes.
                 return;
             }
 
@@ -168,28 +129,11 @@ namespace Casimodo.Lib.UI
             CurrentChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// Gets the enumeration over the items in the view.
-        /// </summary>
-        public IEnumerable<TData> Items
-        {
-            get { return _effectiveItems.Cast<TData>(); }
-        }
+        public override bool IsReadOnly => _sourceItems.IsReadOnly;
 
-        public override bool IsReadOnly
-        {
-            get { return _sourceItems.IsReadOnly; }
-        }
+        public override bool CanAdd => !IsReadOnly && _effectiveItems.CanAdd && _sourceItems.CanAdd;
 
-        public override bool CanAdd
-        {
-            get { return !IsReadOnly && _effectiveItems.CanAdd && _sourceItems.CanAdd; }
-        }
-
-        public override bool CanRemove
-        {
-            get { return !IsReadOnly && _effectiveItems.CanAdd && _sourceItems.CanAdd; }
-        }
+        public override bool CanRemove => !IsReadOnly && _effectiveItems.CanAdd && _sourceItems.CanAdd;
 
         /// <summary>
         /// Sets the given collection as the source collection.
@@ -285,8 +229,6 @@ namespace Casimodo.Lib.UI
 
         void RebuildEffectiveItems(Predicate<object> predicate)
         {
-            // Note that we apply the filter on the *effective* items
-            // which are directly used by the view.
             _effectiveItems.BeginUpdate();
             try
             {
@@ -348,7 +290,7 @@ namespace Casimodo.Lib.UI
         }
 
         /// <summary>
-        /// Adds the given data item to the view.
+        /// Adds the given data item.
         /// </summary>
         /// <param name="data"></param>
         public void Add(TData data)
@@ -366,16 +308,19 @@ namespace Casimodo.Lib.UI
             AddToView(data);
         }
 
+        // TODO: Do we still need this?
         protected virtual void AddToView(TData data)
         {
             // NOP
         }
 
+        // TODO: Do we still need this?
         protected virtual void InsertToView(int index, TData data)
         {
             // NOP
         }
 
+        // TODO: Do we still need this?
         protected virtual object GetViewItemOfData(TData data)
         {
             return data;
@@ -415,7 +360,7 @@ namespace Casimodo.Lib.UI
         bool _isRemoving;
 
         /// <summary>
-        /// Removes all items from the view.
+        /// Removes all items.
         /// Sets CurrentItem to null.
         /// </summary>
         public virtual void Clear(bool refreshView = false)
@@ -430,7 +375,7 @@ namespace Casimodo.Lib.UI
                 // _view.Refresh();
             }
         }
-       
+
         public void RefreshView()
         {
             // TODO: Raise collection changed event.?
