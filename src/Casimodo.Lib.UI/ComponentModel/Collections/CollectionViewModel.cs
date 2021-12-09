@@ -24,22 +24,9 @@ namespace Casimodo.Lib.Presentation
         /// </summary>
         public event NotifyCollectionChangedEventHandler ItemsCollectionChanged;
 
-        /// <summary>
-        /// Notifies when the items collection or the view's collection changes.
-        /// This might fire twice for a single change, but ensures that you will be
-        /// notified even if the view's internal collection is
-        /// changed via the UI (e.g. via the filter, sort descriptions, etc.).
-        /// </summary>
-        public event NotifyCollectionChangedEventHandler ItemsOrViewCollectionChanged;
-
         protected virtual void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             ItemsCollectionChanged?.Invoke(this, e);
-        }
-
-        protected virtual void OnItemsOrViewCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            ItemsOrViewCollectionChanged?.Invoke(this, e);
         }
     }
 }

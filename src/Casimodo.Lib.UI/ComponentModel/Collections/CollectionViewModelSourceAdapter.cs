@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Presentation
         public CollectionViewModelSourceAdapter(CollectionViewModel source)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
-            _source.ItemsOrViewCollectionChanged += OnSourceCollectionChanged;
+            _source.ItemsCollectionChanged += OnSourceCollectionChanged;
         }
 
         readonly CollectionViewModel _source;

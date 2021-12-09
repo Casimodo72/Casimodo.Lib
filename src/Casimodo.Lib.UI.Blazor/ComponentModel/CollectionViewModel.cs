@@ -61,12 +61,6 @@ namespace Casimodo.Lib.UI
             _effectiveItems = new CustomObservableCollection<TData>(new ChainedCollectionSourceAdapter(_sourceItems));
             _effectiveItems.CollectionChanged += OnItemsCollectionChanged;
 
-            // TODO: REMOVE: _view = CreateView();
-
-            //_view.CurrentChanging += OnViewCurrentChanging;
-            //_view.CurrentChanged += OnViewCurrentChanged;
-            //((INotifyCollectionChanged)_view).CollectionChanged += OnItemsOrViewCollectionChanged;
-
             Pager = new PagingManager();
             Pager.PageSize = 0;
             Pager.PageChanged += new EventHandler<EventArgs>(OnPagerPageChanged);
