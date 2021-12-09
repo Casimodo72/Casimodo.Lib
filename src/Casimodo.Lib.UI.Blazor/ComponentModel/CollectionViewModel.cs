@@ -527,9 +527,9 @@ namespace Casimodo.Lib.UI
                 MoveToPosition(-1);
         }
 
-        public int PositionOf(TData item)
+        public int IndexOf(TData item)
         {
-            int pos = 0;
+            int idx = 0;
             bool found = false;
             foreach (var i in this)
             {
@@ -538,11 +538,11 @@ namespace Casimodo.Lib.UI
                     found = true;
                     break;
                 }
-                pos++;
+                idx++;
             }
 
             if (found)
-                return pos;
+                return idx;
             else
                 return -1;
         }
