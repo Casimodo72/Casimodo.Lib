@@ -67,15 +67,15 @@ namespace Casimodo.Lib.Data
 
                 trans.Commit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 trans.Rollback();
-                throw ex;
+                throw;
             }
         }
 
         /// <summary>
-        /// TODO: IMPORTANT: REVISIT: EF Core conventions not ready yet?
+        /// TODO: REVISIT: EF Core conventions not ready yet?
         ///     See https://github.com/aspnet/EntityFrameworkCore/issues/13954
         /// </summary>
         protected void OnModelCreatingApplyDecimalPrecision(ModelBuilder builder)

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Casimodo.Lib.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
-    // NOTE: Not used yet. Intended for projecting entities directly to models.
+    // Intended for projecting entities directly to models.
     public abstract class ModelDbRepository<TModel, TEntityRepo, TContext, TEntity, TKey> :
         DbRepository<TContext, TEntity, TKey>
         where TEntityRepo : DbRepository<TContext, TEntity, TKey>, new()

@@ -1,9 +1,7 @@
 ﻿using Casimodo.Lib.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Internal;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,20 +9,6 @@ using System.Reflection;
 
 namespace Casimodo.Lib.Data
 {
-    // TODO: REMOVE
-#if (false)
-    public static partial class CustomExtensions
-    {
-        [Obsolete]
-        public static IQueryable Query(this DbContext context, string entityName) =>
-            context.Query(context.Model.FindEntityType(entityName).ClrType);
-
-        [Obsolete]
-        public static IQueryable Query(this DbContext context, Type entityType) =>
-            (IQueryable)((IDbSetCache)context).GetOrAddSet(context.GetDependencies().SetSource, entityType);
-    }
-#endif
-
     public class DbRepositoryCoreProvider
     {
         public DbRepositoryCoreProvider()
@@ -47,6 +31,9 @@ namespace Casimodo.Lib.Data
         }
     }
 
+    /// <summary>
+    /// Used by Mojen Generators.
+    /// </summary>
     public class DbRepoContainer
     {
         protected readonly DbContext _db;
@@ -112,9 +99,6 @@ namespace Casimodo.Lib.Data
             Guard.ArgNotNull(db, nameof(db));
 
             return new TEntity();
-
-            // KABU TOOD: REMOVE: EF Core does not have a way of creating entities via the set.
-            // return db.Set<TEntity>().Create();
         }
 
         public abstract DbRepoOperationContext CreateOperationContext(object item, DbRepoOp op, DbContext db, MojDataGraphMask mask = null);
@@ -159,8 +143,6 @@ namespace Casimodo.Lib.Data
             if (key == null)
                 throw new DbRepositoryException($"Update error: Item has no key assigned (type: '{type.Name}').");
 
-            // TODO: REMOVE: var entitySet = db.Set(type);
-
             var target = db.Find(type, key);
             if (target == null)
                 throw new DbRepositoryException($"Update error: Previous item not found (type: '{type.Name}', ID: '{key}').");
@@ -190,7 +172,7 @@ namespace Casimodo.Lib.Data
                     newValue = prop.GetValue(source);
                     // Mark as modified and assign if changed.
                     var oldValue = prop.GetValue(target);
-                    if (!object.Equals(oldValue, newValue))
+                    if (!Equals(oldValue, newValue))
                     {
                         prop.SetValue(target, newValue);
                         entry.Property(propName).IsModified = true;
@@ -229,7 +211,7 @@ namespace Casimodo.Lib.Data
 
                         // Loose navigation properties: Update the foreign key value only.
                         // Mark as modified and assign if changed.
-                        if (!object.Equals(prop.GetValue(target), newValue))
+                        if (!Equals(prop.GetValue(target), newValue))
                         {
                             prop.SetValue(target, newValue);
                             entry.Property(referenceNode.ForeignKey).IsModified = true;
@@ -319,7 +301,7 @@ namespace Casimodo.Lib.Data
                 foreach (var newItem in newItems)
                 {
                     var newKey = GetEntityKey(newItem);
-                    if (object.Equals(newKey, curKey))
+                    if (Equals(newKey, curKey))
                     {
                         found = true;
                         addedItems.Remove(newItem);
@@ -339,11 +321,9 @@ namespace Casimodo.Lib.Data
             if (addedItems.Count != 0)
             {
                 var itemType = prop.PropertyType.GetGenericArguments()[0];
-                // TODO: REMOVE: var itemDbSet = db.Set(prop.PropertyType.GetGenericArguments()[0]);
                 foreach (var newItem in addedItems)
                 {
                     var dbItem = db.Find(itemType, GetEntityKey(newItem));
-                    // TODO: REMOVE: var dbItem =  itemDbSet.Find(GetEntityKey(newItem));
                     if (dbItem != null)
                         curItems.Add(dbItem);
                 }
@@ -358,7 +338,7 @@ namespace Casimodo.Lib.Data
         // KABU TODO: REMOVE? Tenant mechanism has changed.
         protected void ApplyTenantKey(object entity)
         {
-            if (!(entity is IMultitenant multitenant))
+            if (entity is not IMultitenant multitenant)
                 return;
 
             var tenantId = ServiceLocator.Current.GetInstance<ICurrentTenantProvider>().GetTenantId(required: false);
@@ -544,8 +524,6 @@ namespace Casimodo.Lib.Data
 
             if (ctx.Origin == item)
                 return false;
-            // KABU TODO: REMOVE
-            //throw new DbRepositoryException("Cascade error: The origin object is equal to the current object.");
 
             if (GetProp(item, CommonDataNames.IsDeleted, false) == true)
                 return false;
@@ -728,8 +706,6 @@ namespace Casimodo.Lib.Data
         }
 
         // Error helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        // KABU TODO: LOCALIZE
 
         public void ThrowUniquePropValueExists<T>(string prop, object value)
         {

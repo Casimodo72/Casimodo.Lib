@@ -67,7 +67,7 @@ namespace Casimodo.Lib.Auth
     // KABU TODO: Maybe load some auth parts from file (using HostingEnvironment.ApplicationPhysicalPath).
     public abstract class ActionAuthManager : IDisposable
     {
-        internal readonly Dictionary<string, int> RoleInheritance = new Dictionary<string, int>();
+        internal readonly Dictionary<string, int> RoleInheritance = new();
 
         public ActionAuthManager()
         {
@@ -142,11 +142,13 @@ namespace Casimodo.Lib.Auth
             {
                 foreach (var action in part.Actions.Where(x => x.Matches(actionName, viewRole)))
                 {
-                    var perm = new AuthActionPerm(this, part);
-                    perm.Action = action;
-                    perm.IsPermitted = true;
-                    perm.UserRole = userRole;
-                    perm.IsMinRole = isMinUserRole;
+                    var perm = new AuthActionPerm(this, part)
+                    {
+                        Action = action,
+                        IsPermitted = true,
+                        UserRole = userRole,
+                        IsMinRole = isMinUserRole
+                    };
 
                     if (!part.GetIsDuplicate(perm))
                         part.Permissions.Add(perm);
@@ -245,7 +247,7 @@ namespace Casimodo.Lib.Auth
 
     public class ActionAuthBuilder
     {
-        ActionAuthManager _manager;
+        readonly ActionAuthManager _manager;
 
         public ActionAuthBuilder(ActionAuthManager manager)
         {
@@ -316,9 +318,11 @@ namespace Casimodo.Lib.Auth
 
         public ActionAuthBuilder AddPart(string item, string title = null, string group = null, string viewRole = null, string url = null)
         {
-            var part = new AuthPart();
-            part.PartName = item;
-            part.PartGroup = group;
+            var part = new AuthPart
+            {
+                PartName = item,
+                PartGroup = group
+            };
 
             _manager.CheckNotDuplicate(part);
 
@@ -343,9 +347,11 @@ namespace Casimodo.Lib.Auth
 
             if (part == null)
             {
-                part = new AuthPart();
-                part.PartName = item;
-                part.PartGroup = group;
+                part = new AuthPart
+                {
+                    PartName = item,
+                    PartGroup = group
+                };
                 _manager.Parts.Add(part);
             }
 

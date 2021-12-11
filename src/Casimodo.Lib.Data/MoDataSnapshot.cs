@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Data
             if (item == null)
                 return true;
 
-            if (!(item is IMoDataSnapshot snapshotObj))
+            if (item is not IMoDataSnapshot snapshotObj)
                 return true;
 
             var snapshot = snapshotObj.GetSnapshot();
@@ -67,7 +67,7 @@ namespace Casimodo.Lib.Data
             if (item == null)
                 return false;
 
-            if (!(item is IMoDataSnapshot snapshotObj))
+            if (item is not IMoDataSnapshot snapshotObj)
                 return false;
 
             Type type = item.GetType();
@@ -88,12 +88,12 @@ namespace Casimodo.Lib.Data
             return true;
         }
 
-        static readonly Dictionary<Type, List<string>> _items = new Dictionary<Type, List<string>>();
+        static readonly Dictionary<Type, List<string>> _items = new();
 
         public static void Add(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             string[] propertyNames =
                 type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
@@ -107,7 +107,7 @@ namespace Casimodo.Lib.Data
         public static void Add(Type type, params string[] propertyNames)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (!_items.TryGetValue(type, out List<string> properties))
             {

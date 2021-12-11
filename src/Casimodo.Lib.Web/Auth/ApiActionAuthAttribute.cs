@@ -16,8 +16,6 @@ namespace Casimodo.Lib.Web.Auth
 
         public void OnAuthorization(Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context)
         {
-            var user = context.HttpContext.User;
-
             // KABU TODO: IMPORTANT: NOTE that we use vrole: "*". This is hopefully just a temporary
             //   workaround for not yet defining api-actions and permissions for
             //   every defined view-action and its permissions. I.e. currently we are using the

@@ -7,8 +7,8 @@ namespace Casimodo.Lib.Data
 {
     public class DbSeedInfo
     {
-        public readonly Dictionary<string, string[]> Sections = new Dictionary<string, string[]>();
-        public readonly Dictionary<string, Action<DbSeedBase>> Items = new Dictionary<string, Action<DbSeedBase>>();
+        public readonly Dictionary<string, string[]> Sections = new();
+        public readonly Dictionary<string, Action<DbSeedBase>> Items = new();
 
         public void AddSection(string name, string[] items)
         {
@@ -17,12 +17,12 @@ namespace Casimodo.Lib.Data
 
         public bool ContainsSection(string name)
         {
-            return Sections.Keys.Contains(name);
+            return Sections.ContainsKey(name);
         }
 
         public bool ContainsItem(string name)
         {
-            return Items.Keys.Contains(name);
+            return Items.ContainsKey(name);
         }
     }
 

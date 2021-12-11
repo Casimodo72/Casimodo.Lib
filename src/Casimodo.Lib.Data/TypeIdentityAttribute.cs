@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Reflection;
 
 namespace Casimodo.Lib.Data
@@ -12,6 +11,7 @@ namespace Casimodo.Lib.Data
         }
     }
 
+    [AttributeUsage(AttributeTargets.Class)]
     public class TypeIdentityAttribute : Attribute
     {
         public TypeIdentityAttribute(string guid)

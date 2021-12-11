@@ -19,7 +19,6 @@ namespace Casimodo.Lib.Data
             where TEntity : class, IKeyAccessor<TKey>, new()
             where TKey : struct, IComparable<TKey>
         {
-            // KABU TODO: Not tenant safe.
             var entity = await repo.EntitySet.FindAsync(key);
             if (entity == null)
                 throw repo.NotFound();
@@ -50,7 +49,6 @@ namespace Casimodo.Lib.Data
             where TKey : struct, IComparable<TKey>
         {
             // Get entity from store.
-            // KABU TODO: Not tenant safe.
             var entity = await repo.EntitySet.FindAsync(key);
             if (entity == null)
                 throw repo.NotFound();

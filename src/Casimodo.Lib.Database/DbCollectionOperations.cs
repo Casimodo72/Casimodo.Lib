@@ -37,7 +37,7 @@ namespace Casimodo.Lib.Data
             public Guid OwnerId;
             public DbSet<TOwner> OwnerDbSet;
             public DbSet<TItem> ItemDbSet;
-            public List<Entry<TLink, TItem>> Entries = new List<Entry<TLink, TItem>>();
+            public List<Entry<TLink, TItem>> Entries = new();
             public bool IsChanged;
             //public System.Data.Entity.Core.Objects.ObjectStateManager StateManager;
             public string PropPath;
@@ -133,22 +133,16 @@ namespace Casimodo.Lib.Data
             where TLink : class, IIdGetter, IGuidGenerateable, new()
             where TItem : class, IIdGetter
         {
-
+            // TODO: Check if we still have to consider lazy loading / detect changes.
             // Disable lazy loading.
             // TODO: We would like to just throw an exception if lazy loading is enabled,
-            //   I currently do not see a way of asking the DbContext is really enabled.
+            //   I currently do not see a way of asking the DbContext if it is really enabled.
             //   LazyLoadingEnabled might be set to true even if the DbContext was not configured
             //   with UseLazyLoadingProxies.
             options.Db.ChangeTracker.LazyLoadingEnabled = false;
-            // TODO: If would try to restore the original value of AutoDetectChangesEnabled,
+            // TODO: If we would try to restore the original value of AutoDetectChangesEnabled,
             //   would that trigger a re-detection of the already added/removed entities?
             options.Db.ChangeTracker.AutoDetectChangesEnabled = false;
-
-            // TODO: REMOVE:
-            //if (options.Db.ChangeTracker.LazyLoadingEnabled)
-            //    throw new Exception("Modifying collection: 'Lazy loading' must not be enabled for this operation.");
-            //if (options.Db.ChangeTracker.AutoDetectChangesEnabled)
-            //    throw new Exception("Modifying collection: 'Auto detect changes' must not be enabled for this operation.");
 
             var context = new UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>
             {
@@ -171,8 +165,6 @@ namespace Casimodo.Lib.Data
             context.Owner = await context.OwnerDbSet
                 .Include(context.PropPath)
                 .FirstOrDefaultAsync(x => x.Id == context.OwnerId);
-
-           
 
             if (context.Owner == null)
                 throw new EntityNotFoundException($"Owner of unidirectional many to many collection not found (ID: {context.OwnerId}).");

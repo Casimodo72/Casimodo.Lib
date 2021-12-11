@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace Casimodo.Lib.Data
@@ -76,8 +73,8 @@ namespace Casimodo.Lib.Data
         }
 
         MojDataMaskBuilder _parent;
-        readonly MojDataGraphMask _mask = new MojDataGraphMask();
-        readonly List<MojDataMaskBuilder> _propTypeBuilders = new List<MojDataMaskBuilder>();
+        readonly MojDataGraphMask _mask = new();
+        readonly List<MojDataMaskBuilder> _propTypeBuilders = new();
         readonly Type _targetType;
 
         public MojDataMaskBuilder Prop(string name)

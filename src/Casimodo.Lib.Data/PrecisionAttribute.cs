@@ -2,6 +2,7 @@
 
 namespace Casimodo.Lib.Data
 {
+    [AttributeUsage(AttributeTargets.Property)]
     public class PrecisionAttribute : Attribute
     {
         public PrecisionAttribute(byte precision, byte scale)

@@ -31,9 +31,6 @@ namespace Casimodo.Lib.Data
         public object OldPropValue { get; set; }
         public object NewPropValue { get; set; }
 
-        /// <summary>
-        /// Only used for deletion in order to 
-        /// </summary>
         public OperationOriginInfo OriginInfo
         {
             get

@@ -96,7 +96,6 @@ namespace Casimodo.Lib.Web
     [Authorize]
     public class ODataControllerBase : ODataController
     {
-        
         [System.Diagnostics.DebuggerHidden]
         public void ThrowNotFound(string message = null)
         {

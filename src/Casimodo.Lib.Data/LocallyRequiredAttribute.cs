@@ -7,6 +7,7 @@ namespace Casimodo.Lib.Data
 
     }
 
+    // TODO: We may need this again in Blazor.
 #if (false)
     public class LocallyRequiredAttribute : ValidationAttribute
     {

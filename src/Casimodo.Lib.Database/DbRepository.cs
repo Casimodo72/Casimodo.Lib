@@ -49,10 +49,7 @@ namespace Casimodo.Lib.Data
             : base(db, trans)
         { }
 
-        public TDbContext Context
-        {
-            get { return (TDbContext)_db; }
-        }
+        public TDbContext Context => (TDbContext)_db;
     }
 
     public class DbTransactionContext
@@ -70,10 +67,7 @@ namespace Casimodo.Lib.Data
 
         public IDbContextTransaction Transaction { get; private set; }
 
-        public DbContext BaseContext
-        {
-            get { return _db; }
-        }
+        public DbContext BaseContext => _db;
 
         public void EnlistTransaction(DbContext dbcontext)
         {
@@ -119,7 +113,7 @@ namespace Casimodo.Lib.Data
 
         DbRepositoryCore _core;
         Guid? _tenantGuid;
-        readonly object _lock = new object();
+        readonly object _lock = new();
 
         static DbRepository()
         {
@@ -232,14 +226,10 @@ namespace Casimodo.Lib.Data
             return Get(key, required: required);
         }
 
-        /// <summary>
-        /// KABU TODO: Not tenant safe.
-        /// </summary> 
         public TEntity Get(TKey? key, bool required = true)
         {
             TEntity entity = null;
             if (key != null)
-                // KABU TODO: Not tenant safe.
                 entity = EntitySet.Find(key);
 
             if (entity == null && required)
@@ -251,11 +241,10 @@ namespace Casimodo.Lib.Data
         }
 
         /// <summary>
-        /// NOTE: Not tenant safe. Returns also IsDeleted entities.
+        /// Returns also IsDeleted entities.
         /// </summary> 
         public async Task<TEntity> GetAsync(TKey key, bool required = true)
         {
-            // KABU TODO: Not tenant safe.
             var entity = await EntitySet.FindAsync(key);
             if (entity == null && required)
                 throw NotFound();
@@ -293,7 +282,7 @@ namespace Casimodo.Lib.Data
 
         public IQueryable<TEntity> LocalAndDbQuery(bool includeDeleted, Expression<Func<TEntity, bool>> predicate)
         {
-            // TODO: EF Core's Local is slow because it is a view over the state manager.
+            // TODO: EF Core's Local is bit slow because it is a view over the state manager.
             //   See https://github.com/aspnet/EntityFrameworkCore/issues/14231
             //   Do we want to use ToObservableCollection here?
             var localQuery = EntitySet.Local.AsQueryable().Where(predicate);
@@ -305,8 +294,6 @@ namespace Casimodo.Lib.Data
             var keys = localItems.Select(x => GetKey(x)).ToArray();
 
             // Return local items + queried items from db.
-            // TODO: VERY IMPORTANT: This could return duplicates.
-            //   TODO: Is this still an issue? We exclude the local items, don't we?
             return localItems.ToArray().Concat(
                 Query(includeDeleted)
                     .Where(predicate)
@@ -321,10 +308,6 @@ namespace Casimodo.Lib.Data
             return FilterById(id, Query(includeDeleted: includeDeleted, trackable: false));
         }
 
-        /// <summary>
-        /// Returns an IQueryable of TEntity with the following being applied:
-        /// 1) Tenant
-        /// </summary>
         public IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true)
         {
             IQueryable<TEntity> query = EntitySet;
@@ -373,7 +356,6 @@ namespace Casimodo.Lib.Data
                 if (!Exists(key))
                     throw NotFound();
 
-                // TODO: REVISIT: Should we throw with HttpStatusCode.Conflict instead?
                 throw;
             }
         }
@@ -402,10 +384,7 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        public DbSet<TEntity> EntitySet
-        {
-            get { return Context.Set<TEntity>(); }
-        }
+        public DbSet<TEntity> EntitySet => Context.Set<TEntity>();
 
         public TEntity Update(TEntity entity, MojDataGraphMask mask = null)
         {
@@ -527,36 +506,66 @@ namespace Casimodo.Lib.Data
 
         IEnumerable<TRowValue> SqlQueryValueList<TRowValue>(string query)
         {
-            // Source: https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
             var rows = new List<TRowValue>();
-            var conn = Context.Database.GetDbConnection();
-            conn.Open();
-            var command = conn.CreateCommand();
-            command.CommandText = query;
-            var reader = command.ExecuteReader();
-            while (reader.Read())
+
+            using var cmd = Context.Database.GetDbConnection().CreateCommand();
+
+            var connectionWasOpen = cmd.Connection.State == ConnectionState.Open;
+            if (!connectionWasOpen)
             {
-                rows.Add(reader.GetFieldValue<TRowValue>(0));
+                cmd.Connection.Open();
             }
 
-            return rows;
+            try
+            {
+                cmd.CommandText = query;
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    rows.Add(reader.GetFieldValue<TRowValue>(0));
+                }
+
+                return rows;
+            }
+            finally
+            {
+                if (!connectionWasOpen && cmd.Connection.State == ConnectionState.Open)
+                {
+                    cmd.Connection.Close();
+                }
+            }
         }
 
         async Task<IEnumerable<TRowValue>> SqlQueryValueListAsync<TRowValue>(string query)
         {
-            // Source: https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
             var rows = new List<TRowValue>();
-            var conn = Context.Database.GetDbConnection();
-            await conn.OpenAsync();
-            var command = conn.CreateCommand();
-            command.CommandText = query;
-            var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+
+            using var cmd = Context.Database.GetDbConnection().CreateCommand();
+
+            var connectionWasOpen = cmd.Connection.State == ConnectionState.Open;
+            if (!connectionWasOpen)
             {
-                rows.Add(reader.GetFieldValue<TRowValue>(0));
+                await cmd.Connection.OpenAsync();
             }
 
-            return rows;
+            try
+            {
+                cmd.CommandText = query;
+                var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    rows.Add(reader.GetFieldValue<TRowValue>(0));
+                }
+
+                return rows;
+            }
+            finally
+            {
+                if (!connectionWasOpen && cmd.Connection.State == ConnectionState.Open)
+                {
+                    await cmd.Connection.CloseAsync();
+                }
+            }
         }
 
         public void ApplyTennant(TEntity entity)
@@ -582,7 +591,6 @@ namespace Casimodo.Lib.Data
 
         public void Delete(TKey key, DbRepoOperationContext ctx = null, bool save = false)
         {
-            // KABU TODO: Not tenant safe.
             var entity = EntitySet.Find(key);
             if (entity == null)
                 return;
@@ -660,7 +668,6 @@ namespace Casimodo.Lib.Data
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        // KABU TODO: Rename to EntityNotFound
         public DbRepositoryException NotFound()
         {
             return new DbRepositoryException(DbRepositoryErrorKind.NotFound, "Entity not found.");
@@ -676,7 +683,7 @@ namespace Casimodo.Lib.Data
 
         public bool Exists(TKey key)
         {
-            if (object.Equals(key, default(TKey)))
+            if (Equals(key, default(TKey)))
                 return false;
 
             // KABU TODO: Check the SQL this generates.
@@ -700,7 +707,6 @@ namespace Casimodo.Lib.Data
 
         protected TEntity FindLocal(TKey key)
         {
-            // KABU TODO: Not tenant safe.
             return EntitySet.Local.AsQueryable().FirstOrDefault(GetIsKeyEqual(key));
         }
 
@@ -735,7 +741,7 @@ namespace Casimodo.Lib.Data
 
         static PropertyInfo FindProperty(string name)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException("name");
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
 
             var prop = typeof(TEntity).GetProperty(name);
             if (prop == null)

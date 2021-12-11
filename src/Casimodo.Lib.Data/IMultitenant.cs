@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Casimodo.Lib.Data
+﻿namespace Casimodo.Lib.Data
 {
     public interface IMultitenant
     {

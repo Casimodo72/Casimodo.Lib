@@ -16,8 +16,6 @@ namespace Casimodo.Lib.Web.Auth
 
         public void OnAuthorization(Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context)
         {
-            var user = context.HttpContext.User;
-
             if (!context.HttpContext.RequestServices
                 .GetRequiredService<ActionAuthManager>()
                 .IsPermitted(context.HttpContext.User,
