@@ -37,8 +37,6 @@ namespace Casimodo.Lib
 
         public static string ToDateString(this DateTimeOffset value, string format = null)
         {
-            if (value == null) return "";
-
             return value.Date.ToString(format ?? "d");
         }
 

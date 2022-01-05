@@ -11,7 +11,7 @@ namespace Casimodo.Lib.Data
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum)]
     public class TypeIdentityAttribute : Attribute
     {
         public TypeIdentityAttribute(string guid)
