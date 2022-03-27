@@ -68,6 +68,16 @@ namespace Casimodo.Lib.Mojen
             return i < count - 1 ? sep : "";
         }
 
+        public override string GetPropTypeName(MojProp prop)
+        {
+            if (prop.Type.IsCollection && prop.Type.CollectionTypeName == "ICollection")
+            {
+                return prop.Type.BuildCollectionTypeName("IList");
+            }
+
+            return prop.Type.Name;
+        }
+
         public void GenerateModel(MojType type)
         {
             OUsing(Namespaces,
@@ -172,7 +182,7 @@ namespace Casimodo.Lib.Mojen
             O("[JsonConstructor]");
             Oo($"public {type.ClassName}(");
             o(allProps
-                .Select(prop => $"{prop.Type.Name} {prop.Name}")
+                .Select(prop => $"{GetPropTypeName(prop)} {prop.Name}")
                 .Join(", "));
             oO(")");
             Begin();

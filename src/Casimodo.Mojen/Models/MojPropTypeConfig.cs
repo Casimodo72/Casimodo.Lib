@@ -444,6 +444,13 @@ namespace Casimodo.Lib.Mojen
             IsCollection = false;
         }
 
+        public string BuildCollectionTypeName(string collectionTypeName)
+        {
+            if (!IsCollection) throw new MojenException("This type is not a collection.");
+
+            return $"{collectionTypeName}<{GenericTypeArguments[0].Name}>";
+        }
+
         public void BuildName(MojType type)
         {
             if (IsEnum)
@@ -456,7 +463,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (IsCollection && CollectionTypeName != null)
             {
-                Name = $"{CollectionTypeName}<{GenericTypeArguments[0].Name}>";
+                Name = BuildCollectionTypeName(CollectionTypeName);
                 NameNormalized = Name;
             }
             else

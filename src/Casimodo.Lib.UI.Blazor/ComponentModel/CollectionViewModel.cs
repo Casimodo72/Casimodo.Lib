@@ -72,6 +72,8 @@ namespace Casimodo.Lib.UI
 
         public bool IsEmpty => Count == 0;
 
+        public IReadOnlyCollection<TData> Items => _effectiveItems;
+
         public TData this[int index] => _effectiveItems.ItemAt(index);
 
         public bool Contains(TData data)

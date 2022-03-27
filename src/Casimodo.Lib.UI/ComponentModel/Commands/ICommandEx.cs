@@ -9,6 +9,10 @@ namespace Casimodo.Lib.ComponentModel
 
         void RaiseCanExecuteChanged();
 
+        bool CanExecute();
+
+        void Execute();
+
         string Text { get; set; }
 
         public void Dispose();

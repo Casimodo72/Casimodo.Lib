@@ -8,7 +8,8 @@ namespace Casimodo.Lib.Presentation
 {
     public class CustomObservableCollection<T> : CustomObservableCollection,
         IEnumerable<T>,
-        ICollection<T>
+        ICollection<T>,
+        IReadOnlyCollection<T>
     {
         public CustomObservableCollection(CollectionSourceAdapterBase source)
             : base(source)

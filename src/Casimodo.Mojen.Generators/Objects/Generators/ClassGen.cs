@@ -158,22 +158,27 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        public virtual string GetPropTypeName(MojProp prop)
+        {
+            return prop.Type.Name;
+        }
+
         public void GenerateProp(MojType type, MojProp prop, bool store = false)
         {
-            // KABU TODO: IMPORTANT: IMPL ObservableCollection properties.
+            // KABU TODO: MAYBE: IMPL ObservableCollection properties.
 
             Oo("public{0}{1}{2}{3} {4} {5}",
                     (prop.IsNew ? " new" : ""),
                     (prop.IsVirtual && !type.IsSealed ? " virtual" : ""),
                     (prop.IsSealed ? " sealed" : ""),
                     (prop.IsOverride ? " override" : ""),
-                    prop.Type.Name,
+                    GetPropTypeName(prop),
                     prop.Name);
 
 
             ValidateObservable(prop);
 
-            // KABU TODO: IMPORTANT: In case of entity view models for XAML applications: Convert collections to ObservableCollections.
+            // KABU TODO: MAYBE: In case of entity view models for XAML applications: Convert collections to ObservableCollections.
 
             if (prop.IsNew)
                 OPropNew(prop);
@@ -270,7 +275,7 @@ namespace Casimodo.Lib.Mojen
 
             // Member field
             if (!prop.IsOverride)
-                O("protected {0} {1};", prop.Type.Name, prop.FieldName);
+                O("protected {0} {1};", GetPropTypeName(prop), prop.FieldName);
         }
 
         public void OPropWithStore(MojProp prop)
