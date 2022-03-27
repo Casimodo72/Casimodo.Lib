@@ -4,7 +4,7 @@ using Casimodo.Lib.ComponentModel;
 using System;
 using System.ComponentModel;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     /// <summary>
     /// Encapsulates paging logic and states.

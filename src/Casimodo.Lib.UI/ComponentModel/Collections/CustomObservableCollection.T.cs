@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     public class CustomObservableCollection<T> : CustomObservableCollection,
         IEnumerable<T>,
@@ -19,9 +19,22 @@ namespace Casimodo.Lib.Presentation
             : base()
         { }
 
-        //public CustomEntityCollection(EntitySourceAdapter<T> source)
-        //    : base(source)
-        //{ }
+        public CustomObservableCollection(IList<T> items)
+            : base(new ShortedCollectionSourceAdapter())
+        {
+            if (items == null) throw new ArgumentNullException(nameof(items));
+
+            BeginUpdate();
+            try
+            {
+                foreach (var item in items)
+                    _items.Add(item);
+            }
+            finally
+            {
+                EndUpdate();
+            }
+        }
 
         // IEnumerable<T> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

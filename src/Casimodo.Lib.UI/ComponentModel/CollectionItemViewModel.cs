@@ -1,6 +1,6 @@
 ﻿using Casimodo.Lib.ComponentModel;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     public abstract class CollectionItemViewModel : ObservableObject
     {

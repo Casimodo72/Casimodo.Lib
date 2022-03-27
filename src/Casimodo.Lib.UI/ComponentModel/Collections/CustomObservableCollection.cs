@@ -8,7 +8,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     public class CollectionModificationRequestedEventArgs : EventArgs
     {
@@ -65,8 +65,11 @@ namespace Casimodo.Lib.Presentation
                 throw new ArgumentNullException(nameof(source));
 
             _items = new MyCollection(this);
-            _source = source;
-            AttachToSource();
+
+            SetSource(source);
+            // TODO: REMOVE
+            // _source = source;
+            // AttachToSource();
 
             IsModificationAllowed = true;
             IsAdditionAllowed = true;
@@ -75,7 +78,7 @@ namespace Casimodo.Lib.Presentation
 
         public CustomObservableCollection()
             : this(new ShortedCollectionSourceAdapter())
-        {
+        {          
             (_source as ShortedCollectionSourceAdapter).Items = this;
         }
 

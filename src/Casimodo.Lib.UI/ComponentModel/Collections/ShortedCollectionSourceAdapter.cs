@@ -1,8 +1,9 @@
 ﻿// Copyright (c) 2009 Kasimier Buchcik
 
 using System.Collections;
+using System.Linq;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     /// <summary>
     /// This adapter is intended to short-circuit a root CustomObservableCollection.
@@ -14,7 +15,7 @@ namespace Casimodo.Lib.Presentation
 
         public CustomObservableCollection Items { get; set; }
 
-        public override int Count => Items.Count;
+        public override int Count => Items?.Count ?? 0;
 
         public override void Add(object item)
         {
@@ -34,7 +35,9 @@ namespace Casimodo.Lib.Presentation
 
         protected override IEnumerator GetEnumeratorInternal()
         {
-            return ((IEnumerable)Items).GetEnumerator();
+            return Items != null
+                ? ((IEnumerable)Items).GetEnumerator()
+                : Enumerable.Empty<object>().GetEnumerator();
         }
     }
 }

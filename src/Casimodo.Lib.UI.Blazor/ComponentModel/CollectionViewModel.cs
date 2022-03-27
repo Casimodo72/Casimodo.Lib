@@ -1,5 +1,4 @@
 ﻿using Casimodo.Lib.ComponentModel;
-using Casimodo.Lib.Presentation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +7,7 @@ using System.Linq;
 
 namespace Casimodo.Lib.UI
 {
-    public class CollectionViewModel<TData> : CollectionViewModel, IEnumerable<TData>
+    public class CollectionViewModel<TData> : CollectionViewModel, IReadOnlyList<TData>, IEnumerable<TData>
         where TData : class
     {
         protected CustomObservableCollection<TData> _effectiveItems;

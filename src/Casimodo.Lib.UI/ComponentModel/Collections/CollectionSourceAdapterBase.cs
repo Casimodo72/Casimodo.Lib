@@ -5,7 +5,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     /// <summary>
     /// Base class adapter intended to be used as the source of the CustomObservableCollection.

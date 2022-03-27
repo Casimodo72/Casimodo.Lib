@@ -68,19 +68,32 @@ namespace Casimodo.Lib.Mojen
             return i < count - 1 ? sep : "";
         }
 
-        public override string GetPropTypeName(MojProp prop)
+        static bool IsObservableCollectionType(MojProp prop)
         {
-            if (prop.Type.IsCollection && prop.Type.CollectionTypeName == "ICollection")
+            return prop.Type.IsCollection &&
+                !prop.Type.IsArray &&
+                prop.Type.CollectionTypeName == "ICollection";
+        }
+
+        public override string GetPropTypeName(MojProp prop, string scenario = null)
+        {
+            if (IsObservableCollectionType(prop))
             {
-                return prop.Type.BuildCollectionTypeName("IList");
+                return scenario == "Property"
+                    ? BuildObservableCollectionType(prop)
+                    : prop.Type.BuildCollectionTypeName("IList");
             }
 
             return prop.Type.Name;
         }
 
+        static string BuildObservableCollectionType(MojProp prop)
+            => $"CustomObservableCollection<{prop.Type.GenericTypeArguments[0].Name}>";
+
         public void GenerateModel(MojType type)
         {
             OUsing(Namespaces,
+                "Casimodo.Lib.UI",
                 "System.ComponentModel.DataAnnotations.Schema",
                 "System.Text.Json.Serialization",
                 (type.StoreOrSelf.Namespace != type.Namespace ? type.StoreOrSelf.Namespace : null),
@@ -135,7 +148,7 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var collectionProp in type.NonArrayCollectionProps)
             {
-                O("{0} = new ObservableCollection<{1}>();", collectionProp.Name, collectionProp.Type.GenericTypeArguments.First().Name);
+                O($"{collectionProp.Name} = new {BuildObservableCollectionType(collectionProp)}();");
             }
 
             O("CreateExtended();");
@@ -182,17 +195,27 @@ namespace Casimodo.Lib.Mojen
             O("[JsonConstructor]");
             Oo($"public {type.ClassName}(");
             o(allProps
-                .Select(prop => $"{GetPropTypeName(prop)} {prop.Name}")
+                .Select(prop => $"{GetPropTypeName(prop, "JsonConstructor")} {prop.Name}")
                 .Join(", "));
             oO(")");
             Begin();
             O(allProps
                 .Select(prop =>
                 {
+                    // Assign constructor args to props.
+
                     var name = prop.IsObservable && prop.ProxyOfInheritedProp == null
                         ? $"_{Moj.FirstCharToLower(prop.Name)}"
                         : prop.Name;
-                    return $"this.{name} = {prop.Name}; ";
+
+                    if (IsObservableCollectionType(prop))
+                    {
+                        return $"this.{name} = new {BuildObservableCollectionType(prop)}({prop.Name}); ";
+                    }
+                    else
+                    {
+                        return $"this.{name} = {prop.Name}; ";
+                    }
                 })
                 .Join(""));
             End();

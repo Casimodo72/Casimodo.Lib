@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     public class ItemViewModel<TData> : ItemViewModel
     {

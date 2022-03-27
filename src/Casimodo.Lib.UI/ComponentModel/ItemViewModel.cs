@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2010 Kasimier Buchcik
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     public abstract class ItemViewModel : CollectionItemViewModel
     {

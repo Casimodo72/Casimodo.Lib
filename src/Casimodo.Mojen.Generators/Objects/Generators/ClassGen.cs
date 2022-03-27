@@ -158,7 +158,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public virtual string GetPropTypeName(MojProp prop)
+        public virtual string GetPropTypeName(MojProp prop, string scenario = null)
         {
             return prop.Type.Name;
         }
@@ -172,7 +172,7 @@ namespace Casimodo.Lib.Mojen
                     (prop.IsVirtual && !type.IsSealed ? " virtual" : ""),
                     (prop.IsSealed ? " sealed" : ""),
                     (prop.IsOverride ? " override" : ""),
-                    GetPropTypeName(prop),
+                    GetPropTypeName(prop, "Property"),
                     prop.Name);
 
 
@@ -275,7 +275,7 @@ namespace Casimodo.Lib.Mojen
 
             // Member field
             if (!prop.IsOverride)
-                O("protected {0} {1};", GetPropTypeName(prop), prop.FieldName);
+                O("protected {0} {1};", GetPropTypeName(prop, "Property"), prop.FieldName);
         }
 
         public void OPropWithStore(MojProp prop)

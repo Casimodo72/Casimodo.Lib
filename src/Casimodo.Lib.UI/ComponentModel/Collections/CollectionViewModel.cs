@@ -3,7 +3,7 @@
 using Casimodo.Lib.ComponentModel;
 using System.Collections.Specialized;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     public abstract class CollectionViewModel : ObservableObject
     {

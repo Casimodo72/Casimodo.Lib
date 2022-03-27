@@ -3,7 +3,7 @@
 using System;
 using System.Collections;
 
-namespace Casimodo.Lib.Presentation
+namespace Casimodo.Lib.UI
 {
     /// <summary>
     /// This adapter is intended to chain a CustomObservableCollection
