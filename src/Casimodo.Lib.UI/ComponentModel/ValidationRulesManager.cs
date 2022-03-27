@@ -15,7 +15,7 @@ namespace Casimodo.Lib.ComponentModel
 
     internal class CustomRuleInfo
     {
-        public int? ErrorCode;
+        public object ErrorCode;
         public Func<object, object> Validate;
         public string[] PropertyNames;
     }
@@ -26,10 +26,10 @@ namespace Casimodo.Lib.ComponentModel
         /// <summary>
         /// Adds a custom validation rule for the given type.
         /// </summary>
-        public void Add(Type type, int errorCode, Func<object, object> validationCallback, params string[] propNames)
+        public void Add(Type type, object errorCode, Func<object, object> validationCallback, params string[] propNames)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            if (errorCode < 0) throw new ArgumentOutOfRangeException(nameof(errorCode), "The given error code must be greater than or equal to zero.");
+            if (errorCode == null) throw new ArgumentNullException(nameof(errorCode));
             if (propNames == null) throw new ArgumentNullException(nameof(propNames));
             if (validationCallback == null) throw new ArgumentNullException(nameof(validationCallback));
 
@@ -75,10 +75,10 @@ namespace Casimodo.Lib.ComponentModel
         /// <summary>
         /// Adds a custom validation rule for the given instance.
         /// </summary>
-        public void Add(ValidatingObservableObject instance, int errorCode, Func<object, object> validationCallback, params string[] propertyNames)
+        public void Add(ValidatingObservableObject instance, object errorCode, Func<object, object> validationCallback, params string[] propertyNames)
         {
             if (instance == null) throw new ArgumentNullException(nameof(instance));
-            if (errorCode < 0) throw new ArgumentOutOfRangeException(nameof(errorCode), "The given error code must be greater than or equal to zero.");
+            if (errorCode == null) throw new ArgumentNullException(nameof(errorCode));
             if (propertyNames == null) throw new ArgumentNullException(nameof(propertyNames));
             if (validationCallback == null) throw new ArgumentNullException(nameof(validationCallback));
 
@@ -176,31 +176,22 @@ namespace Casimodo.Lib.ComponentModel
 
         internal AttributeRulesInfo GetAttributeRules(Type type, string propertyName)
         {
-            AttributeRulesInfo info;
-
             // Try to find matching type.
-            if (_attributeValidationMap.TryGetValue(type, out Dictionary<string, AttributeRulesInfo> rules))
+            if (!_attributeValidationMap.TryGetValue(type, out Dictionary<string, AttributeRulesInfo> typeRules))
             {
-                // Try to find matching property on the type.
-                if (!rules.TryGetValue(propertyName, out info))
-                {
-                    // Add a new validation info for the property.
-                    info = CreateAttributeRules(type, propertyName);
-                    rules.Add(propertyName, info);
-                }
-            }
-            else
-            {
-                // Add this type to the map.
-                rules = new Dictionary<string, AttributeRulesInfo>();
-                _attributeValidationMap.Add(type, rules);
-
-                // Add a new validation info for the property.
-                info = CreateAttributeRules(type, propertyName);
-                rules.Add(propertyName, info);
+                typeRules = new Dictionary<string, AttributeRulesInfo>();
+                _attributeValidationMap.Add(type, typeRules);
             }
 
-            return info;
+            // Try to find matching property on the type.
+            if (!typeRules.TryGetValue(propertyName, out AttributeRulesInfo propertyRules))
+            {
+                // Add validation rules for the property.
+                propertyRules = CreateAttributeRules(type, propertyName);
+                typeRules.Add(propertyName, propertyRules);
+            }
+
+            return propertyRules;
         }
 
         /// <summary>
@@ -208,8 +199,6 @@ namespace Casimodo.Lib.ComponentModel
         /// </summary>
         public void Add(Type type)
         {
-            // TODO: Currently not thread-safe.
-
             // Try to find matching type.
             if (!_propertiesHolder.TryGetValue(type, out Dictionary<string, object> props))
             {
@@ -261,17 +250,6 @@ namespace Casimodo.Lib.ComponentModel
             return info;
         }
 
-        internal int GetAttributeErrorCode(Type type)
-        {
-            if (!_attributeErrorCodes.TryGetValue(type, out int errorCode))
-            {
-                errorCode = (_attributeErrorCodes.Count + 1) * -1;
-                _attributeErrorCodes.Add(type, errorCode);
-            }
-
-            return errorCode;
-        }
-
         readonly Dictionary<Type, Dictionary<string, List<CustomRuleInfo>>> _customRulesPerType = new();
 
         /// <summary>
@@ -285,13 +263,5 @@ namespace Casimodo.Lib.ComponentModel
         /// Holds the properties which are candidates for validation.
         /// </summary>
         static readonly Dictionary<Type, Dictionary<string, object>> _propertiesHolder = new();
-
-        /// <summary>
-        /// Holds the error codes of all ValidationAttribute(s) in use.
-        /// The error codes are all of negative value in order to distinguish
-        /// them from error codes of custom validation rules.
-        /// </summary>
-        // KABU TODO: Use thread-safe dictionary.
-        static readonly Dictionary<Type, int> _attributeErrorCodes = new();
     }
 }

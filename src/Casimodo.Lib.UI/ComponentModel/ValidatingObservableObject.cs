@@ -8,6 +8,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.Serialization;
 
+#nullable enable
+
 namespace Casimodo.Lib.ComponentModel
 {
     // KABU TODO: REMOVE: INotifyDataErrorInfo was introduced to WPF 4.5.
@@ -28,19 +30,7 @@ namespace Casimodo.Lib.ComponentModel
 
         public string PropertyName { get; private set; }
     }
-#endif
-
-    internal class ErrorInfoContainer : List<DataErrorInfo>
-    {
-        public ErrorInfoContainer(string propertyName)
-        {
-            if (string.IsNullOrWhiteSpace(propertyName))
-                throw new ArgumentNullException(nameof(propertyName));
-            PropertyName = propertyName;
-        }
-
-        public string PropertyName { get; private set; }
-    }
+#endif  
 
     [DataContract]
     public class ValidatingObservableObject : ObservableObject, IDataErrorInfo, INotifyDataErrorInfo
@@ -52,9 +42,9 @@ namespace Casimodo.Lib.ComponentModel
         /// </summary>
         public static readonly ValidationRulesManager ValidationRules = new();
 
-        public bool Validate()
+        public virtual bool Validate()
         {
-            _errors.Clear();
+            ClearErrors();
 
             var propertyNames = ValidationRules.GetProperties(GetType());
             if (propertyNames == null)
@@ -65,7 +55,7 @@ namespace Casimodo.Lib.ComponentModel
 
             foreach (string propertyName in propertyNames)
             {
-                ValidateCore(context, propertyName);
+                Validate(context, propertyName);
             }
 
             ProcessValidationResult(context);
@@ -73,7 +63,7 @@ namespace Casimodo.Lib.ComponentModel
             return !HasErrors;
         }
 
-        MyValidationContext GetValidationContext()
+        MyValidationContext CreateValidationContext()
         {
             return new MyValidationContext();
         }
@@ -86,10 +76,10 @@ namespace Casimodo.Lib.ComponentModel
             if (!ValidationRules.IsValidationNeeded(GetType(), propertyName))
                 return;
 
-            var context = GetValidationContext();
+            var context = CreateValidationContext();
             context.Clear();
 
-            ValidateCore(context, propertyName);
+            Validate(context, propertyName);
 
             ProcessValidationResult(context);
         }
@@ -106,11 +96,10 @@ namespace Casimodo.Lib.ComponentModel
         {
             get
             {
-                if (IsDisposed)
+                if (IsDisposed || _allErrors?.Count is not > 0)
                     return false;
 
-                bool value = _errors.Values.SelectMany(errlist => (IEnumerable<DataErrorInfo>)errlist).Any();
-                return value;
+                return _allErrors.Values.SelectMany(errlist => (IEnumerable<DataErrorInfo>)errlist).Any();
             }
         }
 
@@ -118,7 +107,7 @@ namespace Casimodo.Lib.ComponentModel
         /// Occurs when the validation errors have changed for a property or for the entire object.
         /// Member of INotifyDataErrorInfo.
         /// </summary>
-        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         /// <summary>
         /// Gets the validation errors for a specified property or for the entire object.
@@ -128,22 +117,37 @@ namespace Casimodo.Lib.ComponentModel
         /// to retrieve errors for the entire object.
         /// </param>
         /// <returns>the validation errors for the property or object.</returns>
-        public IEnumerable GetErrors(string propertyName)
+        public IEnumerable GetErrors(string? propertyName = null)
         {
+            return GetErrorsCore(propertyName);
+        }
+
+        public IEnumerable<string> GetErrorMessages(string? propertyName = null)
+        {
+            return GetErrorsCore(propertyName)
+                .Select(x => x.ErrorMessage)
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+        }
+
+        IEnumerable<DataErrorInfo> GetErrorsCore(string? propertyName = null)
+        {
+            if (!HasErrors)
+            {
+                return Enumerable.Empty<DataErrorInfo>();
+            }
+
             if (string.IsNullOrEmpty(propertyName))
             {
                 // Return all data errors of all properties.
-                return _errors.Values.SelectMany(errlist => (IEnumerable<DataErrorInfo>)errlist);
+                return GetOrCreateErrors().Values
+                    .SelectMany(errlist => (IEnumerable<DataErrorInfo>)errlist)
+                    .DistinctBy(x => x.ErrorCode);
             }
             else
             {
                 // Return data errors of a specific property.
-
-                ErrorInfoContainer errors = GetErrorInfoContainer(propertyName, false);
-                if (errors == null)
-                    return Enumerable.Empty<DataErrorInfo>();
-
-                return errors;
+                return GetErrorInfoContainer(propertyName, createIfMissing: false)
+                    ?? Enumerable.Empty<DataErrorInfo>();
             }
         }
 
@@ -175,10 +179,10 @@ namespace Casimodo.Lib.ComponentModel
 
                 // Return the first error message.
                 return
-                     _errors.Values
+                     GetOrCreateErrors().Values
                      .SelectMany(errlist => (IEnumerable<DataErrorInfo>)errlist)
                      .Select(err => err.ErrorMessage)
-                     .FirstOrDefault();
+                     .FirstOrDefault() ?? "";
             }
         }
 
@@ -192,17 +196,10 @@ namespace Casimodo.Lib.ComponentModel
         /// <returns>
         /// The error message for the property. The default is an empty string ("").
         /// </returns>
-        string IDataErrorInfo.this[string propertyName]
-        {
-            get
-            {
-                ErrorInfoContainer errors = GetErrorInfoContainer(propertyName, false);
-                if (errors != null && errors.Count != 0)
-                    return errors[0].ErrorMessage;
+        string IDataErrorInfo.this[string propertyName] =>
+            GetErrorInfoContainer(propertyName, createIfMissing: false)?
+                .FirstOrDefault()?.ErrorMessage ?? "";
 
-                return "";
-            }
-        }
 
         // IDataErrorInfo End ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -211,11 +208,10 @@ namespace Casimodo.Lib.ComponentModel
             if ((_internalFlags & InternalFlags.IsDeserializing) != 0)
                 return;
 
-            // We'll validate whenever a property has changed.
             ValidateProperty(name);
         }
 
-        void ValidateCore(MyValidationContext context, string propertyName)
+        void Validate(MyValidationContext context, string propertyName)
         {
             context.ContextPropertyName = propertyName;
             context.InvolvedPropertyNames = null;
@@ -224,10 +220,10 @@ namespace Casimodo.Lib.ComponentModel
             ValidateUsingRules(context, ValidationRules.GetCustomRulesPerType(GetType(), propertyName));
 
             // Validate using rules per instance.
-            ValidateUsingRules(context, ValidationRules.GetCustomRulesPerInstance(this, propertyName));
+            //ValidateUsingRules(context, ValidationRules.GetCustomRulesPerInstance(this, propertyName));
 
-            // Validate using ValidationAttribute(s).
-            ValidateUsingAttributes(context);
+            //// Validate using ValidationAttribute(s).
+            //ValidateUsingAttributes(context);
         }
 
         void ProcessValidationResult(MyValidationContext context)
@@ -241,18 +237,22 @@ namespace Casimodo.Lib.ComponentModel
                     RaisePropertyChangedCore(changedProperty);
                     OnPropertyErrorsChanged(changedProperty);
                 }
-                // KABU TODO: Use nameof(HasErrors) in C#6.
-                RaisePropertyChanged(nameof(HasErrors));
+
+                RaisePropertyChanged(HasErrorsChangedEventArgs);
             }
         }
 
+        static readonly PropertyChangedEventArgs HasErrorsChangedEventArgs = new(nameof(HasErrors));
+
         void ValidateUsingRules(MyValidationContext context, List<CustomRuleInfo> rules)
         {
-            if (rules == null || rules.Count == 0)
+            if (rules?.Count is not > 0)
                 return;
 
             foreach (CustomRuleInfo rule in rules)
+            {
                 ApplyRule(context, rule);
+            }
         }
 
         void ApplyRule(MyValidationContext context, CustomRuleInfo rule)
@@ -266,11 +266,12 @@ namespace Casimodo.Lib.ComponentModel
                 // An error will be removed if the validation returned null.
 
                 if (rule.ErrorCode == null)
+                {
                     throw new Exception(
-                        string.Format(
-                            "The validation for property(ies) '{0}' returned NULL, but no ErrorCode was specified. " +
-                            "An ErrorCode is needed in order to remove validation errors.",
-                            ExpandPropertyNames(rule.PropertyNames)));
+                        $"The validation for property(ies) '{ExpandPropertyNames(rule.PropertyNames)}' " +
+                        "returned NULL, but no ErrorCode was specified. " +
+                        "An ErrorCode is needed in order to remove validation errors.");
+                }
 
                 RemoveDataErrors(context, rule.ErrorCode);
             }
@@ -294,26 +295,27 @@ namespace Casimodo.Lib.ComponentModel
             {
                 // We need an error code in this.
                 if (rule.ErrorCode == null)
+                {
                     throw new Exception(
-                        string.Format("The validation for property(ies) '{0}' returned a string, " +
-                            "but no ErrorCode was registered.", ExpandPropertyNames(rule.PropertyNames)));
+                        $"The validation for property(ies) '{ExpandPropertyNames(rule.PropertyNames)}' returned a string, " +
+                            "but no ErrorCode was registered.");
+                }
 
-                DataErrorInfo error = new();
-                error.ErrorCode = rule.ErrorCode;
-                error.ErrorMessage = errorMessage;
+                var error = new DataErrorInfo
+                {
+                    ErrorCode = rule.ErrorCode,
+                    ErrorMessage = errorMessage
+                };
 
                 AddDataErrors(context, error);
             }
-            else
-                throw new Exception(
-                    string.Format(
-                        "The validation engine cannot process results of type '{0}'.",
-                        errorObj.GetType().Name));
+            else throw new Exception(
+                $"The validation engine cannot process results of type '{errorObj.GetType()}'.");
         }
 
-        string ExpandPropertyNames(string[] propertyNames)
+        static string ExpandPropertyNames(string[] propertyNames)
         {
-            return propertyNames.Aggregate(string.Empty, (acc, val) => acc + ", " + val);
+            return propertyNames.Aggregate("", (acc, val) => acc + ", " + val);
         }
 
         void ValidateUsingAttributes(MyValidationContext context)
@@ -352,7 +354,7 @@ namespace Casimodo.Lib.ComponentModel
                 }
 
                 // Get or create the error code of the validation attribute.
-                errorCode = ValidationRules.GetAttributeErrorCode(attr.GetType());
+                errorCode = attr.GetType().Name;
 
                 if (!string.IsNullOrWhiteSpace(errorMsg))
                 {
@@ -378,45 +380,50 @@ namespace Casimodo.Lib.ComponentModel
             return error;
         }
 
-        ErrorInfoContainer GetErrorInfoContainer(string propertyName, bool createIfMissing = true)
+        PropertyErrorInfoList? GetErrorInfoContainer(string propertyName, bool createIfMissing = true)
         {
-            if (!_errors.TryGetValue(propertyName, out ErrorInfoContainer propErrors) && createIfMissing)
+            var errors = GetOrCreateErrors();
+            if (!errors.TryGetValue(propertyName, out PropertyErrorInfoList? propertyErrors) && createIfMissing)
             {
-                propErrors = new ErrorInfoContainer(propertyName);
-                _errors.Add(propertyName, propErrors);
+                propertyErrors = new PropertyErrorInfoList(propertyName);
+                errors.Add(propertyName, propertyErrors);
             }
-            return propErrors;
+
+            return propertyErrors;
         }
 
         void RemoveDataErrors(MyValidationContext context, object errorCode)
         {
             foreach (var propertyName in context.InvolvedPropertyNames)
+            {
                 RemoveDataError(context, propertyName, errorCode);
+            }
         }
 
         void RemoveDataError(MyValidationContext context, string propertyName, object errorCode)
         {
-            ErrorInfoContainer errors = GetErrorInfoContainer(propertyName, false);
-            if (errors == null)
+            PropertyErrorInfoList? propertyErrors = GetErrorInfoContainer(propertyName, false);
+            if (propertyErrors?.Count is not > 0)
             {
                 // The given property did not violate any rules, so just leave.
                 return;
             }
 
             // Find an error with matching code.
-            DataErrorInfo error = errors.FirstOrDefault(e => e.ErrorCode.Equals(errorCode));
+            DataErrorInfo? error = propertyErrors.FirstOrDefault(e => e.ErrorCode.Equals(errorCode));
             if (error == null)
             {
                 // The given property did not violate the given rule, so just leave.
                 return;
             }
 
-            // Remove the error.
-            errors.Remove(error);
+            propertyErrors.Remove(error);
 
-            // Remove the error list if empty.
-            if (errors.Count == 0)
-                _errors.Remove(propertyName);
+            // Remove the property's error list if empty.
+            if (propertyErrors.Count == 0 && _allErrors != null)
+            {
+                _allErrors.Remove(propertyName);
+            }
 
             // Register the property's changed error state.
             context.AddChangedProperty(propertyName);
@@ -443,23 +450,28 @@ namespace Casimodo.Lib.ComponentModel
 
         void AddDataErrors(MyValidationContext context, DataErrorInfo error)
         {
+            if (context.InvolvedPropertyNames == null)
+            {
+                return;
+            }
+
             foreach (var propertyName in context.InvolvedPropertyNames)
                 AddDataError(context, propertyName, error);
         }
 
         void AddDataError(MyValidationContext context, string propertyName, DataErrorInfo error)
         {
-            ErrorInfoContainer errors = GetErrorInfoContainer(propertyName);
+            PropertyErrorInfoList propertyErrors = GetErrorInfoContainer(propertyName, createIfMissing: true)!;
 
             // Check for duplicates (by error code).
-            if (errors.Any(e => e.ErrorCode.Equals(error.ErrorCode)))
+            if (propertyErrors?.Any(e => e.ErrorCode.Equals(error.ErrorCode)) is true)
             {
                 // The given property did already violate the given rule, so just leave.
                 return;
             }
 
             // Add the new error.
-            errors.Add(error);
+            propertyErrors.Add(error);
 
             // Register the property's changed error state.
             context.AddChangedProperty(propertyName);
@@ -474,7 +486,7 @@ namespace Casimodo.Lib.ComponentModel
             if (_customRulesPerInstance == null)
                 return;
 
-            MyValidationContext context = GetValidationContext();
+            MyValidationContext context = CreateValidationContext();
             context.ContextPropertyName = propertyName;
 
             // Remove data error.
@@ -482,11 +494,13 @@ namespace Casimodo.Lib.ComponentModel
 
             // Deregister the validation rule.
             // Side note: http://english.stackexchange.com/questions/25931/unregister-vs-deregister
-            if (CustomRulesPerInstance.TryGetValue(propertyName, out List<CustomRuleInfo> rules))
+            if (CustomRulesPerInstance.TryGetValue(propertyName, out List<CustomRuleInfo>? rules))
             {
-                CustomRuleInfo rule = rules.FirstOrDefault(x => x.ErrorCode.Equals(errorCode));
+                CustomRuleInfo? rule = rules?.FirstOrDefault(x => x.ErrorCode.Equals(errorCode));
                 if (rule != null)
-                    rules.Remove(rule);
+                {
+                    rules!.Remove(rule);
+                }
             }
         }
 
@@ -496,10 +510,17 @@ namespace Casimodo.Lib.ComponentModel
                 _customRulesPerInstance.Clear();
         }
 
-        /// <summary>
-        /// Holds the current data errors.
-        /// </summary>
-        Dictionary<string, ErrorInfoContainer> _errors = new();
+        Dictionary<string, PropertyErrorInfoList>? _allErrors;
+
+        Dictionary<string, PropertyErrorInfoList> GetOrCreateErrors() => _allErrors ??= new();
+
+        void ClearErrors()
+        {
+            if (_allErrors != null)
+            {
+                _allErrors.Clear();
+            }
+        }
 
         internal Dictionary<string, List<CustomRuleInfo>> CustomRulesPerInstance => _customRulesPerInstance ??= new();
 
@@ -513,9 +534,9 @@ namespace Casimodo.Lib.ComponentModel
 
             ErrorsChanged = null;
 
-            if (_errors != null)
-                _errors.Clear();
-            _errors = null;
+            if (_allErrors != null)
+                _allErrors.Clear();
+            _allErrors = null;
 
             if (_customRulesPerInstance != null)
                 _customRulesPerInstance.Clear();
@@ -524,9 +545,9 @@ namespace Casimodo.Lib.ComponentModel
 
         class MyValidationContext
         {
-            List<string> _changedPropertyNames;
-            public string ContextPropertyName;
-            public string[] InvolvedPropertyNames;
+            List<string>? _changedPropertyNames;
+            public string? ContextPropertyName;
+            public string[]? InvolvedPropertyNames;
 
             public void AddChangedProperty(string propertyName)
             {
@@ -547,7 +568,7 @@ namespace Casimodo.Lib.ComponentModel
                     _changedPropertyNames.Clear();
             }
 
-            public IEnumerable<string> ChangedProperties
+            public IEnumerable<string>? ChangedProperties
             {
                 get
                 {
@@ -556,6 +577,18 @@ namespace Casimodo.Lib.ComponentModel
                     return _changedPropertyNames;
                 }
             }
+        }
+
+        class PropertyErrorInfoList : List<DataErrorInfo>
+        {
+            public PropertyErrorInfoList(string propertyName)
+            {
+                if (string.IsNullOrWhiteSpace(propertyName))
+                    throw new ArgumentNullException(nameof(propertyName));
+                PropertyName = propertyName;
+            }
+
+            public string PropertyName { get; private set; }
         }
     }
 }

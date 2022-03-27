@@ -101,7 +101,7 @@ namespace Casimodo.Lib.Mojen
 
             ONamespace(ViewModelConfig.Namespace);
 
-            // ONamespace(type.Namespace);
+            var isObservableObject = type.HasAncestorType("ObservableObject");
 
             GenerateClassHead(type, interfaces: type.Interfaces.Where(x => x.AddToViewModel).ToList());
 
@@ -199,6 +199,10 @@ namespace Casimodo.Lib.Mojen
                 .Join(", "));
             oO(")");
             Begin();
+
+            if (isObservableObject)
+                O("_internalFlags |= InternalFlags.IsDeserializing;");
+
             O(allProps
                 .Select(prop =>
                 {
@@ -218,6 +222,10 @@ namespace Casimodo.Lib.Mojen
                     }
                 })
                 .Join(""));
+
+            if (isObservableObject)
+                O("_internalFlags &= ~InternalFlags.IsDeserializing;");
+
             End();
 
             // Local properties.
