@@ -112,7 +112,7 @@ namespace Casimodo.Lib.Mojen
             {
                 // Validation
                 if (!type.NoValidation)
-                    O("ValidationRules.Add(typeof({0}));", type.ClassName);
+                    O("ValidationRules.AddAttributeRules(typeof({0}));", type.ClassName);
 
                 // Change tracking
                 if (!type.NoChangeTracking)
