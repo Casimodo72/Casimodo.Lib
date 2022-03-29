@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Casimodo.Lib.UI
 {
-    public class CollectionViewModel<TData> : CollectionViewModel, IReadOnlyList<TData>, IEnumerable<TData>
+    public class CollectionViewModel<TData> : CollectionViewModelBase<TData>, IReadOnlyList<TData>, IEnumerable<TData>
         where TData : class
     {
         protected CustomObservableCollection<TData> _effectiveItems;
@@ -19,7 +19,7 @@ namespace Casimodo.Lib.UI
             _sourceItems = new CustomObservableCollection<TData>();
 
             // We'll use the effective items for filtering and paging.
-            _effectiveItems = new CustomObservableCollection<TData>(new ChainedCollectionSourceAdapter(_sourceItems));
+            _effectiveItems = new CustomObservableCollection<TData>(new ChainedCollectionSourceAdapter<TData>(_sourceItems));
             _effectiveItems.CollectionChanged += OnItemsCollectionChanged;
 
             Pager = new PagingManager();
@@ -73,7 +73,7 @@ namespace Casimodo.Lib.UI
 
         public IReadOnlyCollection<TData> Items => _effectiveItems;
 
-        public TData this[int index] => _effectiveItems.ItemAt(index);
+        public TData this[int index] => _effectiveItems[index];
 
         public bool Contains(TData data)
         {
@@ -150,7 +150,7 @@ namespace Casimodo.Lib.UI
             try
             {
                 _sourceItems = collection;
-                _effectiveItems.SetSource(new ChainedCollectionSourceAdapter(collection));
+                _effectiveItems.SetSource(new ChainedCollectionSourceAdapter<TData>(collection));
             }
             finally
             {
@@ -176,7 +176,7 @@ namespace Casimodo.Lib.UI
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
-            SetSortedItems(_sourceItems.OrderBy<TData, TKey>(keySelector, comparer).Cast<object>().ToArray());
+            SetSortedItems(_sourceItems.OrderBy<TData, TKey>(keySelector, comparer).ToArray());
         }
 
         /// <summary>
@@ -187,13 +187,13 @@ namespace Casimodo.Lib.UI
             if (comparer == null)
                 throw new ArgumentNullException(nameof(comparer));
 
-            object[] sortedItems = _sourceItems.ToObjectArray();
+            TData[] sortedItems = _sourceItems.ToArrayInternal();
             Array.Sort(sortedItems, comparer);
 
             SetSortedItems(sortedItems);
         }
 
-        void SetSortedItems(object[] sortedItems)
+        void SetSortedItems(TData[] sortedItems)
         {
             // Note that we sort the *source* items.
             _effectiveItems.BeginUpdate();
@@ -285,7 +285,7 @@ namespace Casimodo.Lib.UI
             if (position < 0 || position >= _effectiveItems.Count)
                 return false;
 
-            CurrentItem = _effectiveItems.ItemAt(position);
+            CurrentItem = _effectiveItems[position];
 
             return true;
         }
@@ -294,7 +294,7 @@ namespace Casimodo.Lib.UI
         /// Adds the given data item.
         /// </summary>
         /// <param name="data"></param>
-        public void Add(TData data)
+        public sealed override void Add(TData data)
         {
             CheckNotDisposed();
 
@@ -327,17 +327,17 @@ namespace Casimodo.Lib.UI
             return data;
         }
 
-        public override void AddObject(object data)
+        public sealed override void AddObject(object data)
         {
             Add((TData)data);
         }
 
-        public override void RemoveObject(object data)
+        public sealed override void RemoveObject(object data)
         {
             Remove((TData)data);
         }
 
-        public virtual bool Remove(TData data)
+        public override bool Remove(TData data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Casimodo.Lib.UI
 {
@@ -9,24 +10,25 @@ namespace Casimodo.Lib.UI
     /// This adapter is intended to chain a CustomObservableCollection
     /// with an underlying CollectionViewModel.
     /// </summary>
-    public class CollectionViewModelSourceAdapter : CollectionSourceAdapterBase
+    public class CollectionViewModelSourceAdapter<T> : CollectionSourceAdapterBase<T>
+        where T : class
     {
-        public CollectionViewModelSourceAdapter(CollectionViewModel source)
+        public CollectionViewModelSourceAdapter(CollectionViewModelBase<T> source)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _source.ItemsCollectionChanged += OnSourceCollectionChanged;
         }
 
-        readonly CollectionViewModel _source;
+        readonly CollectionViewModelBase<T> _source;
 
         public override int Count => _source.Count;
 
-        public override void Add(object item)
+        public override void Add(T item)
         {
             _source.AddObject(item);
         }
 
-        public override void Remove(object item)
+        public override void Remove(T item)
         {
             _source.RemoveObject(item);
         }
@@ -37,9 +39,9 @@ namespace Casimodo.Lib.UI
 
         public override bool CanRemove => _source.CanRemove;
 
-        protected override IEnumerator GetEnumeratorInternal()
+        protected override IEnumerator<T> GetEnumeratorInternal()
         {
-            return ((IEnumerable)_source).GetEnumerator();
+            return ((IEnumerable<T>)_source).GetEnumerator();
         }
     }
 }

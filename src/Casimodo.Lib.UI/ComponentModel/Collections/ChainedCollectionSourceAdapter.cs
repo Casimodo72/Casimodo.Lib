@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2009 Kasimier Buchcik
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Casimodo.Lib.UI
 {
@@ -9,24 +9,25 @@ namespace Casimodo.Lib.UI
     /// This adapter is intended to chain a CustomObservableCollection
     /// with another underlying CustomObservableCollection.
     /// </summary>
-    public class ChainedCollectionSourceAdapter : CollectionSourceAdapterBase
+    public class ChainedCollectionSourceAdapter<T> : CollectionSourceAdapterBase<T>
+        where T : class
     {
-        public ChainedCollectionSourceAdapter(CustomObservableCollection source)
+        public ChainedCollectionSourceAdapter(CustomObservableCollection<T> source)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _source.CollectionChanged += OnSourceCollectionChanged;
         }
 
-        readonly CustomObservableCollection _source;
+        readonly CustomObservableCollection<T> _source;
 
         public override int Count => _source.Count;
 
-        public override void Add(object item)
+        public override void Add(T item)
         {
             _source.Add(item);
         }
 
-        public override void Remove(object item)
+        public override void Remove(T item)
         {
             _source.Remove(item);
         }
@@ -37,9 +38,9 @@ namespace Casimodo.Lib.UI
 
         public override bool CanRemove => _source.CanRemove;
 
-        protected override IEnumerator GetEnumeratorInternal()
+        protected override IEnumerator<T> GetEnumeratorInternal()
         {
-            return ((IEnumerable)_source).GetEnumerator();
+            return ((IEnumerable<T>)_source).GetEnumerator();
         }
     }
 }

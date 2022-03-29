@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2009 Kasimier Buchcik
 
-using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Casimodo.Lib.UI
@@ -8,21 +8,22 @@ namespace Casimodo.Lib.UI
     /// <summary>
     /// This adapter is intended to short-circuit a root CustomObservableCollection.
     /// </summary>
-    public class ShortedCollectionSourceAdapter : CollectionSourceAdapterBase
+    public class ShortedCollectionSourceAdapter<T> : CollectionSourceAdapterBase<T>
+        where T : class
     {
         public ShortedCollectionSourceAdapter()
         { }
 
-        public CustomObservableCollection Items { get; set; }
+        public CustomObservableCollection<T> Items { get; set; }
 
         public override int Count => Items?.Count ?? 0;
 
-        public override void Add(object item)
+        public override void Add(T item)
         {
             // NOP.
         }
 
-        public override void Remove(object item)
+        public override void Remove(T item)
         {
             // NOP.
         }
@@ -33,11 +34,9 @@ namespace Casimodo.Lib.UI
 
         public override bool CanRemove => true;
 
-        protected override IEnumerator GetEnumeratorInternal()
+        protected override IEnumerator<T> GetEnumeratorInternal()
         {
-            return Items != null
-                ? ((IEnumerable)Items).GetEnumerator()
-                : Enumerable.Empty<object>().GetEnumerator();
+            return ((IEnumerable<T>)Items)?.GetEnumerator() ?? Enumerable.Empty<T>().GetEnumerator();
         }
     }
 }

@@ -3,6 +3,7 @@
 using Casimodo.Lib.ComponentModel;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -40,7 +41,10 @@ namespace Casimodo.Lib.UI
     ///   items *currently* in the collection. We don't track removed items.
     ///   I wonder if we should implement change tracking here at all.
     /// </remarks>
-    public class CustomObservableCollection : ObservableObject,
+    public partial class CustomObservableCollection<T> : ObservableObject,
+        IEnumerable<T>,
+        ICollection<T>,
+        IReadOnlyCollection<T>,
         IEnumerable,
         IList,
         ICollection,
@@ -48,28 +52,24 @@ namespace Casimodo.Lib.UI
         INotifyCollectionChanged,
         IChangeTracking,
         IRevertibleChangeTracking
+        where T : class
     {
         static readonly PropertyChangedEventArgs IsChangedChangedArgs = new(nameof(IsChanged));
         static readonly PropertyChangedEventArgs CountChangedArgs = new(nameof(Count));
         static readonly PropertyChangedEventArgs IndexerChangedArgs = new("Item[]");
         protected readonly object _syncRoot = new();
-        protected CollectionSourceAdapterBase _source;
+        protected CollectionSourceAdapterBase<T> _source;
 
-#pragma warning disable IDE1006 // Naming Styles
-        protected Collection<object> _items { get; private set; }
-#pragma warning restore IDE1006 // Naming Styles
+        private Collection<T> _items { get; }
 
-        public CustomObservableCollection(CollectionSourceAdapterBase source)
+        public CustomObservableCollection(CollectionSourceAdapterBase<T> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
 
-            _items = new MyCollection(this);
+            _items = new MyCollection<T>(this);
 
             SetSource(source);
-            // TODO: REMOVE
-            // _source = source;
-            // AttachToSource();
 
             IsModificationAllowed = true;
             IsAdditionAllowed = true;
@@ -77,12 +77,29 @@ namespace Casimodo.Lib.UI
         }
 
         public CustomObservableCollection()
-            : this(new ShortedCollectionSourceAdapter())
-        {          
-            (_source as ShortedCollectionSourceAdapter).Items = this;
+            : this(new ShortedCollectionSourceAdapter<T>())
+        {
+            (_source as ShortedCollectionSourceAdapter<T>).Items = this;
         }
 
-        public void SetSource(CollectionSourceAdapterBase source)
+        public CustomObservableCollection(IList<T> items)
+           : this(new ShortedCollectionSourceAdapter<T>())
+        {
+            if (items == null) throw new ArgumentNullException(nameof(items));
+
+            BeginUpdate();
+            try
+            {
+                foreach (var item in items)
+                    _items.Add(item);
+            }
+            finally
+            {
+                EndUpdate();
+            }
+        }
+
+        public void SetSource(CollectionSourceAdapterBase<T> source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -109,7 +126,7 @@ namespace Casimodo.Lib.UI
             if (comparer == null)
                 throw new ArgumentNullException(nameof(comparer));
 
-            object[] sortedItems = _items.ToArray();
+            T[] sortedItems = _items.ToArray();
             Array.Sort(sortedItems, comparer);
 
             BeginUpdate();
@@ -176,14 +193,14 @@ namespace Casimodo.Lib.UI
 
                 if (_startPosition != -1)
                 {
-                    newItems = _source.Cast<object>().Skip(_startPosition).Take(_maximumCount);
+                    newItems = _source.Skip(_startPosition).Take(_maximumCount);
                 }
                 else
                 {
                     newItems = _source;
                 }
 
-                foreach (object item in newItems)
+                foreach (T item in newItems)
                     _items.Add(item);
             }
             finally
@@ -235,7 +252,7 @@ namespace Casimodo.Lib.UI
         /// This does *not* add the given item to the source collection.
         /// Not a member of any interface.
         /// </summary>
-        public void AddLocal(object item)
+        public void AddLocal(T item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
@@ -250,7 +267,7 @@ namespace Casimodo.Lib.UI
         /// This does *not* add the given item to the source collection.
         /// Not a member of any interface.
         /// </summary>
-        public void AddRangeLocal(object[] items)
+        public void AddRangeLocal(T[] items)
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
@@ -278,7 +295,7 @@ namespace Casimodo.Lib.UI
         /// This does *not* remove any item from the source collection.
         /// Not a member of any interface.
         /// </summary>
-        public void RemoveLocal(object item)
+        public void RemoveLocal(T item)
         {
             CheckIsModificationAllowedByConsumer();
 
@@ -339,7 +356,7 @@ namespace Casimodo.Lib.UI
             get
             {
                 IChangeTracking changeTracking;
-                foreach (object item in _items)
+                foreach (var item in _items)
                 {
                     changeTracking = item as IChangeTracking;
                     if (changeTracking != null && changeTracking.IsChanged)
@@ -354,7 +371,7 @@ namespace Casimodo.Lib.UI
         /// Adds the given item to the collection *and* to the source collection.
         /// Not a member of any interface.
         /// </summary>
-        internal void Add(object item)
+        public void Add(T item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
@@ -377,7 +394,7 @@ namespace Casimodo.Lib.UI
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        public void Insert(int index, object item)
+        public void Insert(int index, T item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
@@ -397,7 +414,7 @@ namespace Casimodo.Lib.UI
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        internal object this[int index]
+        internal T this[int index]
         {
             get { return _items[index]; }
         }
@@ -405,7 +422,7 @@ namespace Casimodo.Lib.UI
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        internal int IndexOf(object item)
+        internal int IndexOf(T item)
         {
             return _items.IndexOf(item);
         }
@@ -416,7 +433,7 @@ namespace Casimodo.Lib.UI
         /// depends on the implementation of the source adapter in use.
         /// Not a member of any interface.
         /// </summary>
-        internal bool Remove(object item)
+        public bool Remove(T item)
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
@@ -443,7 +460,7 @@ namespace Casimodo.Lib.UI
         /// Indicates whether the given item is contained by the collection.
         /// Not a member of any interface.
         /// </summary>
-        internal bool Contains(object item)
+        public bool Contains(T item)
         {
             return _items.Contains(item);
         }
@@ -477,17 +494,30 @@ namespace Casimodo.Lib.UI
 
         #region IEnumerable Members -------------------------------------------
 
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return _items.GetEnumerator();
+        }
+
         /// <summary>
         /// Member of IEnumerable (the only one).
         /// </summary>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (_items as IEnumerable).GetEnumerator();
+            return _items.GetEnumerator();
         }
 
         #endregion IEnumerable Members -------------------------------------------
 
         #region ICollection Members -------------------------------------------
+
+        /// <summary>
+        /// Member of ICollection&lt;T&gt;.
+        /// </summary>
+        void ICollection<T>.CopyTo(T[] array, int arrayIndex)
+        {
+            _items.CopyTo(array, arrayIndex);
+        }
 
         /// <summary>
         /// Member of ICollection
@@ -509,7 +539,7 @@ namespace Casimodo.Lib.UI
         /// </summary>
         void ICollection.CopyTo(Array array, int index)
         {
-            _items.CopyTo((object[])array, index);
+            _items.CopyTo((T[])array, index);
         }
 
         #endregion ICollection Members -------------------------------------------
@@ -575,19 +605,19 @@ namespace Casimodo.Lib.UI
 
         int IList.Add(object value)
         {
-            Add((object)value);
+            Add((T)value);
 
-            return IndexOf((object)value);
+            return IndexOf((T)value);
         }
 
         bool IList.Contains(object value)
         {
-            return Contains(value as object);
+            return Contains((T)value);
         }
 
         int IList.IndexOf(object value)
         {
-            return IndexOf(value as object);
+            return IndexOf((T)value);
         }
 
         void IList.Insert(int index, object value)
@@ -595,7 +625,7 @@ namespace Casimodo.Lib.UI
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            Insert(index, (object)value);
+            Insert(index, (T)value);
         }
 
         bool IList.IsFixedSize => IsReadOnly;
@@ -605,7 +635,7 @@ namespace Casimodo.Lib.UI
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            Remove((object)value);
+            Remove((T)value);
         }
 
         void IList.RemoveAt(int index)
@@ -629,11 +659,9 @@ namespace Casimodo.Lib.UI
         /// <summary>
         /// Not a member of any interface.
         /// </summary>
-        public object[] ToObjectArray()
+        public T[] ToArrayInternal()
         {
-            object[] result = new object[_items.Count];
-            _items.CopyTo(result, 0);
-            return result;
+            return _items.ToArray();
         }
 
         #region IChangeTracking Members ---------------------------------------
@@ -722,8 +750,8 @@ namespace Casimodo.Lib.UI
         /// </summary>
         protected virtual void ProcessAfterSourceItemsAdded(NotifyCollectionChangedEventArgs args)
         {
-            foreach (object item in args.NewItems)
-                _items.Add(item);
+            foreach (var item in args.NewItems)
+                _items.Add((T)item);
         }
 
         /// <summary>
@@ -731,9 +759,9 @@ namespace Casimodo.Lib.UI
         /// </summary>
         protected virtual void ProcessAfterSourceItemsRemoved(NotifyCollectionChangedEventArgs args)
         {
-            foreach (object item in args.OldItems)
+            foreach (var item in args.OldItems)
             {
-                int pos = _items.IndexOf(item);
+                int pos = _items.IndexOf((T)item);
                 if (pos == -1)
                     continue;
 
@@ -753,7 +781,7 @@ namespace Casimodo.Lib.UI
 
                 object[] sourceItems = _source.Cast<object>().ToArray();
                 foreach (var item in sourceItems)
-                    _items.Add(item);
+                    _items.Add((T)item);
             }
             finally
             {
@@ -892,22 +920,22 @@ namespace Casimodo.Lib.UI
 
             DetachFromSource();
             _source = null;
-            _items = null;
+            _items.Clear();
         }
 
         /// <summary>
         /// The internal collection.
         /// </summary>
-        sealed class MyCollection : Collection<object>
+        sealed class MyCollection<TData> : Collection<TData>
         {
-            readonly CustomObservableCollection _owner;
+            readonly CustomObservableCollection<T> _owner;
 
-            public MyCollection(CustomObservableCollection owner)
+            public MyCollection(CustomObservableCollection<T> owner)
             {
                 _owner = owner;
             }
 
-            protected override void InsertItem(int index, object item)
+            protected override void InsertItem(int index, TData item)
             {
                 base.InsertItem(index, item);
 
@@ -922,7 +950,7 @@ namespace Casimodo.Lib.UI
             {
                 if (!_owner.IsUpdating)
                 {
-                    object item = this[index];
+                    TData item = this[index];
 
                     base.RemoveItem(index);
 
