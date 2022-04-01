@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
 {

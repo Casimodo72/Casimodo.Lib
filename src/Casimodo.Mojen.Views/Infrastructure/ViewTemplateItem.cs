@@ -42,7 +42,7 @@ namespace Casimodo.Lib.Mojen
                 Next.Prev = Prev;
 
             if (Parent != null && Parent.Child == this)
-                Parent.Child = Prev != null ? Prev : Next;
+                Parent.Child = Prev ?? Next;
         }
 
         public IEnumerable<ViewTemplateItem> GetChildren()

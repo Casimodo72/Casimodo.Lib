@@ -1,5 +1,4 @@
-﻿using Casimodo.Lib.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -147,8 +146,10 @@ namespace Casimodo.Lib.Mojen.Meta
 
         MetaItem GenerateMeta(MojType type, List<MojType> types)
         {
-            var result = new MetaItem();
-            result.Data = type;
+            var result = new MetaItem
+            {
+                Data = type
+            };
 
             string typeName = type.Name;
             if (types.Any(x => x.Name == typeName))

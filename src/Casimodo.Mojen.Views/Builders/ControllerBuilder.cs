@@ -77,10 +77,12 @@ namespace Casimodo.Lib.Mojen
         {
             Guard.ArgNotNullOrWhitespace(id, nameof(id));
 
-            var view = new MojControllerViewConfig();
-            view.Id = id;
-            view.Controller = Controller;
-            view.TypeConfig = type ?? Controller.TypeConfig;
+            var view = new MojControllerViewConfig
+            {
+                Id = id,
+                Controller = Controller,
+                TypeConfig = type ?? Controller.TypeConfig
+            };
 
             if (App.Items.Any(x => (x as MojViewConfig)?.Id == id))
                 throw new MojenException($"Duplicate view ID '{id}'.");

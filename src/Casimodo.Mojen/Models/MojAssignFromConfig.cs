@@ -7,7 +7,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojAssignFromCollectionConfig
     {
-        public static readonly MojAssignFromCollectionConfig None = new MojAssignFromCollectionConfig(false);
+        public static readonly MojAssignFromCollectionConfig None = new(false);
 
         public MojAssignFromCollectionConfig()
             : this(true)

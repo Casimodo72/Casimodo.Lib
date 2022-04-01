@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
@@ -28,7 +27,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojPropDeletedMarkerConfig : MojBase
     {
-        public static readonly MojPropDeletedMarkerConfig None = new MojPropDeletedMarkerConfig { Is = false };
+        public static readonly MojPropDeletedMarkerConfig None = new() { Is = false };
 
         public MojPropDeletedMarkerConfig()
         {
@@ -73,8 +72,10 @@ namespace Casimodo.Lib.Mojen
             IsTracked = true;
             IsObservable = true;
             IsSortable = true;
-            Type = new MojPropType();
-            Type.DeclaringProp = this;
+            Type = new MojPropType
+            {
+                DeclaringProp = this
+            };
             InitReferenceProps();
         }
 
@@ -133,7 +134,7 @@ namespace Casimodo.Lib.Mojen
                     {
                         if (value is IEnumerable)
                         {
-                            if (!(value is IList listValue))
+                            if (value is not IList listValue)
                                 throw new MojenException($"Cannot convert enumerable type '{p.Prop.PropertyType.Name}' to list of entitiy items.");
 
                             var listValueCopy = (IList)Activator.CreateInstance(p.Prop.PropertyType);
@@ -158,7 +159,7 @@ namespace Casimodo.Lib.Mojen
                         }
                         else
                         {
-                            if (!(value is ICloneable clonableValue))
+                            if (value is not ICloneable clonableValue)
                                 throw new MojenException($"The type '{p.Prop.PropertyType.Name}' must be cloneable.");
 
                             value = clonableValue.Clone();

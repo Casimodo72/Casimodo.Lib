@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 
@@ -8,7 +7,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojVersionMapping : MojBase
     {
-        public static readonly MojVersionMapping None = new MojVersionMapping(false);
+        public static readonly MojVersionMapping None = new(false);
 
         public MojVersionMapping()
             : this(true)

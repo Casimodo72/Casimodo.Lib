@@ -1,6 +1,4 @@
-﻿using Casimodo.Lib.ComponentModel;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -381,7 +379,7 @@ namespace Casimodo.Lib.Mojen
             }
             else if (type.IsGenericType)
             {
-                result = type.Name.Substring(0, type.Name.IndexOf('`'));
+                result = type.Name[..type.Name.IndexOf('`')];
                 result = string.Format("{0}<{1}>", result,
                     type.GetGenericArguments()
                         .Select(x => ToCsType(x))
@@ -415,8 +413,8 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public class CsvToXmlConverter
         {
-            readonly StringBuilder _sb = new StringBuilder();
-            readonly List<string> _values = new List<string>();
+            readonly StringBuilder _sb = new();
+            readonly List<string> _values = new();
             readonly char Separator = ';';
             readonly char QuotationMark = '"';
             int _rowIndex = -1;

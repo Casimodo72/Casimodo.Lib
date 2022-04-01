@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Mojen
 
     public class Mex : MojenGeneratorBase
     {
-        readonly StringBuilder _sb = new StringBuilder();
+        readonly StringBuilder _sb = new();
 
         public static string ToLinqPredicate(MexExpressionNode node)
         {
@@ -130,7 +130,7 @@ namespace Casimodo.Lib.Mojen
             o(_ops[op]);
         }
 
-        readonly Dictionary<MexOp, string> _ops = new Dictionary<MexOp, string>
+        readonly Dictionary<MexOp, string> _ops = new()
         {
             { MexOp.Eq, " == "},
             { MexOp.Neq, " != "},
@@ -256,7 +256,7 @@ namespace Casimodo.Lib.Mojen
     {
         public static MexProp AsProp(this MexItem item)
         {
-            if (!(item is MexProp prop))
+            if (item is not MexProp prop)
                 throw new MexException($"The item is not a {nameof(MexProp)}.");
 
             return prop;
@@ -264,7 +264,7 @@ namespace Casimodo.Lib.Mojen
 
         public static MexValue AsValue(this MexItem item)
         {
-            if (!(item is MexValue value))
+            if (item is not MexValue value)
                 throw new MexException($"The item is not a {nameof(MexValue)}.");
 
             return value;

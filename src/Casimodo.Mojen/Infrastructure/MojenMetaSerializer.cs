@@ -1,8 +1,6 @@
 ﻿using Casimodo.Lib.Data;
 using Ionic.Zip;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Xml;
@@ -13,7 +11,7 @@ namespace Casimodo.Lib.Mojen
     {
         // TODO: REMOVE: static readonly MyWriter _writer = new MyWriter();
 
-        static readonly DataContractSerializerSettings _serializerSettings = new DataContractSerializerSettings
+        static readonly DataContractSerializerSettings _serializerSettings = new()
         {
             PreserveObjectReferences = true,
             KnownTypes = new Type[]

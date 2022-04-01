@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class MojFormedType : MojBase, IFormedTypePropAccessor
     {
-        Dictionary<int, MojProp> _props = new Dictionary<int, MojProp>();
+        Dictionary<int, MojProp> _props = new();
 
         public MojFormedType()
         { }
@@ -43,8 +43,10 @@ namespace Casimodo.Lib.Mojen
         {
             if (!FormedNavigationFrom.Is)
             {
-                FormedNavigationFrom = new MojFormedNavigationPath();
-                FormedNavigationFrom.Steps = new List<MojFormedNavigationPathStep>();
+                FormedNavigationFrom = new MojFormedNavigationPath
+                {
+                    Steps = new List<MojFormedNavigationPathStep>()
+                };
             }
 
             return FormedNavigationFrom;

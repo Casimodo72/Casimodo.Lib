@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
@@ -33,7 +32,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojReference : MojBase
     {
-        public static readonly MojReference None = new MojReference(false);
+        public static readonly MojReference None = new(false);
 
         MojReference(bool @is)
         {

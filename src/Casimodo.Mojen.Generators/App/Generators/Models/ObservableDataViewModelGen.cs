@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,7 @@ namespace Casimodo.Lib.Mojen
     /// </summary>
     public class ObservableDataViewModelGen : ClassGen
     {
-        static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new ReadOnlyCollection<string>(new string[] {
+        static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new(new string[] {
             // NOTE: [Required] will be applied via the OData model builder.
             "Required",
             "DataMember",

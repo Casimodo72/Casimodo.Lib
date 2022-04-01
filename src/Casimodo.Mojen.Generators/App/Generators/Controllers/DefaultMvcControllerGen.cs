@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Lib.Mojen
 {
     // NOTE: Not used anywhere. Keep though.
     public class DefaultMvcControllerGen : MvcControllerBaseGen

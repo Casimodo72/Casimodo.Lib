@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -117,7 +114,7 @@ namespace Casimodo.Lib.Mojen
 
             var idx = url.LastIndexOf("/Index");
             if (idx != -1)
-                url = url.Substring(0, idx);
+                url = url[..idx];
 
             return url;
         }

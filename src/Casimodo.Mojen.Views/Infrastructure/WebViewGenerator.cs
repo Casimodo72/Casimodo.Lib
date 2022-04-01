@@ -120,7 +120,9 @@ namespace Casimodo.Lib.Mojen
             return result;
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public void oElemAttrs(string target = null)
+#pragma warning restore IDE1006 // Naming Styles
         {
             var result = GetElemAttrs(target);
             if (result != null)
@@ -211,7 +213,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojXAttribute GetOrCreateAttr(string name, string target = null)
         {
-            if (!(Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) is MojXAttribute attr))
+            if (Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) is not MojXAttribute attr)
             {
                 attr = XA(name, "");
                 attr.Target = target;

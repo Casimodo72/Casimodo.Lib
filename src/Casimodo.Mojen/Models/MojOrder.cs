@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojOrderConfig
     {
-        public static readonly MojOrderConfig None = new MojOrderConfig(false);
+        public static readonly MojOrderConfig None = new(false);
 
         public MojOrderConfig()
             : this(true)

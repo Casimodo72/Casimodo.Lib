@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Mojen
     // See http://wiki.selfhtml.org/wiki/HTML/Textstrukturierung
     public class ViewTemplate
     {
-        public readonly ViewTemplateItem Root = new ViewTemplateItem { Directive = "root", IsContainer = true };
+        public readonly ViewTemplateItem Root = new() { Directive = "root", IsContainer = true };
 
         public ViewTemplate()
         {
@@ -34,8 +34,10 @@ namespace Casimodo.Lib.Mojen
 
         ViewTemplateItem Add(string directive, MojViewProp prop = null, bool child = false)
         {
-            var item = new ViewTemplateItem();
-            item.Directive = directive;
+            var item = new ViewTemplateItem
+            {
+                Directive = directive
+            };
             if (prop != null)
                 item.Prop = prop;
 

@@ -1,6 +1,4 @@
 ﻿using Casimodo.Lib.Data;
-using System;
-using System.IO;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen

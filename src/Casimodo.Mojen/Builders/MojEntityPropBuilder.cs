@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Mojen
 
         public MojModelPropBuilder Model()
         {
-            if (!(ParentPropBuilder is MojModelPropBuilder modelBuilder))
+            if (ParentPropBuilder is not MojModelPropBuilder modelBuilder)
                 throw new InvalidOperationException("This store property builder has no parent model property builder assigned.");
 
             return modelBuilder;

@@ -1,5 +1,4 @@
-﻿using Casimodo.Lib;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -748,13 +747,13 @@ namespace Casimodo.Lib.Mojen
             prop.Attrs.Add(attr);
         }
 
-        readonly Dictionary<Type, string> _uiHintMapByType = new Dictionary<Type, string>
+        readonly Dictionary<Type, string> _uiHintMapByType = new()
         {
             { typeof(int), "Integer" },
             { typeof(bool), "Boolean" }
         };
 
-        readonly Dictionary<DataType, string> _uiHintMapByDataType = new Dictionary<DataType, string>
+        readonly Dictionary<DataType, string> _uiHintMapByDataType = new()
         {
             { DataType.Text, "String" }
         };

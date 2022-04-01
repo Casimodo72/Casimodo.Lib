@@ -48,7 +48,7 @@ namespace Casimodo.Lib.Mojen
             // NOP
         }
 
-        public string BuildLinqOrderBy(IEnumerable<MojOrderConfig> orders)
+        public static string BuildLinqOrderBy(IEnumerable<MojOrderConfig> orders)
         {
             var sb = new StringBuilder();
             bool isfirst = true;
@@ -90,23 +90,25 @@ namespace Casimodo.Lib.Mojen
                 O("[LocallyRequired]");
         }
 
-        public string GetDbSequenceFunction(MojProp prop)
+        public static string GetDbSequenceFunction(MojProp prop)
         {
-            return string.Format("GetNextSequenceValue(\"{0}\")", prop.DbAnno.Sequence.Name);
+            return $"GetNextSequenceValue(\"{prop.DbAnno.Sequence.Name}\")";
         }
 
-        public string GetRepositoryName(MojType type)
+        public static string GetRepositoryName(MojType type)
         {
             return type.PluralName + (type.Kind == MojTypeKind.Model ? "Model" : "") + "Repository";
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         public void oQuote(string text)
+#pragma warning restore IDE1006 // Naming Styles
         {
-            if (text.Contains("{")) o("$");
+            if (text.Contains('{')) o("$");
             o("\"" + text + "\"");
         }
 
-        public string Quote(string text)
+        public static string Quote(string text)
         {
             return $"\"{text}\"";
         }

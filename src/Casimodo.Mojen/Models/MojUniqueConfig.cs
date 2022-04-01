@@ -30,7 +30,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojDbPropAnnotation : MojBase
     {
-        public static readonly MojDbPropAnnotation None = new MojDbPropAnnotation { Is = false };
+        public static readonly MojDbPropAnnotation None = new() { Is = false };
 
         public MojDbPropAnnotation()
         { }
@@ -100,7 +100,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojUniqueConfig : MojBase, IMojErrorMessageHolder
     {
-        public static readonly MojUniqueConfig None = new MojUniqueConfig { Is = false };
+        public static readonly MojUniqueConfig None = new() { Is = false };
 
         [DataMember]
         public bool Is { get; set; }
@@ -114,7 +114,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         [DataMember]
-        internal List<MojUniqueParameterConfig> _parameters = new List<MojUniqueParameterConfig>();
+        internal List<MojUniqueParameterConfig> _parameters = new();
 
         public IEnumerable<MojUniqueParameterConfig> GetParams(bool includeTenant = false)
         {

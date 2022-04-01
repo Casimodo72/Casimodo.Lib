@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
@@ -9,7 +8,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojFormedNavigationPath
     {
-        public static readonly MojFormedNavigationPath None = new MojFormedNavigationPath();
+        public static readonly MojFormedNavigationPath None = new();
 
         public MojFormedNavigationPath()
         { }
@@ -177,11 +176,13 @@ namespace Casimodo.Lib.Mojen
         {
             if (this == None) throw new MojenException("The NULL object must not be cloned.");
 
-            var clone = new MojFormedNavigationPath();
-            clone.IsForeign = IsForeign;
-            clone.SourcePath = SourcePath;
-            clone.TargetPath = TargetPath;
-            clone.Steps = new List<MojFormedNavigationPathStep>();
+            var clone = new MojFormedNavigationPath
+            {
+                IsForeign = IsForeign,
+                SourcePath = SourcePath,
+                TargetPath = TargetPath,
+                Steps = new List<MojFormedNavigationPathStep>()
+            };
             foreach (var step in Steps)
                 clone.Steps.Add(step.Clone());
 
@@ -222,8 +223,10 @@ namespace Casimodo.Lib.Mojen
 
         public MojFormedNavigationPath BuildFor(MojFormedType type, MojProp targetProp)
         {
-            var path = new MojFormedNavigationPath();
-            path.Steps = Steps.Take(Steps.Count - 1).ToList();
+            var path = new MojFormedNavigationPath
+            {
+                Steps = Steps.Take(Steps.Count - 1).ToList()
+            };
             var last = Steps.Last().Clone();
             last.SourceFormedType = type;
             last.TargetProp = targetProp;

@@ -278,7 +278,7 @@ namespace Casimodo.Lib.Mojen
 
         public virtual string GetCssStyle(WebViewGenContext context, ViewTemplateItem cur)
         {
-            if (!(cur.Style is Style config))
+            if (cur.Style is not Style config)
                 return "";
 
             var modal = context.View.IsModal || context.IsModalView;

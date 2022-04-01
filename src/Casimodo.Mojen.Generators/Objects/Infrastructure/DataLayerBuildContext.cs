@@ -181,7 +181,7 @@ namespace Casimodo.Lib.Mojen
             Context.PropToTenant(builder, build);
         }
 
-        readonly List<Action> _referenceResolutionActions = new List<Action>();
+        readonly List<Action> _referenceResolutionActions = new();
 
         public void ResolveReferencesLater(Action action)
         {

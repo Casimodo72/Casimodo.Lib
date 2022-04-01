@@ -1,15 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Mojen
 {
     public abstract class MexGeneratorBase<TThis> : MojenGeneratorBase
         where TThis : MexGeneratorBase<TThis>
     {
-        readonly StringBuilder _sb = new StringBuilder();
+        readonly StringBuilder _sb = new();
 
         public MexGeneratorBase()
         {

@@ -112,8 +112,10 @@ namespace Casimodo.Lib.Mojen
             var effectiveTargetType = type.StoreOrSelf;
 
             var context = GetDataContext();
-            var container = new MojValueSetContainer(type.Name);
-            container.DataContextName = context.Name;
+            var container = new MojValueSetContainer(type.Name)
+            {
+                DataContextName = context.Name
+            };
             Items.Add(container);
 
             var builder = new MojValueSetContainerBuilder(App, container);
@@ -160,14 +162,18 @@ namespace Casimodo.Lib.Mojen
 
         public MojAnyKeysBuilder AddKeys(string className, Type valueType)
         {
-            var config = new MojAnyKeysConfig();
-            config.DataContextName = GetDataContext().Name;
-            config.ClassName = className;
-            config.ValueType = valueType;
+            var config = new MojAnyKeysConfig
+            {
+                DataContextName = GetDataContext().Name,
+                ClassName = className,
+                ValueType = valueType
+            };
             Items.Add(config);
 
-            var builder = new MojAnyKeysBuilder();
-            builder.Config = config;
+            var builder = new MojAnyKeysBuilder
+            {
+                Config = config
+            };
 
             return builder;
         }

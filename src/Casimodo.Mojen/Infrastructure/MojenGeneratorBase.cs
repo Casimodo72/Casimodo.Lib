@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -440,7 +439,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        readonly Stack<int> ExplicitIntends = new Stack<int>();
+        readonly Stack<int> ExplicitIntends = new();
         int _pushIndent;
         int _customIndent;
 
@@ -480,10 +479,10 @@ namespace Casimodo.Lib.Mojen
             public string EndToken { get; set; } = "}";
         }
 
-        static readonly BlockInfo CodeBlock = new BlockInfo();
-        public static readonly BlockInfo ArrayBlock = new BlockInfo { StartToken = "[", EndToken = "]" };
+        static readonly BlockInfo CodeBlock = new();
+        public static readonly BlockInfo ArrayBlock = new() { StartToken = "[", EndToken = "]" };
 
-        readonly List<BlockInfo> Blocks = new List<BlockInfo>();
+        readonly List<BlockInfo> Blocks = new();
         int _blockIndent;
 
         void PushBlockIndent(BlockInfo block = null)
@@ -706,11 +705,11 @@ namespace Casimodo.Lib.Mojen
             PerformWrite(outputFilePath, (stream, writer) => callback(writer));
         }
 
-        static readonly UTF8Encoding MyUT8Encoding = new UTF8Encoding(true, true);
-        static readonly MemoryStream SharedOutputStream = new MemoryStream(129024);
+        static readonly UTF8Encoding MyUT8Encoding = new(true, true);
+        static readonly MemoryStream SharedOutputStream = new(129024);
         static readonly byte[] SharedComparisonBuffer = new byte[4096];
 
-        static readonly List<string> AllOutputFilePaths = new List<string>();
+        static readonly List<string> AllOutputFilePaths = new();
 
         protected void PerformWrite(string outputFilePath, Action<Stream, TextWriter> callback)
         {
@@ -947,7 +946,7 @@ namespace Casimodo.Lib.Mojen
 
     public class XBuilder
     {
-        public static readonly XBuilder Null = new XBuilder("null");
+        public static readonly XBuilder Null = new("null");
 
         public class XAnno
         {
@@ -1073,7 +1072,7 @@ namespace Casimodo.Lib.Mojen
 
         public XBuilder Add(string name, Action value)
         {
-            XBuilder b = new XBuilder(name) { Parent = this };
+            XBuilder b = new(name) { Parent = this };
             b.ValueAction(value);
             Elem.Add(b.Elem);
 
@@ -1088,7 +1087,7 @@ namespace Casimodo.Lib.Mojen
                 Anonymous();
             }
 
-            XBuilder b = new XBuilder(name) { Parent = this };
+            XBuilder b = new(name) { Parent = this };
             b.Value(value, text);
 
             Elem.Add(b.Elem);

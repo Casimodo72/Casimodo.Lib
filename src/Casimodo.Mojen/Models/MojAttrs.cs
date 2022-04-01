@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Mojen
     [Serializable]
     public class MojAttrs : List<MojAttr>
     {
-        static readonly List<MojAttrAccessor> _registeredAttrs = new List<MojAttrAccessor>();
+        static readonly List<MojAttrAccessor> _registeredAttrs = new();
 
         static MojAttrs()
         {

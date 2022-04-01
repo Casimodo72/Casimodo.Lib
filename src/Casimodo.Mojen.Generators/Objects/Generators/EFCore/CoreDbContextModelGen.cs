@@ -1,6 +1,4 @@
 ﻿using Casimodo.Lib.Data;
-using Casimodo.Lib;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 

@@ -53,7 +53,7 @@ namespace Casimodo.Lib.Mojen
         }
         int? _minMaxWidth;
 
-        static readonly List<string> _cols = new List<string>
+        static readonly List<string> _cols = new()
         {
             "lg-", "md-", "sm-", "xs-"
         };

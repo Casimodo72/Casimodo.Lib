@@ -299,7 +299,7 @@ namespace Casimodo.Lib.Mojen
 
         public override bool Equals(MojDataGraphNode node)
         {
-            if (!(node is MojPropDataGraphNode other)) return false;
+            if (node is not MojPropDataGraphNode other) return false;
 
             return Prop.Id == other.Prop.Id;
         }
@@ -322,7 +322,7 @@ namespace Casimodo.Lib.Mojen
 
         public override bool Equals(MojDataGraphNode node)
         {
-            if (!(node is MojReferenceDataGraphNode other)) return false;
+            if (node is not MojReferenceDataGraphNode other) return false;
             if (other.TargetType != TargetType) return false;
             if (other.SourceProp.Id != SourceProp.Id) return false;
 

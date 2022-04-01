@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojBinaryConfig : MojBase
     {
-        public static readonly MojBinaryConfig None = new MojBinaryConfig();
+        public static readonly MojBinaryConfig None = new();
 
         public MojBinaryConfig()
         { }

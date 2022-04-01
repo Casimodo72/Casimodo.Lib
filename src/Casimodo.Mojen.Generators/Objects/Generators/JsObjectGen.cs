@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -8,7 +6,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class JsObjectGen : DataLayerGenerator
     {
-        static readonly List<string> _commonProps = new List<string>(new string[]
+        static readonly List<string> _commonProps = new(new string[]
         {
             "Id", "Created", "Modified", "Deleted", "IsReadOnly", "IsNotDeletable"
         });

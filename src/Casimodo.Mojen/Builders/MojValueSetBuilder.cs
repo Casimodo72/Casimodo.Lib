@@ -28,8 +28,10 @@ namespace Casimodo.Lib.Mojen
         /// </summary>
         public MojValueSetBuilder Add()
         {
-            var valueSet = new MojValueSet();
-            valueSet.SetId = Container.Items.Count;
+            var valueSet = new MojValueSet
+            {
+                SetId = Container.Items.Count
+            };
             Container.Items.Add(valueSet);
 
             // Increase "Index" value if applicable.

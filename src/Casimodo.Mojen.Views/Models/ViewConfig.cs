@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojLookupViewConfig : MojBase
     {
-        public static readonly MojLookupViewConfig None = new MojLookupViewConfig(false);
+        public static readonly MojLookupViewConfig None = new(false);
 
         MojLookupViewConfig(bool @is)
             : this()
@@ -72,7 +72,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojStandaloneViewConfig : MojBase
     {
-        public static readonly MojStandaloneViewConfig None = new MojStandaloneViewConfig(false);
+        public static readonly MojStandaloneViewConfig None = new(false);
 
         MojStandaloneViewConfig(bool @is)
         {

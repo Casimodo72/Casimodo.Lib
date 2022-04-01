@@ -1,9 +1,6 @@
 ﻿using Casimodo.Lib.Data;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -15,7 +12,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojPropValueConstraints : IMojCloneableConfig, ICloneable
     {
-        public static readonly MojPropValueConstraints None = new MojPropValueConstraints { Is = false };
+        public static readonly MojPropValueConstraints None = new() { Is = false };
 
         public MojPropValueConstraints()
         {

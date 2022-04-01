@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
@@ -37,7 +36,7 @@ namespace Casimodo.Lib.Mojen
                     yield return item;
         }
 
-        static readonly TypeDerivedFirstComp DerivedFirstComp = new TypeDerivedFirstComp();
+        static readonly TypeDerivedFirstComp DerivedFirstComp = new();
 
         class TypeDerivedFirstComp : IComparer<MojType>
         {
@@ -422,7 +421,7 @@ namespace Casimodo.Lib.Mojen
         public MojAssignFromCollectionConfig AssignFromConfig = MojAssignFromCollectionConfig.None;
 
         [DataMember]
-        public readonly List<MojIndexConfig> Indexes = new List<MojIndexConfig>(0);
+        public readonly List<MojIndexConfig> Indexes = new(0);
 
         internal void AddLocalProp(MojProp prop)
         {

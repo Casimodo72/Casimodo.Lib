@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class EnumGen : DataLayerGenerator
     {
-        static readonly ReadOnlyCollection<string> _ValidEnumAttrs = new ReadOnlyCollection<string>(new string[] {
+        static readonly ReadOnlyCollection<string> _ValidEnumAttrs = new(new string[] {
             "DataContract", "EnumMember", "Display", "Description"
         });
 

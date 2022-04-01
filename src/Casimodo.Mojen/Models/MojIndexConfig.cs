@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojIndexConfig : MojBase
     {
-        public static readonly MojIndexConfig None = new MojIndexConfig { Is = false };
+        public static readonly MojIndexConfig None = new() { Is = false };
 
         [DataMember]
         public bool Is { get; set; }
@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
         public bool IsUnique { get; set; }
 
         [DataMember]
-        public readonly List<MojIndexMemberConfig> Members = new List<MojIndexMemberConfig>();
+        public readonly List<MojIndexMemberConfig> Members = new();
 
         //public MojIndexConfig Clone()
         //{

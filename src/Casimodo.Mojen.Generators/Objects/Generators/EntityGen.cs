@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -8,7 +6,7 @@ namespace Casimodo.Lib.Mojen
 {
     public class EntityGen : ClassGen
     {
-        static readonly ReadOnlyCollection<string> ValidEntityAttrs = new ReadOnlyCollection<string>(new string[] {
+        static readonly ReadOnlyCollection<string> ValidEntityAttrs = new(new string[] {
             // NOTE: [Required], [Index] will be applied via the EF model builder.            
             "DataMember",
             // [IgnoreDataMember] is used currently only used for the Tenant ID, which must not be exposed.

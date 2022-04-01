@@ -1,5 +1,4 @@
-﻿using Casimodo.Lib;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -839,7 +838,7 @@ namespace Casimodo.Lib.Mojen
             IMojClassPropBuilder backrefProp = null,
             string backrefPropName = null)
         {
-            if (to == null) throw new ArgumentNullException("to");
+            if (to == null) throw new ArgumentNullException(nameof(to));
 
             if (axis == MojReferenceAxis.None)
                 throw new ArgumentException("The reference direction is missing.", nameof(axis));

@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Mojen
 
     public class GeoPlaceLookupConfig
     {
-        public static readonly GeoPlaceLookupConfig None = new GeoPlaceLookupConfig { Is = false };
+        public static readonly GeoPlaceLookupConfig None = new() { Is = false };
         public GeoPlaceLookupConfig()
         {
             Is = true;
@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojStringSubstringConfig
     {
-        public static readonly MojStringSubstringConfig None = new MojStringSubstringConfig();
+        public static readonly MojStringSubstringConfig None = new();
         public bool Is { get; set; }
         public int StartIndex { get; set; }
         public int? Length { get; set; }
@@ -297,7 +297,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojPropSnippetsConfig
     {
-        public static readonly MojPropSnippetsConfig None = new MojPropSnippetsConfig { Is = false };
+        public static readonly MojPropSnippetsConfig None = new() { Is = false };
 
         public bool Is { get; set; }
 
@@ -420,7 +420,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojLookupViewPropConfig : MojBase
     {
-        public static readonly MojLookupViewPropConfig None = new MojLookupViewPropConfig();
+        public static readonly MojLookupViewPropConfig None = new();
 
         public bool Is { get; set; }
 
@@ -437,7 +437,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojLookupCascadeFromScopeViewPropConfig : MojBase
     {
-        public static readonly MojLookupCascadeFromScopeViewPropConfig None = new MojLookupCascadeFromScopeViewPropConfig { Is = false };
+        public static readonly MojLookupCascadeFromScopeViewPropConfig None = new() { Is = false };
 
         public MojLookupCascadeFromScopeViewPropConfig()
         {

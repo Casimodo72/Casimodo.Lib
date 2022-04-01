@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen
@@ -214,8 +213,10 @@ namespace Casimodo.Lib.Mojen
                 throw new ArgumentException("The arguments type and modelType are mutually exclusive.");
 
             // Create new property.
-            var prop = new MojProp();
-            prop.DeclaringType = TypeConfig;
+            var prop = new MojProp
+            {
+                DeclaringType = TypeConfig
+            };
             prop.Initialize(name);
             // Inherit IsObservablue from containing type.
             prop.IsObservable = TypeConfig.IsObservable;

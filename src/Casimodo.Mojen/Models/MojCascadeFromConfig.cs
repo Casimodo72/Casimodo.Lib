@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 
 namespace Casimodo.Lib.Mojen
@@ -10,7 +8,7 @@ namespace Casimodo.Lib.Mojen
     /// </summary>
     public class MojCascadeFromConfigCollection
     {
-        public static readonly MojCascadeFromConfigCollection None = new MojCascadeFromConfigCollection(false);
+        public static readonly MojCascadeFromConfigCollection None = new(false);
 
         public MojCascadeFromConfigCollection()
             : this(true)

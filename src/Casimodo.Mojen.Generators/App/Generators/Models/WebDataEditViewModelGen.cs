@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
     public class WebDataEditViewModelGen : ClassGen
     {
-        static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new ReadOnlyCollection<string>(new string[] {
+        static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new(new string[] {
             "ForeignKey",
             "DataMember",
             "DatabaseGenerated",

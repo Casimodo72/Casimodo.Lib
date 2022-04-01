@@ -57,9 +57,9 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojDefaultValuesConfig : MojBase
     {
-        public static readonly MojDefaultValuesConfig None = new MojDefaultValuesConfig(false);
+        public static readonly MojDefaultValuesConfig None = new(false);
 
-        public static readonly List<MojDefaultValueConfig> Empty = new List<MojDefaultValueConfig>(0);
+        public static readonly List<MojDefaultValueConfig> Empty = new(0);
 
         public MojDefaultValuesConfig()
             : this(true)

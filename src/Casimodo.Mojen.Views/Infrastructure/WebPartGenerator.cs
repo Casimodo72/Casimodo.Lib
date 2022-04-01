@@ -167,7 +167,7 @@ namespace Casimodo.Lib.Mojen
             foreach (var ch in text)
             {
                 if (char.IsUpper(ch) && s.Length != 0)
-                    s.Append("-");
+                    s.Append('-');
                 s.Append(char.ToLower(ch));
             }
 

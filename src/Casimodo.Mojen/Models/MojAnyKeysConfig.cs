@@ -1,10 +1,7 @@
 ﻿using Casimodo.Lib.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -30,7 +27,9 @@ namespace Casimodo.Lib.Mojen
         public Type ValueType { get; set; }
 
         [DataMember]
+#pragma warning disable IDE1006 // Naming Styles
         string _valueTypeFullName { get; set; }
+#pragma warning restore IDE1006 // Naming Styles
 
         [DataMember]
         public bool UseInstance { get; set; }

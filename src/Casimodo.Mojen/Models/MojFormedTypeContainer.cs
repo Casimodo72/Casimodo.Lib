@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 
 namespace Casimodo.Lib.Mojen
@@ -16,7 +15,7 @@ namespace Casimodo.Lib.Mojen
 
     public class MojFormedTypeContainer : IFormedTypePropAccessor
     {
-        internal readonly Dictionary<int, MojProp> _props = new Dictionary<int, MojProp>();
+        internal readonly Dictionary<int, MojProp> _props = new();
 
         public MojFormedTypeContainer(MojType type)
         {

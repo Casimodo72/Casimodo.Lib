@@ -52,7 +52,7 @@ namespace Casimodo.Lib.Mojen
                 o(_odataOps[op]);
         }
 
-        readonly Dictionary<MexOp, string> _odataOps = new Dictionary<MexOp, string>
+        readonly Dictionary<MexOp, string> _odataOps = new()
         {
             { MexOp.Eq, "eq"},
             { MexOp.Neq, "ne"},

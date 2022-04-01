@@ -1,11 +1,8 @@
-﻿using Casimodo.Lib.ComponentModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Casimodo.Lib.Data;
 
 namespace Casimodo.Lib.Mojen
@@ -22,7 +19,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojMultilineStringType : MojBase
     {
-        public static readonly MojMultilineStringType None = new MojMultilineStringType { Is = false };
+        public static readonly MojMultilineStringType None = new() { Is = false };
 
         public MojMultilineStringType()
         {

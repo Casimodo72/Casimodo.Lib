@@ -36,9 +36,11 @@ namespace Casimodo.Lib.Mojen
 
         public void Content(Action<MojViewBuilder> build)
         {
-            var contentView = new MojViewConfig();
-            contentView.RootView = View.RootView;
-            contentView.TypeConfig = View.TypeConfig;
+            var contentView = new MojViewConfig
+            {
+                RootView = View.RootView,
+                TypeConfig = View.TypeConfig
+            };
             var contentViewBuilder = new MojViewBuilder(contentView);
             contentView.Template.ViewBuilder = contentViewBuilder;
 
@@ -51,7 +53,7 @@ namespace Casimodo.Lib.Mojen
     public abstract class MojViewPropBuilderBase<TBuilder>
         where TBuilder : MojViewPropBuilderBase<TBuilder>
     {
-        static readonly List<string> CloneFromModelExcludedProps = new List<string> { };
+        static readonly List<string> CloneFromModelExcludedProps = new() { };
 
         protected MojViewBuilder ViewBuilder { get; private set; }
 
@@ -125,9 +127,12 @@ namespace Casimodo.Lib.Mojen
 
         public TBuilder Substring(int startIndex, int? length = null)
         {
-            Prop.StringSubstring = new MojStringSubstringConfig { Is = true };
-            Prop.StringSubstring.StartIndex = startIndex;
-            Prop.StringSubstring.Length = length;
+            Prop.StringSubstring = new MojStringSubstringConfig
+            {
+                Is = true,
+                StartIndex = startIndex,
+                Length = length
+            };
 
             return This();
         }

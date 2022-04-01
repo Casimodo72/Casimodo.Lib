@@ -6,7 +6,7 @@ namespace Casimodo.Lib.Mojen
     [DataContract(Namespace = MojContract.Ns)]
     public class MojSequenceConfig : MojBase
     {
-        public static readonly MojSequenceConfig None = new MojSequenceConfig { Is = false };
+        public static readonly MojSequenceConfig None = new() { Is = false };
 
         [DataMember]
         public bool Is { get; set; }

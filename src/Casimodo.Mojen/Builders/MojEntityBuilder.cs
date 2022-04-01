@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -28,8 +27,11 @@ namespace Casimodo.Lib.Mojen
         {
             Guard.ArgNotEmpty(props, nameof(props));
 
-            var index = new MojIndexConfig { Is = true };
-            index.IsUnique = unique;
+            var index = new MojIndexConfig
+            {
+                Is = true,
+                IsUnique = unique
+            };
 
             if (unique)
             {

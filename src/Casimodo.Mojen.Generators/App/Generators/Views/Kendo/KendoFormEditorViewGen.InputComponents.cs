@@ -281,7 +281,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         static readonly Dictionary<System.ComponentModel.DataAnnotations.DataType, string> _textInputTypeByDataType =
-            new Dictionary<System.ComponentModel.DataAnnotations.DataType, string>
+            new()
             {
                 [DataType.EmailAddress] = "email",
                 [DataType.PhoneNumber] = "tel",
