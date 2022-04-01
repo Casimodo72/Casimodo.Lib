@@ -124,10 +124,10 @@ namespace Casimodo.Lib.Mojen
             return This();
         }
 
-        public TClassBuilder RemoveInterface(params string[] names)
+        public TClassBuilder RemoveInterface(bool mustExist, params string[] names)
         {
             foreach (var name in names)
-                RemoveInterfaceCore(TypeConfig, name, mustExist: true);
+                RemoveInterfaceCore(TypeConfig, name, mustExist);
 
             return This();
         }
@@ -135,7 +135,7 @@ namespace Casimodo.Lib.Mojen
         void RemoveInterfaceCore(MojType type, string name, bool mustExist = true)
         {
             var item = type.Interfaces.FirstOrDefault(x => x.Name == name);
-            if (item == null)
+            if (item == null && mustExist)
                 throw new MojenException($"Interface '{name}' not found in type '{type.Name}'.");
 
             type.Interfaces.Remove(item);

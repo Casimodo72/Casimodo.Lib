@@ -120,11 +120,11 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public void Remove(params string[] propNames)
+        public void Remove(bool mustExist, params string[] propNames)
         {
             foreach (var propName in propNames)
             {
-                Remove(propName);
+                Remove(propName, mustExist);
             }
         }
 
