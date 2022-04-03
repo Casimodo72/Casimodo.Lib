@@ -620,6 +620,15 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        public void OFileScopedNamespace(string ns, Action content = null)
+        {
+            O($"namespace {ns};");
+            if (content != null)
+            {
+                content();
+            }
+        }
+
         public void OSummary(IEnumerable<string> text)
         {
             if (text == null || !text.Any() || text.All(x => string.IsNullOrWhiteSpace(x)))

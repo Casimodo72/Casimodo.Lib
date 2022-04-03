@@ -5,9 +5,6 @@ using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
-    /// <summary>
-    /// Generates entity view models for WPF/Universal Apps (XAML).
-    /// </summary>
     public class ObservableDataViewModelGen : ClassGen
     {
         static readonly ReadOnlyCollection<string> IgnoredModelAttrs = new(new string[] {
@@ -49,7 +46,7 @@ namespace Casimodo.Lib.Mojen
             if (string.IsNullOrEmpty(ViewModelConfig.ModelsDirPath))
                 return;
 
-            var models = App.AllModels.ToArray();
+            var models = App.AllModels.ToList();
             foreach (MojType model in models)
             {
                 string outputDirPath = model.OutputDirPath != null

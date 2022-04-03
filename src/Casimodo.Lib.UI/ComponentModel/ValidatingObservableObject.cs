@@ -296,30 +296,41 @@ namespace Casimodo.Lib.ComponentModel
 
                 foreach (var rule in propGroup.AsEnumerable())
                 {
-                    string? errorMsg = null;
+                    bool hasError = false;
+                    string? errorMsg = rule.Attribute.ErrorMessage;
                     try
                     {
                         attributeValidationContext.MemberName = propName;
                         attributeValidationContext.DisplayName = propDisplayName;
-                        rule.Attribute.Validate(propValue, attributeValidationContext);
+                        ValidationResult? validatonResult = rule.Attribute.GetValidationResult(propValue, attributeValidationContext);
+
+                        if (validatonResult != ValidationResult.Success)
+                        {
+                            hasError = true;
+
+                            if (string.IsNullOrWhiteSpace(errorMsg))
+                            {
+                                errorMsg = validatonResult?.ErrorMessage;
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
-                        errorMsg = rule.Attribute.ErrorMessage;
+                        hasError = true;
 
                         if (string.IsNullOrWhiteSpace(errorMsg))
                         {
                             errorMsg = ex.Message;
-
-                            if (string.IsNullOrWhiteSpace(errorMsg))
-                            {
-                                errorMsg = $"Unknown attribute validation error using '{rule.Attribute.GetType()}'.";
-                            }
                         }
                     }
 
-                    if (!string.IsNullOrWhiteSpace(errorMsg))
+                    if (hasError)
                     {
+                        if (string.IsNullOrWhiteSpace(errorMsg))
+                        {
+                            errorMsg = $"Unknown attribute validation error using '{rule.Attribute.GetType()}'.";
+                        }
+
                         AddError(context, propName, CreateError(rule.ErrorCode, errorMsg));
                     }
                     else
