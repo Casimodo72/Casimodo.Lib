@@ -196,13 +196,13 @@ namespace Casimodo.Lib.Mojen
 
         public string SourceDataFilesDirPath { get; set; }
 
-        public string MapFilePath(string virtualPath)
-        {
-            var absolutePath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
-            var directoryName = Path.GetDirectoryName(absolutePath);
-            var path = Path.Combine(directoryName, ".." + virtualPath.TrimStart('~').Replace('/', '\\'));
+        //public string MapFilePath(string virtualPath)
+        //{
+        //    var absolutePath = new Uri(Assembly.GetExecutingAssembly().CodeBase).AbsolutePath;
+        //    var directoryName = Path.GetDirectoryName(absolutePath);
+        //    var path = Path.Combine(directoryName, ".." + virtualPath.TrimStart('~').Replace('/', '\\'));
 
-            return path;
-        }
+        //    return path;
+        //}
     }
 }

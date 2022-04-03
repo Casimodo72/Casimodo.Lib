@@ -203,8 +203,6 @@ namespace Casimodo.Lib.Mojen
             attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + ";" + value;
         }
 
-
-
         public void ElemDataBindAttr(string expression)
         {
             var attr = GetOrCreateAttr("data-bind");
@@ -221,9 +219,5 @@ namespace Casimodo.Lib.Mojen
             }
             return attr;
         }
-
-
-
-
     }
 }

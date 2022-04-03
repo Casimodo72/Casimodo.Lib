@@ -37,7 +37,7 @@ namespace Casimodo.Lib.Mojen
         public string SourceTypesDescriptorFilePath { get; set; }
 
         [DataMember]
-        public string[] IgnoredSourceTypes { get; set; } = new string[0];
+        public string[] IgnoredSourceTypes { get; set; } = Array.Empty<string>();
 
         [DataMember]
         public string SourceDbContextName { get; set; }

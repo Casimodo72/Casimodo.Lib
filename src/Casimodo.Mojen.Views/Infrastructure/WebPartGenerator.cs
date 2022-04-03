@@ -158,33 +158,10 @@ namespace Casimodo.Lib.Mojen
             });
         }
 
-        // KABU TODO: REMOVE? Not used.
-        public string ConvertToCssName(string text)
-        {
-            Guard.ArgNotNullOrWhitespace(text, nameof(text));
-
-            var s = new StringBuilder();
-            foreach (var ch in text)
-            {
-                if (char.IsUpper(ch) && s.Length != 0)
-                    s.Append('-');
-                s.Append(char.ToLower(ch));
-            }
-
-            return s.ToString();
-        }
-
         protected string ReturnRedirectToActionIndex()
         {
             return "return RedirectToAction(\"Index\");";
         }
-
-        //protected void WriteViewBagPageTitle(MojViewConfig view)
-        //{
-        //    var title = view.GetDefaultTitle();
-        //    if (!string.IsNullOrEmpty(title))
-        //        O("ViewBag.Title = \"{0}\";", title);
-        //}
 
         protected void WriteViewBagMessage(MojViewConfig view)
         {
@@ -507,7 +484,7 @@ namespace Casimodo.Lib.Mojen
         public void OAttribute(HttpVerb verb, string value = null)
         {
             O($@"[Http{verb}{
-                (string.IsNullOrEmpty(value) 
+                (string.IsNullOrEmpty(value)
                     ? ""
                     : @$"(""{value}"")")
                 }]");

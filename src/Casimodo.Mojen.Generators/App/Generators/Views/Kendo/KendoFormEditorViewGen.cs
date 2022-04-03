@@ -900,7 +900,7 @@ namespace Casimodo.Lib.Mojen
         void OHtmlDataBindValue(WebViewGenContext context, string binding = null)
         {
             if (context.View.UseMVVM)
-                o($@" data-bind='{binding ?? "value"}:{GetBinding(context)}");
+                o($@" data-bind='{binding ?? "value"}:{GetBinding(context)}'");
         }
 
         void OHtmlRequiredttrs(WebViewGenContext context, MojProp prop)

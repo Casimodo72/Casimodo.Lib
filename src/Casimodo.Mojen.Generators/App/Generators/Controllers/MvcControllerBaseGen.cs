@@ -1,11 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 
 namespace Casimodo.Lib.Mojen
 {
-   
-
     public class MvcControllerBaseGen : WebPartGenerator
     {
         protected override void GenerateCore()

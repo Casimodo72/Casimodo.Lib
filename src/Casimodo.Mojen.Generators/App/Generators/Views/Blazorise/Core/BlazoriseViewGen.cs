@@ -1,39 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Casimodo.Lib;
+using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen.Blazorise
 {
-    public abstract class KendoViewGenBase : WebViewGenerator
+    public abstract class BlazoriseViewGen : BlazorPartBaseGenerator
     {
-        public KendoViewGenBase()
-        {
-            KendoGen = AddSub<KendoPartGen>();
-            KendoGen.SetParent(this);
-        }
-
-        public KendoPartGen KendoGen { get; private set; }
-
         public string DataViewModelAccessor { get; set; }
 
-        public void KendoJsTemplate(Action action)
-        {
-            // Buffer any output in order to transform to Kendo template.
-            StartBuffer();
-
-            action();
-
-            var text = BufferedText
-                .Replace(@"'#", @"'\\#")
-                .Replace("\"#", "\"\\#")
-                .Replace(@"&#", @"&\\#");
-
-            EndBuffer();
-
-            Writer.Write(text);
-        }
-
-        string GetBindingPrefixObject()
+        string GetBindingRootPath()
         {
             // E.g. "item.FirstName" or just "FirstName" if DataViewModelAccessor is not assigned.
             return !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? $"{DataViewModelAccessor}." : "";
@@ -46,7 +20,7 @@ namespace Casimodo.Lib.Mojen
             if (path == null)
                 throw new MojenException($"Failed to build property binding path for view prop.");
 
-            return $"{GetBindingPrefixObject()}{path}";
+            return $"{GetBindingRootPath()}{path}";
         }
 
         public string GetBinding(MojFormedType propTypePath, bool alias = false)
@@ -56,7 +30,7 @@ namespace Casimodo.Lib.Mojen
             if (path == null)
                 throw new MojenException($"Failed to build property binding path for formed type path.");
 
-            return $"{GetBindingPrefixObject()}{path}";
+            return $"{GetBindingRootPath()}{path}";
         }
 
         public string GetBinding(WebViewGenContext context, bool alias = false)
@@ -65,15 +39,7 @@ namespace Casimodo.Lib.Mojen
             if (path == null)
                 throw new MojenException($"Failed to build property binding path.");
 
-            return $"{GetBindingPrefixObject()}{path}";
-        }
-
-        public void ElemDataBindAttr(WebViewGenContext context)
-        {
-            if (context.View.UseMVVM)
-            {
-                GetOrCreateAttr("data-bind").Value = $"value:{GetBinding(context)}";
-            }
+            return $"{GetBindingRootPath()}{path}";
         }
 
         public virtual string GetStyleAttr(HtmlStyleProp[] props)
@@ -114,34 +80,5 @@ namespace Casimodo.Lib.Mojen
 
             return props.ToArray();
         }
-
-        public void OKendoTemplateBegin(string templateId)
-        {
-            XB($"<script id='{templateId}' type='text/x-kendo-template'>");
-        }
-
-        public void OKendoTemplateEnd()
-        {
-            XE("</script>");
-        }
-
-        protected string GetViewHtmlId(WebViewGenContext context)
-        {
-            if (!context.IsViewIdEnabled)
-                return "";
-
-            CheckViewId(context.View);
-
-            return string.Format(" id='{0}view-{1}'",
-                    (context.ViewRole != null ? context.ViewRole + "-" : ""),
-                    context.View.Id);
-        }
-
-        // TODO: REMOVE
-        //public void OValidationMessageElem(string propPath)
-        //{
-        //    // Validation error message.
-        //    O($"<span class='field-validation-valid' data-valmsg-for='{propPath}' data-valmsg-replace='true'></span>");
-        //}
     }
 }

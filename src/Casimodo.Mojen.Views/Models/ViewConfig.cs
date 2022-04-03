@@ -402,7 +402,7 @@ namespace Casimodo.Lib.Mojen
                     )
                     .ToArray();
 
-                if (lookupViews.Count() != 1)
+                if (lookupViews.Length != 1)
                 {
                     var err = $"for lookup-selector '{prop.FormedNavigationTo.TargetPath}' (Group: '{viewGroup ?? ""}', ID: '{viewId ?? ""}').";
 

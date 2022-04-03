@@ -342,6 +342,36 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
+        public void OTag(string tag, params object[] content)
+        {
+            Oo($"<{tag}");
+
+            bool hasContent = false;
+            foreach (var obj in content)
+            {
+                if (obj is string attr)
+                {
+                    o(" " + attr);
+                }
+                else if (obj is Action action)
+                {
+                    hasContent = true;
+                    oO(">");
+                    Push();
+                    action();
+                }
+            }
+            if (hasContent)
+            {
+                Pop();
+                O($"</{tag}>");
+            }
+            else
+            {
+                oO(" />");
+            }
+        }
+
         /// <summary>
         /// Begins a function or HTML/XML element.
         /// Used by HTML/XML and JavaScript/TypeScript generators.

@@ -213,7 +213,6 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Page;
-            //View.Kind.RoleName = ActionName.Index;
             View.Kind.RawControllerAction = ActionName.Index;
 
             View.CanCreate = true;
@@ -229,7 +228,6 @@ namespace Casimodo.Lib.Mojen
             View.IsPartial = true;
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.List;
-            //View.Kind.RoleName = "List";
             View.Kind.RawControllerAction = "List";
 
             View.CanCreate = true;
@@ -239,15 +237,6 @@ namespace Casimodo.Lib.Mojen
             // NOTE: Has no action name.
             return this;
         }
-
-        // KABU TODO: REMOVE: Never used.
-        //public MojViewBuilder Name(string name)
-        //{
-        //    View.Name = name;
-        //    OnViewNameChanged();
-
-        //    return this;
-        //}
 
         public MojViewBuilder CustomControllerAction(string name)
         {
@@ -262,14 +251,6 @@ namespace Casimodo.Lib.Mojen
             return this;
         }
 
-        //public MojViewBuilder ComponentRole(string name)
-        //{
-        //    View.Kind.RoleName = name;
-        //    OnNamingChanged();
-
-        //    return this;
-        //}
-
         public MojViewBuilder SingleLookupView(params MojProp[] parameters)
         {
             View.Kind.Mode = MojViewMode.Read;
@@ -280,10 +261,8 @@ namespace Casimodo.Lib.Mojen
             //   content would be the list view.
             View.Kind.Roles = MojViewRole.Lookup;
 
-            //View.Kind.ActionName = "Lookup" + View.TypeConfig.Name;
             View.Kind.RawControllerAction = ActionName.Lookup;
-            //View.Kind.RoleName = MojViewRole.Lookup.ToString();
-            View.Group = null; // "Lookup";
+            View.Group = null;
 
             View.CanCreate = false;
             View.CanModify = false;
@@ -384,7 +363,6 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Read;
             View.Kind.Roles = MojViewRole.Details;
-            //View.Kind.RoleName = ActionName.Details;
             View.Kind.RawControllerAction = ActionName.Details;
 
             View.CanCreate = false;
@@ -401,7 +379,6 @@ namespace Casimodo.Lib.Mojen
         {
             View.Kind.Mode = MojViewMode.Create | MojViewMode.Update;
             View.Kind.Roles = MojViewRole.Editor;
-            //View.Kind.RoleName = "Editor";
             View.Kind.RawControllerAction = ActionName.Editor;
 
             View.CanCreate = false;
@@ -422,8 +399,6 @@ namespace Casimodo.Lib.Mojen
             View.CustomPartName = part;
             View.Kind.Mode = MojViewMode.None;
             View.Kind.Roles = role;
-            //View.CustomRoleName = role;
-            //View.Kind.RoleName = null;
             View.Kind.RawControllerAction = role.ToString();
 
             if (parameters != null)
@@ -460,20 +435,6 @@ namespace Casimodo.Lib.Mojen
 
             return this;
         }
-
-        // KABU TODO: REMOVE: 
-        //public MojViewBuilder CustomActionToggle(string name, string display, bool value, bool visible = true)
-        //{
-        //    View.CustomActions.Add(new MojViewActionConfig
-        //    {
-        //        Name = name,
-        //        DisplayName = display,
-        //        Kind = MojViewActionKind.Toggle,
-        //        DefaultValue = value,
-        //        IsVisible = visible
-        //    });
-        //    return this;
-        //}
 
         public MojViewBuilder Auth(bool value = true, bool cascade = true, bool? overwrite = null)
         {
@@ -565,8 +526,6 @@ namespace Casimodo.Lib.Mojen
 
             CheckIsAccessibleFromThis(prop);
 
-            //var pbuilder = CreateSimpleViewProp(personProp);
-            //pbuilder.ReadOnly();
             View.IsFilteredByLoggedInPerson = true;
             View.FilteredByLoogedInPersonProp = prop.Name;
 
@@ -802,13 +761,6 @@ namespace Casimodo.Lib.Mojen
                 throw new MojenException("The view must not be in a group if a custom action name was specified.");
 
             View.Group = name;
-
-            // KABU TODO: REMOVE
-            //if (!View.Kind.IsCustomActionName &&
-            //     View.Kind.Roles.HasFlag(MojViewRole.Lookup))
-            //{
-            //    View.Kind.ActionName = (View.Group ?? "") + "Lookup" + View.TypeConfig.Name;
-            //}
 
             OnNamingChanged();
 
@@ -1122,18 +1074,6 @@ namespace Casimodo.Lib.Mojen
 
             if (View.TypeConfig.IsForeign(prop))
             {
-
-                // Get and clone root property of navigation path, which is the native property of the current MojType.
-
-                // NOTE: This will create multiple clones of the same navigation property
-                //   if the navigation property is used to access different foreign properties.
-                // NOTE: Thus, elsewhere: group by property name never by property instance.
-                //var nativeProp = prop.FormedNavigationFrom.Root.SourceProp.Clone();
-
-                // KABU TODO: Why do I set FormedNavigationTo on the type's property and not only on the view-property?
-                //nativeProp.FormedNavigationTo = prop.FormedNavigationFrom;
-                //prop = nativeProp;
-
                 effectiveProp = prop.FormedNavigationFrom.Root.SourceProp;
             }
 
