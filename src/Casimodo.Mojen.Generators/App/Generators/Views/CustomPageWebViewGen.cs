@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Lib.Mojen
 {
     public partial class CustomPageWebViewGen : WebViewGenerator
     {

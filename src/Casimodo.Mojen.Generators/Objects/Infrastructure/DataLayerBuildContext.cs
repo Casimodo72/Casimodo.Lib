@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Lib.Mojen
 {
     public class DataLayerBuildContext : MojenBuildContext
     {

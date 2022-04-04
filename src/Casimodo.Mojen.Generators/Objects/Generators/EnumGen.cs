@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {

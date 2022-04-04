@@ -68,7 +68,7 @@
             return false;
         }
 
-        public override void OPropLabel(WebViewGenContext context)
+        public override void OPropLabelCore(WebViewGenContext context)
         {
             var vitem = context.PropInfo;
 

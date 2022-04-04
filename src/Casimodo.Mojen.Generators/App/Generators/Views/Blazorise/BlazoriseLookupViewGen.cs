@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Casimodo.Mojen.Blazorise;
+﻿namespace Casimodo.Mojen.Blazorise;
 
 public class BlazoriseLookupViewGen : BlazoriseViewGen
 {

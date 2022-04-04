@@ -1,47 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+#nullable enable
 
 namespace Casimodo.Lib.Mojen
 {
     public class ViewTemplateItem
     {
-        public ViewTemplateItem Prev;
-        public ViewTemplateItem Next;
-        public ViewTemplateItem Parent;
-        public ViewTemplateItem Child;
-        public string Directive;
-        public string Name;
-        public string TextValue;
-        public MojViewProp Prop;
+        public static readonly ViewTemplateItem None = new();
+
+        ViewTemplateItem()
+        {
+            Directive = "";
+            Parent = this;
+        }
+
+        public ViewTemplateItem(string directive, ViewTemplateItem parent)
+        {
+            Directive = directive ?? throw new ArgumentNullException(nameof(directive));
+            Parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        }
+
+        public string Directive { get; }
+
+        public ViewTemplateItem Parent { get; }
+        public ViewTemplateItem? Child;
+        public ViewTemplateItem? Prev;
+        public ViewTemplateItem? Next;
+
+        public string? Name;
+        public string? TextValue;
+        public MojViewProp? Prop;
         public MojViewMode HideModes = MojViewMode.None;
         public int Index = -1;
-        public MojColumnDefinition Style;
+        public MojColumnDefinition? Style;
         public bool IsRunStart;
         public bool IsRunEnd;
         public bool IsContainer;
         public bool IsContainerEnd;
-        public object GroupObj;
-        public object VisibilityCondition;
-        public string _tag;
+        public object? GroupObj;
+        public object? VisibilityCondition;
+        public string? _tag;
 
         public override string ToString()
         {
-            return $"{Directive ?? "(null)"} {Prop?.Name}";
+            return $"{Directive} {Prop?.Name}";
         }
 
         public void Remove()
         {
-            // TODO: IMPORTANT: Adjust runstart, etc.
+            // TODO: Adjust runstart, etc.
             if (Prev != null)
                 Prev.Next = Next;
 
             if (Next != null)
                 Next.Prev = Prev;
 
-            if (Parent != null && Parent.Child == this)
+            if (Parent != None && Parent.Child == this)
                 Parent.Child = Prev ?? Next;
         }
 
@@ -51,15 +67,16 @@ namespace Casimodo.Lib.Mojen
             while (cur != null)
             {
                 yield return cur;
+
                 cur = cur.Next;
             }
         }
 
-        public IEnumerable<List<ViewTemplateItem>> Groups() // Func<FormatTemplateItem, bool> predicate = null)
+        public IEnumerable<List<ViewTemplateItem>> Groups()
         {
             var cur = this;
-
             var group = new List<ViewTemplateItem>();
+
             while (cur != null)
             {
                 group.Add(cur);
@@ -67,7 +84,9 @@ namespace Casimodo.Lib.Mojen
                 if (cur.IsContainerEnd)
                 {
                     yield return group;
+
                     group.Clear();
+
                     if (cur.IsContainer)
                         group.Add(cur);
                 }
@@ -79,20 +98,19 @@ namespace Casimodo.Lib.Mojen
                 yield return group;
         }
 
-        public IEnumerable<List<ViewTemplateItem>> GetRuns(Func<ViewTemplateItem, bool> predicate = null)
+        public IEnumerable<List<ViewTemplateItem>> GetRuns(Func<ViewTemplateItem, bool>? predicate = null)
         {
             var cur = this;
-
             var runs = new List<ViewTemplateItem>();
+
             while (cur != null)
             {
-                //if (cur.IsContainer || cur.IsContainerEnd)
-                //    yield break;
-
                 runs.Add(cur);
+
                 if (cur.IsRunEnd)
                 {
                     yield return runs;
+
                     runs = new List<ViewTemplateItem>();
                 }
 
@@ -103,7 +121,7 @@ namespace Casimodo.Lib.Mojen
                 yield return runs;
         }
 
-        public IEnumerable<ViewTemplateItem> GetRunsOf(Func<ViewTemplateItem, bool> predicate = null)
+        public IEnumerable<ViewTemplateItem> GetRunsOf(Func<ViewTemplateItem, bool>? predicate = null)
         {
             var cur = this;
 
@@ -120,7 +138,7 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public IEnumerable<ViewTemplateItem> GetRunRangeBefore(Func<ViewTemplateItem, bool> predicate = null)
+        public IEnumerable<ViewTemplateItem> GetRunRangeBefore(Func<ViewTemplateItem, bool>? predicate = null)
         {
             var cur = this;
 

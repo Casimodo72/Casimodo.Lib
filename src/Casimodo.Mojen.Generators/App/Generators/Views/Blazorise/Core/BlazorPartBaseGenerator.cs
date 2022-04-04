@@ -84,89 +84,9 @@ namespace Casimodo.Mojen.Blazorise
             return pathOrName;
         }
 
-        public List<MojXAttribute> Attributes { get; } = new();
-
-        public void ElemAttr(string name, object value)
+        protected void OTODO(string text)
         {
-            Attributes.Add(XA(name, value));
-        }       
-
-#pragma warning disable IDE1006 // Naming Styles
-        public void oElemAttrs(string? target = null)
-
-        {
-            var result = GetElemAttrs(target);
-            if (result != null)
-            {
-                o(result);
-                o(" ");
-            }
-        }
-#pragma warning restore IDE1006 // Naming Styles
-
-        public string GetElemAttrs(string? target = null)
-        {
-            string result = "";
-            var attrs = GetElemAttrsByTarget(target);
-            if (attrs.Any())
-            {
-                result = " " + attrs
-                    .Select(x => $"{x.Name.LocalName}='{x.Value}'")
-                    .Join(" ");
-            }
-
-            ClearElemAttrs(target);
-
-            return result;
-        }
-
-        MojXAttribute[] GetElemAttrsByTarget(string? target)
-        {
-            return Attributes.Where(x => x.Target == target).ToArray();
-        }
-
-        public void ClearElemAttrs(string? target = null)
-        {
-            foreach (var attr in GetElemAttrsByTarget(target))
-                Attributes.Remove(attr);
-        }
-
-        public void ElemFlag(string name)
-        {
-            Attributes.Add(XA(name, name));
-        }
-
-        public void ElemClass(string classes, string? target = null)
-        {
-            if (string.IsNullOrWhiteSpace(classes))
-            {
-                return;
-            }
-
-            var attr = GetOrCreateAttr("Class", target);
-            attr.Value = string.IsNullOrEmpty(attr.Value) ? classes : attr.Value + " " + classes;
-        }
-
-        public void ElemStyle(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return;
-            }
-
-            var attr = GetOrCreateAttr("Style");
-            attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + ";" + value;
-        }
-
-        public MojXAttribute GetOrCreateAttr(string name, string? target = null)
-        {
-            if (Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) is not MojXAttribute attr)
-            {
-                attr = XA(name, "");
-                attr.Target = target;
-                Attributes.Add(attr);
-            }
-            return attr;
+            O($"// TODO: {text ?? ""}");
         }
     }
 }

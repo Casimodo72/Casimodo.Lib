@@ -1,8 +1,6 @@
 ﻿using Dapper;
-using System;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {

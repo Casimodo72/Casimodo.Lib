@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Casimodo.Lib.Mojen
@@ -181,14 +180,6 @@ namespace Casimodo.Lib.Mojen
         public void ElemAttr(string name, object value)
         {
             Attributes.Add(XA(name, value));
-        }
-
-        /// <summary>
-        /// For HTML boolean attributes like "readonly" which don't have an attribute value.
-        /// </summary>
-        public void ElemFlag(string name)
-        {
-            Attributes.Add(XA(name, name));
         }
 
         public void ElemClass(string classes, string target = null)

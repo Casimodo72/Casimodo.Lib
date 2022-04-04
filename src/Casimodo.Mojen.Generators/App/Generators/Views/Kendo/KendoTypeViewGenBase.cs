@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Lib.Mojen
 {
     public abstract class KendoTypeViewGenBase : KendoViewGenBase
     {
@@ -198,16 +194,13 @@ namespace Casimodo.Lib.Mojen
                         if (label.TextValue != null)
                         {
                             // Output label                            
-
-                            // TODO: REMOVE: OLabelContainerBegin(context);
-                            ORunLabelCore(context, label.TextValue);
-                            // TODO: REMOVE: OLabelContainerEnd(context);
+                            ORunLabel(context, label.TextValue);
 
                             label = null;
                         }
                         else if (cur.Prop != null)
                         {
-                            OPropLabelCore(context, cur);
+                            OPropLabel(context, cur);
                             label = null;
                         }
                     }
@@ -322,14 +315,11 @@ namespace Casimodo.Lib.Mojen
         {
             if (cur.Directive == "grid")
             {
-                //XB("<div class='container' style='width:100%'>");
                 XB("<div class='row'>");
             }
             else if (cur.Directive == "column")
             {
                 XB($"<div class='{GetColumnClasses(context, cur)}'{GetCssStyle(context, cur)}>");
-
-                //XB($"<div class='col-lg-{span} col-md-{span} col-sm-6 col-xs-12'>"); //  style='vertical-align:top'
             }
             else if (cur.Directive == "group-box")
             {
@@ -398,40 +388,32 @@ namespace Casimodo.Lib.Mojen
             return !IsRunSingleCustomView(context);
         }
 
-        public MojViewPropInfo CreateViewPropInfo(WebViewGenContext context, ViewTemplateItem item)
+        public virtual void ORunText(WebViewGenContext context, ViewTemplateItem cur)
         {
-            var prop = item.Prop;
-            var isInGroupBox = item.Parent != null && item.Parent.Directive == "group-box";
-
-            return prop.BuildViewPropInfo(
-                isGroupedByTarget: isInGroupBox,
-                selectable:
-                    context.IsEditableView &&
-                    prop.IsEditable &&
-                    prop.IsSelector);
+            O($"<span class='{RunTextClass}'>{cur.TextValue}</span>");
         }
 
-        public void ORunLabelCore(WebViewGenContext context, string text)
+        public void ORunLabel(WebViewGenContext context, string text)
         {
             ClearElemAttrs("label");
             context.PropInfo = null;
             OLabelContainerBegin(context);
-            ORunLabel(context, text);
+            ORunLabelCore(context, text);
             OLabelContainerEnd(context);
             ClearElemAttrs("label");
         }
 
-        public virtual void ORunLabel(WebViewGenContext context, string text)
+        public virtual void ORunLabelCore(WebViewGenContext context, string text)
         {
             ElemClass(LabelClass, target: "label");
 
             Oo($"<label{GetElemAttrs("label")}>{text}</label>");
         }
 
-        void OPropLabelCore(WebViewGenContext context, ViewTemplateItem cur)
+        void OPropLabel(WebViewGenContext context, ViewTemplateItem cur)
         {
             var vprop = cur.Prop;
-            bool inGroupBox = cur.Parent != null && cur.Parent.Directive == "group-box";
+            bool inGroupBox = cur.Parent.Directive == "group-box";
 
             ClearElemAttrs("label");
 
@@ -439,13 +421,26 @@ namespace Casimodo.Lib.Mojen
 
             context.PropInfo = CreateViewPropInfo(context, cur);
 
-            OPropLabel(context);
+            OPropLabelCore(context);
 
             context.PropInfo = null;
 
             ClearElemAttrs("label");
 
             OLabelContainerEnd(context);
+        }
+
+        public virtual void OPropLabelCore(WebViewGenContext context)
+        {
+            var vitem = context.PropInfo;
+
+            ElemClass(LabelClass, target: "label");
+
+            Oo($"<label for='{vitem.PropPath}'{GetElemAttrs("label")}>");
+
+            o(GetDisplayNameFor(context));
+
+            oO("</label>");
         }
 
         public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = context => { };
@@ -459,19 +454,6 @@ namespace Casimodo.Lib.Mojen
 
         public Action<WebViewGenContext> OBlockBegin { get; set; } = context => { };
         public Action<WebViewGenContext> OBlockEnd { get; set; } = context => { };
-
-        public virtual void OPropLabel(WebViewGenContext context)
-        {
-            var vitem = context.PropInfo;
-
-            ElemClass(LabelClass, target: "label");
-
-            Oo($"<label for='{vitem.PropPath}'{GetElemAttrs("label")}>");
-
-            o(GetDisplayNameFor(context));
-
-            oO("</label>");
-        }
 
         public string GetDisplayNameFor(WebViewGenContext context)
         {
@@ -488,23 +470,17 @@ namespace Casimodo.Lib.Mojen
             }
         }
 
-        public virtual void ORunText(WebViewGenContext context, ViewTemplateItem cur)
+        public MojViewPropInfo CreateViewPropInfo(WebViewGenContext context, ViewTemplateItem item)
         {
-            O($"<span class='{RunTextClass}'>{cur.TextValue}</span>");
+            var prop = item.Prop;
+            var isInGroupBox = item.Parent.Directive == "group-box";
 
-#if (false)
-            var run = cur.GetRunRangeBefore(x => x.Prop != null).ToArray();
-            if (run.Any())
-            {
-                Oo("#if (");
-                ONotNull(run.Select(x => x.Prop));
-                oO(") {{#{0}#}}# ", cur.TextValue);
-            }
-            else
-            {
-                oO(cur.TextValue);
-            }
-#endif
+            return prop.BuildViewPropInfo(
+                isGroupedByTarget: isInGroupBox,
+                selectable:
+                    context.IsEditableView &&
+                    prop.IsEditable &&
+                    prop.IsSelector);
         }
 
         public void ElemStyleDefaultWidth()

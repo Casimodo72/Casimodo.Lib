@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.IO;
 
 namespace Casimodo.Mojen.Blazorise;
 
@@ -31,30 +30,47 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
     public override void Define(WebViewGenContext context)
     {
         base.Define(context);
+
+        // TODO:
         //ReadOnlyGen.Define(context);
         //ReadOnlyGen.DataViewModelAccessor = null;
 
+        OBlockBegin = c =>
+        {
+            O("// BLOCK BEGIN");
+        };
+
+        OBlockEnd = c =>
+        {
+            O("// BLOCK END");
+        };
+
+        OPropRunBegin = c =>
+        {
+            XB("<Field>");
+        };
+
+        OPropRunEnd = c =>
+        {
+            XE("</Field>");
+        };
+
         OLabelContainerBegin = c =>
         {
-            //var style = c.Cur.GetGroupLabelStyle();
-            //XB($"<div class='{style ?? LabelContainerClass}'>");
         };
 
         OLabelContainerEnd = c =>
         {
-            // XE("</div>");
         };
 
         OPropContainerBegin = c =>
         {
-            XB($"<div class='{c.Cur.GetGroupPropStyle() ?? PropContainerClass}'>");
-            XB($"<div class='km-input-group-container'>");
+            XB("<FieldBody>");
         };
 
         OPropContainerEnd = c =>
         {
-            XE("</div>");
-            XE("</div>");
+            XE("</FieldBody>");
         };
     }
 
@@ -91,14 +107,15 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
             // Editor
             // TODO: Inline styles on Blazor components?
             if (vprop.Width != null)
-                ElemStyle($"width:{vprop.Width}px !important");
+                StyleAttr($"width:{vprop.Width}px !important");
             if (vprop.MaxWidth != null)
-                ElemStyle($"max-width:{vprop.MaxWidth}px !important");
+                StyleAttr($"max-width:{vprop.MaxWidth}px !important");
 
             OPropEditable(context);
         }
         else
         {
+            OTODO("Read-only props");
             // Read-only property.
             // TODO: IMPL
             //ReadOnlyGen.ElemClass("km-readonly-form-control");
@@ -116,18 +133,18 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 
     public void OPropEditableCore(WebViewGenContext context)
     {
-        var vinfo = context.PropInfo;
-        var vprop = vinfo.ViewProp;
-        var ppath = vinfo.PropPath;
-        var dprop = vinfo.TargetDisplayProp;
-        var vpropType = vinfo.TargetDisplayProp.Type;
+        var propInfo = context.PropInfo;
+        var vprop = propInfo.ViewProp;
+        var ppath = propInfo.PropPath;
+        var dprop = propInfo.TargetDisplayProp;
+        var vpropType = propInfo.TargetDisplayProp.Type;
 
         // MVC jQuery validation : see https://www.blinkingcaret.com/2016/03/23/manually-use-mvc-client-side-validation/
         bool validationBox = true;
 
-        ElemAttr("ElementId", ppath.Replace(".", "_"));
+        Attr("ElementId", GetElementId(propInfo));
 
-        ElemAttr("Name", ppath);
+        Attr("Name", ppath);
 
         // CustomElemStyle(context);
 
@@ -139,10 +156,10 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         //}
 
         if (vprop.IsAutocomplete == false)
-            ElemAttr("autocomplete", "false");
+            Attr("autocomplete", "false");
 
         // Enable MVC's unobtrusive jQuery validation.
-        ElemAttr("data-val", true);
+        Attr("data-val", true);
 
         if (vprop.CustomEditorViewName != null)
         {
@@ -215,7 +232,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         var ppath = context.PropInfo.PropPath;
 
         if (!dprop.IsSpellCheck)
-            ElemAttr("spellcheck", false);
+            Attr("spellcheck", false);
 
         if (dprop.Type.IsMultilineString)
         {
@@ -223,13 +240,13 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 
             if (dprop.RowCount != 0)
             {
-                ElemAttr("Rows", dprop.RowCount);
+                Attr("Rows", dprop.RowCount);
             }
             // TODO: ? if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
 
             // TODO: IMPORTANT: Check whether Required and LocallyRequired works.
 
-            oElemAttrs();
+            oAttrs();
             OHtmlRequiredttrs(context, dprop);
             oBindValue(context);
 
@@ -247,15 +264,15 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         {
             var inputType = GetTextInputType(dprop.Type.AnnotationDataType);
             if (inputType != null)
-                ElemAttr("Type", inputType);
+                Attr("Type", inputType);
             //else
             //    ElemAttr("type", "text");
 
-            ElemClass("k-textbox");
+            ClassAttr("k-textbox");
 
             Oo($@"<TextEdit");
             // TODO: IMPORTANT: Check whether Required and LocallyRequired works.
-            oElemAttrs();
+            oAttrs();
             OHtmlRequiredttrs(context, dprop);
             oBindValue(context);
 
@@ -279,11 +296,11 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         var dprop = context.PropInfo.TargetDisplayProp;
         var ppath = context.PropInfo.PropPath;
 
-        ElemAttr("TValue", vprop.Type.Name);
+        Attr("TValue", vprop.Type.Name);
 
         Oo($"<NumericEdit");
         oBindValue(context, ppath);
-        oElemAttrs();
+        oAttrs();
         oO("/>");
     }
 
@@ -294,7 +311,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 
         var time = vprop.DisplayDateTime ?? dprop.Type.DateTimeInfo;
 
-        ElemAttr("data-display-name", vprop.DisplayLabel);
+        Attr("data-display-name", vprop.DisplayLabel);
 
         //string role;
         //if (time.IsDateAndTime)
@@ -305,7 +322,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         //    role = "timepicker";
         //ElemAttr("data-role", role);
 
-        ElemAttr("TValue", vprop.Type.Name);
+        Attr("TValue", vprop.Type.Name);
 
         if (time.IsDateAndTime)
         {
@@ -322,7 +339,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
     {
         Oo($"<{component}");
         oBindValue(context, context.PropInfo.PropPath);
-        oElemAttrs();
+        oAttrs();
         oO("/>");
     }
 
@@ -343,7 +360,14 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 
     public bool OPropSelector(WebViewGenContext context)
     {
-        return context.PropInfo.ViewProp.IsSelector;
+        if (!context.PropInfo.ViewProp.IsSelector && !context.PropInfo.ViewProp.Lookup.Is)
+        {
+            return false;
+        }
+
+        OTODO("// Selectors + lookups");
+
+        return true;
         //return
         //    OPropTagsSelector(context) ||
         //    OPropSnippetsEditor(context) ||

@@ -1,8 +1,5 @@
 ﻿using Casimodo.Lib.Data;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Casimodo.Lib.Mojen
 {
@@ -199,7 +196,7 @@ namespace Casimodo.Lib.Mojen
             return @class;
         }
 
-        public override void OPropLabel(WebViewGenContext context)
+        public override void OPropLabelCore(WebViewGenContext context)
         {
             var info = context.PropInfo;
 
@@ -211,17 +208,17 @@ namespace Casimodo.Lib.Mojen
                     return;
 
                 // ElemClass("km-readonly-prop-label", target: "label");
-                base.OPropLabel(context);
+                base.OPropLabelCore(context);
             }
             else
             {
                 // Read-only property label.
                 // ReadOnlyGen.ElemClass("km-readonly-prop-label", target: "label");
-                ReadOnlyGen.OPropLabel(context);
+                ReadOnlyGen.OPropLabelCore(context);
             }
         }
 
-        public override void ORunLabel(WebViewGenContext context, string text)
+        public override void ORunLabelCore(WebViewGenContext context, string text)
         {
             if (context.IsRunEditable)
             {
@@ -230,7 +227,7 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 // Read-only run label.
-                ReadOnlyGen.ORunLabel(context, text);
+                ReadOnlyGen.ORunLabelCore(context, text);
             }
         }
 

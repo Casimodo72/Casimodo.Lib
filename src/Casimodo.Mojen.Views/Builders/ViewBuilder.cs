@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
 
         public static Style GetGroupStyle(this ViewTemplateItem item)
         {
-            return item.Parent?.Style as Style;
+            return item.Parent.Style as Style;
         }
     }
 

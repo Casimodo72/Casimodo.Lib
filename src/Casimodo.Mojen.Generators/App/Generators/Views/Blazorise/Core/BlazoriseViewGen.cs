@@ -1,11 +1,11 @@
 ﻿using Casimodo.Lib;
-using System.IO;
 
+#nullable enable
 namespace Casimodo.Mojen.Blazorise
 {
     public abstract class BlazoriseViewGen : BlazorPartBaseGenerator
     {
-        public string DataViewModelAccessor { get; set; }
+        public string? DataViewModelAccessor { get; set; }
 
         string GetBindingRootPath()
         {
@@ -42,6 +42,83 @@ namespace Casimodo.Mojen.Blazorise
             return $"{GetBindingRootPath()}{path}";
         }
 
+        public string GetElementId(MojViewPropInfo iprop)
+        {
+            return iprop.PropPath.Replace(".", "_");
+        }
+
+        public List<MojXAttribute> Attributes { get; } = new();
+
+        public void Attr(string name, object value)
+        {
+            Attributes.Add(XA(name, value));
+        }
+
+        public string GetAttrs(string? target = null)
+        {
+            string result = "";
+            var attrs = GetAttrsByTarget(target);
+            if (attrs.Any())
+            {
+                result = " " + attrs
+                    .Select(x => $"{x.Name.LocalName}='{x.Value}'")
+                    .Join(" ");
+            }
+
+            ClearAttrs(target);
+
+            return result;
+        }
+
+        MojXAttribute[] GetAttrsByTarget(string? target)
+        {
+            return Attributes.Where(x => x.Target == target).ToArray();
+        }
+
+        public void ClearAttrs(string? target = null)
+        {
+            foreach (var attr in GetAttrsByTarget(target))
+                Attributes.Remove(attr);
+        }
+
+        public void FlagAttr(string name)
+        {
+            Attributes.Add(XA(name, name));
+        }
+
+        public void ClassAttr(string classes, string? target = null)
+        {
+            if (string.IsNullOrWhiteSpace(classes))
+            {
+                return;
+            }
+
+            var attr = GetOrCreateAttr("Class", target);
+            attr.Value = string.IsNullOrEmpty(attr.Value) ? classes : attr.Value + " " + classes;
+        }
+
+        public void StyleAttr(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            var attr = GetOrCreateAttr("Style");
+            attr.Value = string.IsNullOrEmpty(attr.Value) ? value : attr.Value + ";" + value;
+        }
+
+        public MojXAttribute GetOrCreateAttr(string name, string? target = null)
+        {
+            if (Attributes.FirstOrDefault(x => x.Name == name && x.Target == target) is not MojXAttribute attr)
+            {
+                attr = XA(name, "");
+                attr.Target = target;
+                Attributes.Add(attr);
+            }
+            return attr;
+        }
+
         public virtual string GetStyleAttr(HtmlStyleProp[] props)
         {
             if (props == null || props.Length == 0)
@@ -49,6 +126,19 @@ namespace Casimodo.Mojen.Blazorise
 
             return $" style='{props.Select(x => $"{x.Name}:{x.Value}").Join(";")}'";
         }
+
+#pragma warning disable IDE1006 // Naming Styles
+        public void oAttrs(string? target = null)
+
+        {
+            var result = GetAttrs(target);
+            if (result != null)
+            {
+                o(result);
+                o(" ");
+            }
+        }
+#pragma warning restore IDE1006 // Naming Styles
 
         public HtmlStyleProp StyleProp(string name, string value)
         {

@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Lib.Mojen
 {
     /// <summary>
     /// If a parent object is added then also update its nested-referenced objects.

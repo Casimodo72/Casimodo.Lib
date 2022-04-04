@@ -832,9 +832,9 @@ namespace Casimodo.Lib.Mojen
                         break;
                     }
 
-                    for (int i = 0; i < bytesRead; i++)
+                    for (int i = 0, k = totalBytesRead; i < bytesRead; i++, k++)
                     {
-                        if (buffer[i] != data[totalBytesRead + i])
+                        if (buffer[i] != data[k])
                         {
                             differs = true;
                             break;
