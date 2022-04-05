@@ -1,7 +1,7 @@
 ﻿using Casimodo.Lib;
 
 #nullable enable
-namespace Casimodo.Mojen.Blazorise
+namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
 {
     public abstract class BlazoriseViewGen : BlazorPartBaseGenerator
     {

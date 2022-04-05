@@ -1,6 +1,6 @@
 ﻿using Casimodo.Lib;
 
-namespace Casimodo.Mojen.Blazorise;
+namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
 public abstract class BlazoriseTypeViewGen : BlazoriseViewGen
 {

@@ -1,7 +1,6 @@
 ﻿#nullable enable
-namespace Casimodo.Mojen.Blazorise
+namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
 {
-
     public static class BlazoriseHelper
     {
         public static MojViewBuilder BlazoriseFormEditor(this MojenApp app, string id, MojType type)

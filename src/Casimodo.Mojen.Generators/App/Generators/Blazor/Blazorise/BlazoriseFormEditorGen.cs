@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Casimodo.Mojen.Blazorise;
+namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
 public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 {
@@ -21,7 +21,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
                 ViewRole = "editor"
             };
 
-            PerformWrite(
+            Write(
                 context.View,
                 () => GenerateView(context));
         }

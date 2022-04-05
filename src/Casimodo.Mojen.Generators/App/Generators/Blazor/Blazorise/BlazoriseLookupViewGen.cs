@@ -1,4 +1,4 @@
-﻿namespace Casimodo.Mojen.Blazorise;
+﻿namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
 public class BlazoriseLookupViewGen : BlazoriseViewGen
 {
@@ -14,7 +14,7 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
                 View = view
             };
 
-            PerformWrite(context.View, () => GenerateView(context));
+            Write(context.View, () => GenerateView(context));
         }
     }
    
