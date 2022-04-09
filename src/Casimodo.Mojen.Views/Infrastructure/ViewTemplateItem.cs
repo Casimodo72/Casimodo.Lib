@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿#nullable enable
 
-#nullable enable
-
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class ViewTemplateItem
     {

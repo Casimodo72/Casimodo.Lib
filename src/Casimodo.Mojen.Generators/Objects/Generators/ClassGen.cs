@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class ClassGen : DataLayerGenerator
     {

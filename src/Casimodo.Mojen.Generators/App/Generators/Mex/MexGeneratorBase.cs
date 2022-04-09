@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public abstract class MexGeneratorBase<TThis> : MojenGeneratorBase
         where TThis : MexGeneratorBase<TThis>

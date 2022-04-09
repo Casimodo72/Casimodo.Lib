@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     [CollectionDataContract(Namespace = MojContract.Ns)]
     //[Serializable]

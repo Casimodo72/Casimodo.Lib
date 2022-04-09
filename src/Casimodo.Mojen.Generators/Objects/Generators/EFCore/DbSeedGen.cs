@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public abstract class DbSeedGenBase : DataLayerGenerator
     {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     public sealed class MojInterfaceBuilder : MojTypeBuilder<MojInterfaceBuilder, MojInterfacePropBuilder>
     {

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     /// <summary>
     /// Reads entity data from XML and writes that data to a DB.

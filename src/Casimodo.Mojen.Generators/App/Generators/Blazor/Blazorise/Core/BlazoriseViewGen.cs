@@ -1,5 +1,4 @@
-﻿using Casimodo.Lib;
-using Casimodo.Mojen.App.Generators.Blazor.Core;
+﻿using Casimodo.Mojen.App.Generators.Blazor.Core;
 
 #nullable enable
 namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise

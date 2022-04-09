@@ -1,4 +1,4 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     // KABU TODO: RENAME to ValidateUnique
     public class DbRepoCoreOnSavingCheckUniqueGen : DbRepoCoreGenBase

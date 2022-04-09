@@ -1,4 +1,4 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     // Routing to controller actions in ASP.NET Core:
     //   https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/routing?view=aspnetcore-2.1

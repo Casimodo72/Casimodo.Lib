@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     //[DataContract(Namespace = ContractConfig.Ns)]
     [Serializable]

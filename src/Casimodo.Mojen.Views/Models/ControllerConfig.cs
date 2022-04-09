@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public static class MojenWebAppExtensions
     {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     public interface IMojTypeBuilder
     {

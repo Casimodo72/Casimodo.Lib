@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
-using System.Collections.Generic;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     [DataContract(Namespace = MojContract.Ns)]
     public class MojUsingGeneratorConfig

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     // TODO: Currently we just return the display names.
     public class DataViewModelLocalizerGen : ClassGen

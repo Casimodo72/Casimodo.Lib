@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     // TODO: Generate lower-case class methods.
 

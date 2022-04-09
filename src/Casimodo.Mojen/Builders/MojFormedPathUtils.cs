@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     public static class MojFormedPathUtils
     {

@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 using Casimodo.Lib.Data;
-using System;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class MexException : Exception
     {

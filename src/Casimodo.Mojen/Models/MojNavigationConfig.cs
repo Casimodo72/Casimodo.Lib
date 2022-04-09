@@ -1,4 +1,4 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     // KABU TODO: REMOVE? Do we really still need this one?
     //[DataContract(Namespace = MojContract.Ns)]

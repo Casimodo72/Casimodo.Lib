@@ -1,7 +1,6 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     // TODO: Use dedicated class for defaults.
     public class MojValueSetProp : MojBase

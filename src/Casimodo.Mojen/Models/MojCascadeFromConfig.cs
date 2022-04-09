@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     /// <summary>
     /// NOTE: Not intended to be serialized due to included MojFormedType.

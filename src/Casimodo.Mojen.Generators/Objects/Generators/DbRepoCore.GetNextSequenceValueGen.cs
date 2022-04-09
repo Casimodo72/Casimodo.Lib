@@ -1,4 +1,4 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     // KABU TODO: EF Core: Use native support for sequences.
     //    See: https://docs.microsoft.com/en-us/ef/core/modeling/relational/sequences

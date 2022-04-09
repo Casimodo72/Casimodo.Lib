@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     /// <summary>
     /// Generates ASP.NET Web API OData controllers.

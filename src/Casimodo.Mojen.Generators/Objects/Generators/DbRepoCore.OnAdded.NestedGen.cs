@@ -1,6 +1,6 @@
 ﻿using Casimodo.Lib.Data;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     /// <summary>
     /// If a parent object is added then also update its nested-referenced objects.

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     [Flags]
     public enum MojViewRole

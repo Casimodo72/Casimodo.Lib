@@ -1,10 +1,7 @@
 ﻿using Casimodo.Lib.Data;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public static class MojClassBuilderHelper
     {

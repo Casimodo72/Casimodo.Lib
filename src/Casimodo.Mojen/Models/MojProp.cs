@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 using System.Reflection;
 using System.Collections;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class MapFromModelAttribute : Attribute
     {

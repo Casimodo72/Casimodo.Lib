@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 
-namespace Casimodo.Lib.Mojen.Meta
+namespace Casimodo.Mojen.Meta
 {
     public class MojenAppMetadataConfig : MojBase
     {
@@ -103,7 +100,7 @@ namespace Casimodo.Lib.Mojen.Meta
         {
             PerformWrite(ContainerOutputFilePath, () =>
             {
-                OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Mojen", "System.Collections.Generic");
+                OUsing("System", "Casimodo.Lib", "Casimodo.Mojen", "System.Collections.Generic");
 
                 ONamespace(Config.Namespace);
 
@@ -165,7 +162,7 @@ namespace Casimodo.Lib.Mojen.Meta
             PerformWrite(Path.Combine(Config.MetadataOutputDirPath, typeName + ".generated.cs"), () =>
             {
                 ONamespace(Config.Namespace);
-                OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Mojen");
+                OUsing("System", "Casimodo.Lib", "Casimodo.Mojen");
 
                 var staticFormedType = typeName;
                 var formedTypeName = "Formed" + typeName;
@@ -306,7 +303,7 @@ namespace Casimodo.Lib.Mojen.Meta
             PerformWrite(Path.Combine(Config.MetadataOutputDirPath, item.DbContextName + ".generated.cs"), () =>
             {
                 ONamespace(Config.Namespace);
-                OUsing("System", "System.Collections.Generic", "Casimodo.Lib", "Casimodo.Lib.Mojen");
+                OUsing("System", "System.Collections.Generic", "Casimodo.Lib", "Casimodo.Mojen");
 
                 O($"public static class {item.MetaName ?? item.DbContextName}");
                 Begin();
@@ -350,7 +347,7 @@ namespace Casimodo.Lib.Mojen.Meta
             PerformWrite(filePath, () =>
             {
                 ONamespace(Config.Namespace);
-                OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Mojen");
+                OUsing("System", "Casimodo.Lib", "Casimodo.Mojen");
 
                 O("public static class {0}", container.MetaContainerName);
                 Begin();

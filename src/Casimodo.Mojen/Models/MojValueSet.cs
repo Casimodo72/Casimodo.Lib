@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class MojValueSet : MojBase
     {

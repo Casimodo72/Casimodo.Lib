@@ -1,5 +1,4 @@
-﻿using Casimodo.Lib;
-using Casimodo.Mojen.App.Generators.Blazor.Configs;
+﻿using Casimodo.Mojen.App.Generators.Blazor.Configs;
 using System.IO;
 
 #nullable enable

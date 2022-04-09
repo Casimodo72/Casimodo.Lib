@@ -1,9 +1,7 @@
 ﻿using Casimodo.Lib.Data;
-using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     [DataContract(Namespace = MojContract.Ns)]
     public class MojAnyKeyItemConfig

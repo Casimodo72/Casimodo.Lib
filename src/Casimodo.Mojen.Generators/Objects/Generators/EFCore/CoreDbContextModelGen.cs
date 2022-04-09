@@ -1,7 +1,7 @@
 ﻿using Casimodo.Lib.Data;
 using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     // EF Core data annotations:
     //   See https://www.learnentityframeworkcore.com/configuration/data-annotation-attributes

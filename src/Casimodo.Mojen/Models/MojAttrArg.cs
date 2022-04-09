@@ -1,8 +1,7 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public static class MojAttrExtensions
     {

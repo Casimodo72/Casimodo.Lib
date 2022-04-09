@@ -1,4 +1,4 @@
-﻿namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     public sealed class MojEnumBuilder : MojTypeBuilder<MojEnumBuilder, MojEnumPropBuilder>
     {

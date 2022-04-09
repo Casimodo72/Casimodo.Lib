@@ -1,9 +1,6 @@
-﻿using Casimodo.Lib.Mojen.Meta;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Casimodo.Mojen.Meta;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class MojUsedByEventArgs : EventArgs
     {

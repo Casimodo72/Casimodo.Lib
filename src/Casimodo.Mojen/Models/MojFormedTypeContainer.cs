@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-
-namespace Casimodo.Lib.Mojen
+﻿namespace Casimodo.Mojen
 {
     public interface IFormedTypePropAccessor
     {

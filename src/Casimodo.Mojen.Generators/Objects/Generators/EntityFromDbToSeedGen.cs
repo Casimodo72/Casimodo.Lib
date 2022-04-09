@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     /// <summary>
     /// Reads DB data of an entity and transforms it to a Mojen seed definition.

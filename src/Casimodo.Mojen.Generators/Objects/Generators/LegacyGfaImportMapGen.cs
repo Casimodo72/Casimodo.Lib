@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class LegacyGfaImportMapGen : DataLayerGenerator
     {

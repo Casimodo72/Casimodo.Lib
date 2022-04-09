@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Casimodo.Lib.Data;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class MojColumnDefinition
     {
@@ -275,7 +272,7 @@ namespace Casimodo.Lib.Mojen
             View.ItemSelection.IsEnabled = true;
             View.Lookup = new MojLookupViewConfig
             {
-                Multiplicity = Data.MojMultiplicity.OneOrZero,
+                Multiplicity = MojMultiplicity.OneOrZero,
                 Parameters = new List<MojProp>(parameters)
             };
             // Currently all lookup views are defined as dialogs.

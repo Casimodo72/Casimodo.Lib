@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public class EntityGen : ClassGen
     {

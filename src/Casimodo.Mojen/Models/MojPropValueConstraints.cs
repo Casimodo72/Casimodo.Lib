@@ -1,8 +1,7 @@
 ﻿using Casimodo.Lib.Data;
-using System;
 using System.Runtime.Serialization;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public interface IMojCloneableConfig
     {

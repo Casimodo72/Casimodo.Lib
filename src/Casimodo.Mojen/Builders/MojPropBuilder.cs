@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     // TODO: Think about: [StringLength(1)]
     public interface IMojPropBuilder

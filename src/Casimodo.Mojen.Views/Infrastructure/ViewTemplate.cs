@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 #nullable enable
 #pragma warning disable IDE1006 // Naming Styles
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     // See http://wiki.selfhtml.org/wiki/HTML/Textstrukturierung
     public class ViewTemplate

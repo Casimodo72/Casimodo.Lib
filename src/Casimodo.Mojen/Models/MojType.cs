@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Casimodo.Lib.Data;
 using PluralizeService.Core;
 
-namespace Casimodo.Lib.Mojen
+namespace Casimodo.Mojen
 {
     public enum MojTypeKind
     {
