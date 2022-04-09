@@ -141,15 +141,15 @@ namespace Casimodo.Lib.Mojen
                         // Apply DB sequences
                         foreach (var sequenceProp in targetType.GetProps().Where(x => x.DbAnno.Sequence.IsDbSequence))
                         {
-                            O("{0}.{1} = {2}.{3};", target, sequenceProp.Name, repository, GetDbSequenceFunction(sequenceProp));
+                            OFormat("{0}.{1} = {2}.{3};", target, sequenceProp.Name, repository, GetDbSequenceFunction(sequenceProp));
                         }
 
                         // Set foreign keys
                         if (toRefProp != null)
-                            O("{0}.{1} = {2}.{3};", item, toRefProp.Reference.ForeignKey.Name, target, targetType.Key.Name);
+                            OFormat("{0}.{1} = {2}.{3};", item, toRefProp.Reference.ForeignKey.Name, target, targetType.Key.Name);
 
                         if (fromRefProp != null)
-                            O("{0}.{1} = {2}.{3};", target, fromRefProp.Reference.ForeignKey.Name, item, type.Key.Name);
+                            OFormat("{0}.{1} = {2}.{3};", target, fromRefProp.Reference.ForeignKey.Name, item, type.Key.Name);
                     }
 
                     // Add to DB

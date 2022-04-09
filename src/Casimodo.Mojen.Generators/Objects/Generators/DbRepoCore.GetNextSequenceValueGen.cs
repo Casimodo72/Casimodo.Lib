@@ -97,7 +97,7 @@
                     if (nullables.Any())
                     {
                         foreach (var p in nullables)
-                            O("Guard.ArgNotNull({0}, nameof({0})); ", p.Prop.VName);
+                            OFormat("Guard.ArgNotNull({0}, nameof({0})); ", p.Prop.VName);
                         O();
                     }
 
@@ -181,7 +181,7 @@
 
             if (sourceProp.Type.CanBeNull)
             {
-                O("Guard.ArgNotNull({0}, nameof({0}));", sourceProp.VName);
+                OFormat("Guard.ArgNotNull({0}, nameof({0}));", sourceProp.VName);
                 O();
             }
 

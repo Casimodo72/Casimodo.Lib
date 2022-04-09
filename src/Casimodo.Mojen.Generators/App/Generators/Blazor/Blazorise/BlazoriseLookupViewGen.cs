@@ -1,4 +1,6 @@
-﻿namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
+﻿using Casimodo.Mojen.App.Generators.Blazor.Data;
+
+namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
 public class BlazoriseLookupViewGen : BlazoriseViewGen
 {
@@ -17,16 +19,19 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
             Write(context.View, () => GenerateView(context));
         }
     }
-   
+
     void GenerateView(WebViewGenContext context)
     {
         var view = context.View;
+        // TODO: Use a grid and display all props as columns.
         var vprop = view.Props.FirstOrDefault();
         if (vprop == null)
         {
             throw new MojenException($"No prop defined for lookup view of type '{view.TypeConfig.Name}'.");
         }
 
+        O("@if (items == null) return;");
+        O();
         OTag("Modal", () =>
         {
             OTag("ModalHeader", () =>
@@ -42,6 +47,8 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
                     O("@if (items != null)");
                     Begin();
 
+                    // TODO: Use a grid and display all props as columns.
+                    OTODO("Use a grid instead. This is just temporary stuff.");
                     OTag($"ListView",
                         $"TItem={view.TypeConfig.ClassName}",
                         $"Data=@items TextField=\"(item) => item.{vprop.Name}\"",
@@ -68,18 +75,36 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
         OBlazorCode(() =>
         {
             ONullableEnable();
-            O("[Inject] IDataService DataService { get; set; } = default!;");
 
+            var hasLookupDataService = App.HasGenerator<BlazorLookupDataService>();
+
+            if (hasLookupDataService)
+            {
+                O();
+                O("[Inject] ILookupDataService LookupDataService { get; set; } = default!;");
+            }
+
+            O();
             O($"IReadOnlyList<{context.View.TypeConfig.ClassName}>? items;");
 
             O();
             O("Modal modalRef = default!;");
 
-            //O();
-            //O("protected override async Task OnInitializedAsync()");
-            //Begin();
-            //O($"items = await DataService.Get{context.View.TypeConfig.PluralName}();");
-            //End();
+            O();
+            O("protected override async Task OnInitializedAsync()");
+            Begin();
+
+            if (hasLookupDataService)
+            {
+                var lookupMethodName = BlazorLookupDataService.BuildLookupMethodName(view);
+                O($"items = (await LookupDataService.{lookupMethodName}()).ToList();");
+            }
+            else
+            {
+                OTODO("No lookup data service defined.");
+            }
+
+            End();
 
             O();
             O("void Confirm()");

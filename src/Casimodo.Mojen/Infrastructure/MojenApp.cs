@@ -118,7 +118,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             ExecuteStage("Prepare");
-            ExecuteStage(null);         
+            ExecuteStage(null);
 
             // Generate meta data (e.g. for transfer to a higher level builder layer).
             foreach (var meta in GetItems<MojenAppMetadataConfig>())
@@ -190,6 +190,8 @@ namespace Casimodo.Lib.Mojen
         public List<MojenBuildConfig> Configs { get; private set; }
 
         public List<MojenGenerator> Generators { get; set; }
+
+        public bool HasGenerator<T>() => Generators?.Any(x => x is T) == true;
 
         public List<MojenBuildContext> Contexts { get; private set; }
 

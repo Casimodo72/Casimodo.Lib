@@ -54,12 +54,7 @@ namespace Casimodo.Lib.Mojen
                     O();
                     O($"public static void Create{seq.Name}(DbMigration m)");
                     Begin();
-                    O("m.CreateSequence(\"{0}\", {1}, {2}, {3}, {4});",
-                        seq.Name,
-                        seq.Start,
-                        seq.Increment,
-                        seq.Min,
-                        seq.Max);
+                    O($"m.CreateSequence(\"{seq.Name}\", {seq.Start}, {seq.Increment}, {seq.Min}, {seq.Max});");
                     End();
                 }
 

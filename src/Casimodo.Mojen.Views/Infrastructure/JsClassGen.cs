@@ -117,9 +117,9 @@ namespace Casimodo.Lib.Mojen
             End(); // End of class
 
             if (isStatic)
-                O("{0}.{1} = new {1}();", ns, name);
+                OFormat("{0}.{1} = new {1}();", ns, name);
             else if (export)
-                O("{0}.{1} = {1};", ns, name);
+                OFormat("{0}.{1} = {1};", ns, name);
         }
 
         /*

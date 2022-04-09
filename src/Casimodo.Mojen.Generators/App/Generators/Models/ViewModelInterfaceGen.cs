@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Mojen
 
             // Interface declaration
 
-            O("public partial interface {0}{1}",
+            OFormat("public partial interface {0}{1}",
                 type.ClassName,
                 (type.EffectiveBaseClassName != null ? " : " + type.EffectiveBaseClassName : ""));
 

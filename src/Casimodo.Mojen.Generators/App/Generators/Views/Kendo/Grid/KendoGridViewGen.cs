@@ -727,7 +727,7 @@
                         filterCellTemplateBuild = new Action(() =>
                         {
                             ob("function (args)");
-                            O("kmodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
+                            OFormat("kmodo.gridReferenceFilterColTemplate(args, '{0}', '{1}', {2});",
                                 filterDataSourceTextField,
                                 filterDataSourceTextField,
                                 Moj.JS(nullable));
@@ -836,7 +836,7 @@
             // KABU TODO: Move logic into MojViewProp
             if (vprop.Width != null && !isEffectField)
             {
-                O("width: {0},", vprop.Width);
+                O($"width: {vprop.Width},");
             }
 
             // See http://www.telerik.com/forums/client-template-%28hyper-link%29-on-foreign-key-column

@@ -14,8 +14,7 @@ namespace Casimodo.Lib.Mojen
             {
                 OUsing("System", "Casimodo.Lib.Auth", "Casimodo.Lib.Web.Auth");
                 ONamespace("Ga.Web");
-                O("public partial class {0}WebComponentAuthConfig : WebComponentRegistry",
-                    App.Get<AppBuildConfig>().AppNamePrefix);
+                O($"public partial class {App.Get<AppBuildConfig>().AppNamePrefix}WebComponentAuthConfig : WebComponentRegistry");
                 Begin();
 
                 O("public override void Configure()");
@@ -40,17 +39,10 @@ namespace Casimodo.Lib.Mojen
 
                 foreach (var item in components)
                 {
-                    Oo("Add(new UIComponentInfo {{ Part = {0}, " +
-                        "Group = {1}, Role = {2}, Actions = {3}, " +
-                        "Title = {4}, Url = {5}, " +
-                        "Id = {6} }})",
-                        Moj.CS(item.View.GetPartName()),
-                        Moj.CS(item.View.Group),
-                        Moj.CS(item.View.MainRoleName),
-                        Moj.CS(BuildActions(item.View)),
-                        Moj.CS(item.View.GetDefaultTitle()),
-                        Moj.CS(BuildUrl(item.View.Url)),
-                        Moj.CS(item.View.Id));
+                    Oo($"Add(new UIComponentInfo {{ Part = {Moj.CS(item.View.GetPartName())}, " +
+                        $"Group = {Moj.CS(item.View.Group)}, Role = {Moj.CS(item.View.MainRoleName)}, Actions = {Moj.CS(BuildActions(item.View))}, " +
+                        $"Title = {Moj.CS(item.View.GetDefaultTitle())}, Url = {Moj.CS(BuildUrl(item.View.Url))}, " +
+                        $"Id = {Moj.CS(item.View.Id)} }})");
 
                     if (item.View.AuthPermissions.Any())
                     {
@@ -58,10 +50,7 @@ namespace Casimodo.Lib.Mojen
                         Push();
                         foreach (var perm in item.View.AuthPermissions)
                         {
-                            O(".SetRole({0}, {1}, {2})",
-                                Moj.CS(perm.Role),
-                                Moj.CS(perm.Permit),
-                                Moj.CS(perm.Deny));
+                            O($".SetRole({Moj.CS(perm.Role)}, {Moj.CS(perm.Permit)}, {Moj.CS(perm.Deny)})");
                         }
                         O(";");
                         Pop();
@@ -74,14 +63,6 @@ namespace Casimodo.Lib.Mojen
                 End();
                 End();
                 End();
-
-                //O("/*");
-                //foreach (var item in components.Where(x => x.View.IsPage))
-                //{
-                //    O("Set(CommonUserRole.Manager, item: {0}, viewRole: \"Page\", permit: \"View\");",
-                //         MojenUtils.ToCsValue(item.View.TypeConfig.Name));
-                //}
-                //O("*/");
             });
         }
 

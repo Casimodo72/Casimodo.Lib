@@ -69,7 +69,7 @@ namespace Casimodo.Lib.Mojen
                     // Public static member
                     var name = valueSet.Get(config.NamePropName);
                     var val = valueSet.Get(config.ValuePropName);
-                    O("public static {0} = {1};", name.Value, Moj.JS(val.Value));
+                    O($"public static {name.Value} = {Moj.JS(val.Value)};");
                 }
             }
 

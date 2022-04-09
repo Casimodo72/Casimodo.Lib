@@ -125,7 +125,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Data type annotation.
                 if (prop.Type.AnnotationDataType != null)
-                    O("[DataType(DataType.{0})]", prop.Type.AnnotationDataType.Value.ToString());
+                    O($"[DataType(DataType.{prop.Type.AnnotationDataType.Value})]");
 
                 ORequiredAttribute(prop);
                 ODefaultValueAttribute(prop, "OnEdit", null);

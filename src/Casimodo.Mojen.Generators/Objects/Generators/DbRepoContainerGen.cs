@@ -27,7 +27,7 @@ namespace Casimodo.Lib.Mojen
         {
             OUsing("System", "Casimodo.Lib", "Casimodo.Lib.Data");
 
-            ONamespace(dataConfig.DataNamespace);            
+            ONamespace(dataConfig.DataNamespace);
 
             GenerateRepoContainerType(dataConfig, GetRepositoryName);
 
@@ -35,7 +35,7 @@ namespace Casimodo.Lib.Mojen
         }
 
         public void GenerateRepoContainerType(DataLayerConfig dataConfig, Func<MojType, string> repoNameGenerator)
-        {            
+        {
             string name = dataConfig.DbRepoContainerName;
 
             O($"public sealed partial class {name} : DbRepoContainer");
@@ -60,11 +60,11 @@ namespace Casimodo.Lib.Mojen
                 var field = "_" + FirstCharToLower(prop);
 
                 O();
-                O("public {0} {1}", @class, prop);
+                O($"public {@class} {prop}");
                 Begin();
-                O("get {{ return {0} ?? ({0} = new {1}(Db)); }}", field, @class);
+                OFormat("get {{ return {0} ?? ({0} = new {1}(Db)); }}", field, @class);
                 End();
-                O("{0} {1};", @class, field);
+                O($"{@class} {field};");
             }
 
             End();

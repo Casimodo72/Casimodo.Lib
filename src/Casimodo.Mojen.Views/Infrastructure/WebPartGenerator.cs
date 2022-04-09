@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Mojen
         {
             if (view.IsAuthEnabled)
             {
-                gen.O("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
+                gen.OFormat("[MvcActionAuth(Part = \"{0}\", Group = {1}, VRole = \"{2}\")]",
                     view.GetPartName(),
                     Moj.CS(view.Group),
                     view.MainRoleName);
@@ -100,7 +100,7 @@ namespace Casimodo.Lib.Mojen
             if (gen.WebConfig.OutputCache.IsEnabled)
             {
                 // This attribute is located in Casimodo.Lib.Web
-                gen.O("[CustomResponseCache(CacheProfileName = \"{0}\"{1})]",
+                gen.OFormat("[CustomResponseCache(CacheProfileName = \"{0}\"{1})]",
                     gen.WebConfig.OutputCache.CacheProfile,
                     gen.WebConfig.OutputCache.Revalidate ? ", Revalidate = true" : "");
             }
@@ -162,7 +162,7 @@ namespace Casimodo.Lib.Mojen
         protected void WriteViewBagMessage(MojViewConfig view)
         {
             if (!string.IsNullOrEmpty(view.Message))
-                O("ViewBag.Message = \"{0}\";", view.Message);
+                O($"ViewBag.Message = \"{view.Message}\";");
         }
 
         // KABU TODO: ELIMINATE
@@ -173,8 +173,7 @@ namespace Casimodo.Lib.Mojen
 
         public void OScriptReference(string path, bool async = false)
         {
-            O("<script src='{0}' type='text/javascript'{1}></script>",
-                path, (async ? " async" : ""));
+            O($"<script src='{path}' type='text/javascript'{(async ? " async" : "")}></script>");
         }
 
         public void OMvcScriptBegin()

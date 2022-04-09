@@ -117,12 +117,12 @@ namespace Casimodo.Lib.Mojen
             PushBlockIndent();
         }
 
-        public void End(string text = "", params object[] args)
+        public void End(string text = "")
         {
-            OEnd(text, args);
+            OEnd(text);
         }
 
-        void OEnd(string text = "", params object[] args)
+        void OEnd(string text = "")
         {
             var block = PopBlockIndent();
             if (string.IsNullOrWhiteSpace(text))
@@ -130,11 +130,11 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 Oo(block.EndToken);
-                oO(text, args);
+                oO(text);
             }
         }
 
-        public void Oeo(string text = "", params object[] args)
+        public void Oeo(string text = "")
         {
             var block = PopBlockIndent();
             if (string.IsNullOrWhiteSpace(text))
@@ -142,39 +142,46 @@ namespace Casimodo.Lib.Mojen
             else
             {
                 Oo(block.EndToken);
-                o(text, args);
+                o(text);
             }
         }
 
 #pragma warning disable IDE1006 // Naming Styles
-        public void o(string text, params object[] args)
+        public void o(string text)
 #pragma warning restore IDE1006 // Naming Styles
         {
-            Write(false, text, args);
+            Write(false, text, null);
         }
 
-        public void Oo(string text, params object[] args)
+        public void Oo(string text)
         {
-            Write(true, text, args);
+            Write(true, text, null);
         }
 
         void Write(bool indent, string text, params object[] args)
         {
-            if (args == null || args.Length == 0)
+            if (args?.Length is not > 0)
                 Write("".PadLeft(GetIndent(indent) * IndentWidth, ' ') + text);
             else
                 Write("".PadLeft(GetIndent(indent) * IndentWidth, ' ') + string.Format(text, args));
         }
 
 #pragma warning disable IDE1006 // Naming Styles
-        public void oO(string text, params object[] args)
+        public void oO(string text)
 #pragma warning restore IDE1006 // Naming Styles
         {
-            Write(false, text, args);
+            Write(false, text, null);
             Br();
         }
 
-        public void O(string text, params object[] args)
+        public void O(string text) // , params object[] args)
+        {
+            if (text == null) return;
+            Write(true, text, null);
+            Br();
+        }
+
+        public void OFormat(string text , params object[] args)
         {
             if (text == null) return;
             Write(true, text, args);

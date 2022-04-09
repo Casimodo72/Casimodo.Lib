@@ -40,14 +40,11 @@ namespace Casimodo.Lib.Mojen
                     if (controller.AuthPermissions.Count == 0)
                         continue;
 
-                    Oo("builder.GetOrAddPart(\"{0}\")", controller.TypeConfig.Name);
+                    Oo($"builder.GetOrAddPart(\"{controller.TypeConfig.Name}\")");
                     foreach (var perm in controller.AuthPermissions)
                     {
-                        o(".AddApiAction(\"{0}\")", perm.Permit);
-                        o(".AuthRole(\"{0}\", \"{1}\")",
-                            perm.Role,
-                            perm.Permit);
-
+                        o($".AddApiAction(\"{perm.Permit}\")");
+                        o($".AuthRole(\"{perm.Role}\", \"{perm.Permit}\")");
                     }
                     oO(";");
                 }

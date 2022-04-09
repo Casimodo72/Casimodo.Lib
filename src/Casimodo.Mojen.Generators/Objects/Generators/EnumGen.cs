@@ -29,7 +29,7 @@ namespace Casimodo.Lib.Mojen
 
             O($"[TypeIdentity(\"{enu.Id}\")]");
             O("[DataContract]");
-            O("public enum {0}", enu.ClassName);
+            O($"public enum {enu.ClassName}");
             Begin();
             MojProp member;
             var members = enu.GetLocalProps().ToList();
@@ -49,7 +49,7 @@ namespace Casimodo.Lib.Mojen
                 }
 
                 // Enum member
-                O("{0} = {1},", member.Name, member.EnumValue.Value);
+                O($"{member.Name} = {member.EnumValue.Value},");
             }
             End();
             End();

@@ -6,7 +6,7 @@
         public override void GenerateControllerContent(MojControllerConfig controller)
         {
             // EF DB context
-            O("{0} _db = new {0}();", App.Get<DataLayerConfig>().DbContextName);
+            OFormat("{0} _db = new {0}();", App.Get<DataLayerConfig>().DbContextName);
 
             foreach (var view in controller.Views)
             {
@@ -23,7 +23,7 @@
 
                     WriteViewBagMessage(view);
                     O();
-                    O("var models = _db.{0}{1}.Select(x => new {2} {{ State = x }});", entity.PluralName, LinqOrderBy(view), model.ClassName);
+                    O($"var models = _db.{entity.PluralName}{LinqOrderBy(view)}.Select(x => new {model.ClassName} {{ State = x }});");
                     O();
                     // Map entities to models.
                     O("return View(models);");
@@ -42,11 +42,11 @@
                     O("if (id == null)");
                     O("    return HttpNotFound();");
                     O();
-                    O("{0} entity = _db.{1}.Find(id);", entity.ClassName, entity.PluralName);
+                    O($"{entity.ClassName} entity = _db.{entity.PluralName}.Find(id);");
                     O("if (entity == null)");
                     O("    return HttpNotFound();");
                     // Map entity to model.
-                    O("var model = new {0} {{ State = entity }};", model.ClassName);
+                    O($"var model = new {model.ClassName} {{ State = entity }};");
                     O();
                     O("return View(model);");
                     End();
@@ -64,11 +64,11 @@
                     O("if (id == null)");
                     O("    return HttpNotFound();");
                     O();
-                    O("{0} entity = _db.{1}.Find(id);", entity.ClassName, entity.PluralName);
+                    O($"{entity.ClassName} entity = _db.{entity.PluralName}.Find(id);");
                     O("if (entity == null)");
                     O("    return HttpNotFound();");
                     // Map entity to model.
-                    O("var model = new {0} {{ State = entity }};", model.ClassName);
+                    O($"var model = new {model.ClassName} {{ State = entity }};");
                     O();
                     O("return View(model);");
                     End();
@@ -79,7 +79,7 @@
                     O("[HttpPost]");
                     // KBU TODO: Membership is raising errors after login with [ValidateAntiForgeryToken]
                     //O("[ValidateAntiForgeryToken]");
-                    O("public ActionResult Edit({0} model)", model.ClassName);
+                    O($"public ActionResult Edit({model.ClassName} model)");
                     Begin();
 
                     WriteViewBagMessage(view);
@@ -99,10 +99,10 @@
                 if (controller.HasViewWithRole(MojViewRole.Editor | MojViewRole.ForCreate))
                 {
                     O();
-                    O("public ActionResult Create()", model.ClassName);
+                    O("public ActionResult Create()");
                     Begin();
-                    O("var entity = new {0} { Id = Guid.NewGuid() };", entity.ClassName);
-                    O("var model = new {0} { State = entity };", model.ClassName);
+                    O($"var entity = new {entity.ClassName} {{ Id = Guid.NewGuid() }};");
+                    O($"var model = new {model.ClassName} {{ State = entity }};");
                     O();
                     O("return View(model);");
                     End();
@@ -110,7 +110,7 @@
                     O();
                     O("[HttpPost]");
                     O("[ValidateAntiForgeryToken]");
-                    O("public ActionResult Create({0} model)", model.ClassName);
+                    O($"public ActionResult Create({model.ClassName} model)");
                     Begin();
 
                     WriteViewBagMessage(view);
@@ -135,11 +135,11 @@
                     O("if (id == null)");
                     O("    return HttpNotFound();");
                     O();
-                    O("{0} entity = _db.{1}.Find(id);", entity.ClassName, entity.PluralName);
+                    O($"{entity.ClassName} entity = _db.{entity.PluralName}.Find(id);");
                     O("if (entity == null)");
                     O("    return HttpNotFound();");
                     // Map entity to model.
-                    O("var model = new {0} {{ State = entity }};", model.ClassName);
+                    O($"var model = new {model.ClassName} {{ State = entity }};");
                     O();
                     O("return View(model);");
                     End();
@@ -149,7 +149,7 @@
                     O("[ValidateAntiForgeryToken]");
                     O("public ActionResult DeleteConfirmed(Guid id)");
                     Begin();
-                    O("{0} entity = _db.{1}.Find(id);", entity.ClassName, entity.PluralName);
+                    O($"{entity.ClassName} entity = _db.{entity.PluralName}.Find(id);");
                     O("if (entity != null)");
                     Begin();
                     O("_db.{0}.Remove(entity);");

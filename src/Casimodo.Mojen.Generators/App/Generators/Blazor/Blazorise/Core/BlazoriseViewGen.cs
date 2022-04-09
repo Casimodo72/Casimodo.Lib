@@ -1,9 +1,10 @@
 ﻿using Casimodo.Lib;
+using Casimodo.Mojen.App.Generators.Blazor.Core;
 
 #nullable enable
 namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
 {
-    public abstract class BlazoriseViewGen : BlazorPartBaseGenerator
+    public abstract class BlazoriseViewGen : BlazorPartGenerator
     {
         public string? DataViewModelAccessor { get; set; }
 

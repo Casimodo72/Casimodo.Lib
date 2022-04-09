@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Mojen
             if (config.Description != null)
                 OSummary(config.Description);
 
-            O("public static partial class {0}", config.KeysContainerName);
+            O($"public static partial class {config.KeysContainerName}");
             Begin();
 
             if (Options.IsNamedValueEnabled)
@@ -184,7 +184,7 @@ namespace Casimodo.Lib.Mojen
             var dictionaryType = $"Dictionary<{fromType}, {toType}>";
 
             O();
-            O("public static {0} Get{1}By{2}({3} by)", toType, mapping.To, fromPropName, fromType);
+            OFormat("public static {0} Get{1}By{2}({3} by)", toType, mapping.To, fromPropName, fromType);
             Begin();
             O($"return {dictionary}[by];");
             End();
@@ -196,7 +196,7 @@ namespace Casimodo.Lib.Mojen
                 var fromVal = valueSet.Get(fromPropName);
                 var toVal = valueSet.Get(mapping.To);
 
-                O("[{0}] = {1},",
+                OFormat("[{0}] = {1},",
                     Moj.CS(fromVal.Value, parse: true),
                     Moj.CS(toVal.Value, parse: true));
             }

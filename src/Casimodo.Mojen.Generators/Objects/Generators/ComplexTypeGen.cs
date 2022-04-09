@@ -40,11 +40,11 @@ namespace Casimodo.Lib.Mojen
             // Constructor
             if (type.HasCreateOnInitProps)
             {
-                O("public {0}()", type.ClassName);
+                O($"public {type.ClassName}()");
                 Begin();
                 foreach (var prop in type.GetCreateOnInitProps())
                 {
-                    O("{0} = new {1};", prop.Name, Moj.GetDefaultConstructor(prop.Type));
+                    O($"{prop.Name} = new {Moj.GetDefaultConstructor(prop.Type)};");
                 }
                 End();
             }

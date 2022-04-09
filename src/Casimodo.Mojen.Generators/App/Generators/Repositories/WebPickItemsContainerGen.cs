@@ -72,7 +72,7 @@ namespace Casimodo.Lib.Mojen
 #pragma warning restore CS0162 // Unreachable code detected
                     if (pick != null)
                     {
-                        O("public static IEnumerable<object> Get{0}(bool nullable = false) {{ return PickItemsHelper.ToSelectItems(new {1}().Query(){2}{3}, \"{4}\", \"{5}\", nullable); }}",
+                        OFormat("public static IEnumerable<object> Get{0}(bool nullable = false) {{ return PickItemsHelper.ToSelectItems(new {1}().Query(){2}{3}, \"{4}\", \"{5}\", nullable); }}",
                             type.PluralName,
                             GetWebRepositoryName(type),
                             new Mex().BuildLinqWhereClause(type.Conditions),

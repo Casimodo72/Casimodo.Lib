@@ -25,7 +25,7 @@ namespace Casimodo.Lib.Mojen
 
         protected virtual void OControllerAttrs(MojControllerConfig controller)
         {
-            O("[RoutePrefix(\"{0}\")]", controller.PluralName);
+            O($"[RoutePrefix(\"{controller.PluralName}\")]");
             O("[Route(\"{action}/{id}\")]");
         }
 
@@ -42,7 +42,7 @@ namespace Casimodo.Lib.Mojen
             }
 
             OControllerAttrs(controller);
-            O("public partial class {0} : Casimodo.Lib.Web.MvcControllerBase", controller.ClassName);
+            O($"public partial class {controller.ClassName} : Casimodo.Lib.Web.MvcControllerBase");
             Begin();
 
             GenerateControllerContent(controller);

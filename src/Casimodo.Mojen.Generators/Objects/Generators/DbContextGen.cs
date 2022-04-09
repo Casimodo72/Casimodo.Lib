@@ -82,7 +82,7 @@ namespace Casimodo.Lib.Mojen
                     .Where(x => x.DataContextName == config.Name)
                     .Where(x => !x.WasGenerated))
                 {
-                    O("public DbSet<{0}> {1} {{ get; set; }}", entity.ClassName, entity.TableName);
+                    O($"public DbSet<{entity.ClassName}> {entity.TableName} {{ get; set; }}");
                 }
 
                 End();

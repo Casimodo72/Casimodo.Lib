@@ -31,19 +31,19 @@ namespace Casimodo.Lib.Mojen
 
             string name = context.DbRepositoryName;
 
-            O("public partial interface I{0} : IDbRepository", name);
+            O($"public partial interface I{name} : IDbRepository");
             O("{ }");
 
             O();
-            O("public partial class {0}<TEntity, TKey> : DbRepository<{1}, TEntity, TKey>, I{0}",
+            OFormat("public partial class {0}<TEntity, TKey> : DbRepository<{1}, TEntity, TKey>, I{0}",
                 name,
                 context.DbContextName);
 
             O("    where TEntity : class, IKeyAccessor<TKey>, new()");
             O("    where TKey : struct, IComparable<TKey>");
             Begin();
-            O("public {0}() {{ }}", name);
-            O("public {0}({1} db) : base(db) {{ }}", name, context.DbContextName);
+            O($"public {name}() {{ }}");
+            O($"public {name}({context.DbContextName} db) : base(db) {{ }}");
             End();
 
             End();

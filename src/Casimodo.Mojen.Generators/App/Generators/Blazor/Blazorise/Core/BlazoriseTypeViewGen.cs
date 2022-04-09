@@ -287,7 +287,7 @@ public abstract class BlazoriseTypeViewGen : BlazoriseViewGen
             XB($"<div class='{@class}'{predicate}>");
 
             // Card header
-            O("<div class='card-header'>{0}</div>", cur.TextValue);
+            O($"<div class='card-header'>{cur.TextValue}</div>");
 
             // Card body
             XB($"<div class='card-body'{GetCssStyle(context, cur)}>");

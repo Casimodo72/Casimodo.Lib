@@ -347,7 +347,7 @@
                 }
 
                 XB($"<div class='{@class}'{predicate}>");
-                O("<div class='panel-heading'>{0}</div>", cur.TextValue);
+                O($"<div class='panel-heading'>{cur.TextValue}</div>");
 
                 XB($"<div class='panel-body'{GetCssStyle(context, cur)}>");
             }

@@ -18,7 +18,7 @@ namespace Casimodo.Lib.Mojen
             O($"[TypeIdentity(\"{type.Id}\")]");
 
             if (type.IsKeyAccessible)
-                O("[KeyInfo(PropName = \"{0}\")]", type.Key.Name);
+                O($"[KeyInfo(PropName = \"{type.Key.Name}\")]");
 
             // Tenant key
             if (type.IsMultitenant)
@@ -27,7 +27,7 @@ namespace Casimodo.Lib.Mojen
                 if (tenantKey == null)
                     throw new MojenException("The type is multitenant but no tenant key property exists.");
 
-                O("[TenantKeyInfo(PropName = \"{0}\")]", tenantKey.Name);
+                O($"[TenantKeyInfo(PropName = \"{tenantKey.Name}\")]");
             }
 
             if (!type.NoDataContract)
@@ -37,11 +37,7 @@ namespace Casimodo.Lib.Mojen
             //if (type.Kind == MojTypeKind.Entity && !type.IsAbstract)
             //    O("[Table(\"{0}\")]", type.TableName);
 
-            O("public{0} partial class {1}{2}",
-                (type.IsAbstract ? " abstract" : (type.IsSealed ? " sealed" : "")),
-                type.ClassName,
-                (type.EffectiveBaseClassName != null ? " : " + type.EffectiveBaseClassName : ""));
-
+            O($"public{(type.IsAbstract ? " abstract" : (type.IsSealed ? " sealed" : ""))} partial class {type.ClassName}{(type.EffectiveBaseClassName != null ? " : " + type.EffectiveBaseClassName : "")}");
             // Interfaces
             var effectiveInterfaces = interfaces ?? type.Interfaces;
             if (effectiveInterfaces.Any())
@@ -73,16 +69,16 @@ namespace Casimodo.Lib.Mojen
             {
                 var key = type.Key;
                 O();
-                O("{0} IKeyAccessor<{0}>.GetKey()", key.Type.Name);
+                O($"{key.Type.Name} IKeyAccessor<{key.Type.Name}>.GetKey()");
                 Begin();
-                O("return {0};", key.Name);
+                O($"return {key.Name};");
                 End();
 
                 // IKeyAccessor
                 O();
-                O("object IKeyAccessor.GetKeyObject()", key.Type.Name);
+                O("object IKeyAccessor.GetKeyObject()");
                 Begin();
-                O("return {0};", key.Name);
+                O($"return {key.Name};");
                 End();
             }
         }
@@ -95,12 +91,12 @@ namespace Casimodo.Lib.Mojen
                 var guid = type.Guid;
 
                 O();
-                O("void IGuidGenerateable.GenerateGuid()", guid.Type.Name);
+                O("void IGuidGenerateable.GenerateGuid()");
                 Begin();
 
                 if (guid.Type.TypeNormalized == typeof(Guid))
                 {
-                    O("if ({0} == Guid.Empty) {0} = Guid.NewGuid();", guid.Name);
+                    O($"if ({guid.Name} == Guid.Empty) {guid.Name} = Guid.NewGuid();");
                 }
                 else
                     throw new MojenException(string.Format("Don't know how to generate GUID of type '{0}'.",
@@ -161,20 +157,15 @@ namespace Casimodo.Lib.Mojen
 
         public void GenerateProp(MojType type, MojProp prop, bool store = false)
         {
-            // KABU TODO: MAYBE: IMPL ObservableCollection properties.
+            var @new = prop.IsNew ? " new" : "";
+            var @virtual = prop.IsVirtual && !type.IsSealed ? " virtual" : "";
+            var @sealed = prop.IsSealed ? " sealed" : "";
+            var @override = prop.IsOverride ? " override" : "";
+            var propType = GetPropTypeName(prop, "Property");
 
-            Oo("public{0}{1}{2}{3} {4} {5}",
-                    (prop.IsNew ? " new" : ""),
-                    (prop.IsVirtual && !type.IsSealed ? " virtual" : ""),
-                    (prop.IsSealed ? " sealed" : ""),
-                    (prop.IsOverride ? " override" : ""),
-                    GetPropTypeName(prop, "Property"),
-                    prop.Name);
-
+            Oo($"public{@new}{@virtual}{@sealed}{@override} {propType} {prop.Name}");
 
             ValidateObservable(prop);
-
-            // KABU TODO: MAYBE: In case of entity view models for XAML applications: Convert collections to ObservableCollections.
 
             if (prop.IsNew)
                 OPropNew(prop);
@@ -192,9 +183,6 @@ namespace Casimodo.Lib.Mojen
                 OPropObservable(prop);
             else
                 OPropImplicit(prop);
-
-            // TODO: REVISIT: Property metadata not needed in C# 6.0.
-            //if (prop.IsMetaGenerated) O("public static readonly ObservablePropertyMetadata {0}Property = ObservablePropertyMetadata.Create(\"{0}\");", prop.Name);
         }
 
         public void OPropImplicit(MojProp prop)
@@ -204,30 +192,30 @@ namespace Casimodo.Lib.Mojen
 
         string ImplicitSetter(MojProp prop)
         {
-            return prop.HasSetter ? AccessorOfSetter(prop) + " set; " : "";
+            return prop.HasSetter ? GetAccessModifierOfSetter(prop) + " set; " : "";
         }
 
-        string AccessorOfSetter(MojProp prop, bool leading = false)
+        string GetAccessModifierOfSetter(MojProp prop, bool leading = false)
         {
-            string result = "";
+            string accessModifier = "";
             if (prop.SetterOptions.HasFlag(MojPropGetSetOptions.Protected))
-                result = "protected";
+                accessModifier = "protected";
             else if (prop.SetterOptions.HasFlag(MojPropGetSetOptions.ProtectedInternal))
-                result = "protected internal";
+                accessModifier = "protected internal";
             else if (prop.SetterOptions.HasFlag(MojPropGetSetOptions.Internal))
-                result = "internal";
+                accessModifier = "internal";
             else if (prop.SetterOptions.HasFlag(MojPropGetSetOptions.Private))
-                result = "private";
+                accessModifier = "private";
 
-            if (result != "")
+            if (accessModifier != "")
             {
                 if (leading)
-                    result += " ";
+                    accessModifier += " ";
                 else
-                    result = " " + result;
+                    accessModifier = " " + accessModifier;
             }
 
-            return result;
+            return accessModifier;
         }
 
         void OPropGet(string getter)
@@ -237,7 +225,7 @@ namespace Casimodo.Lib.Mojen
 
         void OPropSet(MojProp prop, string target, bool leading = true)
         {
-            O($"{AccessorOfSetter(prop, leading)}set {{ {target} = value; }}");
+            O($"{GetAccessModifierOfSetter(prop, leading)}set {{ {target} = value; }}");
         }
 
         public void OPropObservable(MojProp prop)
@@ -256,9 +244,9 @@ namespace Casimodo.Lib.Mojen
                     {
                         if (prop.Reference.IsToOne)
                         {
-                            O("if (value != null) {0} = value.{1}; else {0} = null;",
-                                prop.Reference.ForeignKey.Name,
-                                prop.Reference.ToTypeKey.Name);
+                            OFormat("if (value != null) {0} = value.{1}; else {0} = null;",
+                               prop.Reference.ForeignKey.Name,
+                               prop.Reference.ToTypeKey.Name);
                         }
                         else if (!prop.Reference.IsToMany)
                             throw new MojenException($"Invalid property reference multiplicity '{prop.Reference.Multiplicity}'.");
@@ -271,7 +259,7 @@ namespace Casimodo.Lib.Mojen
 
             // Member field
             if (!prop.IsOverride)
-                O("protected {0} {1};", GetPropTypeName(prop, "Property"), prop.FieldName);
+                O($"protected {GetPropTypeName(prop, "Property")} {prop.FieldName};");
         }
 
         public void OPropWithStore(MojProp prop)
@@ -302,7 +290,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     if (prop.IsNavigation)
                     {
-                        O("if (value != null) {0} = value.{1}; else {0} = null;",
+                        OFormat("if (value != null) {0} = value.{1}; else {0} = null;",
                             prop.Reference.ForeignKey.Name,
                             prop.Reference.ToTypeKey.Name);
                     }
@@ -370,7 +358,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     // Implement the OData properties accessor interface explicitely.
                     O();
-                    O("IDictionary<string, object> {0}.DynamicProperties {{ get {{ return {1}; }} }}",
+                    OFormat("IDictionary<string, object> {0}.DynamicProperties {{ get {{ return {1}; }} }}",
                         App.Get<DataLayerConfig>().IODataDynamicPropertiesAccessor,
                         propName);
                 }
@@ -382,9 +370,10 @@ namespace Casimodo.Lib.Mojen
                     O("[DataMember]");
                 }
 
-                O("public IDictionary<string, object> {0} {{ get {{ return _{1} ?? (_{1} = new Dictionary<string, object>()); }} set {{ _{1} = value; }} }}",
-                    propName, FirstCharToLower(propName));
-                O("IDictionary<string, object> _{0};", FirstCharToLower(propName));
+                OFormat("public IDictionary<string, object> {0} {{ get {{ return _{1} ?? (_{1} = new Dictionary<string, object>()); }} set {{ _{1} = value; }} }}",
+                   propName, FirstCharToLower(propName));
+
+                O($"IDictionary<string, object> _{FirstCharToLower(propName)};");
             }
         }
 
@@ -438,11 +427,11 @@ namespace Casimodo.Lib.Mojen
                 OSummary(description);
 
                 // Comparison method
-                O("public bool Equal{0}({1} item)", comparison.Name, type.ClassName);
+                O($"public bool Equal{comparison.Name}({type.ClassName} item)");
                 Begin();
 
                 // Compare properties
-                O("return {0};", props.JoinToString(" && ", prop => string.Format("object.Equals(this.{0}, item.{0})", prop)));
+                O($"return {props.JoinToString(" && ", prop => $"object.Equals(this.{prop}, item.{prop})")};");
 
                 End();
             }
@@ -487,8 +476,9 @@ namespace Casimodo.Lib.Mojen
         void OOnChanged(MojProp prop)
         {
             OOnChangedFireRelated(prop);
+
             if (IsPartialChangeMethodEnabled)
-                O("On{0}Changed();", prop.Name);
+                O($"On{prop.Name}Changed();");
         }
 
         void OOnChangedFireRelated(MojProp prop)
@@ -502,7 +492,7 @@ namespace Casimodo.Lib.Mojen
         void OOnChangedPartial(MojProp prop)
         {
             if (prop.HasSetter && IsPartialChangeMethodEnabled)
-                O("partial void On{0}Changed();", prop.Name);
+                O($"partial void On{prop.Name}Changed();");
         }
 
         void OPropObservableSet(string expression, Action content)
@@ -553,7 +543,7 @@ namespace Casimodo.Lib.Mojen
 
                 foreach (var prop in assignment.Properties)
                 {
-                    O("this.{0} = source.{0};", prop);
+                    O($"this.{prop} = source.{prop};");
                 }
                 End();
             }

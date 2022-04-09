@@ -70,10 +70,8 @@
             g.O($@"ForeignKeyToItem = ""{linkForeignKeyToItem.Name}"",");
 
             g.OB("ValidateItem = (owner, item) =>");
-            g.O("if (item.AssignableToTypeId != TypeIdentityHelper.GetTypeGuid(typeof({0})))",
-                ownerTypeName);
-            g.O("    ThrowBadRequest(\"The {0} is not assignable to this object.\");",
-                itemTypeName);
+            g.O($"if (item.AssignableToTypeId != TypeIdentityHelper.GetTypeGuid(typeof({ownerTypeName})))");
+            g.O($"    ThrowBadRequest(\"The {itemTypeName} is not assignable to this object.\");");
             g.End();
 
             g.End(");");
@@ -171,7 +169,7 @@
                         O($@"targetContainerQuery: '{TransportConfig.ODataBaseUrl}/Query()?$select=Id&$expand=ToTags($select=Id;$expand=Tag($select=Id,DisplayName))',");
 
                         O(@"targetContainerListField: 'ToTags.Tag',");
-                        O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
+                        O($@"saveBaseUrl: '{TransportConfig.ODataBaseUrl}',");
                         O(@"saveMethod: 'UpdateTags',");
                     });
 

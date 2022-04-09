@@ -200,7 +200,7 @@
                         var @default = prop.DefaultValues.ForScenario("OnEdit", null).FirstOrDefault();
                         if (@default.Attr != null)
                         {
-                            O("defaultValue: {0},", @default.Attr.Args.First().ToJsCodeString());
+                            O($"defaultValue: {@default.Attr.Args.First().ToJsCodeString()},");
                         }
                         else if (@default.CommonValue != null)
                         {
@@ -225,7 +225,7 @@
                     }
                     else if (prop.IsGuidKey && !prop.Type.CanBeNull)
                     {
-                        O("defaultValue: '{0}',", Guid.Empty);
+                        O($"defaultValue: '{Guid.Empty}',");
                     }
                     else if (prop.Type.IsNumber && prop.Type.IsNullableValueType)
                     {
@@ -234,7 +234,7 @@
                     }
                     else if (!prop.Type.CanBeNull && prop.IsEditable)
                     {
-                        O("defaultValue: {0},", Moj.JS(prop.Type.GetPrimitiveDefaultValue()));
+                        O($"defaultValue: {Moj.JS(prop.Type.GetPrimitiveDefaultValue())},");
                         // TODO: REMOVE: throw new MojenException($"Property '{prop.Name}' cannot be null and has no default value defined.");
                     }
                 }

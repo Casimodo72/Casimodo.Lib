@@ -107,7 +107,7 @@ namespace Casimodo.Lib.Mojen
             End();
 #endif
 
-            O("{0} _db = new {0}();", repoName);
+            OFormat("{0} _db = new {0}();", repoName);
 
             O();
             O("protected override void Initialize(HttpControllerContext controllerContext)");
@@ -235,11 +235,11 @@ namespace Casimodo.Lib.Mojen
 
             O("OnCreatingExtended(model);");
 
-            // KABU TODO: IMPORTANT: MOVE to repository core layer.
+            // KABU TODO: MOVE to repository core layer.
             // Apply DB sequences.
             foreach (var prop in Type.GetProps().Where(x => x.DbAnno.Sequence.IsDbSequence))
             {
-                O("model.{0} = _db.{1};", prop.Name, GetDbSequenceFunction(prop));
+                O($"model.{prop.Name} = _db.{GetDbSequenceFunction(prop)};");
             }
 
             O("var item = _db.Add(model);");
@@ -301,7 +301,7 @@ namespace Casimodo.Lib.Mojen
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
             O("[ODataRoute]");
-            O("public async Task<IEnumerable<{0}>> Get(ODataQueryOptions<{0}> query)", type.ClassName);
+            OFormat("public async Task<IEnumerable<{0}>> Get(ODataQueryOptions<{0}> query)", type.ClassName);
             Begin();
             O("return await _db.SelectAsync(query);");
             End();
@@ -311,10 +311,10 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             O("[HttpGet]");
-            O("[ODataRoute(\"({{{0}}})\"), EnableQuery]", keyName);
-            O("public SingleResult<{0}> Get([FromODataUri] {1} {2})", type.ClassName, key.Type.Name, keyName);
+            O($"[ODataRoute(\"({{{keyName}}})\"), EnableQuery]");
+            O($"public SingleResult<{type.ClassName}> Get([FromODataUri] {key.Type.Name} {keyName})");
             Begin();
-            O("return SingleResult.Create(_db.Get({0}).ToQueryable());", keyName);
+            O($"return SingleResult.Create(_db.Get({keyName}).ToQueryable());");
             End();
         }
 
@@ -438,13 +438,12 @@ namespace Casimodo.Lib.Mojen
 
                 O();
                 O("[AcceptVerbs(\"PATCH\", \"MERGE\")]");
-                O("[ODataRoute(\"({{{0}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]", key.VName);
-                O("public async Task<IHttpActionResult> Patch([FromODataUri] {0} {1}, Delta<{2}> delta, CancellationToken cancellationToken)",
-                    key.Type.Name, key.VName, Type.ClassName);
+                O($"[ODataRoute(\"({{{key.VName}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]");
+                O($"public async Task<IHttpActionResult> Patch([FromODataUri] {key.Type.Name} {key.VName}, Delta<{Type.ClassName}> delta, CancellationToken cancellationToken)");
                 Begin();
                 O("Validate(delta.GetEntity());");
                 O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-                O("return Updated(await _db.PatchAsync({0}, delta, save: true, token: cancellationToken));", key.VName);
+                O($"return Updated(await _db.PatchAsync({key.VName}, delta, save: true, token: cancellationToken));");
                 End();
 #pragma warning restore 0162
             }
@@ -461,8 +460,8 @@ namespace Casimodo.Lib.Mojen
             O();
             OApiActionAuthAttribute(Type, "Delete");
             O("[HttpDelete]");
-            O("[ODataRoute(\"({{{0}}})\")]", key.VName);
-            O("public async Task<IHttpActionResult> Delete([FromODataUri] {0} {1})", key.Type.Name, key.VName);
+            O($"[ODataRoute(\"({{{key.VName}}})\")]");
+            O($"public async Task<IHttpActionResult> Delete([FromODataUri] {key.Type.Name} {key.VName})");
             Begin();
             O();
             // Operate on the entity repository (i.e. not the model repository).
@@ -505,16 +504,12 @@ namespace Casimodo.Lib.Mojen
 
         public void OApiActionAuthAttribute(MojViewConfig view, string action)
         {
-            O("[ApiActionAuth(Part = \"{0}\", Group = {1}, Action = \"{2}\")]",
-                view.TypeConfig.Name,
-                Moj.CS(view.Group),
-                action);
+            O($"[ApiActionAuth(Part = \"{view.TypeConfig.Name}\", Group = {Moj.CS(view.Group)}, Action = \"{action}\")]");
         }
 
         public void OApiActionAuthAttribute(MojType type, string action)
         {
-            O("[ApiActionAuth(Part = \"{0}\", Action = \"{1}\")]",
-                type.Name, action);
+            O($"[ApiActionAuth(Part = \"{type.Name}\", Action = \"{action}\")]");
         }
     }
 }

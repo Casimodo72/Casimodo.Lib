@@ -109,13 +109,13 @@ namespace Casimodo.Lib.Mojen
             O($"{GetAsyncMethod(isasync)} SeedCore()");
             Begin();
             O("if (!IsEnabled) return;");
-            O("SeedTime = DateTimeOffset.Parse(\"{0}\", CultureInfo.InvariantCulture);", App.Now.ToString(CultureInfo.InvariantCulture));
+            O($"SeedTime = DateTimeOffset.Parse(\"{App.Now.ToString(CultureInfo.InvariantCulture)}\", CultureInfo.InvariantCulture);");
             O();
             foreach (var item in items)
             {
                 var type = item.Type;
                 var enabled = item.Seedings.All(x => x.IsDbSeedEnabled);
-                O("{0}{1}Seed{2}();",
+                OFormat("{0}{1}Seed{2}();",
                     (enabled ? "" : "// DISABLED: "),
                     GetAsyncAwait(item.Seedings.Any(x => x.IsAsync)),
                     type.PluralName);
@@ -258,7 +258,7 @@ namespace Casimodo.Lib.Mojen
             if (storeType.Name != "User")
             {
                 // Generate add method.
-                O("public void Add({0} item)", storeType.ClassName);
+                O($"public void Add({storeType.ClassName} item)");
                 Begin();
                 // Set any non-nullable DateTimes to DateTime.Now, otherwise
                 // SQL Server will bark about not being able to convert from datetime to datetime2.
@@ -267,7 +267,7 @@ namespace Casimodo.Lib.Mojen
                 {
                     O();
                     foreach (var prop in fixDateTimeProps)
-                        O("item.{0} = SeedTime;", prop.Name);
+                        O($"item.{prop.Name} = SeedTime;");
                 }
 
                 O("SetBasics(item);");
@@ -277,7 +277,7 @@ namespace Casimodo.Lib.Mojen
 
                 // Partial OnAdding
                 O();
-                O("partial void OnAdding({0} item);", storeType.ClassName);
+                O($"partial void OnAdding({storeType.ClassName} item);");
             }
 
             End();

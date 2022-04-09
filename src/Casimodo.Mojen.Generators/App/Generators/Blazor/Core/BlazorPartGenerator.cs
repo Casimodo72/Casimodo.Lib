@@ -3,17 +3,20 @@ using Casimodo.Mojen.App.Generators.Blazor.Configs;
 using System.IO;
 
 #nullable enable
-namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
+namespace Casimodo.Mojen.App.Generators.Blazor.Core
 {
-    public abstract class BlazorPartBaseGenerator : AppPartGenerator
+    public abstract class BlazorPartGenerator : AppPartGenerator
     {
-        public BlazorConfig BlazorConfig { get; set; } = default!;
+        public BlazorConfig BlazorConfig { get; private set; } = default!;
+
+        public BlazorDataServiceConfig DataServicesConfig { get; private set; } = default!;
 
         protected override void GenerateCore()
         {
             base.GenerateCore();
 
             BlazorConfig = App.Get<BlazorConfig>();
+            DataServicesConfig = App.Get<BlazorDataServiceConfig>(required: false);
         }
 
         public void ONullableEnable()

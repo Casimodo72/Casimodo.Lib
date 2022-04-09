@@ -107,7 +107,7 @@
                 Oeo(",");
             }
             else
-                o(" {0},", Moj.JS(options, quote: false));
+                o($" {Moj.JS(options, quote: false)},");
 
             ob(" function (result)");
             OB("if (result.isOk)");
@@ -127,7 +127,7 @@
                 Oeo(",");
             }
             else
-                o(" {0},", Moj.JS(options, quote: false));
+                o($" {Moj.JS(options, quote: false)},");
 
             ob(" function (result)");
             OB("if (result.isOk)");
@@ -319,28 +319,28 @@
             if (string.IsNullOrWhiteSpace(title))
                 title = isList ? view.TypeConfig.DisplayPluralName : view.TypeConfig.DisplayName;
 
-            O("title: {0},", Moj.JS(title));
-            O("id: {0},", Moj.JS(view.Id));
-            O("part: {0},", Moj.JS(view.TypeConfig.Name));
-            O("group: {0},", Moj.JS(view.Group));
-            O("role: {0},", Moj.JS(view.MainRoleName));
+            O($"title: {Moj.JS(title)},");
+            O($"id: {Moj.JS(view.Id)},");
+            O($"part: {Moj.JS(view.TypeConfig.Name)},");
+            O($"group: {Moj.JS(view.Group)},");
+            O($"role: {Moj.JS(view.MainRoleName)},");
             if (dataType)
             {
-                O("dataTypeName: {0},", Moj.JS(view.TypeConfig.Name));
-                O("dataTypeId: {0},", Moj.JS(view.TypeConfig.Id));
+                O($"dataTypeName: {Moj.JS(view.TypeConfig.Name)},");
+                O($"dataTypeId: {Moj.JS(view.TypeConfig.Id)},");
             }
-            O("isLookup: {0},", Moj.JS(view.Lookup.Is));
-            O("isDialog: {0},", Moj.JS(view.IsDialog));
-            O("isAuthRequired: {0},", Moj.JS(view.IsAuthEnabled));
+            O($"isLookup: {Moj.JS(view.Lookup.Is)},");
+            O($"isDialog: {Moj.JS(view.IsDialog)},");
+            O($"isAuthRequired: {Moj.JS(view.IsAuthEnabled)},");
 
             if (view.IsLocalData)
                 O("isLocalData: true,");
 
-            O("isCustomSave: {0},", Moj.JS(view.IsCustomSave));
+            O($"isCustomSave: {Moj.JS(view.IsCustomSave)},");
 
             // Company filters
-            O("isCompanyFilterEnabled: {0},", Moj.JS(view.IsCompanyFilterEnabled));
-            O("isGlobalCompanyFilterEnabled: {0},", Moj.JS(view.IsGlobalCompanyFilterEnabled == true));
+            O($"isCompanyFilterEnabled: {Moj.JS(view.IsCompanyFilterEnabled)},");
+            O($"isGlobalCompanyFilterEnabled: {Moj.JS(view.IsGlobalCompanyFilterEnabled == true)},");
 
             if (isList)
             {
@@ -350,9 +350,9 @@
 
                 // TODO: REMOVE: O("hasRowContextMenu: {0},", Moj.JS(context.View.HasListItemContextMenu));
                 // Tags
-                O("isTaggable: {0},", Moj.JS(view.IsTaggable));
-                O("isTagsFilterEnabled: {0},", Moj.JS(view.IsTagsFilterEnabled));
-                O("tagsEditorId: {0},", Moj.JS(view.TagsEditorView?.Id));
+                O($"isTaggable: {Moj.JS(view.IsTaggable)},");
+                O($"isTagsFilterEnabled: {Moj.JS(view.IsTagsFilterEnabled)},");
+                O($"tagsEditorId: {Moj.JS(view.TagsEditorView?.Id)},");
             }
 
             // KABU TODO: REMOVE? OViewDimensionOptions(view);          
@@ -362,8 +362,8 @@
             if (view.EditorView != null)
             {
                 OB("editor:");
-                O("id: {0},", Moj.JS(view.EditorView.Id));
-                O("url: {0},", Moj.JS(view.EditorView.Url, nullIfEmptyString: true));
+                O($"id: {Moj.JS(view.EditorView.Id)},");
+                O($"url: {Moj.JS(view.EditorView.Url, nullIfEmptyString: true)},");
                 // OViewDimensionOptions(view.EditorView);
                 End(",");
             }

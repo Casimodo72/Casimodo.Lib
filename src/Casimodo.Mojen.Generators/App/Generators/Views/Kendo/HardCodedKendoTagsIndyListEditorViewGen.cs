@@ -31,15 +31,13 @@
             g.O("_db.Context.Configuration.LazyLoadingEnabled = false;");
             g.O("_db.Context.Configuration.AutoDetectChangesEnabled = false;");
             g.O();
-            g.O("if (this.UpdateIndependentCollection<{0}, {1}>(_db.Context, parameters, nameof({0}.Tags),",
+            g.OFormat("if (this.UpdateIndependentCollection<{0}, {1}>(_db.Context, parameters, nameof({0}.Tags),",
                 ownerTypeName, itemTypeName);
             g.Push();
             g.O("validateItem: (controller, owner, item) =>");
             g.Begin();
-            g.O("if (item.AssignableToTypeId != TypeIdentityHelper.GetTypeGuid(typeof({0})))",
-                ownerTypeName);
-            g.O("    controller.ThrowBadRequest(\"The {0} is not assignable to this object.\");",
-                itemTypeName);
+            g.O($"if (item.AssignableToTypeId != TypeIdentityHelper.GetTypeGuid(typeof({ownerTypeName})))");
+            g.O($"    controller.ThrowBadRequest(\"The {itemTypeName} is not assignable to this object.\");");
             g.End("))");
             g.Pop();
             g.Begin();
@@ -141,11 +139,10 @@
                         O(@"targetListId: '2760faee-dd1a-42f5-9c83-c9b5870c5f9e',");
 
                         // Hard-coded Mo
-                        O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand=Tags($select=Id,DisplayName)',",
-                                TransportConfig.ODataBaseUrl);
+                        O($@"targetContainerQuery: '{TransportConfig.ODataBaseUrl}/Query()?$select=Id&$expand=Tags($select=Id,DisplayName)',");
 
                         O(@"targetContainerListField: 'Tags',");
-                        O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
+                        O($@"saveBaseUrl: '{TransportConfig.ODataBaseUrl}',");
                         O(@"saveMethod: 'UpdateTags',");
                     });
 

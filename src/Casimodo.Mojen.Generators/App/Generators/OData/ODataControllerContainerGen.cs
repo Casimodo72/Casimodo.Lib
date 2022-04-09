@@ -32,7 +32,7 @@ namespace Casimodo.Lib.Mojen
                 Oo("public static readonly Type[] Items = new[] { ");
                 foreach (var controller in controllers)
                 {
-                    o("typeof({0}), ", this.GetODataControllerName(controller.TypeConfig));
+                    o($"typeof({this.GetODataControllerName(controller.TypeConfig)}), ");
                 }
                 o("};" + Environment.NewLine);
                 End();

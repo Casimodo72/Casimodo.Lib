@@ -1080,7 +1080,7 @@ namespace Casimodo.Lib.Mojen
                 KendoGen.OOpenDialogView(context, snippetsEditorView,
                     options: new Action(() =>
                     {
-                        O("mode: '{0}',", vprop.Type.MultilineString.Mode);
+                        O($"mode: '{vprop.Type.MultilineString.Mode}',");
 
                         O("value: input.val(),");
 
@@ -1088,7 +1088,7 @@ namespace Casimodo.Lib.Mojen
                         {
                             OB("params:");
                             foreach (var p in snippetsEditorView.Parameters)
-                                O("{0}: {1},", p.VName, Moj.JS(vprop.Snippets.Args[p.Name]));
+                                OFormat("{0}: {1},", p.VName, Moj.JS(vprop.Snippets.Args[p.Name]));
                             End();
                         }
                     }),

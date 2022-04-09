@@ -76,7 +76,7 @@ namespace Casimodo.Lib.Mojen
                     if (false)
                     {
 #pragma warning disable CS0162 // Unreachable code detected
-                        O(accessModifier + "public class {0} : WebModelRepository<{1}, {2}, {3}, {4}, {5}>{6}",
+                        OFormat(accessModifier + "public class {0} : WebModelRepository<{1}, {2}, {3}, {4}, {5}>{6}",
 #pragma warning restore CS0162 // Unreachable code detected
                             repositoryName,
                             type.ClassName,
@@ -93,7 +93,7 @@ namespace Casimodo.Lib.Mojen
                 }
                 else if (type.Kind == MojTypeKind.Entity)
                 {
-                    O(accessModifier + "public class {0} : WebEntityRepository<{1}, {2}, {3}>{4}",
+                    OFormat(accessModifier + "public class {0} : WebEntityRepository<{1}, {2}, {3}>{4}",
                         repositoryName,
                         context.DbContextName,
                         type.ClassName,

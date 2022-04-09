@@ -100,20 +100,20 @@
                     {
                         // Hard-coded ID of the view's root HTML element.
                         // This ID does not change because we reusing a single piece of HTML for all Tags Editors.
-                        O("viewId: '{0}',", context.View.Id);
+                        O($"viewId: '{context.View.Id}',");
 
                         // The ID of the grid/list view component used for selection of list items.
-                        O("sourceListId: '{0}',", context.View.ListComponentId);
-                        O("targetListId: '{0}',", context.View.ListComponentId);
+                        O($"sourceListId: '{context.View.ListComponentId}',");
+                        O($"targetListId: '{context.View.ListComponentId}',");
 
                         // KABU TODO: MAGIC: This assumes the properties "Id" and "DisplayName".
-                        O(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand={1}($select=Id,DisplayName)',",
+                        OFormat(@"targetContainerQuery: '{0}/Query()?$select=Id&$expand={1}($select=Id,DisplayName)',",
                                 TransportConfig.ODataBaseUrl,
                                 ListPropName);
 
-                        O(@"targetContainerListField: '{0}',", ListPropName);
-                        O(@"saveBaseUrl: '{0}',", TransportConfig.ODataBaseUrl);
-                        O(@"saveMethod: 'Update{0}',", ListPropName);
+                        O($@"targetContainerListField: '{ListPropName}',");
+                        O($@"saveBaseUrl: '{TransportConfig.ODataBaseUrl}',");
+                        O($@"saveMethod: 'Update{ListPropName}',");
                     });
 
                 End(").init();");

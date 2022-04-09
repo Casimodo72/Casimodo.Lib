@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Mojen
 
             foreach (var type in types)
             {
-                Oo("c.CreateMap<source.{0}, dest.{0}>()", type.ClassName);
+                Oo($"c.CreateMap<source.{type.ClassName}, dest.{type.ClassName}>()");
                 // Ignore nagivation properties.
                 foreach (var naviProp in type.GetProps()
                     // Exclude hidden collection props.

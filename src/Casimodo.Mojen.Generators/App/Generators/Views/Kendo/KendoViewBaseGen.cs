@@ -32,7 +32,7 @@
         string GetBindingPrefixObject()
         {
             // E.g. "item.FirstName" or just "FirstName" if DataViewModelAccessor is not assigned.
-            return !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? $"{DataViewModelAccessor}." : "";
+            return !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? DataViewModelAccessor : "";
         }
 
         public string GetBinding(MojViewProp vprop)

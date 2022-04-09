@@ -171,7 +171,7 @@ namespace Casimodo.Lib.Mojen
                 if (sourceProp == null)
                     O("// No source");
 
-                O("target.{0} = {1}{2};", targetProp.Name, BuildCast(targetProp, sourceProp), BuildAssignment(targetProp, sourceProp));
+                OFormat("target.{0} = {1}{2};", targetProp.Name, BuildCast(targetProp, sourceProp), BuildAssignment(targetProp, sourceProp));
             }
             End();
         }

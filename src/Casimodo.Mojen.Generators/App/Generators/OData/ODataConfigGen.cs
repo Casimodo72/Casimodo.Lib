@@ -101,7 +101,7 @@ namespace Casimodo.Lib.Mojen
                     {
                         if (prop.IsExcludedFromDb && prop.IsExplicitelyIncludedInOData)
                         {
-                            O("builder.StructuralTypes.First(t => t.ClrType == typeof({0})).AddProperty(typeof({0}).GetProperty(\"{1}\"));",
+                            OFormat("builder.StructuralTypes.First(t => t.ClrType == typeof({0})).AddProperty(typeof({0}).GetProperty(\"{1}\"));",
                                 typeName, prop.Name);
                         }
                     }

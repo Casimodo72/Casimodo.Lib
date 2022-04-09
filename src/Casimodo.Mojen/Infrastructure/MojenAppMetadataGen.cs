@@ -110,8 +110,7 @@ namespace Casimodo.Lib.Mojen.Meta
                 O("public static class _MetaContainer");
                 Begin();
 
-                O("public static readonly MojenMetaContainer Data = MojenMetaSerializer.Deserialize<{0}>(@\"{1}\");",
-                    typeof(MojenMetaContainer).Name, DataOutputFilePath);
+                O($"public static readonly MojenMetaContainer Data = MojenMetaSerializer.Deserialize<{typeof(MojenMetaContainer).Name}>(@\"{DataOutputFilePath}\");");
 
                 O("public static readonly List<MojBase> Items = new List<MojBase>();");
                 O("public static readonly List<MojFormedTypeContainer> TypeContainers = new List<MojFormedTypeContainer>();");
@@ -122,8 +121,8 @@ namespace Casimodo.Lib.Mojen.Meta
                 // Types                
                 foreach (var item in items)
                 {
-                    O("Items.Add({0}.Class);", item.Name);
-                    O("TypeContainers.Add({0}._Container);", item.Name);
+                    O($"Items.Add({item.Name}.Class);");
+                    O($"TypeContainers.Add({item.Name}._Container);");
                 }
 
                 // Disabled for now.
@@ -136,7 +135,7 @@ namespace Casimodo.Lib.Mojen.Meta
 
                 // Data layer configs
                 foreach (var item in App.GetItems<DataLayerConfig>().Where(x => x.DbContextName != null))
-                    O("Items.Add({0}.Class);", (item.MetaName ?? item.DbContextName));
+                    O($"Items.Add({item.MetaName ?? item.DbContextName}.Class);");
 
                 End();
                 End();
@@ -203,11 +202,10 @@ namespace Casimodo.Lib.Mojen.Meta
                 Begin();
 
                 // Container
-                O("public static readonly MojFormedTypeContainer _Container = new MojFormedTypeContainer(_MetaContainer.Data.Get<{0}>(\"{1}\"));",
-                    type.GetType().Name, type.MetadataId.ToString());
+                O($"public static readonly MojFormedTypeContainer _Container = new MojFormedTypeContainer(_MetaContainer.Data.Get<{type.GetType().Name}>(\"{type.MetadataId}\"));");
 
                 // Class
-                O("public static readonly {0} Class = _Container.Type;", type.GetType().Name);
+                O($"public static readonly {type.GetType().Name} Class = _Container.Type;");
                 O();
 
                 // Properties
@@ -256,7 +254,7 @@ namespace Casimodo.Lib.Mojen.Meta
         void GenerateProp(MojType type, MojProp prop, int index, bool instance, MojProp pickDisplayProp)
         {
             if (prop.DeclaringType.Name != type.Name)
-                O("// Inherited from {0}", prop.DeclaringType.ClassName);
+                O($"// Inherited from {prop.DeclaringType.ClassName}");
 
             if (prop.IsOverride)
                 O("// Override");
@@ -310,12 +308,11 @@ namespace Casimodo.Lib.Mojen.Meta
                 ONamespace(Config.Namespace);
                 OUsing("System", "System.Collections.Generic", "Casimodo.Lib", "Casimodo.Lib.Mojen");
 
-                O("public static class {0}", (item.MetaName ?? item.DbContextName));
+                O($"public static class {item.MetaName ?? item.DbContextName}");
                 Begin();
 
                 // Class
-                O("public static {0} Class = _MetaContainer.Data.Get<{0}>(\"{1}\");",
-                    item.GetType().Name, item.MetadataId.ToString());
+                O($"public static {item.GetType().Name} Class = _MetaContainer.Data.Get<{item.GetType().Name}>(\"{item.MetadataId}\");");
                 O();
 
                 // Properties

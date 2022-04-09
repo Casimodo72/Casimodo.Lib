@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Mojen
         public DbMigrationSeedGen()
         {
             Scope = "DataContext";
-        }  
+        }
 
         protected override void GenerateCore()
         {
@@ -71,18 +71,18 @@ namespace Casimodo.Lib.Mojen
 
             O("partial class DbMigrationSeed : DbSeedBase");
             Begin();
-            O("public {0} Context {{ get; set; }}", DataConfig.DbContextName);
+            O($"public {DataConfig.DbContextName} Context {{ get; set; }}");
             O();
-            O("public void Seed({0} context)", DataConfig.DbContextName);
+            O($"public void Seed({DataConfig.DbContextName} context)");
             Begin();
             O("if (!IsEnabled) return;");
             O("Context = context;");
-            O("SeedTime = DateTimeOffset.Parse(\"{0}\", CultureInfo.InvariantCulture);", App.Now.ToString(CultureInfo.InvariantCulture));
+            O($"SeedTime = DateTimeOffset.Parse(\"{App.Now.ToString(CultureInfo.InvariantCulture)}\", CultureInfo.InvariantCulture);");
             O();
             foreach (var item in items)
             {
                 var enabled = item.Seedings.All(x => x.IsDbSeedEnabled);
-                O("{0}Seed{1}();", (enabled ? "" : "// DISABLED: "), item.Type.PluralName);
+                O($"{(enabled ? "" : "// DISABLED: ")}Seed{item.Type.PluralName}();");
             }
             End();
             End();
@@ -106,7 +106,7 @@ namespace Casimodo.Lib.Mojen
             ONamespace(DataConfig.DataNamespace + ".Migrations");
             O("partial class DbMigrationSeed");
             Begin();
-            O("void Seed{0}()", type.PluralName);
+            O($"void Seed{type.PluralName}()");
             Begin();
 
             var assignments = new List<string>();
@@ -122,7 +122,7 @@ namespace Casimodo.Lib.Mojen
                 foreach (MojValueSet valueSet in valueSetContainer.Items)
                 {
                     assignments.Clear();
-                    Oo("Add(new {0} {{ ", storeType.ClassName);
+                    Oo($"Add(new {storeType.ClassName} {{ ");
 
                     foreach (MojValueSetProp val in valueSet.Values)
                     {
@@ -197,7 +197,7 @@ namespace Casimodo.Lib.Mojen
             if (storeType.Name != "User")
             {
                 // Generate add method.
-                O("public void Add({0} item)", storeType.ClassName);
+                O($"public void Add({storeType.ClassName} item)");
                 Begin();
                 // Set any non-nullable DateTimes to DateTime.Now, otherwise
                 // SQL Server will bark about not being able to convert from datetime to datetime2.
@@ -206,17 +206,17 @@ namespace Casimodo.Lib.Mojen
                 {
                     O();
                     foreach (var prop in fixDateTimeProps)
-                        O("item.{0} = SeedTime;", prop.Name);
+                        O($"item.{prop.Name} = SeedTime;");
                 }
 
                 O("SetBasics(item);");
                 O("OnAdding(item);");
-                O("Context.{0}.AddOrUpdate(item);", storeType.PluralName);
+                O($"Context.{storeType.PluralName}.AddOrUpdate(item);");
                 End();
 
                 // Partial OnAdding
                 O();
-                O("partial void OnAdding({0} item);", storeType.ClassName);
+                O($"partial void OnAdding({storeType.ClassName} item);");
             }
 
             End();

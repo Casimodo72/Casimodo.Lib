@@ -100,23 +100,23 @@ namespace Casimodo.Lib.Mojen
             GenerateClassHead(type, interfaces: type.Interfaces.Where(x => x.AddToViewModel).ToList());
 
             // Static constructor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            O("static {0}()", type.ClassName);
+            O($"static {type.ClassName}()");
             Begin();
             if (!type.IsAbstract && type.HasAncestorType("ValidatingObservableObject"))
             {
                 // Validation
                 if (!type.NoValidation)
-                    O("ValidationRules.AddAttributeRules(typeof({0}));", type.ClassName);
+                    O($"ValidationRules.AddAttributeRules(typeof({type.ClassName}));");
 
                 // Change tracking
                 if (!type.NoChangeTracking)
                 {
                     if (type.ChangeTrackingProps.Count != 0)
                     {
-                        O("MoDataSnapshot.Add(typeof({0}),", type.ClassName);
+                        O($"MoDataSnapshot.Add(typeof({type.ClassName}),");
                         int i = 0;
                         foreach (var prop in type.ChangeTrackingProps)
-                            O("    nameof({0}){1}", prop.Name, Sep(i++, type.ChangeTrackingProps.Count));
+                            O($"    nameof({prop.Name}){Sep(i++, type.ChangeTrackingProps.Count)}");
 
                         O(");");
                     }
@@ -130,14 +130,14 @@ namespace Casimodo.Lib.Mojen
             // End of static constructor.
 
             // Parameterless constructor ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            O("public {0}()", type.ClassName);
+            O($"public {type.ClassName}()");
             Begin();
 
             bool isStoreWrapper = type.Store != null && type.IsStoreWrapper;
 
             if (isStoreWrapper && !type.IsAbstract)
             {
-                O("SetStore(new {0}());", type.Store.ClassName);
+                O($"SetStore(new {type.Store.ClassName}());");
             }
 
             foreach (var collectionProp in type.NonArrayCollectionProps)
@@ -155,22 +155,22 @@ namespace Casimodo.Lib.Mojen
             {
                 // Constructor with store entity parameter.
                 O();
-                O("public {0}({1} store)", type.ClassName, type.Store.ClassName);
+                O($"public {type.ClassName}({type.Store.ClassName} store)");
                 Begin();
                 O("SetStore(store);");
                 O("CreateExtended();");
                 End();
 
                 O();
-                O("public {0}{1} Store", (type.IsDerivedFromStoreWrapper ? "new " : ""), type.Store.ClassName);
+                O($"public {(type.IsDerivedFromStoreWrapper ? "new " : "")}{type.Store.ClassName} Store");
                 Begin();
                 O("get => _store;");
                 O("set => SetStore(value);");
                 End();
-                O("{0} _store;", type.Store.ClassName);
+                O($"{type.Store.ClassName} _store;");
 
                 O();
-                O("protected {0} SetStore({1} store)", type.ClassName, type.Store.ClassName);
+                O($"protected {type.ClassName} SetStore({type.Store.ClassName} store)");
                 Begin();
                 if (type.IsDerivedFromStoreWrapper)
                     O("base.SetStore(store);");
@@ -202,17 +202,17 @@ namespace Casimodo.Lib.Mojen
                 {
                     // Assign constructor args to props.
 
-                    var name = prop.IsObservable && prop.ProxyOfInheritedProp == null
+                    var effectivePropName = prop.IsObservable && prop.ProxyOfInheritedProp == null
                         ? $"_{Moj.FirstCharToLower(prop.Name)}"
                         : prop.Name;
 
                     if (IsObservableCollectionType(prop))
                     {
-                        return $"this.{name} = new {BuildObservableCollectionType(prop)}({prop.Name}); ";
+                        return $"this.{effectivePropName} = new {BuildObservableCollectionType(prop)}({prop.Name}); ";
                     }
                     else
                     {
-                        return $"this.{name} = {prop.Name}; ";
+                        return $"this.{effectivePropName} = {prop.Name}; ";
                     }
                 })
                 .Join(""));

@@ -54,7 +54,7 @@ namespace Casimodo.Lib.Mojen
                      // Properties
 
                      // OData type property.
-                     O("this['@odata.type'] = '#{0}.{1}';", WebConfig.ODataNamespace, item.ClassName);
+                     O($"this['@odata.type'] = '#{WebConfig.ODataNamespace}.{item.ClassName}';");
 
                      MojProp prop;
                      var props = item.GetProps(custom: false)
@@ -78,25 +78,25 @@ namespace Casimodo.Lib.Mojen
                          if (AreCommentsEnabled && !IsCommonProp(prop))
                          {
                              if (prop.DisplayLabel != prop.Name)
-                                 O("// Display: '" + prop.DisplayLabel + "'");
+                                 O($"// Display: '{prop.DisplayLabel}'");
 
                              foreach (var description in prop.Summary.Descriptions)
-                                 O("// Description: " + description);
+                                 O($"// Description: {description}");
 
-                             O("// Type: {0}", prop.Type.Name);
+                             O($"// Type: {prop.Type.Name}");
                          }
 
                          if (prop.Type.IsDictionary)
                          {
-                             O("this.{0} = {{}};", prop.Name);
+                             O($"this.{prop.Name} = {{}};");
                          }
                          else if (prop.Type.IsCollection && !prop.Type.IsPrimitiveArray)
                          {
-                             O("this.{0} = [];", prop.Name);
+                             O($"this.{ prop.Name} = [];");
                          }
                          else
                          {
-                             O("this.{0} = {1};", prop.Name, GetJsDefaultValue(prop));
+                             O($"this.{prop.Name} = {GetJsDefaultValue(prop)};");
                          }
                      }
                  });

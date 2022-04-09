@@ -26,13 +26,13 @@ namespace Casimodo.Lib.Mojen
                         extends: "cmodo.ComponentRegistry",
                         constructor: () =>
                         {
-                            O("this.ns = {0};", Moj.JS(WebConfig.ScriptUINamespace));
+                            O($"this.ns = {Moj.JS(WebConfig.ScriptUINamespace)};");
                         },
                         content: () =>
                         {
                             foreach (var item in components.Where(x => x.View?.Id != null))
                             {
-                                O("get{0}{1}{2}(options?: any) {{ return this.get({3}, options); }}",
+                                OFormat("get{0}{1}{2}(options?: any) {{ return this.get({3}, options); }}",
                                     item.View.GetPartName(),
                                     item.View.MainRoleName,
                                     (item.View.Group != null ? "_" + item.View.Group : ""),
@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Mojen
                     O();
                     foreach (var item in components)
                     {
-                        O("reg.add({{ part: {0}, group: {1}, role: {2}, url: {3}, id: {4}, minWidth: {5}, maxWidth: {6}, minHeight: {7}, maxHeight: {8}, maximize: {9}, editorId: {10} }});",
+                        OFormat("reg.add({{ part: {0}, group: {1}, role: {2}, url: {3}, id: {4}, minWidth: {5}, maxWidth: {6}, minHeight: {7}, maxHeight: {8}, maximize: {9}, editorId: {10} }});",
                             Moj.JS(item.View.TypeConfig.Name),
                             Moj.JS(item.View.Group),
                             Moj.JS(item.View.MainRoleName),
