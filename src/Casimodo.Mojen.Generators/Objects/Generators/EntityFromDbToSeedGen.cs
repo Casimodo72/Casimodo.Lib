@@ -39,7 +39,7 @@ namespace Casimodo.Mojen
             var seedType = container.TypeConfig;
             var storeType = seedType.GetNearestStore();
 
-            ONamespace("Casimodo.Lib.Mojen");
+            ONamespace("Casimodo.Mojen");
 
             O($"public partial class {storeType.Name}Seed : MojGeneratedDbSeed");
             Begin();

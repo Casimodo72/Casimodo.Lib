@@ -8,7 +8,7 @@ namespace Casimodo.Mojen.Meta
 
         public bool IsForDataLayer { get; set; }
 
-        public string Namespace { get; set; } = "Casimodo.Lib.MojenAppMeta";
+        public string Namespace { get; set; } = "Casimodo.Mojen.AppMeta";
 
         public List<Type> Types { get; set; } = new List<Type>();
     }
