@@ -82,7 +82,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Core
             // NOTE: When using intermediate dots in the file name, the component is
             // accessible by replacing the dots with underscores.
             // E.g. the component of file "MyComponent.j.razor" can be accessed with "MyComponent_j".
-            name += ".moj.razor";
+            name += ".gen.razor";
 
             pathOrName = path != null
                 ? Path.Combine(path, name).Replace(@"\", "/")
@@ -94,6 +94,11 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Core
         public string GetViewDirPath(MojViewConfig view)
         {
             return Path.Combine(BlazorConfig.ComponentsOutputDirPath, view.TypeConfig.PluralName);
+        }
+
+        protected void ORazorTODO(string text)
+        {
+            ORazorComment($"TODO: {text ?? ""}");
         }
 
         protected void OTODO(string text)

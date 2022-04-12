@@ -1,6 +1,6 @@
 ﻿namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
-public abstract class BlazoriseTypeViewGen : BlazoriseViewGen
+public abstract class BlazoriseFormGen : BlazoriseViewGen
 {
     protected ViewModelLayerConfig ViewModelConfig { get; private set; }
 
@@ -100,7 +100,7 @@ public abstract class BlazoriseTypeViewGen : BlazoriseViewGen
     {
         ClassAttr(LabelClass, target: "label");
 
-        Oo($"<Label {GetAttrs("label")}>{text}</Label>");
+        Oo($"<Label{GetAttrs("label")}>{text}</Label>");
     }
 
     public Action<WebViewGenContext> OLabelContainerEnd { get; set; } = context => { };

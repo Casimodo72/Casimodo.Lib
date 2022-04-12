@@ -2,14 +2,14 @@
 
 namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
-public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
+#nullable enable
+public class BlazoriseEditorFormGen : BlazoriseFormGen
 {
     protected override void GenerateCore()
     {
         base.GenerateCore();
 
-        foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
-            .Where(x => x.Uses(this)))
+        foreach (MojViewConfig view in App.GetItems<MojViewConfig>().Where(x => x.Uses(this)))
         {
 
             DataViewModelAccessor = view.TypeConfig.Name;
@@ -37,12 +37,12 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 
         OBlockBegin = c =>
         {
-            O("// BLOCK BEGIN");
+            ORazorComment("BLOCK BEGIN");
         };
 
         OBlockEnd = c =>
         {
-            O("// BLOCK END");
+            ORazorComment("BLOCK END");
         };
 
         OPropRunBegin = c =>
@@ -115,7 +115,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         }
         else
         {
-            OTODO("Read-only props");
+            ORazorTODO("Read-only props");
             // Read-only property.
             // TODO: IMPL
             //ReadOnlyGen.ElemClass("km-readonly-form-control");
@@ -139,21 +139,11 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         var dprop = propInfo.TargetDisplayProp;
         var vpropType = propInfo.TargetDisplayProp.Type;
 
-        // MVC jQuery validation : see https://www.blinkingcaret.com/2016/03/23/manually-use-mvc-client-side-validation/
         bool validationBox = true;
 
         Attr("ElementId", GetElementId(propInfo));
 
         Attr("Name", ppath);
-
-        // CustomElemStyle(context);
-
-        // Add "form-control" class.
-        // Except for Kendo's numeric boxes, which just break if using bootstrap's form-control class.
-        //if (!vpropType.IsNumber)
-        //{
-        //    ElemClass("form-control");
-        //}
 
         if (vprop.IsAutocomplete == false)
             Attr("autocomplete", "false");
@@ -163,20 +153,13 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
 
         if (vprop.CustomEditorViewName != null)
         {
-            OTODO("Custum editor");
+            ORazorTODO("Custom editor");
             // TODO: OMvcPartialView(vprop.CustomEditorViewName);
         }
         // NOTE: Enums are also numbers here, so ensure the enum handler comes first.
         else if (vpropType.IsEnum)
         {
             throw new MojenException("Enums are not supported.");
-        }
-        else if (vpropType.IsNumber)
-        {
-            OTODO("Number");
-            ONumericInput(context);
-            // TODO: OKendoNumericInput(context);
-            validationBox = false;
         }
         else if (dprop.FileRef.Is)
         {
@@ -186,20 +169,25 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         {
             throw new MojenException("Unsupported reference property.");
         }
+        else if (vpropType.IsNumber)
+        {
+            ONumericInput(context);
+            validationBox = false;
+        }
         else if (dprop.IsColor)
         {
-            OTODO("Color picker");
+            ORazorTODO("Color picker");
             // TODO: OKendoColorPicker(context);
         }
         else if (vpropType.IsAnyTime)
         {
-            OTODO("Date-time picker");
+            ORazorTODO("Date-time picker");
             ODateTimePicker(context);
         }
         else if (vpropType.IsTimeSpan)
         {
-            OTODO("Date-time range picker");
-            // TODO:  OKendoTimeSpanEditor(context);
+            ORazorTODO("Date-time range picker");
+            // TODO: OKendoTimeSpanEditor(context);
         }
         else if (vpropType.IsString)
         {
@@ -210,11 +198,10 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
             Oo("<Switch TValue=bool");
             oBindValue(context);
             oO(" />");
-            // TODO: OKendoCheckbox(context);
         }
         else
         {
-            throw new MojenException("Unsupported editor property kind.");
+            throw new MojenException("This property is not supported on forms.");
         }
 
         // Validation message
@@ -231,6 +218,10 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         var dprop = context.PropInfo.Prop;
         var ppath = context.PropInfo.PropPath;
 
+        var max = dprop.Rules.Max ?? vprop.Rules.Max;
+        if (max != null)
+            Attr("MaxLength", max);
+
         if (!dprop.IsSpellCheck)
             Attr("spellcheck", false);
 
@@ -238,17 +229,17 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         {
             Oo($@"<MemoEdit");
 
+            oBindValue(context);
+
             if (dprop.RowCount != 0)
             {
                 Attr("Rows", dprop.RowCount);
             }
-            // TODO: ? if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
 
-            // TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+            // TODO: Columns? if (dprop.ColCount != 0) ElemAttr("cols", dprop.ColCount);
 
             oAttrs();
             OHtmlRequiredttrs(context, dprop);
-            oBindValue(context);
 
             // TODO: Custom editor
             //if (vprop.UseCodeRenderer != null)
@@ -262,19 +253,14 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         }
         else
         {
-            var inputType = GetTextInputType(dprop.Type.AnnotationDataType);
-            if (inputType != null)
-                Attr("Type", inputType);
-            //else
-            //    ElemAttr("type", "text");
-
-            ClassAttr("k-textbox");
+            var role = GetTextRole(dprop.Type.AnnotationDataType);
+            if (role != null)
+                Attr("Role", role);
 
             Oo($@"<TextEdit");
-            // TODO: IMPORTANT: Check whether Required and LocallyRequired works.
+            oBindValue(context);
             oAttrs();
             OHtmlRequiredttrs(context, dprop);
-            oBindValue(context);
 
             // Postal code
             if (dprop.Type.AnnotationDataType == DataType.PostalCode)
@@ -297,6 +283,8 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         var ppath = context.PropInfo.PropPath;
 
         Attr("TValue", vprop.Type.Name);
+
+        ORazorTODO("Number");
 
         Oo($"<NumericEdit");
         oBindValue(context, ppath);
@@ -365,7 +353,7 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
             return false;
         }
 
-        OTODO("// Selectors + lookups");
+        ORazorTODO("Selectors + lookups");
 
         return true;
         //return
@@ -431,10 +419,12 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         o($" {name}='{Moj.ToJsXAttrValue(value)}'");
     }
 
-    string GetTextInputType(System.ComponentModel.DataAnnotations.DataType? type)
+    string? GetTextRole(DataType? type)
     {
-        if (type == null)
-            return null;
+        // Blazorise has a TextRole enum.
+        return type != null && _textInputTypeByDataType.TryGetValue(type.Value, out string result)
+            ? result
+            : null;
 
         // HTML input types:
         // color
@@ -450,23 +440,14 @@ public class BlazoriseFormEditorGen : BlazoriseTypeViewGen
         // time
         // url
         // week
-        if (_textInputTypeByDataType.TryGetValue(type.Value, out string result))
-            return result;
-
-        return null;
     }
 
-    static readonly Dictionary<System.ComponentModel.DataAnnotations.DataType, string> _textInputTypeByDataType =
-        new()
-        {
-            [DataType.EmailAddress] = "email",
-            [DataType.PhoneNumber] = "tel",
-            [DataType.Url] = "url",
-            [DataType.DateTime] = "datetime",
-            [DataType.Date] = "date",
-            [DataType.Time] = "time",
-            [DataType.Currency] = "number",
-            [DataType.Password] = "password"
-        };
+    static readonly Dictionary<DataType, string> _textInputTypeByDataType = new()
+    {
+        [DataType.EmailAddress] = "Email",
+        [DataType.PhoneNumber] = "Telephone",
+        [DataType.Url] = "Url",
+        [DataType.Password] = "Password"
+    };
 }
 

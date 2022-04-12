@@ -48,7 +48,7 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
                     Begin();
 
                     // TODO: Use a grid and display all props as columns.
-                    OTODO("Use a grid instead. This is just temporary stuff.");
+                    ORazorTODO("Use a grid instead. This is just temporary stuff.");
                     OTag($"ListView",
                         $"TItem={view.TypeConfig.ClassName}",
                         $"Data=@items TextField=\"(item) => item.{vprop.Name}\"",

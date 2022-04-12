@@ -14,7 +14,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
         static MojViewBuilder CreateEditorBase(this MojenApp app, string id, MojType type)
         {
             return CreateViewBuilder(app, id, type)
-                .Use<BlazoriseFormEditorGen>()
+                .Use<BlazoriseEditorFormGen>()
                 .Editor()
                 .CanEdit(false)
                 .CanCreate(false)
