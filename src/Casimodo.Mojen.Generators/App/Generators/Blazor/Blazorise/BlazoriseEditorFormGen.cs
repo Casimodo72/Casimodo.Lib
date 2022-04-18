@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Casimodo.Lib.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise;
 
@@ -45,16 +46,6 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
             ORazorComment("BLOCK END");
         };
 
-        OPropRunBegin = c =>
-        {
-            XB("<Field>");
-        };
-
-        OPropRunEnd = c =>
-        {
-            XE("</Field>");
-        };
-
         OLabelContainerBegin = c =>
         {
         };
@@ -92,50 +83,40 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
         {
             O("[Parameter, EditorRequired]");
             O($"public {type.Name} {type.Name} {{ get; set; }}");
+
+            foreach (var codeProp in _codeProps)
+            {
+                if (!OCodeProp(codeProp))
+                {
+                    throw new MojenException("No code section generator found.");
+                }
+            }
         });
+    }
+
+    bool OCodeProp(MojViewPropInfo codeProp)
+    {
+        return OPropLookupSelectorCode(codeProp);
     }
 
     public override void OProp(WebViewGenContext context)
     {
-        var info = context.PropInfo;
-        var vprop = info.ViewProp;
+        var vprop = context.PropInfo.ViewProp;
 
-        // TODO: UsedViewPropInfos.Add(info);
+        // TODO: ? UsedViewPropInfos.Add(info);
 
-        if (info.ViewProp.IsEditable)
-        {
-            // Editor
-            // TODO: Inline styles on Blazor components?
-            if (vprop.Width != null)
-                StyleAttr($"width:{vprop.Width}px !important");
-            if (vprop.MaxWidth != null)
-                StyleAttr($"max-width:{vprop.MaxWidth}px !important");
+        // Editor
+        // TODO: ? Inline styles on Blazor components?
+        if (vprop.Width != null)
+            StyleAttr($"width:{vprop.Width}px !important");
+        if (vprop.MaxWidth != null)
+            StyleAttr($"max-width:{vprop.MaxWidth}px !important");
 
-            OPropEditable(context);
-        }
-        else
-        {
-            ORazorTODO("Read-only props");
-            // Read-only property.
-            // TODO: IMPL
-            //ReadOnlyGen.ElemClass("km-readonly-form-control");
-            //ReadOnlyGen.OProp(context);
-        }
-    }
-
-    public void OPropEditable(WebViewGenContext context)
-    {
-        if (OPropSelector(context))
+        if (vprop.IsEditable && OPropSelector(context))
             return;
 
-        OPropEditableCore(context);
-    }
-
-    public void OPropEditableCore(WebViewGenContext context)
-    {
         var propInfo = context.PropInfo;
-        var vprop = propInfo.ViewProp;
-        var ppath = propInfo.PropPath;
+        // var ppath = propInfo.PropPath;
         var dprop = propInfo.TargetDisplayProp;
         var vpropType = propInfo.TargetDisplayProp.Type;
 
@@ -143,13 +124,19 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
 
         Attr("ElementId", GetElementId(propInfo));
 
-        Attr("Name", ppath);
+        // TODO: REMOVE? Attr("Name", ppath);
 
         if (vprop.IsAutocomplete == false)
             Attr("autocomplete", "false");
 
+        if (!vprop.IsEditable)
+        {
+            Attr("Disabled", true);
+        }
+
+        // TODO: REMOVE
         // Enable MVC's unobtrusive jQuery validation.
-        Attr("data-val", true);
+        // Attr("data-val", true);
 
         if (vprop.CustomEditorViewName != null)
         {
@@ -181,7 +168,6 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
         }
         else if (vpropType.IsAnyTime)
         {
-            ORazorTODO("Date-time picker");
             ODateTimePicker(context);
         }
         else if (vpropType.IsTimeSpan)
@@ -216,7 +202,6 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
     {
         var vprop = context.PropInfo.ViewProp;
         var dprop = context.PropInfo.Prop;
-        var ppath = context.PropInfo.PropPath;
 
         var max = dprop.Rules.Max ?? vprop.Rules.Max;
         if (max != null)
@@ -229,7 +214,7 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
         {
             Oo($@"<MemoEdit");
 
-            oBindValue(context);
+            oBindText(context);
 
             if (dprop.RowCount != 0)
             {
@@ -245,11 +230,12 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
             //if (vprop.UseCodeRenderer != null)
             //    ElemAttr("data-use-renderer", vprop.UseCodeRenderer);
 
-            oO("></MemoEdit>");
-            /*
-                <textarea class="form-control form-control" cols="20" data-val="true" data-val-length="Das Feld &quot;Notizen&quot; muss eine Zeichenfolge mit einer maximalen Länge von 4096 sein." data-val-length-max="4096" id="Notes" name="Notes" rows="6" spellcheck="false">
-                </textarea>
-            */
+            oO(">");
+            if (vprop.IsEditable)
+            {
+                OValidationError();
+            }
+            O("</MemoEdit>");
         }
         else
         {
@@ -258,22 +244,41 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
                 Attr("Role", role);
 
             Oo($@"<TextEdit");
-            oBindValue(context);
+            oBindText(context);
             oAttrs();
             OHtmlRequiredttrs(context, dprop);
 
-            // Postal code
-            if (dprop.Type.AnnotationDataType == DataType.PostalCode)
+            if (vprop.IsEditable)
             {
-                o(@" data-val-length-min='5' data-val-length-max='5' data-val-length='Die Postleitzahl muss fünfstellig sein.'");
-                o(@" data-val-regex='Die Postleitzahl muss eine fünfstellige Zahl sein.' data-val-regex-pattern='^\d{5}$'");
+                // TODO: Postal code
+                if (dprop.Type.AnnotationDataType == DataType.PostalCode)
+                {
+                    //o(@" data-val-length-min='5' data-val-length-max='5' data-val-length='Die Postleitzahl muss fünfstellig sein.'");
+                    //o(@" data-val-regex='Die Postleitzahl muss eine fünfstellige Zahl sein.' data-val-regex-pattern='^\d{5}$'");
+                }
+                else
+                {
+                    // Min/max length
+                    oLengthValidationAttrs(context);
+                }
             }
-            // Min/max length
-            else
-                oLengthValidationAttrs(context);
 
-            oO("/>");
+            oO(">");
+            if (vprop.IsEditable)
+            {
+                OValidationError();
+            }
+            O("</TextEdit>");
         }
+    }
+
+    void OValidationError()
+    {
+        Push();
+        O("<Feedback>");
+        O("    <ValidationError />");
+        O("</Feedback>");
+        Pop();
     }
 
     void ONumericInput(WebViewGenContext context)
@@ -284,12 +289,26 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
 
         Attr("TValue", vprop.Type.Name);
 
-        ORazorTODO("Number");
+        var min = dprop.Rules.Min ?? vprop.Rules.Min;
+        if (min != null)
+        {
+            Attr("Min", min);
+        }
+        var max = dprop.Rules.Max ?? vprop.Rules.Max;
+        if (max != null)
+        {
+            Attr("Max", max);
+        }
 
         Oo($"<NumericEdit");
-        oBindValue(context, ppath);
+        oBindValue(context);
         oAttrs();
-        oO("/>");
+        oO(">");
+        if (vprop.IsEditable)
+        {
+            OValidationError();
+        }
+        O($"</NumericEdit>");
     }
 
     void ODateTimePicker(WebViewGenContext context)
@@ -299,7 +318,7 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
 
         var time = vprop.DisplayDateTime ?? dprop.Type.DateTimeInfo;
 
-        Attr("data-display-name", vprop.DisplayLabel);
+        // TODO: REMOVE? Attr("data-display-name", vprop.DisplayLabel);
 
         //string role;
         //if (time.IsDateAndTime)
@@ -314,7 +333,7 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
 
         if (time.IsDateAndTime)
         {
-            ODateTimePickerCore(context, "DatePicker");
+            ODateTimePickerCore(context, "DatePicker", consumeAttrs: false);
             ODateTimePickerCore(context, "TimePicker");
         }
         else if (time.IsDate)
@@ -323,14 +342,20 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
             ODateTimePickerCore(context, "TimePicker");
     }
 
-    void ODateTimePickerCore(WebViewGenContext context, string component)
+    void ODateTimePickerCore(WebViewGenContext context, string component, bool consumeAttrs = true)
     {
         Oo($"<{component}");
-        oBindValue(context, context.PropInfo.PropPath);
-        oAttrs();
-        oO("/>");
+        oBindValue(context);
+        oAttrs(consume: consumeAttrs);
+        oO(">");
+        if (context.PropInfo.ViewProp.IsEditable)
+        {
+            OValidationError();
+        }
+        O($"</{component}>");
     }
 
+    // TODO:
     //void OKendoTimeSpanEditor(WebViewGenContext context)
     //{
     //    var vprop = context.PropInfo.ViewProp;
@@ -346,28 +371,116 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
     //    OInvalidPropPlaceholder(ppath + ".Minutes");
     //}
 
+    readonly List<MojViewPropInfo> _codeProps = new();
+
     public bool OPropSelector(WebViewGenContext context)
     {
-        if (!context.PropInfo.ViewProp.IsSelector && !context.PropInfo.ViewProp.Lookup.Is)
+        if (!context.PropInfo.ViewProp.IsSelector)
         {
             return false;
         }
 
-        ORazorTODO("Selectors + lookups");
+        var wasGenerated =
+            context.PropInfo.ViewProp.IsSelector &&
+           //    OPropTagsSelector(context) ||
+           //    OPropSnippetsEditor(context) ||
+           //    OPropSequenceSelector(context) ||
+           OPropLookupSelectorView(context)
+        //    OPropGeoPlaceLookupSelectorDialog(context) ||
+        //    OPropDropDownSelector(context)
+        ;
+
+        if (!wasGenerated)
+        {
+            ORazorTODO("Selectors + lookups");
+        }
+
 
         return true;
-        //return
-        //    OPropTagsSelector(context) ||
-        //    OPropSnippetsEditor(context) ||
-        //    OPropSequenceSelector(context) ||
-        //    OPropLookupSelectorDialog(context) ||
-        //    OPropGeoPlaceLookupSelectorDialog(context) ||
-        //    OPropDropDownSelector(context);
     }
 
-    void oBindValue(WebViewGenContext context, string binding = null)
+    bool OPropLookupSelectorView(WebViewGenContext context)
     {
-        o($@" @bind-Value={GetBinding(context)}");
+        var type = context.View.TypeConfig;
+        var info = context.PropInfo;
+        var vprop = info.ViewProp;
+        var prop = info.Prop;
+        var propPath = info.PropPath;
+
+        if (!vprop.IsSelector) return false;
+        if (!vprop.Lookup.Is) return false;
+
+        if (!prop.Reference.IsToOne)
+            throw new MojenException($"Unsupported reference multiplicity '{prop.Reference.Multiplicity}'.");
+
+        if (!prop.Reference.Binding.HasFlag(MojReferenceBinding.Loose))
+            throw new MojenException($"Unsupported reference binding '{prop.Reference.Binding}'.");
+
+        // Lookup dialog
+        var lookupView = vprop.LookupDialog;
+        var lookupViewFieldName = "_" + BuildLookupViewName(lookupView).FirstLetterToLower();
+        var lookupComponentName = BuildLookupViewComponentName(lookupView);
+
+        OButton("Open" + lookupView.Alias, text: "Select");
+
+        O($"<{lookupComponentName} @ref={lookupViewFieldName} />");
+
+        _codeProps.Add(context.PropInfo);
+
+        return true;
+    }
+
+    bool OPropLookupSelectorCode(MojViewPropInfo codeProp)
+    {
+        if (!codeProp.ViewProp.Lookup.Is)
+            return false;
+
+        var vprop = codeProp.ViewProp;
+        var prop = codeProp.Prop;
+        var propPath = codeProp.PropPath;
+
+        var lookupView = vprop.LookupDialog;
+        var lookupViewName = BuildLookupViewName(lookupView);
+        var lookupViewFieldName = "_" + lookupViewName.FirstLetterToLower();
+        var lookupComponentName = BuildLookupViewComponentName(lookupView);
+
+        O();
+        O($"{lookupComponentName}? {lookupViewFieldName};");
+
+        O();
+        O($"Task Open{lookupViewName}()");
+        Begin();
+        O($"return {lookupViewFieldName}.Show(); ");
+        End();
+
+        return true;
+    }
+
+    void OButton(string onclick, string text)
+    {
+        O($"<button class='btn btn-secondary' type='button' @onclick={onclick} @onclick:stopPropagation>{text}</button>");
+    }
+
+    void oBindValue(WebViewGenContext context)
+    {
+        oBindCore(context, "Value");
+    }
+
+    void oBindText(WebViewGenContext context)
+    {
+        oBindCore(context, "Text");
+    }
+
+    void oBindCore(WebViewGenContext context, string propName)
+    {
+        if (context.PropInfo.ViewProp.IsEditable)
+        {
+            o($@" @bind-{propName}={GetBinding(context)}");
+        }
+        else
+        {
+            o($@" {propName}=@{GetBinding(context)}");
+        }
     }
 
     void OHtmlRequiredttrs(WebViewGenContext context, MojProp prop)
@@ -384,6 +497,9 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
     void oLengthValidationAttrs(WebViewGenContext context)
 #pragma warning restore IDE1006 // Naming Styles
     {
+        // TODO: IMPL?
+        return;
+
         var vprop = context.PropInfo.ViewProp;
         var dprop = context.PropInfo.Prop;
         var ppath = context.PropInfo.PropPath;

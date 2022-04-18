@@ -43,8 +43,6 @@ public abstract class BlazoriseFormGen : BlazoriseViewGen
     public Action<WebViewGenContext> OBlockBegin { get; set; } = context => { };
     public Action<WebViewGenContext> OBlockEnd { get; set; } = context => { };
 
-    public Action<WebViewGenContext> OPropRunBegin { get; set; } = context => { };
-
     public string LabelContainerClass { get; set; } = "col-sm-3 col-xs-12";
 
     public Action<WebViewGenContext> OLabelContainerBegin { get; set; } = context => { };
@@ -123,8 +121,6 @@ public abstract class BlazoriseFormGen : BlazoriseViewGen
     { }
 
     public Action<WebViewGenContext> OPropContainerEnd { get; set; } = context => { };
-
-    public Action<WebViewGenContext> OPropRunEnd { get; set; } = context => { };
 
     public virtual void EndView(WebViewGenContext context)
     { }
@@ -318,22 +314,27 @@ public abstract class BlazoriseFormGen : BlazoriseViewGen
         get { return CurrentRun.Where(x => x.Directive != "label" && x.Prop != null); }
     }
 
-    public virtual bool ORunBegin(WebViewGenContext context)
+    public void ORunBegin(WebViewGenContext context)
     {
-        return !IsRunSingleCustomView(context);
+        if (IsRunSingleCustomView(context))
+        {
+            return;
+        }
+
+        Oo("<Field");
+        if (context.Run.Count(x => x.Directive == "append" && x.Prop != null) > 1)
+        {
+            o(" Class='app-horizontal-form-run'");
+        }
+        oO(">");
+        Push();
     }
 
     void ORunCore(WebViewGenContext context, List<ViewTemplateItem> run)
     {
         CurrentRun = run;
         ViewTemplateItem label = null;
-        bool isPropRun = run.Any(x => x.Prop != null);
         bool isPropRunStarted = false;
-
-        if (isPropRun)
-        {
-            OPropRunBegin(context);
-        }
 
         foreach (var cur in run)
         {
@@ -429,16 +430,17 @@ public abstract class BlazoriseFormGen : BlazoriseViewGen
             Attributes.Clear();
             OPropContainerEnd(null);
         }
-
-        if (isPropRun)
-        {
-            OPropRunEnd(context);
-        }
     }
 
-    public virtual bool ORunEnd(WebViewGenContext context)
+    public void ORunEnd(WebViewGenContext context)
     {
-        return !IsRunSingleCustomView(context);
+        if (IsRunSingleCustomView(context))
+        {
+            return;
+        }
+
+        Pop();
+        O("</Field>");
     }
 
     public bool IsRunSingleCustomView(WebViewGenContext context)

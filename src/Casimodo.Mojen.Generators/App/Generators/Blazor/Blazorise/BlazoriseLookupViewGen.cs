@@ -30,9 +30,9 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
             throw new MojenException($"No prop defined for lookup view of type '{view.TypeConfig.Name}'.");
         }
 
-        O("@if (items == null) return;");
+        O("@if (!CanShow()) return;");
         O();
-        OTag("Modal", () =>
+        OTag("Modal", "@ref=modalRef", () =>
         {
             OTag("ModalHeader", () =>
             {
@@ -44,17 +44,12 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
             {
                 OTag("ModalBody", () =>
                 {
-                    O("@if (items != null)");
-                    Begin();
-
                     // TODO: Use a grid and display all props as columns.
                     ORazorTODO("Use a grid instead. This is just temporary stuff.");
                     OTag($"ListView",
                         $"TItem={view.TypeConfig.ClassName}",
                         $"Data=@items TextField=\"(item) => item.{vprop.Name}\"",
                         "Mode = \"ListGroupMode.Selectable\"");
-
-                    End();
                 });
             });
 
@@ -89,21 +84,39 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
 
             O();
             O("Modal modalRef = default!;");
+            O("bool isVisible;");
 
-            O();
-            O("protected override async Task OnInitializedAsync()");
+            //O();
+            //O("protected override async Task OnInitializedAsync()");
+            //Begin();          
+            //End();
+
+            O("protected override async Task OnAfterRenderAsync(bool firstRender)");
             Begin();
 
+            O("if (CanShow() && modalRef?.Visible == false)");
+            Begin();
+            O("await modalRef.Show();");
+            End();
+
+            End();
+
+            O("bool CanShow() => isVisible && items != null;");
+
+            O();
+            O("public async Task Show()");
+            Begin();
             if (hasLookupDataService)
             {
                 var lookupMethodName = BlazorLookupDataService.BuildLookupMethodName(view);
                 O($"items = (await LookupDataService.{lookupMethodName}()).ToList();");
+                O("isVisible = true;");
+                OStateHasChanged();
             }
             else
             {
                 OTODO("No lookup data service defined.");
             }
-
             End();
 
             O();
@@ -121,43 +134,12 @@ public class BlazoriseLookupViewGen : BlazoriseViewGen
             O();
             O("void Close()");
             Begin();
+            O("isVisible = false;");
             O("modalRef.Hide();");
+            O("items = null;");
+            OStateHasChanged();
             End();
         });
-
-        /*
-         
-<ListView TItem="Country"
-    Data="Countries"
-    TextField="(item) => item.Name"
-    Mode="ListGroupMode.Static"
-    MaxHeight="300px">
-</ListView>
-          
-         
-<Modal @ref="modalRef">
-    <ModalContent Centered>
-        <ModalHeader>
-            <ModalTitle>Employee edit</ModalTitle>
-            <CloseButton />
-        </ModalHeader>
-        <ModalBody>
-            <Field>
-                <FieldLabel>Name</FieldLabel>
-                <TextEdit Placeholder="Enter name..." />
-            </Field>
-            <Field>
-                <FieldLabel>Surname</FieldLabel>
-                <TextEdit Placeholder="Enter surname..." />
-            </Field>
-        </ModalBody>
-        <ModalFooter>
-            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
-            <Button Color="Color.Primary" Clicked="@HideModal">Save Changes</Button>
-        </ModalFooter>
-    </ModalContent>
-</Modal>
-        */
     }
 }
 

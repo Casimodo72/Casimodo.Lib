@@ -8,6 +8,18 @@
 
     public class WebViewGenContext
     {
+        readonly Dictionary<string, object> _properties = new();
+
+        public void SetProperty(string name, object value)
+        {
+            _properties[name] = value;
+        }
+
+        public T GetProperty<T>(string name)
+        {
+            return (T)_properties[name];
+        }
+
         public string UINamespace { get; set; }
 
         public string ComponentId { get; set; }

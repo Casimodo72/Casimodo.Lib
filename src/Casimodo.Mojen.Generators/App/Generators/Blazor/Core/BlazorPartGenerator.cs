@@ -34,6 +34,11 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Core
             O("}");
         }
 
+        public void OStateHasChanged()
+        {
+            O("StateHasChanged();");
+        }
+
         public void Write(MojViewConfig view, Action action)
         {
             if (action == null) throw new ArgumentNullException(nameof(action));
@@ -66,14 +71,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Core
 
             if (name == null)
             {
-                if (null != (view.FileName ?? view.Alias ?? view.Name))
-                {
-                    name = view.FileName ?? view.Alias ?? view.Name;
-                }
-                else
-                {
-                    name = view.TypeConfig.Name + view.MainRoleName;
-                }
+                name = BuildLookupViewName(view);
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -89,6 +87,23 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Core
                 : name;
 
             return pathOrName;
+        }
+
+        public string BuildLookupViewName(MojViewConfig view)
+        {
+            if (null != (view.FileName ?? view.Alias ?? view.Name))
+            {
+                return view.FileName ?? view.Alias ?? view.Name;
+            }
+            else
+            {
+                return view.TypeConfig.Name + view.MainRoleName;
+            }
+        }
+
+        public string BuildLookupViewComponentName(MojViewConfig view)
+        {
+            return BuildLookupViewName(view) + "_gen";
         }
 
         public string GetViewDirPath(MojViewConfig view)

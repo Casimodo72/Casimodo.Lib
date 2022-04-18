@@ -13,31 +13,28 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
             return !string.IsNullOrWhiteSpace(DataViewModelAccessor) ? $"{DataViewModelAccessor}." : "";
         }
 
+        // TODO: REMOVE?
         public string GetBinding(MojViewProp vprop)
         {
-            string path = vprop.FormedTargetPath.ToString();
-
-            if (path == null)
-                throw new MojenException($"Failed to build property binding path for view prop.");
-
-            return $"{GetBindingRootPath()}{path}";
+            return BuildBinding(vprop.FormedTargetPath.ToString());
         }
 
         public string GetBinding(MojFormedType propTypePath, bool alias = false)
         {
-            string path = alias ? propTypePath.FormedNavigationFrom.TargetAliasPath : propTypePath.FormedNavigationFrom.TargetPath;
-
-            if (path == null)
-                throw new MojenException($"Failed to build property binding path for formed type path.");
-
-            return $"{GetBindingRootPath()}{path}";
+            return BuildBinding(alias ? propTypePath.FormedNavigationFrom.TargetAliasPath : propTypePath.FormedNavigationFrom.TargetPath);
         }
 
         public string GetBinding(WebViewGenContext context, bool alias = false)
         {
-            string path = alias ? context.PropInfo.PropAliasPath : context.PropInfo.PropPath;
-            if (path == null)
+            return BuildBinding(alias ? context.PropInfo.PropAliasPath : context.PropInfo.PropPath);
+        }
+
+        string BuildBinding(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
                 throw new MojenException($"Failed to build property binding path.");
+
+            path = path.Replace(".", "?.");
 
             return $"{GetBindingRootPath()}{path}";
         }
@@ -54,7 +51,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
             Attributes.Add(XA(name, value));
         }
 
-        public string GetAttrs(string? target = null)
+        public string GetAttrs(string? target = null, bool consume = true)
         {
             string result = "";
             var attrs = GetAttrsByTarget(target);
@@ -65,7 +62,8 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
                     .Join(" ");
             }
 
-            ClearAttrs(target);
+            if (consume)
+                ClearAttrs(target);
 
             return result;
         }
@@ -128,10 +126,10 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
         }
 
 #pragma warning disable IDE1006 // Naming Styles
-        public void oAttrs(string? target = null)
+        public void oAttrs(string? target = null, bool consume = true)
 
         {
-            var result = GetAttrs(target);
+            var result = GetAttrs(target, consume);
             if (result != null)
             {
                 o(result);
@@ -169,6 +167,6 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
 
 
             return props.ToArray();
-        }
+        }      
     }
 }
