@@ -16,18 +16,21 @@ namespace Casimodo.Mojen
             public int Compare(MojType x, MojType y)
             {
                 if (x.BaseClass?.Name == y.BaseClass?.Name)
-                    return 0;
-
-                var t = x.BaseClass;
-                while (t != null)
                 {
-                    if (t.Name == y.Name)
-                        return 1;
-
-                    t = t.BaseClass;
+                    var comp = x.Name.CompareTo(y.Name);
+                    return comp;
                 }
 
-                return -1;
+                var baseClass = x.BaseClass;
+                while (baseClass != null)
+                {
+                    if (baseClass.Name == y.Name)
+                        return 1;
+
+                    baseClass = baseClass.BaseClass;
+                }
+
+                return x.Name.CompareTo(y.Name);
             }
         }
 
