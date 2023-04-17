@@ -613,8 +613,8 @@ namespace Casimodo.Lib.Data
 
             if (ctx == null)
                 ctx = Core().CreateOperationContext(entity, DbRepoOp.Delete, Context);
-            else if (ctx.Item == null)
-                ctx.Item = entity;
+            else
+                ctx.Item ??= entity;
 
             if (isPhysicalDeletionAuthorized != null)
                 ctx.IsPhysicalDeletionAuthorized = isPhysicalDeletionAuthorized.Value;

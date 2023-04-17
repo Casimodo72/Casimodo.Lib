@@ -43,7 +43,7 @@ namespace Casimodo.Lib.Templates
             CurTemplateElement = null;
         }
 
-        protected List<XmlTemplateElement> GetTemplateElements(XElement template)
+        protected static List<XmlTemplateElement> GetTemplateElements(XElement template)
         {
             var items = new List<XmlTemplateElement>();
 

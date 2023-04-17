@@ -47,7 +47,7 @@ namespace Casimodo.Lib.Templates
             return context;
         }
 
-        public AstNode ParseExpression(TemplateCoreContext coreContext, TemplateExpression element)
+        public static AstNode ParseExpression(TemplateCoreContext coreContext, TemplateExpression element)
         {
             return coreContext.GetExpressionParser().ParseTemplateExpression(coreContext.Data, element.Expression, element.Kind);
         }
@@ -198,7 +198,7 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        IEnumerable<object> ToEnumerable(object value)
+        static IEnumerable<object> ToEnumerable(object value)
         {
             if (value is IEnumerable enumerable && !(value is string))
                 return enumerable.Cast<object>();

@@ -239,7 +239,7 @@ namespace Casimodo.Lib.Templates
             Functions.Add(func);
         }
 
-        void CheckName(string name)
+        static void CheckName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Empty instruction name.");
@@ -247,7 +247,7 @@ namespace Casimodo.Lib.Templates
                 throw new ArgumentException("The instruction name must not contain any dot characters.");
         }
 
-        public void CheckComplexSourceType(Type type)
+        public static void CheckComplexSourceType(Type type)
         {
             if (TypeHelper.IsSimple(type))
                 throw new TemplateException(

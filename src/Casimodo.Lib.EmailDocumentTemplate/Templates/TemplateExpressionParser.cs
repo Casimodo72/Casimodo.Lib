@@ -156,7 +156,7 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        string BuildCSharpScriptPhaseOne(string className, TemplateDataContainer data, string expression)
+        static string BuildCSharpScriptPhaseOne(string className, TemplateDataContainer data, string expression)
         {
             var sb = new StringBuilder();
             sb.o(@"public class " + className + @" { ");
@@ -208,7 +208,7 @@ namespace Casimodo.Lib.Templates
             ".", "(", ")", "=", "!", "\""
         };
 
-        bool IsSpecialToken(string token)
+        static bool IsSpecialToken(string token)
         {
             return _anySpecialTokens.Contains(token);
         }
@@ -234,8 +234,7 @@ namespace Casimodo.Lib.Templates
                 {
                     // Handle custom instructions (or overrides of declared properties) first.
                     node = ParseCustomInstruction(token);
-                    if (node == null)
-                        node = ParseProp(token);
+                    node ??= ParseProp(token);
                 }
 
                 if (node != null)
@@ -260,7 +259,7 @@ namespace Casimodo.Lib.Templates
             _curPos = 0;
         }
 
-        InstructionAstNode CreateInstructionNode()
+        static InstructionAstNode CreateInstructionNode()
         {
             return new InstructionAstNode();
         }

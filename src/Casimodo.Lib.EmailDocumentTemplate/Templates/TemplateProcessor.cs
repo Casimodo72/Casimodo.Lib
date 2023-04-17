@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Templates
 
             foreach (var scheme in UriSchemes)
                 if (uri.StartsWith(scheme))
-                    return uri.Substring(scheme.Length);
+                    return uri[scheme.Length..];
 
             return uri;
         }
@@ -135,8 +135,7 @@ namespace Casimodo.Lib.Templates
         TemplateExpressionProcessor _pathProcessor;
         public TemplateExpressionProcessor GetExpressionProcessor()
         {
-            if (_pathProcessor == null)
-                _pathProcessor = new TemplateExpressionProcessor();
+            _pathProcessor ??= new TemplateExpressionProcessor();
 
             return _pathProcessor;
         }
@@ -204,7 +203,7 @@ namespace Casimodo.Lib.Templates
             SetText(value.ToZonedString(format));
         }
 
-        public bool IsEmpty(string value)
+        public static bool IsEmpty(string value)
         {
             return string.IsNullOrWhiteSpace(value);
         }
@@ -232,22 +231,23 @@ namespace Casimodo.Lib.Templates
                 SetText(text);
         }
 
+        // TODO: Currently disabled
+#if false
         public string GetDataUriFromEmbeddedPng(string name)
         {
             return TemplateUtils.ToDataUri("image/png", GetEmbeddedResource(name));
         }
 
-        public byte[] GetEmbeddedResource(string name)
+        byte[] GetEmbeddedResource(string name)
         {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Ga.Web.Services.Assets." + name))
-            using (var ms = new System.IO.MemoryStream())
-            {
-                stream.CopyTo(ms);
-                return ms.ToArray();
-            }
-        }        
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Ga.Web.Services.Assets." + name);
+            using var ms = new System.IO.MemoryStream();
+            stream.CopyTo(ms);
+            return ms.ToArray();
+        }  
+#endif
 
-        protected void ThrowUnhandledTemplateExpression(string expression)
+        protected static void ThrowUnhandledTemplateExpression(string expression)
         {
             throw new TemplateException($"Unhandled template element. Expression '{expression}'.");
         }

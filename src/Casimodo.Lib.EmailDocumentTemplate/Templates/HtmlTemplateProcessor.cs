@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Templates
             public const string ValueTemplateRef = "value-template-id";
         }
 
-        IFileProvider _fileProvider;
+        readonly IFileProvider _fileProvider;
 
         public HtmlTemplateProcessor(IFileProvider fileProvider)
         {
@@ -125,7 +125,7 @@ namespace Casimodo.Lib.Templates
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
-        readonly List<AngleSharp.Dom.IElement> _processedElements = new List<AngleSharp.Dom.IElement>();
+        readonly List<AngleSharp.Dom.IElement> _processedElements = new();
 
         async Task ProcessTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> visitor)
         {
@@ -350,8 +350,7 @@ namespace Casimodo.Lib.Templates
             await BuildStylesheets();
 
             // Page template
-            if (PageTemplateHtml == null)
-                PageTemplateHtml = await CreatePageTemplate();
+            PageTemplateHtml ??= await CreatePageTemplate();
         }
 
         protected async Task<string> LoadTemplatePart(string virtualFilePath)
@@ -392,7 +391,7 @@ namespace Casimodo.Lib.Templates
             return template;
         }
 
-        async Task<HtmlTemplate> ParseHtmlTemplate(string htmlFragment)
+        static async Task<HtmlTemplate> ParseHtmlTemplate(string htmlFragment)
         {
             var document = await BrowsingContext.New().OpenNewAsync();
             document.Body.InnerHtml = htmlFragment;
@@ -407,9 +406,9 @@ namespace Casimodo.Lib.Templates
                 throw new InvalidOperationException("PageTemplate not assigned.");
 
             return await CreateHtmlTemplate(PageTemplateHtml);
-        }     
+        }
 
-        void RemoveWhitespace(IEnumerable<INode> nodes)
+        static void RemoveWhitespace(IEnumerable<INode> nodes)
         {
             foreach (INode node in nodes.Where(x => x.NodeType == NodeType.Text).ToArray())
             {
@@ -462,8 +461,7 @@ namespace Casimodo.Lib.Templates
 
         protected async Task<HtmlTemplate> NewImagePage()
         {
-            if (ImagePageTemplateHtml == null)
-                ImagePageTemplateHtml = DefaultImagePageTemplate;
+            ImagePageTemplateHtml ??= DefaultImagePageTemplate;
 
             // TODO: Eval if we should cache the template DOM.
             return await ParseHtmlTemplate(ImagePageTemplateHtml);
@@ -512,7 +510,7 @@ namespace Casimodo.Lib.Templates
             return sb.ToString();
         }
 
-        IEnumerable<HtmlInlineTemplate> BuildTopLevelInlineTemplates(IEnumerable<AngleSharp.Dom.IElement> elements)
+        static IEnumerable<HtmlInlineTemplate> BuildTopLevelInlineTemplates(IEnumerable<AngleSharp.Dom.IElement> elements)
         {
             // Return top level template elements.
             var items = elements
@@ -537,12 +535,12 @@ namespace Casimodo.Lib.Templates
             return items;
         }
 
-        bool HasAttr(AngleSharp.Dom.IElement elem, string attrName)
+        static bool HasAttr(AngleSharp.Dom.IElement elem, string attrName)
         {
             return elem.HasAttribute(attrName);
         }
 
-        string Attr(AngleSharp.Dom.IElement elem, string attrName)
+        static string Attr(AngleSharp.Dom.IElement elem, string attrName)
         {
             return elem.GetAttribute(attrName);
         }
@@ -598,7 +596,7 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        HtmlTemplateElement CreateTemplateElement(AngleSharp.Dom.IElement node, AngleSharp.Dom.IAttr attr)
+        static HtmlTemplateElement CreateTemplateElement(AngleSharp.Dom.IElement node, AngleSharp.Dom.IAttr attr)
         {
             var elem = TemplateNodeFactory.Create<HtmlTemplateElement>(attr.Value);
             elem.Elem = CleanupAttributes(node);
@@ -713,8 +711,8 @@ namespace Casimodo.Lib.Templates
                     if (obj is AngleSharp.Dom.IAttr)
                         continue;
 
-                    if (obj is string)
-                        elem.AppendChild(CreateTextNode((string)obj));
+                    if (obj is string text)
+                        elem.AppendChild(CreateTextNode(text));
                     else
                         elem.AppendChild((AngleSharp.Dom.IElement)obj);
                 }
@@ -731,7 +729,7 @@ namespace Casimodo.Lib.Templates
             return attr;
         }
 
-        protected string ShrinkDecimal(decimal? value)
+        protected static string ShrinkDecimal(decimal? value)
         {
             if (value == null)
                 return "";
@@ -741,19 +739,19 @@ namespace Casimodo.Lib.Templates
 
             var text = value.ToString();
             var sep = System.Threading.Thread.CurrentThread.CurrentUICulture.NumberFormat.NumberDecimalSeparator[0];
-            while (text[text.Length - 1] == '0' || text[text.Length - 1] == sep)
-                text = text.Substring(0, text.Length - 1);
+            while (text[^1] == '0' || text[^1] == sep)
+                text = text[..^1];
 
             return text;
         }
 
-        protected AngleSharp.Dom.IElement CleanupAttributes(AngleSharp.Dom.IElement elem)
+        protected static AngleSharp.Dom.IElement CleanupAttributes(AngleSharp.Dom.IElement elem)
         {
             // TODO: Do we really need to remove "id"?
             elem.RemoveAttribute("id");
 
             foreach (var attr in elem.Attributes.ToArray())
-                if (attr.LocalName.Contains("-"))
+                if (attr.LocalName.Contains('-'))
                     elem.RemoveAttribute(attr.NamespaceUri, attr.LocalName);
 
             return elem;
