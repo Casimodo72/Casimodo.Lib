@@ -119,6 +119,12 @@ namespace Casimodo.Lib.Templates
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
+        public async Task AddAndProcessPage(HtmlTemplate page)
+        {
+            CurrentTemplate = AddPage(page);
+            await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
+        }
+
         readonly List<AngleSharp.Dom.IElement> _processedElements = new List<AngleSharp.Dom.IElement>();
 
         async Task ProcessTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> visitor)
@@ -374,6 +380,18 @@ namespace Casimodo.Lib.Templates
             return string.IsNullOrWhiteSpace(template) ? null : template;
         }
 
+        protected async Task<HtmlTemplate> CreateHtmlTemplate(string htmlFragment)
+        {
+            var template = await ParseHtmlTemplate(htmlFragment);
+
+            RemoveWhitespace(template.Doc.Body.GetDescendants());
+
+            template.InlineTemplates = BuildTopLevelInlineTemplates(template.Elements).ToList();
+            Expand(template);
+
+            return template;
+        }
+
         async Task<HtmlTemplate> ParseHtmlTemplate(string htmlFragment)
         {
             var document = await BrowsingContext.New().OpenNewAsync();
@@ -388,16 +406,8 @@ namespace Casimodo.Lib.Templates
             if (PageTemplateHtml == null)
                 throw new InvalidOperationException("PageTemplate not assigned.");
 
-            var template = await ParseHtmlTemplate(PageTemplateHtml);
-
-            RemoveWhitespace(template.Doc.Body.GetDescendants());
-
-            template.InlineTemplates = BuildTopLevelInlineTemplates(template.Elements).ToList();
-            Expand(template);
-
-
-            return template;
-        }
+            return await CreateHtmlTemplate(PageTemplateHtml);
+        }     
 
         void RemoveWhitespace(IEnumerable<INode> nodes)
         {

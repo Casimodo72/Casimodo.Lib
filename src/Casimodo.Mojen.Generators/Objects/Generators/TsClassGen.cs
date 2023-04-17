@@ -13,24 +13,21 @@ namespace Casimodo.Mojen
 
         class MyTypeHierarchyComparer : IComparer<MojType>
         {
-            public int Compare(MojType x, MojType y)
-            {
-                if (x.BaseClass?.Name == y.BaseClass?.Name)
-                {
-                    var comp = x.Name.CompareTo(y.Name);
-                    return comp;
-                }
+            public int Compare(MojType x, MojType y) => GetClassPath(x).CompareTo(GetClassPath(y));
 
+            static string GetClassPath(MojType x)
+            {
+                var classPath = "";
                 var baseClass = x.BaseClass;
                 while (baseClass != null)
                 {
-                    if (baseClass.Name == y.Name)
-                        return 1;
-
+                    classPath += $"{baseClass.Name}.";
                     baseClass = baseClass.BaseClass;
                 }
 
-                return x.Name.CompareTo(y.Name);
+                classPath += x.Name;
+
+                return classPath;
             }
         }
 
