@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#nullable enable
 
 namespace Casimodo.Lib
 {
@@ -51,12 +52,12 @@ namespace Casimodo.Lib
         /// <summary>
         /// NOTE: Returns an empty string if source is empty.
         /// </summary>
-        public static string Join(this IEnumerable<string> source, string separator)
+        public static string? Join(this IEnumerable<string> source, string separator)
         {
             return JoinToString(source, separator);
         }
 
-        public static string SafeTrim(this string value)
+        public static string? SafeTrim(this string? value)
         {
             if (value == null) return null;
             return value.Trim();
@@ -65,16 +66,16 @@ namespace Casimodo.Lib
         /// <summary>
         /// NOTE: Returns an empty string if source is empty.
         /// </summary>
-        public static string JoinToString<TSource>(this IEnumerable<TSource> source, string separator, Func<TSource, string> transform = null, bool trim = false)
+        public static string JoinToString<TSource>(this IEnumerable<TSource?> source, string separator, Func<TSource?, string>? transform = null, bool trim = false)
         {
             if (source == null || !source.Any())
-                return null;
+                return "";
 
             if (transform == null)
-                transform = (x) => x.ToString();
+                transform = (x) => x?.ToString() ?? "";
 
             var sb = new StringBuilder();
-            string value;
+            string? value;
             foreach (var item in source)
             {
                 if (item == null)
@@ -84,7 +85,7 @@ namespace Casimodo.Lib
                 {
                     value = item as string;
 
-                    if (trim)
+                    if (trim && value != null)
                         value = value.Trim();
 
                     if (string.IsNullOrWhiteSpace(value))

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#nullable enable
 
 namespace Casimodo.Lib
 {
@@ -50,9 +51,9 @@ namespace Casimodo.Lib
                     if ((upper && char.IsUpper(ch)) || (!upper && char.IsLower(ch)))
                         return text;
 
-                    return text.Substring(0, i) + 
-                        (upper 
-                            ? char.ToUpperInvariant(ch) 
+                    return text[..i] +
+                        (upper
+                            ? char.ToUpperInvariant(ch)
                             : char.ToLowerInvariant(ch)) + text[(i + 1)..];
                 }
             }
@@ -65,7 +66,7 @@ namespace Casimodo.Lib
             if (string.IsNullOrEmpty(value)) return value;
             if (length < 1) return "";
 
-            return value.Substring(0, Math.Min(value.Length, length));
+            return value[..Math.Min(value.Length, length)];
         }
 
         public static string CollapseWhitespace(this string text)
@@ -82,7 +83,7 @@ namespace Casimodo.Lib
                 if (char.IsWhiteSpace(ch))
                 {
                     if (!isInWhitespace)
-                        sb.Append(" ");
+                        sb.Append(' ');
                     isInWhitespace = true;
                 }
                 else
@@ -108,7 +109,7 @@ namespace Casimodo.Lib
         }
 #endif
 
-        public static string NullIfEmpty(this string text)
+        public static string? NullIfEmpty(this string? text)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return null;
@@ -119,6 +120,16 @@ namespace Casimodo.Lib
         public static bool ContainsAny(this IEnumerable<string> items, params string[] values)
         {
             return values.Any(x => items.Contains(x));
+        }
+
+        public static string JoinIgnoreWhiteSpace(this IEnumerable<string> values, string separator)
+        {
+            return values.JoinToString(separator);
+        }
+
+        public static string JoinIgnoreWhiteSpace(string separator, params string[] values)
+        {
+            return values.JoinToString(separator);
         }
     }
 
