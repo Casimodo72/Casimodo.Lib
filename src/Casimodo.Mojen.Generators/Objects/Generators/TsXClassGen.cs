@@ -107,11 +107,17 @@ namespace Casimodo.Mojen
             O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
         }
 
+        private bool HasDoc(MojProp prop)
+        {
+            return !(prop.Summary.Descriptions.Count == 0 &&
+                prop.Summary.Remarks.Count == 0 &&
+                !prop.IsKey &&
+                !prop.IsExcludedFromDb);
+        }
+
         public void OTsDoc(MojProp prop)
         {
-            if (prop.Summary.Descriptions.Count == 0 &&
-                prop.Summary.Remarks.Count == 0 &&
-                !prop.IsKey && !prop.IsExcludedFromDb)
+            if (!HasDoc(prop))
                 return;
 
             O("/**");
@@ -185,8 +191,12 @@ namespace Casimodo.Mojen
                 propertyInitializer: true,
                 constructor: () =>
                 {
-                    // TODO: Find a way to emit this only when used in the context of OData.
-                    O($@"(this as any)[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
+                    if (type.IsEntity() ||
+                        (type.IsComplex() && type.UsingGenerators.Any(x => x.Type == typeof(ODataConfigGen))))
+                    {
+                        // TODO: Find a way to emit this only when used in the context of OData.
+                        O($@"(this as any)[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
+                    }
                 },
                 content: () =>
                 {
@@ -207,9 +217,19 @@ namespace Casimodo.Mojen
                 if (prop == tenantKey)
                     // Don't expose tenant information.
                     continue;
+               
+                if (HasDoc(prop))
+                {
+                    if (Options.GenerateInterfaces == isInterface)
+                    {
+                        OTsDoc(prop);
+                    }
 
-                if (!isInterface)
-                    OTsDoc(prop);
+                    if (Options.GenerateInterfaces && !isInterface)
+                    {
+                        O("/** @inheritdoc */");
+                    }
+                }                
 
                 if (prop.Type.IsCollection)
                 {

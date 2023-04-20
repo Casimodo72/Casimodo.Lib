@@ -155,6 +155,15 @@
                 .Display("Anmerkungen");
         }
 
+        public MojComplexTypePropBuilder PropComments(MojComplexTypeBuilder builder)
+        {
+            // KABU TODO: Put length into settings.
+            return builder.Prop("Comments", 2048)
+                .Id("8eee2f85-65ce-4f04-ba38-499149a6057b")
+                .Multiline()
+                .Display("Anmerkungen");
+        }
+
         public MojEntityPropBuilder PropNotes(MojEntityBuilder builder)
         {
             // KABU TODO: Put length into settings.

@@ -11,7 +11,7 @@ namespace Casimodo.Mojen
 
         public WebDataLayerConfig WebConfig { get; set; }
 
-        class MyTypeHierarchyComparer : IComparer<MojType>
+        class MyTypeComparer : IComparer<MojType>
         {
             public int Compare(MojType x, MojType y) => GetClassPath(x).CompareTo(GetClassPath(y));
 
@@ -31,7 +31,7 @@ namespace Casimodo.Mojen
             }
         }
 
-        static readonly MyTypeHierarchyComparer HierarchyComparer = new();
+        static readonly MyTypeComparer TypeComparer = new();
 
         protected override void GenerateCore()
         {
@@ -43,7 +43,7 @@ namespace Casimodo.Mojen
             var items = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
                 .Where(x => !x.WasGenerated)
                 .Where(x => !x.IsTenant)
-                .OrderBy(x => x, HierarchyComparer)
+                .OrderBy(x => x, TypeComparer)
                 .ToArray();
 
             PerformWrite(Path.Combine(outputDirPath, "DataTypes.generated.ts"), () =>
