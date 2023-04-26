@@ -1,6 +1,5 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
-using AngleSharp.Html.Parser;
 using Casimodo.Lib.SimpleParser;
 using Microsoft.Extensions.FileProviders;
 using System;
@@ -13,40 +12,40 @@ namespace Casimodo.Lib.Templates
 {
     public class HtmlTemplateElement : TemplateElement
     {
-        public AngleSharp.Dom.IElement Elem { get; set; }
-        public AngleSharp.Dom.IAttr Attr { get; set; }
-
+        public IElement Elem { get; set; }
+        public IAttr Attr { get; set; }
     };
 
     public class HtmlTemplate
     {
-        public HtmlTemplate(AngleSharp.Dom.IDocument doc)
+        public HtmlTemplate(IDocument doc)
         {
             Guard.ArgNotNull(doc, nameof(doc));
 
             Doc = doc;
         }
-        public AngleSharp.Dom.IDocument Doc { get; set; }
+
+        public IDocument Doc { get; set; }
         public List<HtmlInlineTemplate> InlineTemplates { get; set; } = new List<HtmlInlineTemplate>();
 
-        public IEnumerable<AngleSharp.Dom.IElement> Elements
+        public IEnumerable<IElement> Elements
         {
-            get { return Doc?.Body?.Children ?? Enumerable.Empty<AngleSharp.Dom.IElement>(); }
+            get { return Doc?.Body?.Children ?? Enumerable.Empty<IElement>(); }
         }
     }
 
     public static class DomExtensions
     {
-        public static AngleSharp.Dom.IElement InsertElemAfter(
-            this AngleSharp.Dom.IElement parentElement,
-            AngleSharp.Dom.IElement newElement,
-            AngleSharp.Dom.IElement refereceElement)
+        public static IElement InsertElemAfter(
+            this IElement parentElement,
+            IElement newElement,
+            IElement refereceElement)
         {
-            return (AngleSharp.Dom.IElement)parentElement.InsertBefore(newElement, refereceElement.NextSibling);
+            return (IElement)parentElement.InsertBefore(newElement, refereceElement.NextSibling);
         }
 
         // Attributes.SetNamedItem(;
-        public static AngleSharp.Dom.IAttr GetOrSetAttr(this AngleSharp.Dom.IElement elem, string name)
+        public static IAttr GetOrSetAttr(this IElement elem, string name)
         {
             var attr = elem.Attributes.GetNamedItem(name);
             if (attr != null)
@@ -57,7 +56,7 @@ namespace Casimodo.Lib.Templates
             return elem.Attributes.SetNamedItem(attr);
         }
 
-        public static void RemoveAllChildren(this AngleSharp.Dom.IElement element)
+        public static void RemoveAllChildren(this IElement element)
         {
             while (element.FirstChild != null)
                 element.RemoveChild(element.FirstChild);
@@ -109,8 +108,8 @@ namespace Casimodo.Lib.Templates
 
         public new HtmlTemplateElement CurTemplateElement
         {
-            get { return (HtmlTemplateElement)base.CurTemplateElement; }
-            set { base.CurTemplateElement = value; }
+            get => (HtmlTemplateElement)base.CurTemplateElement;
+            set => base.CurTemplateElement = value;
         }
 
         public async Task ProcessNewPage()
@@ -125,9 +124,9 @@ namespace Casimodo.Lib.Templates
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
-        readonly List<AngleSharp.Dom.IElement> _processedElements = new();
+        readonly List<IElement> _processedElements = new();
 
-        async Task ProcessTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements, Func<Task> visitor)
+        async Task ProcessTemplateElements(IEnumerable<IElement> elements, Func<Task> visitor)
         {
             await WalkTemplateElements(elements, async (current) =>
             {
@@ -170,7 +169,7 @@ namespace Casimodo.Lib.Templates
                             item.IsLast = i == values.Length - 1;
 
                             // Operate on a clone of the original "foreach" element.
-                            var elemClone = (AngleSharp.Dom.IElement)originalElem.Clone();
+                            var elemClone = (IElement)originalElem.Clone();
 
                             await ProcessTemplateElements(elemClone.Children, visitor);
 
@@ -197,7 +196,7 @@ namespace Casimodo.Lib.Templates
                     if (await EvaluateCondition(current))
                     {
                         // Operate on a clone of the original "if" element.
-                        var elemClone = (AngleSharp.Dom.IElement)originalElem.Clone();
+                        var elemClone = (IElement)originalElem.Clone();
 
                         await ProcessTemplateElements(elemClone.Children, visitor);
 
@@ -428,7 +427,7 @@ namespace Casimodo.Lib.Templates
                 if (inlineTemplate == null)
                     throw new TemplateException($"Inline template '{inlineTemplateId}' not found.");
 
-                // Clone the DocumentFragment content of the template element.
+                // Clone the document fragment content of the template element.
                 var clone = (IDocumentFragment)inlineTemplate.TemplateElement.Content.Clone();
                 // Insert the fragment's child nodes.
                 elem.ParentElement.InsertBefore(clone, elem);
@@ -438,8 +437,8 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        protected IEnumerable<AngleSharp.Dom.IElement> GetHtmlElements(
-            IEnumerable<AngleSharp.Dom.IElement> elements,
+        protected IEnumerable<IElement> GetHtmlElements(
+            IEnumerable<IElement> elements,
             Func<IElement, bool> predicate = null)
         {
             foreach (var elem in elements.ToArray())
@@ -510,7 +509,7 @@ namespace Casimodo.Lib.Templates
             return sb.ToString();
         }
 
-        static IEnumerable<HtmlInlineTemplate> BuildTopLevelInlineTemplates(IEnumerable<AngleSharp.Dom.IElement> elements)
+        static IEnumerable<HtmlInlineTemplate> BuildTopLevelInlineTemplates(IEnumerable<IElement> elements)
         {
             // Return top level template elements.
             var items = elements
@@ -527,25 +526,23 @@ namespace Casimodo.Lib.Templates
                 // Remove from tree.
                 item.TemplateElement.Remove();
 
-                // Remove whitespace text nodes.
                 RemoveWhitespace(item.TemplateElement.Content.GetDescendants());
             }
-
 
             return items;
         }
 
-        static bool HasAttr(AngleSharp.Dom.IElement elem, string attrName)
+        static bool HasAttr(IElement elem, string attrName)
         {
             return elem.HasAttribute(attrName);
         }
 
-        static string Attr(AngleSharp.Dom.IElement elem, string attrName)
+        static string Attr(IElement elem, string attrName)
         {
             return elem.GetAttribute(attrName);
         }
 
-        protected async Task WalkTemplateElements(IEnumerable<AngleSharp.Dom.IElement> elements,
+        protected async Task WalkTemplateElements(IEnumerable<IElement> elements,
             Func<HtmlTemplateElement, Task<bool>> action)
         {
             foreach (var elem in elements.ToArray())
@@ -596,7 +593,7 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        static HtmlTemplateElement CreateTemplateElement(AngleSharp.Dom.IElement node, AngleSharp.Dom.IAttr attr)
+        static HtmlTemplateElement CreateTemplateElement(IElement node, IAttr attr)
         {
             var elem = TemplateNodeFactory.Create<HtmlTemplateElement>(attr.Value);
             elem.Elem = CleanupAttributes(node);
@@ -608,7 +605,7 @@ namespace Casimodo.Lib.Templates
             return elem;
         }
 
-        protected AngleSharp.Dom.IElement CurElem
+        protected IElement CurElem
         {
             get { return ((HtmlTemplateElement)CurTemplateElement).Elem; }
         }
@@ -618,7 +615,7 @@ namespace Casimodo.Lib.Templates
             AppendNode(CreateTextNode(value));
         }
 
-        AngleSharp.Dom.INode CreateTextNode(string value)
+        INode CreateTextNode(string value)
         {
             // KABU TODO: IMPORTANT: In HtmlAgilityPack we had to use HtmlEntity.Entitize
             //  Do we have to entitize in AngleSharp as well?
@@ -630,12 +627,12 @@ namespace Casimodo.Lib.Templates
             AppendElem("br");
         }
 
-        AngleSharp.Dom.IElement AppendElem(string name)
+        IElement AppendElem(string name)
         {
             return CurElem.AppendElement(CurElem.Owner.CreateElement(name));
         }
 
-        AngleSharp.Dom.INode AppendNode(AngleSharp.Dom.INode node)
+        INode AppendNode(INode node)
         {
             return CurElem.AppendChild(node);
         }
@@ -697,31 +694,31 @@ namespace Casimodo.Lib.Templates
             attr.Value = items.Select(x => $"{x.Name}:{x.Value}").Join(";");
         }
 
-        protected AngleSharp.Dom.IElement E(string name, params object[] content)
+        protected IElement E(string name, params object[] content)
         {
             var elem = CurrentTemplate.Doc.CreateElement(name);
 
             if (content != null)
             {
-                foreach (var attr in content.OfType<AngleSharp.Dom.IAttr>())
+                foreach (var attr in content.OfType<IAttr>())
                     elem.Attributes.SetNamedItem(attr);
 
                 foreach (var obj in content)
                 {
-                    if (obj is AngleSharp.Dom.IAttr)
+                    if (obj is IAttr)
                         continue;
 
                     if (obj is string text)
                         elem.AppendChild(CreateTextNode(text));
                     else
-                        elem.AppendChild((AngleSharp.Dom.IElement)obj);
+                        elem.AppendChild((IElement)obj);
                 }
             }
 
             return elem;
         }
 
-        protected AngleSharp.Dom.IAttr A(string name, string value)
+        protected IAttr A(string name, string value)
         {
             var attr = CurrentTemplate.Doc.CreateAttribute(name);
             attr.Value = value;
@@ -745,7 +742,7 @@ namespace Casimodo.Lib.Templates
             return text;
         }
 
-        protected static AngleSharp.Dom.IElement CleanupAttributes(AngleSharp.Dom.IElement elem)
+        protected static IElement CleanupAttributes(IElement elem)
         {
             // TODO: Do we really need to remove "id"?
             elem.RemoveAttribute("id");
@@ -757,7 +754,7 @@ namespace Casimodo.Lib.Templates
             return elem;
         }
 
-        protected async Task<AngleSharp.Dom.IElement> GetStylesheet(string path)
+        protected async Task<IElement> GetStylesheet(string path)
         {
             string content = await ReadFileAsync(path);
 

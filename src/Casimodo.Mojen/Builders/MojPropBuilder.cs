@@ -230,11 +230,23 @@ namespace Casimodo.Mojen
             return This();
         }
 
-        public TPropBuilder Money(bool nullable = true)
+        public TPropBuilder Money(bool nullable = true, bool includeNegative = false)
+        {
+            Decimal(nullable: nullable);
+            if (!includeNegative)
+            {
+                Range(min: 0);
+            }
+            Precision(19, 4);
+            Type(DataType.Currency);
+            return This();
+        }
+
+        public TPropBuilder Percent(bool nullable = true)
         {
             Decimal(nullable: nullable);
             Precision(19, 4);
-            Type(DataType.Currency);
+            Range(0, 100);
             return This();
         }
 
@@ -242,6 +254,7 @@ namespace Casimodo.Mojen
         {
             Decimal(nullable: nullable);
             Precision(19, 2);
+            Range(0, 100);
             return This();
         }
 
