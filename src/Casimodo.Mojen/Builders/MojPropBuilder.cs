@@ -230,7 +230,7 @@ namespace Casimodo.Mojen
             return This();
         }
 
-        public TPropBuilder Money(bool nullable = true, bool includeNegative = false)
+        public TPropBuilder Money(bool nullable = false, bool includeNegative = false)
         {
             Decimal(nullable: nullable);
             if (!includeNegative)
@@ -242,7 +242,7 @@ namespace Casimodo.Mojen
             return This();
         }
 
-        public TPropBuilder Percent(bool nullable = true)
+        public TPropBuilder Percent(bool nullable = false)
         {
             Decimal(nullable: nullable);
             Precision(19, 4);
@@ -250,7 +250,7 @@ namespace Casimodo.Mojen
             return This();
         }
 
-        public TPropBuilder VatPercent(bool nullable = true)
+        public TPropBuilder VatPercent(bool nullable = false)
         {
             Decimal(nullable: nullable);
             Precision(19, 2);
