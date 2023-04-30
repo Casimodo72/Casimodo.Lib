@@ -32,6 +32,14 @@ namespace Casimodo.Lib.Templates
         {
             get { return Doc?.Body?.Children ?? Enumerable.Empty<IElement>(); }
         }
+
+        public HtmlTemplate Clone()
+        {
+            var clone = new HtmlTemplate((IDocument)Doc.Clone());
+            clone.InlineTemplates.AddRange(InlineTemplates);
+
+            return clone;
+        }
     }
 
     public static class DomExtensions
@@ -122,7 +130,8 @@ namespace Casimodo.Lib.Templates
         public async Task AddAndProcessPage(HtmlTemplate page)
         {
             ClearProcessedElements();
-            CurrentTemplate = AddPage(page);
+            var effectiveTemplate = page.Clone();
+            CurrentTemplate = AddPage(effectiveTemplate);
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
