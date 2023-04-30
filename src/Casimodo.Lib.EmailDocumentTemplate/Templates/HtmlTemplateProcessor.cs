@@ -114,17 +114,24 @@ namespace Casimodo.Lib.Templates
 
         public async Task ProcessNewPage()
         {
+            ClearProcessedElements();
             CurrentTemplate = AddPage(await NewPage());
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
         public async Task AddAndProcessPage(HtmlTemplate page)
         {
+            ClearProcessedElements();
             CurrentTemplate = AddPage(page);
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
         readonly List<IElement> _processedElements = new();
+
+        void ClearProcessedElements()
+        {
+            _processedElements.Clear();
+        }
 
         async Task ProcessTemplateElements(IEnumerable<IElement> elements, Func<Task> visitor)
         {
@@ -726,7 +733,7 @@ namespace Casimodo.Lib.Templates
             return attr;
         }
 
-        protected static string ShrinkDecimal(decimal? value)
+        protected static string ShrinkDecimal(decimal? value, int decimalPlaces = 1)
         {
             if (value == null)
                 return "";

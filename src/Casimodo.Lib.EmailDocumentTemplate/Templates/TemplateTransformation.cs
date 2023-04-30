@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,6 @@ namespace Casimodo.Lib.Templates
         readonly List<TemplateDataPropAccessor> _properties = new List<TemplateDataPropAccessor>();
 
         public void AddProp<T>(string name, T instance = default(T))
-            where T : new()
         {
             _properties.Add(new TemplateDataPropAccessor
             {
@@ -101,10 +101,8 @@ namespace Casimodo.Lib.Templates
 
             return prop;
         }
-
-
-
     }
+
     public sealed class TemplateDataPropAccessor<T> : TemplateDataPropAccessor
         where T : class, new()
     {
@@ -151,33 +149,33 @@ namespace Casimodo.Lib.Templates
         public void Prop<TSourceType, TTargetType>(string names,
             Func<TemplateExpressionContext, TSourceType, TTargetType> value)
         {
-            AddInstruction<TSourceType, TTargetType>(names, value: value);
+            AddInstruction<TSourceType, TTargetType>(names, valueGetter: value);
         }
 
         public void CollectionProp<TSourceType, TTargetType>(string names,
             Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> values)
         {
-            AddInstruction<TSourceType, TTargetType>(names, values: values);
+            AddInstruction<TSourceType, TTargetType>(names, listValueGetter: values);
         }
 
         void AddInstruction<TSourceType, TTargetType>(string names,
-            Func<TemplateExpressionContext, TSourceType, TTargetType> value = null,
-            Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> values = null)
+            Func<TemplateExpressionContext, TSourceType, TTargetType> valueGetter = null,
+            Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> listValueGetter = null)
         {
             CheckComplexSourceType(typeof(TSourceType));
             Guard.ArgNotNullOrWhitespace(names, nameof(names));
-            Guard.ArgMutuallyExclusive(value, values, nameof(value), nameof(values));
-            Guard.ArgOneNotNull(value, values, nameof(value), nameof(values));
+            Guard.ArgMutuallyExclusive(valueGetter, listValueGetter, nameof(valueGetter), nameof(listValueGetter));
+            Guard.ArgOneNotNull(valueGetter, listValueGetter, nameof(valueGetter), nameof(listValueGetter));
 
             var isReturnTypeSimple = TypeHelper.IsSimple(typeof(TTargetType));
 
-            if (values != null && isReturnTypeSimple)
+            if (listValueGetter != null && isReturnTypeSimple)
                 throw new TemplateException(
                     "Custom template expression instructions which " +
                     "return multiple values must return values of complex type. But the specified " +
                     $"return type '{typeof(TTargetType).Name}' is a simple type.");
 
-            names = names ?? "";
+            names ??= "";
             foreach (var name in names.Split(',').Select(x => x.Trim()))
             {
                 CheckName(name);
@@ -189,15 +187,15 @@ namespace Casimodo.Lib.Templates
                     IsReturnTypeSimple = isReturnTypeSimple
                 };
 
-                if (value != null)
+                if (valueGetter != null)
                 {
                     item.IsReturnTypeList = false;
-                    item.GetValue = (c, x) => value(c, x) as object;
+                    item.ValueGetter = (c, x) => valueGetter(c, x) as object;
                 }
-                else if (values != null)
+                else if (listValueGetter != null)
                 {
                     item.IsReturnTypeList = true;
-                    item.GetValues = (c, x) => values(c, x).Cast<object>();
+                    item.ListValueGetter = (c, x) => listValueGetter(c, x).Cast<object>();
                 }
 
                 Instructions.Add(item);
@@ -325,10 +323,26 @@ namespace Casimodo.Lib.Templates
                 var definition = new TemplateInstructionDefinition<TemplateDataContainer>
                 {
                     Name = prop.Name,
-                    ReturnType = prop.Type
+                    ReturnType = prop.Type,
+                    IsReturnTypeList = prop.Type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(prop.Type),
+                    IsReturnTypeSimple = TypeHelper.IsSimple(prop.Type)
                 };
 
-                definition.GetValue = (c, x) => x.Prop(c.CurrentInstruction.Name);
+                if (definition.IsReturnTypeList)
+                {
+                    definition.ListValueGetter = (c, x) =>
+                    {
+                        var value = x.Prop(c.CurrentInstruction.Name);
+                        if (value is not IEnumerable enumerable)
+                            throw new TemplateException("The value was expected to be a list type.");
+
+                        return enumerable.Cast<object>();   
+                    };
+                }
+                else
+                {
+                    definition.ValueGetter = (c, x) => x.Prop(c.CurrentInstruction.Name);
+                }
 
                 _instructionDefinitionsCache.TryAdd(prop.Guid, definition);
 

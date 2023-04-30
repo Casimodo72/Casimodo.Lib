@@ -1,10 +1,5 @@
-﻿// TODO: VERY IMPORTANT: Eliminate
-#if (!NET_CORE)
-using Nito.AsyncEx;
-#endif
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -94,17 +89,7 @@ namespace Casimodo.Lib.Templates
 
             if (context.Ast is CSharpScriptAstNode scriptNode)
             {
-                // KABU TODO: VERY VERY IMPORTANT: We have to make all template stuff async
-                //   in order for the CS script compilation to work in a sane manner.
                 var value = await scriptNode.Script.RunAsync(context.DataContainer);
-                // TODO: REMOVE
-#if (false)
-#if (NET_CORE)
-                var value = Task.Run(() => scriptNode.Script.RunAsync(context.DataContainer)).Result;
-#else
-                                var value = AsyncContext.Run(() => scriptNode.Script.RunAsync(context.DataContainer)); 
-#endif
-#endif
 
                 context.SetReturnValue(ToEnumerable(value));
             }
@@ -173,20 +158,28 @@ namespace Casimodo.Lib.Templates
                 {
                     // Execute next instruction.
 
-                    if (values.Count() > 1)
-                        throw new TemplateException("Invalid template expression. " +
-                            "Intermediate instructions of normal expressions must not return more than one value. " +
-                            "Use CSharp expressions instead.");
-
-                    var value = values.FirstOrDefault();
-
-                    if (value != null)
-                    {
-                        // Execute next instructions and set return values.
-                        values = ExecuteCore(context, value, instruction.Right);
+                    if (instruction.ReturnType.IsListType)
+                    {                        
+                        values = ExecuteCore(context, values, instruction.Right);
                     }
                     else
-                        values = new[] { (object)null };
+                    {
+                        // TODO: REMOVE
+                        //if (values.Count() > 1)
+                        //    throw new TemplateException("Invalid template expression. " +
+                        //        "Intermediate instructions of normal expressions must not return more than one value. " +
+                        //        "Use CSharp expressions instead.");
+
+                        var value = values.FirstOrDefault();
+
+                        if (value != null)
+                        {
+                            // Execute next instructions and set return values.
+                            values = ExecuteCore(context, value, instruction.Right);
+                        }
+                        else
+                            values = new[] { (object)null };
+                    }
                 }
 
                 return values;
@@ -200,7 +193,7 @@ namespace Casimodo.Lib.Templates
 
         static IEnumerable<object> ToEnumerable(object value)
         {
-            if (value is IEnumerable enumerable && !(value is string))
+            if (value is IEnumerable enumerable && value is not string)
                 return enumerable.Cast<object>();
             else
                 return new[] { value };

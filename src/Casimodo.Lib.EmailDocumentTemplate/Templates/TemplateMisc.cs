@@ -1,5 +1,6 @@
 ﻿using Casimodo.Lib.CSharp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -174,21 +175,22 @@ namespace Casimodo.Lib.Templates
             SourceType = typeof(TSource);
         }
 
-        public Func<TemplateExpressionContext, TSource, object> GetValue { get; set; }
-        public Func<TemplateExpressionContext, TSource, IEnumerable<object>> GetValues { get; set; }
+        public Func<TemplateExpressionContext, TSource, object> ValueGetter { get; set; }
+        public Func<TemplateExpressionContext, TSource, IEnumerable<object>> ListValueGetter { get; set; }
 
         public override IEnumerable<object> GetValuesCore(TemplateExpressionContext context, object item)
         {
-            if (GetValue != null)
+            if (ValueGetter != null)
             {
-                var result = GetValue(context, (TSource)item);
-                if (result is IEnumerable<object> enumerable)
-                    return enumerable;
+                var result = ValueGetter(context, (TSource)item);
+
+                if (result is not string && result is IEnumerable enumerable)
+                    return enumerable.Cast<object>();
                 else
                     return Enumerable.Repeat(result, 1);
             }
 
-            return GetValues(context, (TSource)item);
+            return ListValueGetter(context, (TSource)item);
         }
     }
 

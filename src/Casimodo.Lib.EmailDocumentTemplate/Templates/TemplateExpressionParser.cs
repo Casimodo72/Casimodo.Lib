@@ -323,7 +323,7 @@ namespace Casimodo.Lib.Templates
             prop.ReturnType = new AstTypeInfo
             {
                 Type = iprop.PropertyType,
-                IsListType = false,
+                IsListType = iprop.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(iprop.PropertyType),
                 IsSimpleType = TypeHelper.IsSimple(iprop.PropertyType)
             };
 
