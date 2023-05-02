@@ -220,9 +220,11 @@ namespace Casimodo.Lib.Templates
                         foreach (var childNode in elemClone.ChildNodes.ToArray())
                             parentNode.InsertBefore(childNode, originalElem);
                     }
-
-                    // Remove the original "if" element and its content.
-                    originalElem.Remove();
+                    else
+                    {
+                        // Remove the original "if" element and its content.
+                        originalElem.Remove();
+                    }
 
                     // Skip content because we already processed the content.
                     return false;
