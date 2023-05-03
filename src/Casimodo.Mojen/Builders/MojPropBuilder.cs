@@ -237,7 +237,7 @@ namespace Casimodo.Mojen
             {
                 Range(min: 0);
             }
-            Precision(19, 4);
+            Precision(13, 3);
             Type(DataType.Currency);
             return This();
         }
@@ -245,19 +245,21 @@ namespace Casimodo.Mojen
         public TPropBuilder Percent(bool nullable = false)
         {
             Decimal(nullable: nullable);
-            Precision(19, 4);
+            Precision(5, 2);
             Range(0, 100);
             return This();
         }
 
         public TPropBuilder VatPercent(bool nullable = false)
         {
-            Decimal(nullable: nullable);
-            Precision(19, 2);
-            Range(0, 100);
-            return This();
+            return Percent(nullable);
         }
 
+        /// <summary>
+        /// Specifies the decimal precision.
+        /// </summary>
+        /// <param name="precision">The number of all digits in a number.</param>
+        /// <param name="scale">The number of digits to the right of the decimal point.</param>
         public TPropBuilder Precision(byte precision, byte scale, string error = null)
         {
             return Attr(new MojAttr("Precision", 4).CArg("precision", (int)precision).CArg("scale", (int)scale)
