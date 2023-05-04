@@ -75,7 +75,7 @@
             if (!view.IsEditor)
                 throw new MojenException("An editor view was expected.");
 
-            var url = baseUrl + "({0})";
+            var url = baseUrl + "/{0}";
 
             if (view.Group != null)
                 url += $"/{view.GetODataUpdateActionName()}";
@@ -162,7 +162,7 @@
                 if (editorView != null)
                 {
                     c.ODataCreateUrl = editorView.GetODataCreateUrl(c.ODataBaseUrl);
-                    c.ODataUpdateUrlTemplate = editorView.GetODataUpdateUrlTemplate(c.ODataBaseUrl); ;
+                    c.ODataUpdateUrlTemplate = editorView.GetODataUpdateUrlTemplate(c.ODataBaseUrl);
                 }
 
                 // Ajax URL

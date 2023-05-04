@@ -74,7 +74,7 @@
 
             // Delete
             if (config.CanDelete && !context.View.IsCustomSave)
-                O($"destroy: {{ url: function (data) {{ return '{config.TransportConfig.ODataDeleteUrl}(' + data.{config.TypeConfig.Key.Name} + ')'; }} }},");
+                O($"destroy: {{ url: function (data) {{ return '{config.TransportConfig.ODataDeleteUrl}/' + data.{config.TypeConfig.Key.Name}; }} }},");
         }
 
         public void ODataSourceOptions(WebViewGenContext context, KendoDataSourceConfig config)

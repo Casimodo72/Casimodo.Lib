@@ -55,8 +55,6 @@ namespace Casimodo.Mojen
 
         string GetControllerBaseClass()
         {
-            // TODO: REMOVE: return ODataConfig.WebODataControllerBaseClass;
-
             var dataContext = App.GetDataLayerConfig(Type.DataContextName);
             var repoName = GetWebRepositoryName(Type);
 
@@ -115,26 +113,12 @@ namespace Casimodo.Mojen
             O($"public partial class {controllerName} : {GetControllerBaseClass()}");
             Begin();
 
-            // TODO: REMOVE: Moved to controller base class.
-#if (false)
-            // Db context
-            O($"readonly {dbContextName} {DbVar()};");
-            // Generic entity repository
-            O($"readonly {repoName} {RepoVar()};");
-            O();
-#endif
-
             // Constructor
             O($@"public {controllerName}({dbContextName} db)");
             O($@"    : base(db, new {repoName}(db))");
             O("{");
             Push();
-            // TODO: REMOVE: Moved to controller base class.
-#if (false)     
-            O("Guard.ArgNotNull(db, nameof(db));");
-            O($"{DbVar()} = db;");
-            O($"{RepoVar()} = new {repoName}(db);");
-#endif
+
             O("InitializeExtended();");
             Pop();
             O("}");
@@ -144,8 +128,6 @@ namespace Casimodo.Mojen
 
             if (!Options.IsEmpty)
             {
-                GenerateFilters(Type);
-
                 if (Options.IsReadable)
                     GenerateRead(Type, key, Type.Key.VName);
 
@@ -235,47 +217,11 @@ namespace Casimodo.Mojen
                 O();
                 OApiActionAuthAttribute(Type, "Create");
                 OAttribute(HttpVerb.Post);
-                // TODO: REMOVE: OODataMethodRouteAttribute();
                 O($"public async Task<IActionResult> Post([FromBody] {Type.ClassName} model)");
                 Begin();
                 O("return await CreateCore(model);");
                 End();
             }
-
-            // TODO: REMOVE: Moved to controller base class.
-#if (false)
-            O();
-            O($"async Task<IActionResult> CreateCore({Type.ClassName} model)");
-            Begin();
-
-            O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-            O($"{RepoVar()}.ReferenceLoading(false);");
-            O();
-
-            O("if (OnCreatingExtended != null) await OnCreatingExtended(model);");
-
-            O($"var item = {RepoVar()}.Add(model);");
-            O();
-            O($"{GetDbContextSaveChangesExpression(DbVar())};");
-            O();
-            O("return Created(item);");
-
-            End();
-
-            O();
-            O($"Func<{Type.ClassName}, Task> OnCreatingExtended = null;");
-#endif
-        }
-
-        // Filters
-
-        void GenerateFilters(MojType type)
-        {
-            // TODO: REMOVE: Moved to controller base class.
-#if (false)
-            O();
-            O($"Func<IQueryable<{type.ClassName}>, IQueryable<{type.ClassName}>> CustomFilter {{ get; set; }} = (query) => query;");
-#endif
         }
 
         // Read ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -287,22 +233,6 @@ namespace Casimodo.Mojen
             else
                 return "";
         }
-
-#if (false)
-        void OODataMethodRouteAttribute(string route = null)
-        {
-            
-            if (!string.IsNullOrEmpty(route))
-            {
-                O($@"[Route(""{route}"")]");
-            }
-            else
-            {
-                // TODO: REMOVE? The Route attribute has no default constructor. 
-                // O(@"[Route]");
-            }
-        }
-#endif
 
         void OEnableQueryAttribute()
         {
@@ -336,7 +266,6 @@ namespace Casimodo.Mojen
             // Distinct by property query function.
             O();
             OApiActionAuthAttribute(Type, "View");
-            // TODO: REMOVE: OODataMethodRouteAttribute($@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
             OEnableQueryAttribute();
             OAttribute(HttpVerb.Get, $@"{GetMethodNs()}{ODataConfig.QueryDistinct}(on={{on}})");
             O($"public IActionResult {ODataConfig.QueryDistinct}(string on)");
@@ -382,8 +311,6 @@ namespace Casimodo.Mojen
 
         void GenerateUpdate()
         {
-            GenerateUpdateSingleMain();
-
             foreach (var viewGroup in Controller.GetViewGroups())
                 GenerateUpdateSingle(viewGroup);
         }
@@ -421,47 +348,15 @@ namespace Casimodo.Mojen
             }
             else
             {
-                // PUT: odata/ControllerName(x)
+                // PUT: odata/ControllerName/x
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
-                // TODO: REMOVE: OODataMethodRouteAttribute($@"({{{key.VName}}})");
-                OAttribute(HttpVerb.Put, "({" + key.VName + "})");
+                OAttribute(HttpVerb.Put, "{" + key.VName + "}");
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");
                 End();
             }
-        }
-
-        void GenerateUpdateSingleMain()
-        {
-            // TODO: REMOVE? UpdateCore moved to a controller base class.
-#if (false)
-            var key = Type.Key;
-
-            O();
-            O($"async Task<IActionResult> UpdateCore({key.Type.Name} {key.VName}, {Type.ClassName} model, MojDataGraphMask mask, string group = null)");
-            Begin();
-
-            O("if (!ModelState.IsValid) return BadRequest(ModelState);");
-
-            // Disable loading of referenced entities.
-            O($"{RepoVar()}.ReferenceLoading(false);");
-
-            // Update the item.
-            O($"var item = {RepoVar()}.Update({key.VName}, model, mask);");
-
-            O("if (OnUpdatedExtended != null) await OnUpdatedExtended(item, group);");
-
-            // Save to DB
-            O($"{GetDbContextSaveChangesExpression(DbVar())};");
-            O();
-            O("return Updated(item);");
-            End();
-
-            O();
-            O($"Func<{Type.ClassName}, string, Task> OnUpdatedExtended = null;");
-#endif
         }
 
         // Patch ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -494,12 +389,11 @@ namespace Casimodo.Mojen
         {
             var key = Type.Key;
 
-            // DELETE: odata/ControllerName(x)
+            // DELETE: odata/ControllerName/x
             // Async
             O();
             OApiActionAuthAttribute(Type, "Delete");
-            // TODO: REMOVE: OODataMethodRouteAttribute($@"({{{key.VName}}})");
-            OAttribute(HttpVerb.Delete, $"({{{key.VName}}})");
+            OAttribute(HttpVerb.Delete, $"{{{key.VName}}}");
             O($"public async Task<IActionResult> Delete([FromODataUri] {key.Type.Name} {key.VName})");
             Begin();
             // Operate on the entity repository (i.e. not the model repository).
