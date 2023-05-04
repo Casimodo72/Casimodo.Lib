@@ -62,7 +62,7 @@ namespace Casimodo.Lib.Templates
 
         public CultureInfo Culture { get; protected set; } = CultureInfo.CurrentUICulture;
 
-        public TemplateElement CurTemplateElement { get; protected set; }
+        public TemplateElement CurrentTemplateElement { get; protected set; }
 
         public bool IsMatch { get; set; }
 
@@ -101,7 +101,7 @@ namespace Casimodo.Lib.Templates
 
             _isInTransformation = true;
 
-            await Execute(CurTemplateElement);
+            await Execute(CurrentTemplateElement);
 
             ElementExecuted?.Invoke(this, new TemplateProcessorEventArgs { Processor = this });
 
@@ -148,7 +148,7 @@ namespace Casimodo.Lib.Templates
             if (IsMatch)
                 return false;
 
-            if (CurTemplateElement.Expression != expression)
+            if (CurrentTemplateElement.Expression != expression)
                 return false;
 
             IsMatch = true;
@@ -256,7 +256,7 @@ namespace Casimodo.Lib.Templates
         {
             // TODO: Check if CurTemplateElement will be null if there's no template element.
             if (!IsMatch)
-                ThrowUnhandledTemplateExpression(CurTemplateElement.Expression);
+                ThrowUnhandledTemplateExpression(CurrentTemplateElement.Expression);
         }
     }
 }

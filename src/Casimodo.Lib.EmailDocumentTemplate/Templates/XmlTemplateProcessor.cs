@@ -40,7 +40,7 @@ namespace Casimodo.Lib.Templates
 
         public void Clear()
         {
-            CurTemplateElement = null;
+            CurrentTemplateElement = null;
         }
 
         protected static List<XmlTemplateElement> GetTemplateElements(XElement template)
@@ -68,19 +68,19 @@ namespace Casimodo.Lib.Templates
             var elements = GetTemplateElements(template);
             foreach (XmlTemplateElement item in elements)
             {
-                CurTemplateElement = item;
+                CurrentTemplateElement = item;
                 IsMatch = false;
                 await action();
 
                 // Remove placeholder element.
                 item.Elem.Remove();
             }
-            CurTemplateElement = null;
+            CurrentTemplateElement = null;
         }
 
         protected XElement CurElem
         {
-            get { return ((XmlTemplateElement)CurTemplateElement).Elem; }
+            get { return ((XmlTemplateElement)CurrentTemplateElement).Elem; }
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Casimodo.Lib.Templates
 {
@@ -110,21 +111,12 @@ namespace Casimodo.Lib.Templates
 
         string ImagePageTemplateHtml { get; set; }
 
-        string PageTemplateHtml { get; set; }
-
         protected HtmlTemplate CurrentTemplate { get; set; }
 
-        public new HtmlTemplateElement CurTemplateElement
+        private HtmlTemplateElement CurrentHtmlTemplateElement
         {
-            get => (HtmlTemplateElement)base.CurTemplateElement;
-            set => base.CurTemplateElement = value;
-        }
-
-        public async Task ProcessNewPage()
-        {
-            ClearProcessedElements();
-            CurrentTemplate = AddPage(await NewPage());
-            await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
+            get => (HtmlTemplateElement)base.CurrentTemplateElement;
+            set => base.CurrentTemplateElement = value;
         }
 
         public async Task AddAndProcessPage(HtmlTemplate page)
@@ -137,7 +129,7 @@ namespace Casimodo.Lib.Templates
 
         readonly List<IElement> _processedElements = new();
 
-        void ClearProcessedElements()
+        protected void ClearProcessedElements()
         {
             _processedElements.Clear();
         }
@@ -158,9 +150,9 @@ namespace Casimodo.Lib.Templates
                     {
                         var parentNode = originalElem.Parent;
 
-                        // TODO: IMPORTANT: We don't support nested foreach instructions yet.
+                        // TODO: We don't support nested foreach instructions yet.
 
-                        // TODO: IMPORTANT: If we allow nested foreach then:
+                        // TODO: If we allow nested foreach then:
                         // 1) make loop variable name adjustable by consumer.
                         // 2) store/restore loop variable of outer scope with same name.
                         //    This means an equal loop variable name will shadow variables in outer scope.
@@ -172,7 +164,7 @@ namespace Casimodo.Lib.Templates
                             var value = values[i];
 
                             var item = (TemplateLoopCursor)Activator.CreateInstance(
-                                typeof(TemplateLoopCursorVariable<>).MakeGenericType(new Type[] { value.GetType() }));
+                                typeof(TemplateLoopCursorVariable<>).MakeGenericType(value.GetType()));
 
                             // Add "item" property.
                             CoreContext.Data.AddProp(item.GetType(), loopCurrenItemPropName, item);
@@ -268,25 +260,20 @@ namespace Casimodo.Lib.Templates
 
         HtmlInlineTemplate GetInlineTemplate(string name)
         {
-            var template = CurrentTemplate.InlineTemplates.FirstOrDefault(x => x.Id == name);
-            if (template == null)
-                throw new TemplateException($"Inline template '{name}' not found.");
-
-            return template;
+            return CurrentTemplate.InlineTemplates.FirstOrDefault(x => x.Id == name)
+                ?? throw new TemplateException($"Inline template '{name}' not found.");          
         }
-
-        public Func<Task<string>> CreatePageTemplate = () => Task.FromResult("");
 
         public void SetImageSource(string value)
         {
-            CurElem.SetAttribute("src", value);
+            CurrentElem.SetAttribute("src", value);
         }
 
         static readonly string[] NewLineTokens = { "\n", Environment.NewLine };
 
         public override void SetText(string value)
         {
-            CurElem.RemoveAllChildren();
+            CurrentElem.RemoveAllChildren();
 
             if (IsEmpty(value))
                 return;
@@ -311,18 +298,19 @@ namespace Casimodo.Lib.Templates
 
         public override void RemoveValue()
         {
-            CurElem.Remove();
+            CurrentElem.Remove();
         }
 
-        public Func<IEnumerable<string>> GetCssFilePaths = () => Enumerable.Empty<string>();
+        public Func<IEnumerable<string>> GetCssFilePaths { get; set; } = () => Enumerable.Empty<string>();
 
-        public Func<IEnumerable<string>> GetCustomCss = () => Enumerable.Empty<string>();
+        public Func<IEnumerable<string>> GetCustomCss { get; set; } = () => Enumerable.Empty<string>();
 
 
         public string StylesHtml { get; set; }
 
         public void ClearDocument()
         {
+            ClearProcessedElements();
             Pages.Clear();
         }
 
@@ -367,7 +355,7 @@ namespace Casimodo.Lib.Templates
             await BuildStylesheets();
 
             // Page template
-            PageTemplateHtml ??= await CreatePageTemplate();
+
         }
 
         protected async Task<string> LoadTemplatePart(string virtualFilePath)
@@ -416,21 +404,11 @@ namespace Casimodo.Lib.Templates
             return new HtmlTemplate(document);
         }
 
-        // TODO: Find a better name? This does not always correspond to a page (e.g. PDF page).
-        public async Task<HtmlTemplate> NewPage()
-        {
-            if (PageTemplateHtml == null)
-                throw new InvalidOperationException("PageTemplate not assigned.");
-
-            return await CreateHtmlTemplate(PageTemplateHtml);
-        }
-
         static void RemoveWhitespace(IEnumerable<INode> nodes)
         {
-            foreach (INode node in nodes.Where(x => x.NodeType == NodeType.Text).ToArray())
+            foreach (INode node in nodes.Where(x => x.NodeType == NodeType.Text && string.IsNullOrWhiteSpace(x.TextContent)))
             {
-                if (string.IsNullOrWhiteSpace(node.TextContent))
-                    node.Parent?.RemoveChild(node);
+                node.Parent?.RemoveChild(node);
             }
         }
 
@@ -475,13 +453,17 @@ namespace Casimodo.Lib.Templates
         }
 
         const string DefaultImagePageTemplate = @"<div class='image-page'><img class='page-image' alt='Image' data-property='Ext.PageImage' style='max-width:100%' /></div>";
+        HtmlTemplate ImagePageTemplate;
 
-        protected async Task<HtmlTemplate> NewImagePage()
+        protected async Task<HtmlTemplate> GetImagePageTemplate()
         {
-            ImagePageTemplateHtml ??= DefaultImagePageTemplate;
+            if (ImagePageTemplate == null)
+            {
+                ImagePageTemplateHtml ??= DefaultImagePageTemplate;
+                ImagePageTemplate = await ParseHtmlTemplate(ImagePageTemplateHtml);
+            }
 
-            // TODO: Eval if we should cache the template DOM.
-            return await ParseHtmlTemplate(ImagePageTemplateHtml);
+            return ImagePageTemplate;
         }
 
         protected HtmlTemplate AddPage(HtmlTemplate pageTemplate)
@@ -566,7 +548,7 @@ namespace Casimodo.Lib.Templates
             foreach (var elem in elements.ToArray())
             {
                 if (_processedElements.Any(x => x == elem))
-                    throw new Exception("This element was already processed.");
+                    throw new TemplateException("This element was already processed.");
 
                 _processedElements.Add(elem);
 
@@ -574,10 +556,10 @@ namespace Casimodo.Lib.Templates
                     continue;
 
                 if (elem.Owner == null)
-                    throw new Exception("This node has no owner.");
+                    throw new TemplateException("This node has no owner.");
 
                 if (elem.Parent == null)
-                    throw new Exception("This node has no parent.");
+                    throw new TemplateException("This node has no parent.");
 
                 // Find instruction attribute.
                 var attr = elem.Attributes.FirstOrDefault(a =>
@@ -587,14 +569,14 @@ namespace Casimodo.Lib.Templates
 
                 if (attr != null)
                 {
-                    var cur = CurTemplateElement = CreateTemplateElement(elem, attr);
+                    CurrentHtmlTemplateElement = CreateTemplateElement(elem, attr);
 
                     // Remove instruction attribute.
                     elem.RemoveAttribute(attr.Name);
 
                     IsMatch = false;
 
-                    var processContent = await action(CurTemplateElement);
+                    var processContent = await action(CurrentHtmlTemplateElement);
 
                     if (!processContent)
                         continue;
@@ -604,7 +586,7 @@ namespace Casimodo.Lib.Templates
                         continue;
                 }
 
-                CurTemplateElement = null;
+                CurrentHtmlTemplateElement = null;
 
                 // Process content.
                 await WalkTemplateElements(elem.Children, action);
@@ -623,10 +605,7 @@ namespace Casimodo.Lib.Templates
             return elem;
         }
 
-        protected IElement CurElem
-        {
-            get { return ((HtmlTemplateElement)CurTemplateElement).Elem; }
-        }
+        protected IElement CurrentElem => CurrentHtmlTemplateElement.Elem;
 
         void AppendTextNode(string value)
         {
@@ -637,7 +616,7 @@ namespace Casimodo.Lib.Templates
         {
             // KABU TODO: IMPORTANT: In HtmlAgilityPack we had to use HtmlEntity.Entitize
             //  Do we have to entitize in AngleSharp as well?
-            return CurElem.Owner.CreateTextNode(value);
+            return CurrentElem.Owner.CreateTextNode(value);
         }
 
         void Br()
@@ -647,12 +626,12 @@ namespace Casimodo.Lib.Templates
 
         IElement AppendElem(string name)
         {
-            return CurElem.AppendElement(CurElem.Owner.CreateElement(name));
+            return CurrentElem.AppendElement(CurrentElem.Owner.CreateElement(name));
         }
 
         INode AppendNode(INode node)
         {
-            return CurElem.AppendChild(node);
+            return CurrentElem.AppendChild(node);
         }
 
         protected void CssIfSet(string name, object value)
@@ -671,7 +650,7 @@ namespace Casimodo.Lib.Templates
         {
             Guard.ArgNotEmpty(name, nameof(name));
 
-            var attr = CurElem.GetOrSetAttr("style");
+            var attr = CurrentElem.GetOrSetAttr("style");
 
             var valueStr = (value != null ? value.ToString() : "").Trim();
             bool remove = string.IsNullOrEmpty(valueStr);
@@ -765,9 +744,12 @@ namespace Casimodo.Lib.Templates
             // TODO: Do we really need to remove "id"?
             elem.RemoveAttribute("id");
 
-            foreach (var attr in elem.Attributes.ToArray())
-                if (attr.LocalName.Contains('-'))
-                    elem.RemoveAttribute(attr.NamespaceUri, attr.LocalName);
+            var attributes = elem.Attributes.ToArray();
+
+            foreach (var attr in attributes.Where(x => x.LocalName.Contains('-')))
+            {
+                elem.RemoveAttribute(attr.NamespaceUri, attr.LocalName);
+            }
 
             return elem;
         }
