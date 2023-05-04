@@ -52,7 +52,7 @@ namespace Casimodo.Lib
         /// <summary>
         /// NOTE: Returns an empty string if source is empty.
         /// </summary>
-        public static string? Join(this IEnumerable<string> source, string separator)
+        public static string Join(this IEnumerable<string> source, string separator)
         {
             return JoinToString(source, separator);
         }

@@ -988,7 +988,9 @@ namespace Casimodo.Mojen
 
             // OData order by
             var odataOrderBy = targetType.GetODataOrderBy();
-            odataOrderBy ??= display;
+
+            if (string.IsNullOrEmpty(odataOrderBy))
+                odataOrderBy = display;
 
             // Build OData query
             odataQuery = $"{this.GetODataQueryFunc(prop.Reference.ToType)}()?$select={key},{display}&$orderby={odataOrderBy}";
