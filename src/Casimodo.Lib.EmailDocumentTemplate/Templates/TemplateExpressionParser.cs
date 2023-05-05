@@ -10,9 +10,9 @@ using System.Text.RegularExpressions;
 
 namespace Casimodo.Lib.Templates
 {
-    public class TemplateNodeFactory
+    public static class TemplateNodeFactory
     {
-        const string CSharpExpressionPrefix = "cs:";
+        private const string CSharpExpressionPrefix = "cs:";
 
         public static T Create<T>(string expression, TemplateNodeKind? kind = null)
             where T : TemplateNode, new()
@@ -55,7 +55,7 @@ namespace Casimodo.Lib.Templates
 
         void Tokenize(string expression)
         {
-            _tokens.AddRange(new Regex(@"([\.])").Split(expression).Where(x => !string.IsNullOrEmpty(x)));
+            _tokens.AddRange(new Regex(@"([.:])").Split(expression).Where(x => !string.IsNullOrEmpty(x)));
 
             // KABU TODO: REMOVE: No functions and thus no literal arguments expected anymore.
 #if (false)
@@ -86,10 +86,9 @@ namespace Casimodo.Lib.Templates
 
         public AstNode ParseTemplateExpression(TemplateDataContainer data, string expression, TemplateNodeKind kind)
         {
-            if (kind == TemplateNodeKind.CSharpExpression)
-                return ParseCSharpExpression(data, expression);
-            else
-                return ParseExpression(data.GetType(), expression);
+            return kind == TemplateNodeKind.CSharpExpression
+                ? ParseCSharpExpression(data, expression)
+                : ParseExpression(data.GetType(), expression);
         }
 
         class CodeCacheItem
@@ -98,7 +97,7 @@ namespace Casimodo.Lib.Templates
             public CSharpScriptWrapper Script { get; set; }
         }
 
-        static readonly ConcurrentBag<CodeCacheItem> _codeCache = new ConcurrentBag<CodeCacheItem>();
+        static readonly ConcurrentBag<CodeCacheItem> _codeCache = new();
         const string ComparableScriptClassName = "#Tc6e8b1d6-9e4f-4ef5-bee7-34882f417efa#";
 
         public AstNode ParseCSharpExpression(TemplateDataContainer data, string expression)
@@ -192,7 +191,7 @@ namespace Casimodo.Lib.Templates
             {
                 int backtickIndex = type.FullName.IndexOf('`');
                 if (backtickIndex <= 0)
-                    throw new Exception($"Unexpected full name of generic type ({type.FullName}).");
+                    throw new InvalidOperationException($"Unexpected full name of generic type ({type.FullName}).");
 
                 return type.FullName.Remove(backtickIndex) +
                     $"<{string.Join(",", type.GetGenericArguments().Select(t => GetScriptableTypeName(t)))}>";
@@ -203,7 +202,7 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        static List<string> _anySpecialTokens = new List<string>
+        static List<string> _anySpecialTokens = new()
         {
             ".", "(", ")", "=", "!", "\""
         };
@@ -215,8 +214,7 @@ namespace Casimodo.Lib.Templates
 
         AstNode ParseAny(AstTypeInfo contextType = null)
         {
-            // Either property or function is expected.
-            AstNode node = null;
+            // Either a property or a function is expected.
             AstTypeInfo prevItemType = CurType;
             try
             {
@@ -230,22 +228,30 @@ namespace Casimodo.Lib.Templates
 
                 Next();
 
+                // Handle custom instructions (or overrides of declared properties) first.
+                AstNode node = ParseCustomInstruction(token);
+                node ??= ParseProp(token);
+
                 if (node == null)
+                    throw CreateInvalidExpressionException($"Unexpected token '{token}'.");
+
+                CurType = node.ReturnType;
+
+                if (Is("."))
                 {
-                    // Handle custom instructions (or overrides of declared properties) first.
-                    node = ParseCustomInstruction(token);
-                    node ??= ParseProp(token);
+                    if (!Next())
+                        throw CreateExpressionEndedUnexpectedlyException();
+
+                    node.Right = ParseAny();
+                }
+                else if (Is(":"))
+                {
+
+
+                    node.Right = ParseFormatValue();
                 }
 
-                if (node != null)
-                {
-                    if (Is(".") && Next())
-                        node.Right = ParseAny(node.ReturnType);
-
-                    return node;
-                }
-
-                throw new TemplateException($"Invalid expression '{token}'.");
+                return node;
             }
             finally
             {
@@ -329,6 +335,38 @@ namespace Casimodo.Lib.Templates
 
             return prop;
         }
+
+        FormatValueAstNode ParseFormatValue()
+        {
+            if (Current() != ":")
+                throw CreateInvalidExpressionException("The token ':' was expected.");
+
+            if (!Next())
+                throw CreateInvalidExpressionException("A value format was expected.");
+
+            if (!typeof(IFormattable).IsAssignableFrom(Nullable.GetUnderlyingType(CurType.Type) ?? CurType.Type))
+                throw CreateInvalidExpressionException($"A value of type '{CurType.Type.Name}' " +
+                        $"cannot be formatted because it does not implement {nameof(IFormattable)}.");
+
+            var format = Current();
+
+            if (Next())
+                throw CreateInvalidExpressionException("Unexpected tokens after format specifier.");
+
+            return new FormatValueAstNode
+            {
+                Format = format,
+                ReturnType = AstTypeInfo.String
+            };
+        }
+
+        private TemplateException CreateInvalidExpressionException(string message)
+        {
+            return new TemplateException($"Invalid expression: {message}");
+        }
+
+        private TemplateException CreateExpressionEndedUnexpectedlyException()
+            => CreateInvalidExpressionException("Expression ended unexpectedly.");
 
         // KABU TODO: REMOVE: No functions and thus no literal arguments expected anymore.
         //   Use CSharp expressions instead.

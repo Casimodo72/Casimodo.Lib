@@ -5,6 +5,7 @@ using Microsoft.Extensions.FileProviders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -89,7 +90,6 @@ namespace Casimodo.Lib.Templates
         public static class TemplateAttr
         {
             public const string Property = "data-property";
-            // public const string Placeholder = "data-placeholder";
             public const string Foreach = "data-foreach";
             public const string If = "data-if";
             public const string TemplateRef = "template-id";
@@ -98,7 +98,7 @@ namespace Casimodo.Lib.Templates
 
         readonly IFileProvider _fileProvider;
 
-        public HtmlTemplateProcessor(IFileProvider fileProvider)
+        protected HtmlTemplateProcessor(IFileProvider fileProvider)
         {
             Guard.ArgNotNull(fileProvider, nameof(fileProvider));
 
@@ -261,7 +261,7 @@ namespace Casimodo.Lib.Templates
         HtmlInlineTemplate GetInlineTemplate(string name)
         {
             return CurrentTemplate.InlineTemplates.FirstOrDefault(x => x.Id == name)
-                ?? throw new TemplateException($"Inline template '{name}' not found.");          
+                ?? throw new TemplateException($"Inline template '{name}' not found.");
         }
 
         public void SetImageSource(string value)
@@ -322,6 +322,12 @@ namespace Casimodo.Lib.Templates
         string GetPhysicalFilePath(string filePath)
         {
             return _fileProvider.GetFileInfo(filePath).PhysicalPath;
+        }
+
+        public async Task WriteHtmlDocumentToFile(string filePath)
+        {
+            var html = BuildFinalDocument();
+            await System.IO.File.WriteAllTextAsync(filePath, html);
         }
 
         public virtual async Task BuildStylesheets()
@@ -702,13 +708,13 @@ namespace Casimodo.Lib.Templates
 
                 foreach (var obj in content)
                 {
-                    if (obj is IAttr)
+                    if (obj == null || obj is IAttr)
                         continue;
 
-                    if (obj is string text)
-                        elem.AppendChild(CreateTextNode(text));
+                    if (obj is IElement childElem)
+                        elem.AppendChild(childElem);
                     else
-                        elem.AppendChild((IElement)obj);
+                        elem.AppendChild(CreateTextNode(obj.ToString()));
                 }
             }
 
@@ -723,7 +729,7 @@ namespace Casimodo.Lib.Templates
             return attr;
         }
 
-        protected static string ShrinkDecimal(decimal? value, int decimalPlaces = 1)
+        protected static string ShrinkDecimal(decimal? value)
         {
             if (value == null)
                 return "";

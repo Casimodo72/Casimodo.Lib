@@ -148,6 +148,7 @@ namespace Casimodo.Lib.Templates
 
     public class AstTypeInfo
     {
+        internal static readonly AstTypeInfo String = new() { IsSimpleType = true, Type = typeof(string) };
         public bool IsListType { get; set; }
         public bool IsSimpleType { get; set; }
         public Type Type { get; set; }
@@ -166,6 +167,11 @@ namespace Casimodo.Lib.Templates
         public string Name { get; set; }
         public PropertyInfo PropInfo { get; set; }
         public TemplateInstructionDefinition Definition { get; set; }
+    }
+
+    public class FormatValueAstNode : AstNode
+    {
+        public string Format { get; set; }
     }
 
     public sealed class TemplateInstructionDefinition<TSource> : TemplateInstructionDefinition

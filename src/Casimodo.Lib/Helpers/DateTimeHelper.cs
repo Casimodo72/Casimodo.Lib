@@ -26,7 +26,7 @@ namespace Casimodo.Lib
         const string DefaultTimeZoneId = "W. Europe Standard Time";
         static readonly TimeZoneInfo DefaultTimeZone = TimeZoneInfo.FindSystemTimeZoneById(DefaultTimeZoneId);
 
-        public static Func<TimeZoneInfo> GetCurrentTimeZone = () => DefaultTimeZone;
+        public static Func<TimeZoneInfo> GetCurrentTimeZone { get; set; } = () => DefaultTimeZone;
 
         public static string ToDateString(this DateTimeOffset? value, string format = null)
         {

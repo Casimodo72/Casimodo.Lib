@@ -1,10 +1,9 @@
-﻿using Casimodo.Lib;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
+#nullable enable
 
 namespace Casimodo.Lib.Templates
 {
@@ -15,7 +14,7 @@ namespace Casimodo.Lib.Templates
             "http://", "https://"
         };
 
-        public static string RemoveSchemeFromUri(string uri)
+        public static string? RemoveSchemeFromUri(string uri)
         {
             if (string.IsNullOrWhiteSpace(uri))
                 return null;
@@ -44,7 +43,7 @@ namespace Casimodo.Lib.Templates
 
     public class TemplateLoopCursor
     {
-        public object ValueObject { get; set; }
+        public object? ValueObject { get; set; }
         public int Index { get; set; }
         public bool IsLast { get; set; }
         public bool IsFirst { get; set; }
@@ -135,7 +134,7 @@ namespace Casimodo.Lib.Templates
         TemplateExpressionProcessor _pathProcessor;
         public TemplateExpressionProcessor GetExpressionProcessor()
         {
-            _pathProcessor ??= new TemplateExpressionProcessor();
+            _pathProcessor ??= new TemplateExpressionProcessor(Culture);
 
             return _pathProcessor;
         }
@@ -185,12 +184,7 @@ namespace Casimodo.Lib.Templates
 
         public void SetDate(DateTimeOffset? value)
         {
-            SetText(value.ToDateString(Culture.DateTimeFormat.ShortDatePattern));
-        }
-
-        public string ToDateString(DateTimeOffset? value)
-        {
-            return value?.ToDateString(Culture.DateTimeFormat.ShortDatePattern);
+            SetText(value?.ToString("d", Culture));
         }
 
         public void SetZonedTime(DateTimeOffset? value)

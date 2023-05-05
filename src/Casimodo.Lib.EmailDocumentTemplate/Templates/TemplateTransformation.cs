@@ -9,7 +9,7 @@ namespace Casimodo.Lib.Templates
     public class TemplateDataContainer
     {
         public TemplateDataContainer Self { get { return this; } }
-        readonly List<TemplateDataPropAccessor> _properties = new List<TemplateDataPropAccessor>();
+        readonly List<TemplateDataPropAccessor> _properties = new();
 
         public void AddProp<T>(string name, T instance = default(T))
         {
@@ -282,7 +282,7 @@ namespace Casimodo.Lib.Templates
         }
 
         readonly ConcurrentDictionary<Guid, TemplateInstructionDefinition> _instructionDefinitionsCache =
-           new ConcurrentDictionary<Guid, TemplateInstructionDefinition>();
+           new();
 
         /// <summary>
         /// Resolves data root properties and external properties.

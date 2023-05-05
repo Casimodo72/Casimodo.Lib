@@ -4,7 +4,7 @@ namespace Casimodo.Lib.Templates
 {
     public interface ITemplateProcessor
     {
-        bool MatchesExpression(string name);
+        bool MatchesExpression(string expression);
         void SetText(object value);
         void SetText(string value);
         void SetTextOrRemove(object value);

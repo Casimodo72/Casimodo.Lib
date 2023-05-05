@@ -1,12 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+#nullable enable
 
 namespace Casimodo.Lib.Templates
 {
     public class TemplateExpressionProcessor
     {
+        public TemplateExpressionProcessor(CultureInfo culture)
+        {
+            Culture = culture;
+        }
+
+        public CultureInfo Culture { get; }
+
         public async Task<IEnumerable<object>> FindObjects(TemplateCoreContext coreContext, TemplateExpression expression)
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
@@ -18,10 +28,10 @@ namespace Casimodo.Lib.Templates
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
-            return context.HasReturnValue ? ConditionResultToBoolean(context.ReturnValue) : false;
+            return context.HasReturnValue && ConditionResultToBoolean(context.ReturnValue);
         }
 
-        public async Task<object> EvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<object?> EvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
@@ -47,7 +57,7 @@ namespace Casimodo.Lib.Templates
             return coreContext.GetExpressionParser().ParseTemplateExpression(coreContext.Data, element.Expression, element.Kind);
         }
 
-        public static object EvaluatedResultToValue(IEnumerable<object> evaluatedResult)
+        public static object? EvaluatedResultToValue(IEnumerable<object> evaluatedResult)
         {
             if (evaluatedResult == null)
                 return null;
@@ -96,25 +106,25 @@ namespace Casimodo.Lib.Templates
             else
             {
                 var values = ExecuteCore(context, context.DataContainer, context.Ast);
-                if (values.Count() != 0)
+                if (values.Any())
                     context.SetReturnValue(values);
             }
         }
 
-        IEnumerable<object> ExecuteCore(TemplateExpressionContext context, object contextObj, AstNode node)
+        IEnumerable<object?> ExecuteCore(TemplateExpressionContext context, object contextObj, AstNode node)
         {
             Guard.ArgNotNull(contextObj, nameof(contextObj));
-            Guard.ArgNotNull(node, nameof(node));
-
-            var values = Enumerable.Empty<object>();
+            Guard.ArgNotNull(node, nameof(node)); 
 
             if (node is InstructionAstNode instruction)
             {
                 context.CurrentInstruction = instruction;
 
-                if (!instruction.SourceType.IsAssignableFrom(contextObj.GetType()))
+                if (!instruction.SourceType.IsInstanceOfType(contextObj))
                     throw new TemplateException($"Invalid template expression state: " +
                         $"context object (type '{contextObj.GetType()}') is not of expected type '{instruction.SourceType}'.");
+
+                var values = Enumerable.Empty<object?>();
 
                 if (instruction.Definition != null)
                 {
@@ -159,17 +169,11 @@ namespace Casimodo.Lib.Templates
                     // Execute next instruction.
 
                     if (instruction.ReturnType.IsListType)
-                    {                        
+                    {
                         values = ExecuteCore(context, values, instruction.Right);
                     }
                     else
                     {
-                        // TODO: REMOVE
-                        //if (values.Count() > 1)
-                        //    throw new TemplateException("Invalid template expression. " +
-                        //        "Intermediate instructions of normal expressions must not return more than one value. " +
-                        //        "Use CSharp expressions instead.");
-
                         var value = values.FirstOrDefault();
 
                         if (value != null)
@@ -178,11 +182,26 @@ namespace Casimodo.Lib.Templates
                             values = ExecuteCore(context, value, instruction.Right);
                         }
                         else
-                            values = new[] { (object)null };
+                        {
+                            values = new[] { (object?)null };
+                        }
                     }
                 }
 
                 return values;
+            }
+            else if (node is FormatValueAstNode formatValue)
+            {
+                if (contextObj == null)
+                    return Enumerable.Empty<object>();
+
+                if (contextObj is not IFormattable formattable)
+                    throw new TemplateException($"A value of type '{contextObj.GetType().Name}' " +
+                        $"cannot be formatted because it does not implement {typeof(IFormattable)}.");
+
+                var formattedValue = formattable.ToString(formatValue.Format, Culture);
+
+                return new[] { formattedValue };
             }
             else
             {
@@ -191,9 +210,11 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        static IEnumerable<object> ToEnumerable(object value)
+        static IEnumerable<object> ToEnumerable(object? value)
         {
-            if (value is IEnumerable enumerable && value is not string)
+            if (value == null)
+                return Enumerable.Empty<object>();
+            else if (value is IEnumerable enumerable && value is not string)
                 return enumerable.Cast<object>();
             else
                 return new[] { value };
