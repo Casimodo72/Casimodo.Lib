@@ -329,34 +329,40 @@ namespace Casimodo.Mojen
 
         public TPropBuilder Range(int? min = null, int? max = null, string error = null)
         {
-            if (min == null && max == null)
-                throw new MojenException("At least one of min or max or both must be specified.");
-
-            // new RangeAttribute(minimum, maximum) { ErrorMessage = error };
-            var attr = new MojAttr("Range", 4);
-            if (min != null)
-                attr.CArg("minimum", min, typeof(int));
-            if (max != null)
-                attr.CArg("maximum", (max == int.MaxValue ? "int.MaxValue" : max.ToString()), typeof(int));
-            else
-                attr.CArg("maximum", "int.MaxValue", typeof(int));
-            attr.ErrorArg(error);
+            RangeCore(min, max, typeof(int), int.MaxValue, error);
 
             PropConfig.UseRules().Min = min;
             PropConfig.UseRules().Max = max;
 
-            return Attr(attr);
+            return This();
         }
 
-        // KABU TODO: REMOVE? Maybe needed for GFA types.
-        //public TPropBuilder Range(decimal? minimum, decimal? maximum, string error = null)
-        //{
-        //    return Attr(new MojAttr("Range", 4)
-        //        .CArg("minimum", minimum)
-        //        .CArg("maximum", (maximum == decimal.MaxValue ? "decimal.MaxValue" : maximum.ToString()))
-        //        .ErrorArg(error));
-        //    // new RangeAttribute(minimum, maximum) { ErrorMessage = error };
-        //}
+        public TPropBuilder Range(decimal? min = null, decimal? max = null, string error = null)
+        {
+            RangeCore(min, max, typeof(decimal), decimal.MaxValue, error);
+
+            PropConfig.UseRules().Min = min;
+            PropConfig.UseRules().Max = max;
+
+            return This();
+        }
+
+        private void RangeCore(object min, object max, Type type, object maxValue, string error)
+        {
+            if (min == null && max == null)
+                throw new MojenException("At least one of min or max or both must be specified.");
+
+            var attr = new MojAttr("Range", 4);
+
+            if (min != null)
+                attr.CArg("minimum", min, type);
+            
+            attr.CArg("maximum", max != null ? max : maxValue, type);
+
+            attr.ErrorArg(error);
+
+            Attr(attr);
+        }
 
         public TPropBuilder MinLength(int length, string error = null)
         {

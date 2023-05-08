@@ -269,17 +269,21 @@ namespace Casimodo.Mojen
                     continue;
                 }
 
-                bool? boolean = item as bool?;
-                if (boolean != null)
+                if (item is bool boolValue)
                 {
-                    builder.Elem.Add(XmlConvert.ToString(boolean.Value));
+                    builder.Elem.Add(XmlConvert.ToString(boolValue));
                     continue;
                 }
 
-                int? integer = item as int?;
-                if (integer != null)
+                if (item is int intValue)
                 {
-                    builder.Elem.Add(XmlConvert.ToString(integer.Value));
+                    builder.Elem.Add(XmlConvert.ToString(intValue));
+                    continue;
+                }
+
+                if (item is decimal decimalValue)
+                {
+                    builder.Elem.Add(XmlConvert.ToString(decimalValue));
                     continue;
                 }
 

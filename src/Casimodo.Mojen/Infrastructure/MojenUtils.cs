@@ -168,8 +168,18 @@ namespace Casimodo.Mojen
                 return value.ToString();
             else if (type == typeof(bool))
                 return XmlConvert.ToString((bool)value);
+            else if (type == typeof(int))
+            {
+                return (int)value == int.MaxValue
+                     ? "int.MaxValue"
+                     : XmlConvert.ToString((int)value);
+            }
             else if (type == typeof(decimal))
-                return XmlConvert.ToString((decimal)value);
+            {
+                return (decimal)value == decimal.MaxValue  
+                    ? "decimal.MaxValue" 
+                    : XmlConvert.ToString((decimal)value);
+            }
             else if (type == typeof(double))
                 return XmlConvert.ToString((double)value);
             else if (type == typeof(DateTimeOffset))
@@ -180,7 +190,7 @@ namespace Casimodo.Mojen
             }
             else if (type == typeof(DateTime))
             {
-                // KABU TODO: IMPORTANT: Not sure which mode to use
+                // KABU TODO: Not sure which mode to use
                 return parse
                     ? "DateTime.Parse(\"" + XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.Local) + "\")"
                     : "\"" + XmlConvert.ToString((DateTime)value, XmlDateTimeSerializationMode.Local) + "\"";

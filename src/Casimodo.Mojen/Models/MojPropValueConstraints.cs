@@ -22,10 +22,10 @@ namespace Casimodo.Mojen
         public bool Is { get; private set; }
 
         [DataMember]
-        public int? Min { get; set; }
+        public decimal? Min { get; set; }
 
         [DataMember]
-        public int? Max { get; set; }
+        public decimal? Max { get; set; }
 
         [DataMember]
         public bool IsRequired { get; set; }

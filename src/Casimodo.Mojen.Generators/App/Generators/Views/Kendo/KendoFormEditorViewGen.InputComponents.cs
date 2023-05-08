@@ -4,7 +4,7 @@ namespace Casimodo.Mojen
 {
     public partial class KendoFormEditorViewGen : KendoTypeViewGenBase
     {
-        void OKendoNumericInput(WebViewGenContext context, string ppath = null, int? min = null, int? max = null,
+        void OKendoNumericInput(WebViewGenContext context, string ppath = null, decimal? min = null, decimal? max = null,
             bool validationElem = true)
         {
             var vprop = context.PropInfo.ViewProp;
