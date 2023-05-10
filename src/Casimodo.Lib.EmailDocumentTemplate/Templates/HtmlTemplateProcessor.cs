@@ -167,7 +167,7 @@ namespace Casimodo.Lib.Templates
                                 typeof(TemplateLoopCursorVariable<>).MakeGenericType(value.GetType()));
 
                             // Add "item" property.
-                            CoreContext.Data.AddProp(item.GetType(), loopCurrenItemPropName, item);
+                            CoreContext.Data.AddProp(loopCurrenItemPropName, item.GetType(), item);
 
                             item.ValueObject = values[i];
 
@@ -231,7 +231,7 @@ namespace Casimodo.Lib.Templates
 
                     // Add "value" property.
                     const string valueVarName = "value";
-                    CoreContext.Data.AddProp(value?.GetType() ?? typeof(object), "value", value);
+                    CoreContext.Data.AddProp("value", value?.GetType() ?? typeof(object), value);
 
                     var fragmentClone = (IDocumentFragment)valueTemplate.TemplateElement.Content.Clone();
 

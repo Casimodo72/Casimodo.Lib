@@ -1,60 +1,57 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
 
 namespace Casimodo.Lib
 {
     // KABU TODO: REMOVE: Use a dedicated foreign open-source lib. Use C# 6.
     public static class Guard
     {
-        public static void ArgNotNull(object arg, string name)
+        public static void ArgNotNull([NotNull] object? arg, string name)
         {
             if (arg == null)
                 throw new ArgumentNullException(name);
         }
 
-        public static void ArgNotEmpty(byte[] arg, string name)
+        public static void ArgNotEmpty([NotNull] byte[]? arg, string name)
         {
-            Guard.ArgNotNull(arg, name);
+            ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotEmpty(object[] arg, string name)
+        public static void ArgNotEmpty([NotNull] object[]? arg, string name)
         {
-            Guard.ArgNotNull(arg, name);
+            ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotEmpty(string[] arg, string name)
+        public static void ArgNotEmpty([NotNull] string[]? arg, string name)
         {
-            Guard.ArgNotNull(arg, name);
+            ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotNone<T>(T arg, string name)
+        public static void ArgNotNone<T>([NotNull] T? arg, string name)
         {
-            if (object.Equals(arg, null) || object.Equals(arg, default(T)))
+            if (arg == null || object.Equals(arg, default(T)))
                 throw new ArgumentException($"The given '{name}' must not be not null or empty.");
         }
 
-        //public static void ArgNotNullOrDefault(Guid arg, string name)
-        //{
-        //    if (arg == Guid.Empty) throw new ArgumentException("The given GUID must not be empty.", name);
-        //}
-
-        public static void ArgNotEmpty(string arg, string name)
+        public static void ArgNotEmpty([NotNull] string? arg, string name)
         {
             ArgNotNullOrWhitespace(arg, name);
         }
 
-        public static void ArgNotEmpty(Guid? arg, string name)
+        public static void ArgNotEmpty([NotNull] Guid? arg, string name)
         {
             if (arg == null || arg == Guid.Empty)
                 throw new ArgumentException("The given GUID must not be null or empty.", name);
         }
 
-        public static void ArgNotNullOrWhitespace(string arg, string name)
+        public static void ArgNotNullOrWhitespace([NotNull] string? arg, string name)
         {
             if (arg == null)
                 throw new ArgumentNullException(name);
@@ -74,6 +71,5 @@ namespace Casimodo.Lib
             if (arg1 != null && arg2 != null)
                 throw new ArgumentException($"The arguments {name1} and {name2} are mutually exclusive.");
         }
-
     }
 }

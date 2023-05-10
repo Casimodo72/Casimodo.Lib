@@ -1,16 +1,12 @@
-﻿
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -70,16 +66,6 @@ namespace Casimodo.Lib.CSharp
             return result;
         }
 
-        // TODO: REMOVE? Not used
-        public CSharpCompiledToAssemblyWrapper Compile(string code, params Type[] types)
-        {
-            var syntaxTree = Parse(code);
-            var compilation = CompileCore(types, syntaxTree);
-            var result = EmitToAssembly(compilation);
-
-            return result;
-        }
-
         public SyntaxTree Parse(string code, SourceCodeKind kind = SourceCodeKind.Regular)
         {
             var options = new CSharpParseOptions(kind: kind, languageVersion: MaxLanguageVersion);
@@ -99,27 +85,19 @@ namespace Casimodo.Lib.CSharp
         public ScriptOptions CreateScriptOptionsCore(Type[] types, params string[] namespaces)
         {
             var options = ScriptOptions.Default;
-            var referenceTypes = new List<Type>();
-
-            referenceTypes.Add(typeof(Enumerable));
+            var referenceTypes = new List<Type>
+            {
+                typeof(Enumerable)
+            };
 
             if (types != null)
                 foreach (var type in types)
                     if (!referenceTypes.Contains(type))
                         referenceTypes.Add(type);
 
-            options = options.AddReferences(referenceTypes.Select(x => GetAssembly(x)));
-
-            // TODO: REMOVE?
-            // var interactiveLoader = new InteractiveAssemblyLoader();
-            // foreach (var ass in referenceTypes.Select(x => GetAssembly(x)))
-            //    interactiveLoader.RegisterDependency(ass);
-
-            // var references = referenceTypes.Select(x => MetadataReference.CreateFromFile(x.Assembly.Location)).ToList();
-            // if (references.Count != 0)
-            //    options = options.AddReferences(references);
-
-            options = options.AddImports("System", "System.Linq", "System.Collections.Generic");;
+            options = options
+                .AddReferences(referenceTypes.Select(x => GetAssembly(x)))
+                .AddImports("System", "System.Linq", "System.Collections.Generic");
 
             if (namespaces != null)
                 options = options.AddImports(namespaces);
@@ -153,43 +131,6 @@ namespace Casimodo.Lib.CSharp
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return compilation;
-        }
-
-        // TODO: REMOVE? Not used and not fully implemented.
-        public CSharpCompiledToAssemblyWrapper EmitToAssembly(CSharpCompilation compilation)
-        {
-            var result = new CSharpCompiledToAssemblyWrapper();
-
-            using (var ms = new MemoryStream())
-            {
-                EmitResult emitResult = compilation.Emit(ms);
-
-                if (!emitResult.Success)
-                {
-
-                    IEnumerable<Diagnostic> failures = emitResult.Diagnostics.Where(diagnostic =>
-                        diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error);
-
-                    result.ErrorMessages = failures.Select(x => x.GetMessage()).ToList();
-
-                    // TODO: REMOVE
-                    //foreach (Diagnostic diagnostic in failures)
-                    //{
-                    //    Console.Error.WriteLine("{0}: {1}", diagnostic.Id, diagnostic.GetMessage());
-                    //}
-                }
-                else
-                {
-                    result.IsSuccess = true;
-
-                    ms.Seek(0, SeekOrigin.Begin);
-                    //AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(ms);
-                    Assembly assembly = Assembly.Load(ms.ToArray());
-                }
-            }
-
-            return result;
         }
     }
 }

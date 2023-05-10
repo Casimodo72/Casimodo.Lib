@@ -170,7 +170,7 @@ namespace Casimodo.Lib.Templates
             foreach (var prop in data.GetPropAccessors())
             {
                 sb.o(string.Format(
-                    "public {0} {1} {{ get {{ return _data.Prop<{0}>(\"{1}\"); }} }}",
+                    "public {0} {1} {{ get {{ return _data.GetProp<{0}>(\"{1}\"); }} }}",
                     GetScriptableTypeName(prop.Type), prop.Name));
 
                 sb.o(Environment.NewLine);

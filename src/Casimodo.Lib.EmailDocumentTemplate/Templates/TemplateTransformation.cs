@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+#nullable enable
 
 namespace Casimodo.Lib.Templates
 {
@@ -11,75 +12,70 @@ namespace Casimodo.Lib.Templates
         public TemplateDataContainer Self { get { return this; } }
         readonly List<TemplateDataPropAccessor> _properties = new();
 
-        public void AddProp<T>(string name, T instance = default(T))
+        public void AddProp<T>(string name, T? instance = default)
         {
-            _properties.Add(new TemplateDataPropAccessor
-            {
-                Type = typeof(T),
-                Name = name,
-                InstanceObject = instance
-            });
+            var prop = new TemplateDataPropAccessor(name, typeof(T), instance);
+            _properties.Add(prop);
         }
 
-        public void AddProp(Type type, string name, object instance = null)
+        public void AddProp(string name, Type type, object? instance = null)
         {
-            _properties.Add(new TemplateDataPropAccessor
-            {
-                Type = type,
-                Name = name,
-                InstanceObject = instance
-            });
+            _properties.Add(new TemplateDataPropAccessor(name, type, instance));
         }
 
         public void RemoveProp(string name)
         {
-            var prop = GetPropAccessor(name, required: false);
+            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+
+            var prop = FindPropAccessor(name, null);
             if (prop == null)
                 return;
 
             _properties.Remove(prop);
         }
 
-        public void SetProp<T>(object instance)
+        public void SetProp<T>(string name, T? instance)
             where T : class
         {
-            var prop = GetPropAccessor(null, type: typeof(T));
-
-            prop.InstanceObject = instance;
+            GetPropAccessor(name, typeof(T)).ValueObject = instance;
         }
 
-        public void SetProp(string name, object instance)
-        {
-            var prop = GetPropAccessor(name);
-
-            if (instance != null && prop.Type != null && !prop.Type.IsAssignableFrom(instance.GetType()))
-                throw new TemplateException($"Incorrent property type '{instance.GetType().Name}'. Expected was a type assignable to type '{prop.Type}'.");
-
-            prop.InstanceObject = instance;
-        }
-
-        public T Prop<T>(string name)
-
-        {
-            var prop = GetPropAccessor(name);
-
-            return (T)prop.InstanceObject;
-        }
-
-        public T Prop<T>()
+        public void SetProp<T>(T? instance)
             where T : class
         {
-            var type = typeof(T);
-            var prop = GetPropAccessor(null, type: type);
-
-            return (T)prop.InstanceObject;
+            GetPropAccessor(null, typeof(T)).ValueObject = instance;
         }
 
-        public object Prop(string name)
+        public T? GetProp<T>(string name)
         {
-            var prop = GetPropAccessor(name);
+            var prop = GetPropAccessor(name, typeof(T));
 
-            return prop.InstanceObject;
+            return (T?)prop.ValueObject;
+        }
+
+        public T? GetProp<T>()
+        {
+            var prop = GetPropAccessor(null, typeof(T));
+
+            return (T?)prop.ValueObject;
+        }
+
+        public T GetRequiredProp<T>()
+            where T : class
+        {
+            var prop = GetPropAccessor(null, typeof(T));
+
+            if (prop.ValueObject == null)
+                throw new TemplateException($"The value of the property is null (name: '{prop!.Name}', type: '{typeof(T).Name}').");
+
+            return (T)prop!.ValueObject;
+        }
+
+        internal object? GetPropValueObject(string name)
+        {
+            var prop = GetPropAccessor(name, null);
+
+            return prop?.ValueObject;
         }
 
         public IEnumerable<TemplateDataPropAccessor> GetPropAccessors()
@@ -87,43 +83,68 @@ namespace Casimodo.Lib.Templates
             return _properties;
         }
 
-        public TemplateDataPropAccessor GetPropAccessor(string name, Type type = null, bool required = true)
+        internal TemplateDataPropAccessor? FindPropAccessor(string? name, Type? type)
         {
-            if (name == null && type == null)
+            if (string.IsNullOrWhiteSpace(name) && type == null)
                 throw new ArgumentException("At least one of @name or @type must be specified.");
 
-            var prop = _properties.FirstOrDefault(x =>
-                (name == null || x.Name == name) &&
-                (type == null || x.Type == type));
+            var props = _properties
+                .Where(x =>
+                    (name == null || x.Name == name) &&
+                    (type == null || x.Type == type))
+                .ToArray();
 
-            if (prop == null && required)
-                throw new TemplateException($"Data property '{name}' not found.");
+            if (props.Length > 1)
+            {
+                throw new TemplateException(
+                    $"Multiple data properties with name '{name ?? "(none)"}' " +
+                    $"of type '{type?.Name ?? "(none)"}' found.");
+            }
+
+            var prop = props.FirstOrDefault();
+
+            return prop;
+        }
+
+        private TemplateDataPropAccessor GetPropAccessor(string? name, Type? type, bool createIfMissing = false)
+        {
+            var prop = FindPropAccessor(name, type);
+
+            if (prop == null && createIfMissing)
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                    throw new TemplateException($"Cannot add a property of type '{type!.Name}': No property name was provided.");
+
+                if (type == null)
+                    throw new TemplateException($"Cannot add a property '{name}': No property type was provided.");
+
+                AddProp(name, type);
+
+                return GetPropAccessor(name, type);
+            }
+
+            if (prop == null)
+                throw new TemplateException($"Data property '{name}' of type '{type.Name}' not found.");
 
             return prop;
         }
     }
 
-    public sealed class TemplateDataPropAccessor<T> : TemplateDataPropAccessor
-        where T : class, new()
-    {
-        public T Instance
-        {
-            get { return (T)InstanceObject; }
-        }
-    }
-
     public class TemplateDataPropAccessor
     {
-        public TemplateDataPropAccessor()
+        public TemplateDataPropAccessor(string name, Type type, object? instanceObject)
         {
             Guid = Guid.NewGuid();
+            Name = name;
+            Type = type;
+            ValueObject = instanceObject;
         }
 
-        public Guid Guid { get; set; }
-        public string Name { get; set; }
-        public Type Type { get; set; }
+        public Guid Guid { get; }
+        public string Name { get; }
+        public Type Type { get; }
 
-        public object InstanceObject { get; set; }
+        public object? ValueObject { get; set; }
     }
 
     public interface ITemplateInstructionResolver
@@ -313,7 +334,7 @@ namespace Casimodo.Lib.Templates
             }
             else if (sourceType == typeof(TemplateDataContainer))
             {
-                var prop = Data.GetPropAccessor(propName, required: false);
+                var prop = Data.FindPropAccessor(propName, null);
                 if (prop == null)
                     return null;
 
@@ -332,16 +353,16 @@ namespace Casimodo.Lib.Templates
                 {
                     definition.ListValueGetter = (c, x) =>
                     {
-                        var value = x.Prop(c.CurrentInstruction.Name);
+                        var value = x.GetPropValueObject(c.CurrentInstruction.Name);
                         if (value is not IEnumerable enumerable)
                             throw new TemplateException("The value was expected to be a list type.");
 
-                        return enumerable.Cast<object>();   
+                        return enumerable.Cast<object>();
                     };
                 }
                 else
                 {
-                    definition.ValueGetter = (c, x) => x.Prop(c.CurrentInstruction.Name);
+                    definition.ValueGetter = (c, x) => x.GetPropValueObject(c.CurrentInstruction.Name);
                 }
 
                 _instructionDefinitionsCache.TryAdd(prop.Guid, definition);
@@ -361,7 +382,7 @@ namespace Casimodo.Lib.Templates
             context.DataContainer = Data;
             context.Processor = templateProcessor;
 
-            Data.Prop<TemplateEnvContainer>().Context = context;
+            Data.GetRequiredProp<TemplateEnvContainer>().Context = context;
 
             return context;
         }
