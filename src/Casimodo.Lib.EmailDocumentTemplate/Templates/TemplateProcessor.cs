@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Templates
 
         public abstract void RemoveValue();
 
-        public CultureInfo Culture { get; protected set; } = CultureInfo.CurrentUICulture;
+        public CultureInfo Culture => Context.Culture;
 
         public TemplateElement CurrentTemplateElement { get; protected set; }
 
