@@ -45,6 +45,7 @@ namespace Casimodo.Lib.Templates
     {
         public object? ValueObject { get; set; }
         public int Index { get; set; }
+        public int Position { get; set; }
         public bool IsLast { get; set; }
         public bool IsFirst { get; set; }
         public bool IsOdd { get; set; }

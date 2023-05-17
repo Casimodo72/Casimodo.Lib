@@ -172,6 +172,7 @@ namespace Casimodo.Lib.Templates
                             item.ValueObject = values[i];
 
                             item.Index = i;
+                            item.Position = i + 1;
                             item.IsOdd = i % 2 != 0;
                             item.IsFirst = i == 0;
                             item.IsLast = i == values.Length - 1;
@@ -202,21 +203,20 @@ namespace Casimodo.Lib.Templates
                     var parentNode = originalElem.Parent;
 
                     if (await EvaluateCondition(current))
-                    {
-                        // Operate on a clone of the original "if" element.
+                    {                        
                         var elemClone = (IElement)originalElem.Clone();
 
                         await ProcessTemplateElements(elemClone.Children, visitor);
 
+                        parentNode.InsertBefore(elemClone, originalElem);
+
                         // Insert all child nodes of the transformed "if" element.
-                        foreach (var childNode in elemClone.ChildNodes.ToArray())
-                            parentNode.InsertBefore(childNode, originalElem);
+                        //foreach (var childNode in elemClone.ChildNodes.ToArray())
+                        //    parentNode.InsertBefore(childNode, originalElem);
                     }
-                    else
-                    {
-                        // Remove the original "if" element and its content.
-                        originalElem.Remove();
-                    }
+
+                    // Remove the original "if" element and its content.
+                    originalElem.Remove();
 
                     // Skip content because we already processed the content.
                     return false;

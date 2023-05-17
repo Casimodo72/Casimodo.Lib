@@ -237,7 +237,7 @@ namespace Casimodo.Mojen
             {
                 Range(min: 0);
             }
-            Precision(13, 3);
+            Precision(19, 4);
             Type(DataType.Currency);
             return This();
         }
