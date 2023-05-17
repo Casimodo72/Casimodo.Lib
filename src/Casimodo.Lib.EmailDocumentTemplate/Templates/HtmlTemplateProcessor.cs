@@ -98,7 +98,8 @@ namespace Casimodo.Lib.Templates
 
         readonly IFileProvider _fileProvider;
 
-        protected HtmlTemplateProcessor(IFileProvider fileProvider)
+        protected HtmlTemplateProcessor(TemplateContext context, IFileProvider fileProvider)
+            :base(context)
         {
             Guard.ArgNotNull(fileProvider, nameof(fileProvider));
 

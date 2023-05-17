@@ -49,8 +49,15 @@ namespace Casimodo.Lib.Templates
     // KABU TODO: Do we want to implement functions like "EnableArea(Foo.Bar)" ?
     public class TemplateExpressionParser : SimpleStringTokenParser
     {
+        public TemplateExpressionParser(TemplateContext context)
+        {
+            Context = context;
+        }
+
         public CSharpScriptOptionsWrapper CSharpScriptOptions { get; set; }
         public List<ITemplateInstructionResolver> InstructionResolvers { get; set; } = new List<ITemplateInstructionResolver>();
+        public TemplateContext Context { get; }
+
         AstTypeInfo CurType;
 
         void Tokenize(string expression)
@@ -344,11 +351,22 @@ namespace Casimodo.Lib.Templates
             if (!Next())
                 throw CreateInvalidExpressionException("A value format was expected.");
 
-            if (!typeof(IFormattable).IsAssignableFrom(Nullable.GetUnderlyingType(CurType.Type) ?? CurType.Type))
+            var format = Current();
+
+            if (CurType.Type == typeof(string))
+            {
+                var stringFormatter = Context.FindStringFormatter(format);
+                if (stringFormatter == null)
+                {
+                    throw new TemplateException(
+                        $"No custom string formatter found for format '{format}'.");
+                }
+            }
+            else if (!typeof(IFormattable).IsAssignableFrom(Nullable.GetUnderlyingType(CurType.Type) ?? CurType.Type))
+            {
                 throw CreateInvalidExpressionException($"A value of type '{CurType.Type.Name}' " +
                         $"cannot be formatted because it does not implement {nameof(IFormattable)}.");
-
-            var format = Current();
+            }            
 
             if (Next())
                 throw CreateInvalidExpressionException("Unexpected tokens after format specifier.");

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+#nullable enable
 
 namespace Casimodo.Lib.Templates
 {
@@ -12,7 +13,8 @@ namespace Casimodo.Lib.Templates
 
     public abstract class XmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
     {
-        public XmlTemplateProcessor()
+        protected XmlTemplateProcessor(TemplateContext context)
+            : base(context)
         { }
 
         public override void SetText(string value)

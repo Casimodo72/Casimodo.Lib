@@ -7,54 +7,17 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
-    public static class TemplateUtils
-    {
-        static readonly string[] UriSchemes = new[]
-        {
-            "http://", "https://"
-        };
-
-        public static string? RemoveSchemeFromUri(string uri)
-        {
-            if (string.IsNullOrWhiteSpace(uri))
-                return null;
-
-            foreach (var scheme in UriSchemes)
-                if (uri.StartsWith(scheme))
-                    return uri[scheme.Length..];
-
-            return uri;
-        }
-
-        /// <summary>
-        /// Returns a data URI with base64 encoded data.
-        /// </summary>        
-        public static string ToDataUri(string mediaType, byte[] data)
-        {
-            return $"data:{mediaType};base64,{Convert.ToBase64String(data)}";
-        }
-    }
-
-    public class TemplateLoopCursorVariable<T> : TemplateLoopCursor
-      where T : class
-    {
-        public T Value { get { return (T)ValueObject; } }
-    }
-
-    public class TemplateLoopCursor
-    {
-        public object? ValueObject { get; set; }
-        public int Index { get; set; }
-        public int Position { get; set; }
-        public bool IsLast { get; set; }
-        public bool IsFirst { get; set; }
-        public bool IsOdd { get; set; }
-        public int Count { get; set; }
-    }
-
-
     public abstract class TemplateProcessor : ITemplateProcessor
     {
+        protected TemplateProcessor(TemplateContext context)
+        {
+            Guard.ArgNotNull(context, nameof(context));
+
+            Context = context;
+        }
+
+        private TemplateContext Context { get; }
+
         public abstract void SetText(string value);
         public abstract void SetImage(Guid? imageFileId, bool removeIfEmpty = false);
 
@@ -71,7 +34,7 @@ namespace Casimodo.Lib.Templates
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public TemplateCoreContext CoreContext { get; set; }
+        public TemplateContext CoreContext { get; set; }
 
         protected async Task<IEnumerable<object>> FindObjects(TemplateExpression expression)
         {
@@ -135,7 +98,7 @@ namespace Casimodo.Lib.Templates
         TemplateExpressionProcessor _pathProcessor;
         public TemplateExpressionProcessor GetExpressionProcessor()
         {
-            _pathProcessor ??= new TemplateExpressionProcessor(Culture);
+            _pathProcessor ??= new TemplateExpressionProcessor(Context);
 
             return _pathProcessor;
         }

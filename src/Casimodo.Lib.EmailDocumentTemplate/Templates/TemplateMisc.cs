@@ -98,7 +98,7 @@ namespace Casimodo.Lib.Templates
 
         List<object> Services { get; set; } = new List<object>(3);
 
-        public TemplateCoreContext CoreContext { get; set; }
+        public TemplateContext CoreContext { get; set; }
 
         /// <summary>
         /// NOTE: Will be null when evaluating an expression is not expected

@@ -10,35 +10,37 @@ namespace Casimodo.Lib.Templates
 {
     public class TemplateExpressionProcessor
     {
-        public TemplateExpressionProcessor(CultureInfo culture)
+        public TemplateExpressionProcessor(TemplateContext context)
         {
-            Culture = culture;
+            Guard.ArgNotNull(context, nameof(context));
+
+            Context = context;
         }
 
-        public CultureInfo Culture { get; }
+        public TemplateContext Context { get; }
 
-        public async Task<IEnumerable<object>> FindObjects(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<IEnumerable<object>> FindObjects(TemplateContext coreContext, TemplateExpression expression)
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
             return context.HasReturnValue ? context.ReturnValue : Enumerable.Empty<object>();
         }
 
-        public async Task<bool> EvaluateCondition(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<bool> EvaluateCondition(TemplateContext coreContext, TemplateExpression expression)
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
             return context.HasReturnValue && ConditionResultToBoolean(context.ReturnValue);
         }
 
-        public async Task<object?> EvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<object?> EvaluateValue(TemplateContext coreContext, TemplateExpression expression)
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
             return context.HasReturnValue ? EvaluatedResultToValue(context.ReturnValue) : null;
         }
 
-        public async Task<TemplateExpressionContext> ParseAndEvaluateValue(TemplateCoreContext coreContext, TemplateExpression expression)
+        public async Task<TemplateExpressionContext> ParseAndEvaluateValue(TemplateContext coreContext, TemplateExpression expression)
         {
             Guard.ArgNotNull(expression, nameof(expression));
 
@@ -52,7 +54,7 @@ namespace Casimodo.Lib.Templates
             return context;
         }
 
-        public static AstNode ParseExpression(TemplateCoreContext coreContext, TemplateExpression element)
+        public static AstNode ParseExpression(TemplateContext coreContext, TemplateExpression element)
         {
             return coreContext.GetExpressionParser().ParseTemplateExpression(coreContext.Data, element.Expression, element.Kind);
         }
@@ -114,7 +116,7 @@ namespace Casimodo.Lib.Templates
         IEnumerable<object?> ExecuteCore(TemplateExpressionContext context, object contextObj, AstNode node)
         {
             Guard.ArgNotNull(contextObj, nameof(contextObj));
-            Guard.ArgNotNull(node, nameof(node)); 
+            Guard.ArgNotNull(node, nameof(node));
 
             if (node is InstructionAstNode instruction)
             {
@@ -195,13 +197,32 @@ namespace Casimodo.Lib.Templates
                 if (contextObj == null)
                     return Enumerable.Empty<object>();
 
-                if (contextObj is not IFormattable formattable)
-                    throw new TemplateException($"A value of type '{contextObj.GetType().Name}' " +
-                        $"cannot be formatted because it does not implement {typeof(IFormattable)}.");
+                if (contextObj is string text)
+                {
+                    var stringFormatter = Context.FindStringFormatter(formatValue.Format);
+                    if (stringFormatter == null)
+                    {
+                        throw new TemplateException(
+                           $"No custom string formatter found for format '{formatValue.Format}'.");
+                    }
 
-                var formattedValue = formattable.ToString(formatValue.Format, Culture);
+                    var formattedValue = stringFormatter.Format(text, formatValue.Format, Context.Culture);
 
-                return new[] { formattedValue };
+                    return new[] { formattedValue };
+                }
+                else
+                {
+                    if (contextObj is not IFormattable formattable)
+                    {
+                        throw new TemplateException(
+                            $"A value of type '{contextObj.GetType().Name}' " +
+                            $"cannot be formatted because it does not implement {typeof(IFormattable)}.");
+                    }
+
+                    var formattedValue = formattable.ToString(formatValue.Format, Context.Culture);
+
+                    return new[] { formattedValue };
+                }
             }
             else
             {
