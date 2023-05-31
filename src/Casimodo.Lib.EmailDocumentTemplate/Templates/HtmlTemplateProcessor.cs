@@ -99,7 +99,7 @@ namespace Casimodo.Lib.Templates
         readonly IFileProvider _fileProvider;
 
         protected HtmlTemplateProcessor(TemplateContext context, IFileProvider fileProvider)
-            :base(context)
+            : base(context)
         {
             Guard.ArgNotNull(fileProvider, nameof(fileProvider));
 
@@ -168,7 +168,7 @@ namespace Casimodo.Lib.Templates
                                 typeof(TemplateLoopCursorVariable<>).MakeGenericType(value.GetType()));
 
                             // Add "item" property.
-                            CoreContext.Data.AddProp(loopCurrenItemPropName, item.GetType(), item);
+                            Context.Data.AddProp(loopCurrenItemPropName, item.GetType(), item);
 
                             item.ValueObject = values[i];
 
@@ -188,7 +188,7 @@ namespace Casimodo.Lib.Templates
                                 parentNode.InsertBefore(childNode, originalElem);
 
                             // Remove "item" property.
-                            CoreContext.Data.RemoveProp(loopCurrenItemPropName);
+                            Context.Data.RemoveProp(loopCurrenItemPropName);
                         }
                     }
 
@@ -204,7 +204,7 @@ namespace Casimodo.Lib.Templates
                     var parentNode = originalElem.Parent;
 
                     if (await EvaluateCondition(current))
-                    {                        
+                    {
                         var elemClone = (IElement)originalElem.Clone();
 
                         await ProcessTemplateElements(elemClone.Children, visitor);
@@ -232,7 +232,7 @@ namespace Casimodo.Lib.Templates
 
                     // Add "value" property.
                     const string valueVarName = "value";
-                    CoreContext.Data.AddProp("value", value?.GetType() ?? typeof(object), value);
+                    Context.Data.AddProp("value", value?.GetType() ?? typeof(object), value);
 
                     var fragmentClone = (IDocumentFragment)valueTemplate.TemplateElement.Content.Clone();
 
@@ -243,7 +243,7 @@ namespace Casimodo.Lib.Templates
                     originalElem.ParentElement.InsertBefore(fragmentClone, originalElem);
 
                     // Remove the "value" property.
-                    CoreContext.Data.RemoveProp(valueVarName);
+                    Context.Data.RemoveProp(valueVarName);
 
                     // Remove the original element and its content.
                     originalElem.Remove();

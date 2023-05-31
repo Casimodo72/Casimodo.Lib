@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Templates
             Context = context;
         }
 
-        private TemplateContext Context { get; }
+        protected TemplateContext Context { get; }
 
         public abstract void SetText(string value);
         public abstract void SetImage(Guid? imageFileId, bool removeIfEmpty = false);
@@ -34,21 +34,19 @@ namespace Casimodo.Lib.Templates
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public TemplateContext CoreContext { get; set; }
-
         protected async Task<IEnumerable<object>> FindObjects(TemplateExpression expression)
         {
-            return await GetExpressionProcessor().FindObjects(CoreContext, expression);
+            return await GetExpressionProcessor().FindObjects(Context, expression);
         }
 
         protected async Task<bool> EvaluateCondition(TemplateExpression expression)
         {
-            return await GetExpressionProcessor().EvaluateCondition(CoreContext, expression);
+            return await GetExpressionProcessor().EvaluateCondition(Context, expression);
         }
 
         protected async Task<object> EvaluateValue(TemplateExpression expression)
         {
-            return await GetExpressionProcessor().EvaluateValue(CoreContext, expression);
+            return await GetExpressionProcessor().EvaluateValue(Context, expression);
         }
 
         bool _isInTransformation;
@@ -76,7 +74,7 @@ namespace Casimodo.Lib.Templates
 
         public async Task Execute(TemplateElement element)
         {
-            var context = CoreContext.CreateExpressionContext(templateProcessor: this);
+            var context = Context.CreateExpressionContext(templateProcessor: this);
 
             context.Ast = ParseExpression(element);
 
@@ -92,7 +90,7 @@ namespace Casimodo.Lib.Templates
 
         public AstNode ParseExpression(TemplateExpression element)
         {
-            return CoreContext.GetExpressionParser().ParseTemplateExpression(CoreContext.Data, element.Expression, element.Kind);
+            return Context.GetExpressionParser().ParseTemplateExpression(Context.Data, element.Expression, element.Kind);
         }
 
         TemplateExpressionProcessor _pathProcessor;

@@ -69,6 +69,17 @@ namespace Casimodo.Lib.Templates
             return (T)prop!.ValueObject;
         }
 
+        public T GetRequiredProp<T>(string name)
+           where T : class
+        {
+            var prop = GetPropAccessor(name, typeof(T));
+
+            if (prop.ValueObject == null)
+                throw new TemplateException($"The value of the property is null (name: '{prop!.Name}', type: '{typeof(T).Name}').");
+
+            return (T)prop!.ValueObject;
+        }
+
         internal object? GetPropValueObject(string name)
         {
             var prop = GetPropAccessor(name, null);
@@ -147,17 +158,17 @@ namespace Casimodo.Lib.Templates
 
     public interface ITemplateInstructionResolver
     {
-        TemplateInstructionDefinition ResolveInstruction(Type sourceType, string propName);
+        TemplateInstructionDefinition? ResolveInstruction(Type sourceType, string propName);
     }
 
     public class TemplateInstructions : ITemplateInstructionResolver
     {
-        public TemplateInstructionDefinition ResolveInstruction(Type sourceType, string propName)
+        public TemplateInstructionDefinition? ResolveInstruction(Type sourceType, string propName)
         {
             return Instructions.FirstOrDefault(x => x.Name == propName && x.SourceType.IsAssignableFrom(sourceType));
         }
 
-        public TemplateFunctionDefinition ResolveFunction(string funcName)
+        public TemplateFunctionDefinition? ResolveFunction(string funcName)
         {
             return Functions.FirstOrDefault(x => x.Name == funcName);
         }
@@ -238,21 +249,6 @@ namespace Casimodo.Lib.Templates
             item.ExecuteCore = (c, x) => execute(c, (TSourceType)x);
 
             Instructions.Add(item);
-        }
-
-
-        // KABU TODO: REMOVE? Intended for function "EnableArea", but currently - maybe as a workaround -
-        //   I'm using expressions like "Something-Area" with a registered executing instruction handler instead.
-        void AddGlobalFunc<TSourceType>(string name, Action<TemplateExpressionContext> execute = null)
-        {
-            var func = new TemplateFunctionDefinition
-            {
-                Name = name
-            };
-
-            func.ExecuteCore = (c, x) => execute(c);
-
-            Functions.Add(func);
         }
 
         static void CheckName(string name)
