@@ -210,10 +210,6 @@ namespace Casimodo.Lib.Templates
                         await ProcessTemplateElements(elemClone.Children, visitor);
 
                         parentNode.InsertBefore(elemClone, originalElem);
-
-                        // Insert all child nodes of the transformed "if" element.
-                        //foreach (var childNode in elemClone.ChildNodes.ToArray())
-                        //    parentNode.InsertBefore(childNode, originalElem);
                     }
 
                     // Remove the original "if" element and its content.
