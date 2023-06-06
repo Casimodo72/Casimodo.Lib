@@ -1004,7 +1004,13 @@ namespace Casimodo.Mojen
         /// <param name="external">Intended to be edited via a user-provided custom template.</param>
         public MojViewPropBuilder Prop(MojProp prop, bool hidden = false, bool? readOnly = null, bool external = false, bool label = true)
         {
-            var pbuilder = SimplePropCore(prop, readOnly: readOnly ?? false, hidden: hidden);
+            if (readOnly == null)
+            {
+                // Hidden props are read-only by default.
+                readOnly = hidden ? true : false;
+            }
+
+            var pbuilder = SimplePropCore(prop, readOnly: readOnly.Value, hidden: hidden);
 
             pbuilder.Prop.NoLabel = !label;
 
@@ -1017,8 +1023,7 @@ namespace Casimodo.Mojen
                 {
                     pbuilder.Prop.HideModes = MojViewMode.All;
 
-                    // Hidden props are read-only by default, except for if explicitely non-read-only.
-                    if (readOnly != false)
+                    if (readOnly.Value)
                         pbuilder.ReadOnly();
                 }
 
