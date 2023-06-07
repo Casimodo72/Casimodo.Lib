@@ -93,7 +93,7 @@ namespace Casimodo.Lib.Auth
             //   the permission for "Lookup".
             var userRoles = user.Identity.GetUserRoles().ToArray();
 
-            foreach (var p in Parts.Where(x => x.PartName == part && x.PartGroup == group))
+            foreach (var p in Parts.Where(x => x.PartName == part && (group == null || x.PartGroup == group)))
                 foreach (var perm in p.Permissions.Where(x => x.Action.Matches(action, vrole)))
                     for (int i = 0; i < userRoles.Length; i++)
                         if (perm.MatchesUserRole(userRoles[i]))
