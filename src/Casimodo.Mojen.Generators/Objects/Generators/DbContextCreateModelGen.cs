@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Casimodo.Mojen
 {
+    [Obsolete("Use CoreDbContextModelGen instead.")]
     public class DbContextCreateModelGen : MojenGenerator
     {
         public DbContextCreateModelGen()

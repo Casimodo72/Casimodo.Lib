@@ -25,7 +25,7 @@
             var itemTypeName = "MoTag";
 
             g.O();
-            g.O("[HttpPost]");
+            g.O("[HttpPost(\"UpdateTags\")]");
             g.O("public IHttpActionResult UpdateTags(ODataActionParameters parameters)");
             g.Begin();
             g.O("_db.Context.Configuration.LazyLoadingEnabled = false;");

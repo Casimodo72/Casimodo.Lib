@@ -34,6 +34,13 @@
             return this;
         }
 
+        public MojEntityPropBuilder DbDefaultValue(object value)
+        {
+            PropConfig.AddDefaultValue(value, "database");
+
+            return this;
+        }
+
         /// <summary>
         /// Force inclusion in OData model even if this properties in not part of the DB model.
         /// </summary>
@@ -87,7 +94,13 @@
 
         public object LastErrorHolder { get; set; }
 
-        public MojEntityPropBuilder Unique(params object[] per)
+        public MojEntityPropBuilder Unique(params object[] per) => UniqueCore(false, per);
+
+
+        public MojEntityPropBuilder NullableUnique(params object[] per) => UniqueCore(true, per);
+
+
+        MojEntityPropBuilder UniqueCore(bool nullable, params object[] per)
         {
             if (per != null)
             {
@@ -113,7 +126,8 @@
 
             PropConfig.DbAnno.Unique = new MojUniqueConfig
             {
-                Is = true
+                Is = true,
+                IsNullable = nullable
             };
             LastErrorHolder = PropConfig.DbAnno.Unique;
 

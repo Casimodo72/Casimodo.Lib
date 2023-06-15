@@ -42,7 +42,7 @@
 
             O("{");
             Push();
-            if (prop.Type.CanBeNull)
+            if (!unique.IsNullable && prop.Type.CanBeNull)
             {
                 O($"if ({item}.{prop.Name} == null) ThrowUniquePropValueMustNotBeNull<{type.ClassName}>(\"{prop.Name}\");");
                 O();
@@ -51,13 +51,13 @@
             if (sequence.Is)
             {
                 if (sequence.Start != null)
-                {                
+                {
                     O($"if ({item}.{prop.Name} < {sequence.Start}) ThrowUniquePropValueMustNotBeLessThan<{type.ClassName}>(\"{prop.Name}\", {sequence.Start});");
                     O();
                 }
 
                 if (sequence.StartSelector != null)
-                {                    
+                {
                     var method = prop.GetStartSequenceValueMethodName();
                     var step = sequence.StartSelector.Root;
                     var sourceProp = step.SourceProp.ForeignKey;
@@ -79,7 +79,12 @@
 
             // Check for unique value.
             var key = type.Key.Name;
-            Oo($"if (context.Db.{type.PluralName}.Any(x => x.{key} != {item}.{key}");
+            Oo($"if (");
+            if (unique.IsNullable && prop.Type.CanBeNull)
+            {
+                o($"{item}.{prop.Name} != null && ");
+            }
+            o($"context.Db.{type.PluralName}.Any(x => x.{key} != {item}.{key}");
             o($" && x.{prop.Name} == {item}.{prop.Name}");
             foreach (var per in unique.GetParams(includeTenant: true))
             {

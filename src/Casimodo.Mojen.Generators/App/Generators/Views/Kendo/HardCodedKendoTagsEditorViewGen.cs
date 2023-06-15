@@ -54,7 +54,7 @@
             Lang = "C#";
 
             g.O();
-            g.O("[HttpPost]");
+            g.O("[HttpPost(\"UpdateTags\")]");
             g.OB("public async Task<IActionResult> UpdateTags(ODataActionParameters parameters)");
             g.O($"await DbCollectionOperations.UpdateUnidirM2MCollection<{ownerTypeName}, {linkTypeName}, {itemTypeName}>(");
             g.Push();

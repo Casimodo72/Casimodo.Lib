@@ -356,7 +356,7 @@ namespace Casimodo.Mojen
 
             if (min != null)
                 attr.CArg("minimum", min, type);
-            
+
             attr.CArg("maximum", max != null ? max : maxValue, type);
 
             attr.ErrorArg(error);

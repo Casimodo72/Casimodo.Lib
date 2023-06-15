@@ -202,7 +202,7 @@ namespace Casimodo.Mojen
 
             O();
             OApiActionAuthAttribute(editorView, "Create");
-            O("[HttpPost]");
+            O($"[HttpPost(\"{action}\")]");
             O($"public async Task<IActionResult> {action}(ODataActionParameters parameters)");
             Begin();
             O($"return await CreateCore(parameters?.Values?.FirstOrDefault() as {editorView.TypeConfig.Name});");
@@ -338,7 +338,7 @@ namespace Casimodo.Mojen
                 // POST: odata/ControllerName(x)/Ns.MethodName
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
-                O("[HttpPost]");
+                O($"[HttpPost(\"{action}\")]");
                 // NOTE: The ID parameter *must* be named "key" by convention.
                 // Otherwise the action won't be found by the OData Web API machinery.
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} key, ODataActionParameters parameters)");
@@ -373,7 +373,7 @@ namespace Casimodo.Mojen
 #pragma warning restore CS0162 // Unreachable code detected
                 O();
                 O("[AcceptVerbs(\"PATCH\", \"MERGE\")]");
-                O($"[Route(\"({{{ key.VName}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]");
+                O($"[Route(\"({{{key.VName}}})\"), System.Web.Http.AcceptVerbs(\"PATCH\", \"MERGE\")]");
                 O($"public async Task<IActionResult> Patch([FromODataUri] {key.Type.Name} {key.VName}, Delta<{Type.ClassName}> delta, CancellationToken cancellationToken)");
                 Begin();
                 O("Validate(delta.GetEntity());");

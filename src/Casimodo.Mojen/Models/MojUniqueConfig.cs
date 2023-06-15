@@ -1,5 +1,5 @@
-﻿using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
+using System.Runtime.Serialization;
 
 namespace Casimodo.Mojen
 {
@@ -103,6 +103,9 @@ namespace Casimodo.Mojen
         public bool Is { get; set; }
 
         [DataMember]
+        public bool IsNullable { get; set; }
+
+        [DataMember]
         public string ErrorMessage { get; set; }
 
         public bool HasParams
@@ -135,7 +138,7 @@ namespace Casimodo.Mojen
         /// <returns></returns>
         public IEnumerable<MojUniqueParameterConfig> GetMembers()
         {
-            return _parameters.Where(x => 
+            return _parameters.Where(x =>
                 x.Kind == MojIndexPropKind.IndexMember ||
                 x.Kind == MojIndexPropKind.TenantIndexMember);
         }

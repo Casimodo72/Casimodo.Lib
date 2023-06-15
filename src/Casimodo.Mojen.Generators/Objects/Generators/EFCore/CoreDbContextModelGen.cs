@@ -104,6 +104,12 @@ namespace Casimodo.Mojen
                     {
                         O($"b.Property(x => x.{prop.Name}).IsRequired();");
                     }
+
+                    var defaultValue = prop.DefaultValues.ForScenario("database").FirstOrDefault();
+                    if (defaultValue != null)
+                    {
+                        O($"b.Property(x => x.{prop.Name}).HasDefaultValue({Moj.CS(defaultValue.Value)});");
+                    }
                 }
 
                 if (type.IsManyToManyLink)
