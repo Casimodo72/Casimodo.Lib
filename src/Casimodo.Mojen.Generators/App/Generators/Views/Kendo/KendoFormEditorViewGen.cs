@@ -14,6 +14,11 @@ namespace Casimodo.Mojen
 
         public string ScriptFilePath { get; set; }
 
+        /// <summary>
+        /// NOTE: Currently (or forever) disabled, since we don't use that class.
+        /// </summary>
+        public bool IsRazorEditModelGenerationEnabled { get; set; }
+
         protected override void GenerateCore()
         {
             foreach (MojViewConfig view in App.GetItems<MojViewConfig>()
@@ -44,14 +49,17 @@ namespace Casimodo.Mojen
                     KendoGen.OEditableFormComponent(context);
                 });
 
-                var dataViewModelGen = new WebDataEditViewModelGen();
-                dataViewModelGen.Initialize(App);
-
-                dataViewModelGen.PerformWrite(Path.Combine(GetViewDirPath(view), BuildEditorDataModelFileName(view)), () =>
+                if (IsRazorEditModelGenerationEnabled)
                 {
-                    dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group,
-                        isDateTimeOffsetSupported: false);
-                });
+                    var dataViewModelGen = new WebDataEditViewModelGen();
+                    dataViewModelGen.Initialize(App);
+
+                    dataViewModelGen.PerformWrite(Path.Combine(GetViewDirPath(view), BuildEditorDataModelFileName(view)), () =>
+                    {
+                        dataViewModelGen.GenerateEditViewModel(view.TypeConfig, UsedViewPropInfos, view.Group,
+                            isDateTimeOffsetSupported: false);
+                    });
+                }
 
                 RegisterComponent(context);
             }
@@ -112,7 +120,10 @@ namespace Casimodo.Mojen
             var type = context.View.TypeConfig;
             ORazorUsing(type.Namespace, "Casimodo.Lib.Web");
 
-            ORazorModel($"{context.View.Group ?? ""}{type.Name}Model");
+            if (IsRazorEditModelGenerationEnabled)
+            {
+                ORazorModel($"{context.View.Group ?? ""}{type.Name}Model");
+            }
 
             CheckViewId(context.View);
 
@@ -1027,7 +1038,7 @@ namespace Casimodo.Mojen
                         // Options
                         Oo($@"autoBind: {Moj.JS(autoBind)},");
                         o($@"enable: {Moj.JS(enable)},");
-                        o($@"valuePrimitive: { Moj.JS(valuePrimitive)},");
+                        o($@"valuePrimitive: {Moj.JS(valuePrimitive)},");
                         o($@"dataValueField: ""{key}"", dataTextField: ""{display}"",");
                         o($@"optionLabel: ""{optionLabel}"",");
                         if (cascade)
