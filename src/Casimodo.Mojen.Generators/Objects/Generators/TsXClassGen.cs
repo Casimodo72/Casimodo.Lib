@@ -117,9 +117,13 @@ public class TsXClassGen : TsGenBase
         if (type == null)
             return;
 
-        string[] typeNames = Options.GenerateInterfaces && Options.PrefixInterfaces
-            ? new[] { type.Name, "I" + type.Name }
-            : new[] { type.Name };
+        var typeNames = new List<string>();
+
+        if (Options.GenerateClasses)
+            typeNames.Add(type.Name);
+
+        if (Options.GenerateInterfaces && Options.PrefixInterfaces)
+            typeNames.Add($"I{type.Name}");
 
         O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
     }
