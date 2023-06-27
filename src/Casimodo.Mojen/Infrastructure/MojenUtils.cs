@@ -176,8 +176,8 @@ namespace Casimodo.Mojen
             }
             else if (type == typeof(decimal))
             {
-                return (decimal)value == decimal.MaxValue  
-                    ? "decimal.MaxValue" 
+                return (decimal)value == decimal.MaxValue
+                    ? "decimal.MaxValue"
                     : XmlConvert.ToString((decimal)value);
             }
             else if (type == typeof(double))
@@ -306,21 +306,6 @@ namespace Casimodo.Mojen
                 return $"new Uint8Array({sizeStr})";
             else
                 return $"[{sizeStr}]";
-        }
-
-        public static string ToTsType(MojPropType type, bool partial = false)
-        {
-            if (type.IsDirectOrContainedMojType)
-            {
-                var t = type.DirectOrContainedTypeConfig.Name;
-                if (partial)
-                    t = "Partial<" + t + ">";
-                if (type.IsCollection)
-                    t += "[]";
-
-                return t;
-            }
-            else return ToJsType(type);
         }
 
         public static string ToJsType(MojPropType type)

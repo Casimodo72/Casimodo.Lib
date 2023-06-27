@@ -1,12 +1,13 @@
 ﻿using System.IO;
+#nullable enable
 
 namespace Casimodo.Mojen
 {
     public class TsXPrimitiveKeysGenOptions
     {
-        public string OutputDirPath { get; set; }
-        public string FileName { get; set; }
-        public string[] IncludeTypes { get; set; }
+        public string[]? OutputDirPaths { get; set; }
+        public string? FileName { get; set; }
+        public string[]? IncludeTypes { get; set; }
     }
 
     /// <summary>
@@ -31,29 +32,38 @@ namespace Casimodo.Mojen
             var webConfig = App.Get<WebDataLayerConfig>();
             var moduleName = webConfig.ScriptNamespace;
 
-            var outputDirPath = _options.OutputDirPath ?? webConfig.TypeScriptDataDirPath;
-            if (string.IsNullOrWhiteSpace(outputDirPath))
-                return;
-
-            var items = App.AllValueCollections
-                .Where(x => _options.IncludeTypes.Contains(x.TypeConfig.Name))
-                .ToList();
-
-            if (!items.Any())
-                return;
-
-            var fileName = (_options.FileName ?? "keys.generated") + ".ts";
-
-            PerformWrite(Path.Combine(outputDirPath, fileName), () =>
+            var outputDirPaths = new List<string>();
+            if (_options.OutputDirPaths?.Length > 0)
             {
-                foreach (var item in items)
+                outputDirPaths.AddRange(_options.OutputDirPaths);
+            }
+            else
+            {
+                outputDirPaths.Add(webConfig.TypeScriptDataDirPath);
+            }
+
+            foreach (var outputDirPath in outputDirPaths)
+            {
+                var items = App.AllValueCollections
+                    .Where(x => _options.IncludeTypes.Contains(x.TypeConfig.Name))
+                    .ToList();
+
+                if (!items.Any())
+                    return;
+
+                var fileName = (_options.FileName ?? "keys.generated") + ".ts";
+
+                PerformWrite(Path.Combine(outputDirPath, fileName), () =>
                 {
-                    O();
-                    OTsClass(name: item.KeysContainerName, export: true,
-                        hasconstructor: false,
-                        content: () => GeneratePrimitiveDefinition(moduleName, item));
-                }
-            });
+                    foreach (var item in items)
+                    {
+                        O();
+                        OTsClass(name: item.KeysContainerName, export: true,
+                            hasconstructor: false,
+                            content: () => GeneratePrimitiveDefinition(moduleName, item));
+                    }
+                });
+            }
         }
 
         void GeneratePrimitiveDefinition(string moduleName, MojValueSetContainer config)
@@ -81,7 +91,7 @@ namespace Casimodo.Mojen
 
                     // TODO: Do we need a summary?
 #if (false)
-                    // Summary of member                
+                    // Summary of member
                     if (item.Has("DisplayValue"))
                         O("// DisplayValue: " + item.Get("DisplayValue").Value);
 

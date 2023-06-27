@@ -1,57 +1,57 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 #nullable enable
 
 namespace Casimodo.Lib
 {
-    // KABU TODO: REMOVE: Use a dedicated foreign open-source lib. Use C# 6.
     public static class Guard
     {
-        public static void ArgNotNull([NotNull] object? arg, string name)
+        public static void ArgNotNull([NotNull] object? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             if (arg == null)
                 throw new ArgumentNullException(name);
         }
 
-        public static void ArgNotEmpty([NotNull] byte[]? arg, string name)
+        public static void ArgNotEmpty([NotNull] byte[]? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotEmpty([NotNull] object[]? arg, string name)
+        public static void ArgNotEmpty([NotNull] object[]? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotEmpty([NotNull] string[]? arg, string name)
+        public static void ArgNotEmpty([NotNull] string[]? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotNone<T>([NotNull] T? arg, string name)
+        public static void ArgNotNone<T>([NotNull] T? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             if (arg == null || object.Equals(arg, default(T)))
                 throw new ArgumentException($"The given '{name}' must not be not null or empty.");
         }
 
-        public static void ArgNotEmpty([NotNull] string? arg, string name)
+        public static void ArgNotEmpty([NotNull] string? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             ArgNotNullOrWhitespace(arg, name);
         }
 
-        public static void ArgNotEmpty([NotNull] Guid? arg, string name)
+        public static void ArgNotEmpty([NotNull] Guid? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             if (arg == null || arg == Guid.Empty)
                 throw new ArgumentException("The given GUID must not be null or empty.", name);
         }
 
-        public static void ArgNotNullOrWhitespace([NotNull] string? arg, string name)
+        public static void ArgNotNullOrWhitespace([NotNull] string? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             if (arg == null)
                 throw new ArgumentNullException(name);
@@ -60,13 +60,17 @@ namespace Casimodo.Lib
                 throw new ArgumentException($"The argument '{name}' must not be null, empty or whitespace.");
         }
 
-        public static void ArgOneNotNull(object arg1, object arg2, string name1, string name2)
+        public static void ArgOneNotNull(object arg1, object arg2,
+            [CallerArgumentExpression("arg1")] string? name1 = null,
+            [CallerArgumentExpression("arg2")] string? name2 = null)
         {
             if (arg1 == null && arg2 == null)
                 throw new ArgumentException($"One of the arguments {name1} and {name2} must have a value.");
         }
 
-        public static void ArgMutuallyExclusive(object arg1, object arg2, string name1, string name2)
+        public static void ArgMutuallyExclusive(object arg1, object arg2,
+            [CallerArgumentExpression("arg1")] string? name1 = null,
+            [CallerArgumentExpression("arg2")] string? name2 = null)
         {
             if (arg1 != null && arg2 != null)
                 throw new ArgumentException($"The arguments {name1} and {name2} are mutually exclusive.");

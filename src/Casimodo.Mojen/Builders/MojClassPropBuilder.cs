@@ -40,11 +40,6 @@ namespace Casimodo.Mojen
             string backrefPropName = null);
     }
 
-    public class MojUnidirM2MBuildOptions
-    {
-
-    }
-
     public class MojClassPropBuilder<TClassBuilder, TPropBuilder> :
         MojPropBuilder<TClassBuilder, TPropBuilder>,
         IMojClassPropBuilder
@@ -1069,27 +1064,6 @@ namespace Casimodo.Mojen
                 IsImage = image
             };
 
-            // KABU TODO: REMOVE
-#if (false)
-            if (uploadable)
-            {
-                // Add FileUploadInfo
-                // If no key name was specified then use the key defined on the referenced type.
-                var builder = TypeBuilder
-                    .Prop("FileUploadInfo", type: null, mojtype: null)
-                    .CustomType("DbAttachmentOperationInfo");
-                builder.PropConfig.IsSortable = false;
-
-                var storeBuilder = builder.StoreCore();
-                // The DbAttachmentOperationInfo(s) are transient and never added to the DB.
-                storeBuilder.PropConfig.IsExcludedFromDb = true;
-                storeBuilder.PropConfig.IsSortable = false;
-
-                // Add to related properties.
-                PropConfig.AutoRelatedProps.Add(builder.PropConfig);
-            }
-#endif            
-
             return This();
         }
 
@@ -1295,35 +1269,5 @@ namespace Casimodo.Mojen
 
             return sprop;
         }
-
-        // KABU TODO: REMOVE
-        //internal void ConvertToEntityProp(MojProp mprop, MojProp eprop)
-        //{
-        //    // Rules need attention
-
-        //    // If the model type's store type changes:            
-        //    //if (mprop.Type.TypeConfig != null &&
-        //    //    mprop.Type.TypeConfig.Store != null &&
-        //    //    mprop.Type.TypeConfig.Store != eprop.Type.TypeConfig)
-        //    //{
-        //    //    TypeBuilder.GetStorePropBuilder(eprop)
-        //    //        .Type(mprop.Type.TypeConfig.Store);
-        //    //}
-
-        //    if (mprop.CascadeFromProps.Count != 0)
-        //    {
-        //        // Process cascade-from properties.
-        //        foreach (var cascadeFrom in mprop.CascadeFromProps)
-        //        {
-        //            if (cascadeFrom.Store != null &&
-        //                !eprop.CascadeFromProps.Contains(cascadeFrom.Store))
-        //            {
-        //                eprop.CascadeFromProps.Add(cascadeFrom.Store);
-        //            }
-        //        }
-        //    }
-
-        //    //eprop.ConvertToEntity();
-        //}
     }
 }

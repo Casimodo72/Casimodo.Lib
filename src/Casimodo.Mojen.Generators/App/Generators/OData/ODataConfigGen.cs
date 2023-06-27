@@ -75,7 +75,7 @@ namespace Casimodo.Mojen
                 {
                     // Add ComplexType
                     O($"builder.ComplexType<{typeName}>();");
-                    OPropertyConstraints(type);
+                    OProperties(type);
                 }
                 else if (type.Kind == MojTypeKind.Enum)
                 {
@@ -93,7 +93,7 @@ namespace Casimodo.Mojen
 
                     O($"var {item} = builder.EntityType<{typeName}>();");
 
-                    OPropertyConstraints(type);
+                    OProperties(type);
 
                     // Entity properties which are not in the DB and are
                     // explicitely configured to be added to OData.
@@ -171,7 +171,7 @@ namespace Casimodo.Mojen
             End();
         }
 
-        void OPropertyConstraints(MojType type)
+        void OProperties(MojType type)
         {
             var item = type.VName;
             foreach (var prop in type.GetProps())

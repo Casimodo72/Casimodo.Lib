@@ -1,57 +1,73 @@
 ﻿using System.IO;
+#nullable enable
 
-namespace Casimodo.Mojen
+namespace Casimodo.Mojen;
+
+public class TsXClassGenOptions
 {
-    public class TsXClassGenOptions
+    public string[]? OutputDirPaths { get; set; }
+    public bool OutputSingleFile { get; set; } = true;
+    public string[]? IncludeTypes { get; set; }
+
+    public bool GenerateInterfaces { get; set; } = true;
+    public bool GenerateClasses { get; set; } = true;
+    public bool UseODataClasses { get; set; } = true;
+
+    public bool PrefixInterfaces { get; set; } = true;
+
+    public string? SingleFileName { get; set; }
+
+    public bool UseCamelCase { get; set; } = true;
+
+    public bool UseDefaultValues { get; set; } = true;
+
+    public Func<MojType, string>? FormatFileName { get; set; }
+}
+
+public class TsXClassGen : TsGenBase
+{
+    public TsXClassGen()
+        : this(new TsXClassGenOptions())
+    { }
+
+    public TsXClassGen(TsXClassGenOptions options)
     {
-        public string OutputDirPath { get; set; }
-        public bool OutputSingleFile { get; set; }
-        public string[] IncludeTypes { get; set; }
+        Guard.ArgNotNull(options);
 
-        public bool GenerateInterfaces { get; set; }
-
-        public bool PrefixInterfaces { get; set; }
-
-        public string SingleFileName { get; set; }
-
-        public bool UseDefaultValues { get; set; }
-
-        public Func<MojType, string> FormatFileName { get; set; }
+        Options = options;
+        Scope = "Context";
     }
 
-    public class TsXClassGen : TsGenBase
+    public TsXClassGenOptions Options { get; }
+
+    public WebDataLayerConfig WebConfig { get; set; } = default!;
+
+    public List<string>? IncludedTypeNames { get; set; }
+
+    protected override void GenerateCore()
     {
-        public TsXClassGenOptions Options { get; set; }
+        WebConfig = App.Get<WebDataLayerConfig>();
 
-        public TsXClassGen()
-            : this(new TsXClassGenOptions())
-        { }
-
-        public TsXClassGen(TsXClassGenOptions options = null)
+        var outputDirPaths = new List<string>();
+        if (Options.OutputDirPaths?.Length > 0)
         {
-            Options = options;
-            Scope = "Context";
+            outputDirPaths.AddRange(Options.OutputDirPaths);
+        }
+        else
+        {
+            outputDirPaths.Add(WebConfig.TypeScriptDataDirPath);
         }
 
-        public WebDataLayerConfig WebConfig { get; set; }
-
-        public List<string> IncludedTypeNames { get; set; }
-
-        protected override void GenerateCore()
+        foreach (var outputDirPath in outputDirPaths)
         {
-            WebConfig = App.Get<WebDataLayerConfig>();
-            var outputDirPath = Options?.OutputDirPath ?? WebConfig.TypeScriptDataDirPath;
-            if (string.IsNullOrWhiteSpace(outputDirPath))
-                return;
-
-            IncludedTypeNames = Options?.IncludeTypes?.ToList();
+            IncludedTypeNames = Options.IncludeTypes?.ToList();
 
             var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
                 .Where(x => !x.IsTenant)
                 .Where(x => IncludedTypeNames == null || IncludedTypeNames.Contains(x.Name))
                 .ToList();
 
-            if (Options?.OutputSingleFile == true)
+            if (Options.OutputSingleFile)
             {
                 var fileName = Options?.SingleFileName ?? "DataTypes.generated";
                 fileName += ".ts";
@@ -94,105 +110,109 @@ namespace Casimodo.Mojen
                 }
             }
         }
+    }
 
-        public void OImportType(MojType type)
+    public void OImportType(MojType type)
+    {
+        if (type == null)
+            return;
+
+        string[] typeNames = Options.GenerateInterfaces && Options.PrefixInterfaces
+            ? new[] { type.Name, "I" + type.Name }
+            : new[] { type.Name };
+
+        O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
+    }
+
+    private bool HasDoc(MojProp prop)
+    {
+        return !(prop.Summary.Descriptions.Count == 0 &&
+            prop.Summary.Remarks.Count == 0 &&
+            !prop.IsKey &&
+            !prop.IsExcludedFromDb);
+    }
+
+    public void OTsDoc(MojProp prop)
+    {
+        if (!HasDoc(prop))
+            return;
+
+        O("/**");
+
+        var hasContent = prop.Summary.Descriptions.Count != 0;
+
+        foreach (var text in prop.Summary.Descriptions)
+            O(" * " + text);
+
+        if (prop.IsKey || prop.IsExcludedFromDb)
         {
-            if (type == null)
-                return;
+            if (hasContent) O();
+            if (prop.IsKey) O(" * Is Key");
+            if (prop.IsExcludedFromDb) O(" *  Is NotMapped");
 
-            string[] typeNames = Options.GenerateInterfaces && Options.PrefixInterfaces
-                ? new[] { type.Name, "I" + type.Name }
-                : new[] { type.Name };
-
-            O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
+            hasContent = true;
         }
 
-        private bool HasDoc(MojProp prop)
+        if (prop.Summary.Remarks.Count != 0)
         {
-            return !(prop.Summary.Descriptions.Count == 0 &&
-                prop.Summary.Remarks.Count == 0 &&
-                !prop.IsKey &&
-                !prop.IsExcludedFromDb);
-        }
-
-        public void OTsDoc(MojProp prop)
-        {
-            if (!HasDoc(prop))
-                return;
-
-            O("/**");
-
-            var hasContent = prop.Summary.Descriptions.Count != 0;
-
-            foreach (var text in prop.Summary.Descriptions)
+            if (hasContent)
+                O();
+            O(" * @remarks");
+            foreach (var text in prop.Summary.Remarks)
                 O(" * " + text);
-
-            if (prop.IsKey || prop.IsExcludedFromDb)
-            {
-                if (hasContent) O();
-                if (prop.IsKey) O(" * Is Key");
-                if (prop.IsExcludedFromDb) O(" *  Is NotMapped");
-
-                hasContent = true;
-            }
-
-            if (prop.Summary.Remarks.Count != 0)
-            {
-                if (hasContent)
-                    O();
-                O(" * @remarks");
-                foreach (var text in prop.Summary.Remarks)
-                    O(" * " + text);
-            }
-
-            O(" */");
         }
 
-        public void Generate(MojType type, bool import)
+        O(" */");
+    }
+
+    public void Generate(MojType type, bool import)
+    {
+        var localProps = type.GetLocalProps(custom: false)
+            // Exclude hidden EF navigation collection props.
+            .Where(x => !x.IsHiddenCollectionNavigationProp)
+            .Where(x =>
+                !x.Type.IsDirectOrContainedMojType ||
+                IncludedTypeNames == null ||
+                IncludedTypeNames.Contains(x.Type.DirectOrContainedTypeConfig.Name))
+            .ToList();
+
+        if (import)
+            foreach (var prop in localProps.Where(x => x.Type.IsMojType))
+                OImportType(prop.Type.TypeConfig);
+
+        string? interfaceName = null;
+
+        if (Options.GenerateInterfaces)
         {
-            var localProps = type.GetLocalProps(custom: false)
-                // Exclude hidden EF navigation collection props.
-                .Where(x => !x.IsHiddenCollectionNavigationProp)
-                .Where(x =>
-                    !x.Type.IsDirectOrContainedMojType ||
-                    IncludedTypeNames == null ||
-                    IncludedTypeNames.Contains(x.Type.DirectOrContainedTypeConfig.Name))
-                .ToList();
+            interfaceName = BuildInterfaceName(type.Name);
+            var interfaceBaseName = !type.HasBaseClass
+                ? ""
+                : BuildInterfaceName(type.BaseClass.Name);
 
-            if (import)
-                foreach (var prop in localProps.Where(x => x.Type.IsMojType))
-                    OImportType(prop.Type.TypeConfig);
+            OTsInterface(interfaceName,
+                extends: interfaceBaseName,
+                content: () =>
+                {
+                    OClassOrInterfaceProps(type, localProps, isInterface: true);
+                });
+        }
 
-            string iname = null;
-
-            if (Options.GenerateInterfaces)
-            {
-                iname = Options.PrefixInterfaces ? "I" + type.Name : type.Name;
-                var ibaseName = !type.HasBaseClass
-                    ? ""
-                    : Options.PrefixInterfaces ? "I" + type.BaseClass.Name : type.BaseClass.Name;
-
-                OTsInterface(iname,
-                    extends: ibaseName,
-                    content: () =>
-                    {
-                        OClassOrInterfaceProps(type, localProps, isInterface: true);
-                    });
-            }
-
+        if (Options.GenerateClasses)
+        {
             O();
             OTsClass(type.Name,
-                extends: type.HasBaseClass 
-                    ? type.BaseClass.Name 
+                extends: type.HasBaseClass
+                    ? type.BaseClass.Name
                     : null,
-                implements: Options.GenerateInterfaces 
-                    ? new string[] { iname } 
+                implements: interfaceName != null
+                    ? new string[] { interfaceName }
                     : null,
                 propertyInitializer: true,
                 constructor: () =>
                 {
-                    if (type.IsEntity() ||
-                        (type.IsComplex() && type.UsingGenerators.Any(x => x.Type == typeof(ODataConfigGen))))
+                    if (Options.UseODataClasses &&
+                        (type.IsEntity() ||
+                        (type.IsComplex() && type.UsingGenerators.Any(x => x.Type == typeof(ODataConfigGen)))))
                     {
                         // TODO: Find a way to emit this only when used in the context of OData.
                         O($@"(this as any)[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
@@ -203,81 +223,105 @@ namespace Casimodo.Mojen
                     OClassOrInterfaceProps(type, localProps, isInterface: false);
                 });
         }
+    }
 
-        void OClassOrInterfaceProps(MojType type, List<MojProp> localProps, bool isInterface)
+    void OClassOrInterfaceProps(MojType type, List<MojProp> localProps, bool isInterface)
+    {
+        var tenantKey = type.FindTenantKey();
+
+        // Local properties
+        foreach (var prop in localProps)
         {
-            var tenantKey = type.FindTenantKey();
+            if (prop == tenantKey)
+                // Don't expose tenant information.
+                continue;
 
-            // Local properties                  
-            MojProp prop;
-            for (int i = 0; i < localProps.Count; i++)
+            if (HasDoc(prop))
             {
-                prop = localProps[i];
-
-                if (prop == tenantKey)
-                    // Don't expose tenant information.
-                    continue;
-               
-                if (HasDoc(prop))
+                if (Options.GenerateInterfaces == isInterface)
                 {
-                    if (Options.GenerateInterfaces == isInterface)
-                    {
-                        OTsDoc(prop);
-                    }
+                    OTsDoc(prop);
+                }
 
-                    if (Options.GenerateInterfaces && !isInterface)
-                    {
-                        O("/** @inheritdoc */");
-                    }
-                }                
-
-                if (prop.Type.IsCollection)
+                if (Options.GenerateInterfaces && !isInterface)
                 {
-                    // This will use Partial<T> for references.
-                    string propTypeName = Moj.ToTsType(prop.Type, partial: true);
+                    O("/** @inheritdoc */");
+                }
+            }
 
-                    //if (prop.Type.IsDirectOrContainedMojType)
-                    //{
-                    //    propTypeName = $"Partial<{prop.Type.DirectOrContainedTypeConfig.Name}>";
-                    //}
-                    //else
-                    //    propTypeName = Moj.ToTsType(prop.Type);
+            var propName = Options.UseCamelCase
+                ? prop.VName
+                : prop.Name;
 
-                    if (!isInterface)
-                    {
-                        var initializer = Moj.ToJsCollectionInitializer(prop.Type);
-                        O($"{prop.Name}: {propTypeName} = {initializer};");
-                    }
-                    else
-                        O($"{prop.Name}: {propTypeName};");
+            if (prop.Type.IsCollection)
+            {
+                // This will use Partial<T> for references.
+                string propTypeName = BuildPropTypeName(prop.Type, isInterface);
+
+                if (!isInterface)
+                {
+                    var initializer = Moj.ToJsCollectionInitializer(prop.Type);
+                    O($"{propName}: {propTypeName} = {initializer};");
                 }
                 else
+                    O($"{propName}: {propTypeName};");
+            }
+            else
+            {
+                // This will use Partial<T> for references.
+                string propTypeName = BuildPropTypeName(prop.Type, isInterface);
+
+                string defaultValue = "null";
+
+                if (Options.UseDefaultValues)
                 {
-                    // This will use Partial<T> for references.
-                    string propTypeName = Moj.ToTsType(prop.Type, partial: true);
-                    //if (prop.Type.IsMojType)
-                    //    propTypeName = $"Partial<{propTypeName}>";
-
-                    string defaultValue = "null";
-
-                    if (Options?.UseDefaultValues == true)
-                    {
-                        // Don't auto-generate GUIDs for IDs.
-                        if (!prop.IsKey)
-                            defaultValue = GetJsDefaultValue(prop);
-                    }
-                    else if (prop.Type.IsBoolean && !prop.Type.IsNullableValueType)
-                    {
-                        // Always initialize non nullable booleans.
-                        defaultValue = "false";
-                    }
-
-                    if (!isInterface)
-                        O($"{prop.Name}: {propTypeName} = {defaultValue};");
-                    else
-                        O($"{prop.Name}: {propTypeName};");
+                    // Don't auto-generate GUIDs for IDs.
+                    if (!prop.IsKey)
+                        defaultValue = GetJsDefaultValue(prop);
                 }
+                else if (prop.Type.IsBoolean && !prop.Type.IsNullableValueType)
+                {
+                    // Always initialize non nullable booleans.
+                    defaultValue = "false";
+                }
+
+                if (defaultValue == "null")
+                {
+                    propTypeName += " | null";
+                }
+
+                if (!isInterface)
+                    O($"{propName}: {propTypeName} = {defaultValue};");
+                else
+                    O($"{propName}: {propTypeName};");
             }
         }
     }
+
+    string BuildPropTypeName(MojPropType propType, bool isInterface)
+    {
+        if (propType.IsDirectOrContainedMojType)
+        {
+            var name = BuildInterfaceName(propType.DirectOrContainedTypeConfig.Name);
+
+            name = "Partial<" + name + ">";
+
+            if (propType.IsCollection)
+                name += "[]";
+
+            return name;
+        }
+        else
+        {
+            return Moj.ToJsType(propType);
+        }
+    }
+
+    string BuildInterfaceName(string interfaceName)
+    {
+        return Options.PrefixInterfaces
+            ? "I" + interfaceName
+            : interfaceName;
+    }
+
 }
