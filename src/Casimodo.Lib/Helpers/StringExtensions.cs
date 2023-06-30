@@ -122,12 +122,12 @@ namespace Casimodo.Lib
             return values.Any(x => items.Contains(x));
         }
 
-        public static string JoinIgnoreWhiteSpace(this IEnumerable<string> values, string separator)
+        public static string JoinIgnoreWhiteSpace(this IEnumerable<string?> values, string separator)
         {
             return values.JoinToString(separator);
         }
 
-        public static string JoinIgnoreWhiteSpace(string separator, params string[] values)
+        public static string JoinIgnoreWhiteSpace(string separator, params string?[] values)
         {
             return values.JoinToString(separator);
         }
