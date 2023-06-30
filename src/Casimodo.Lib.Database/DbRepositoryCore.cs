@@ -160,24 +160,17 @@ namespace Casimodo.Lib.Data
                 if (same)
                 {
                     throw new DbRepositoryException("Unexpected update of same object.");
-                    // KABU TODO: IMPORTANT: CLARIFY what this case is about.
-                    //   Why and when do we expect the source and target to be the same object.
-                    //   Why do we mark properties as modified in this case.
-                    //   And why do we process equal objects at all?
-                    //entry.Property(propName).IsModified = true;
                 }
-                else
+
+                prop = type.GetProperty(propName);
+                newValue = prop.GetValue(source);
+                // Mark as modified and assign if changed.
+                var oldValue = prop.GetValue(target);
+                if (!Equals(oldValue, newValue))
                 {
-                    prop = type.GetProperty(propName);
-                    newValue = prop.GetValue(source);
-                    // Mark as modified and assign if changed.
-                    var oldValue = prop.GetValue(target);
-                    if (!Equals(oldValue, newValue))
-                    {
-                        prop.SetValue(target, newValue);
-                        entry.Property(propName).IsModified = true;
-                        ProcessPropertyModified(ctx, target, prop, oldValue, newValue);
-                    }
+                    prop.SetValue(target, newValue);
+                    entry.Property(propName).IsModified = true;
+                    ProcessPropertyModified(ctx, target, prop, oldValue, newValue);
                 }
             }
 

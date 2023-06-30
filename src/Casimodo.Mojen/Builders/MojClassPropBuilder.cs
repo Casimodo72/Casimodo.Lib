@@ -408,10 +408,7 @@ namespace Casimodo.Mojen
             else
             {
                 // Non EF navigational collection property.
-                // Currently the case only for type.ClassName == MoContentAttachment.
-                // KABU TODO: REMOVE
-                //CustomType(string.Format("Collection<{0}>", type.ClassName));
-                PropConfig.Type.CollectionTypeName = "Collection";
+                PropConfig.Type.CollectionTypeName = "List";
             }
 
             if (!isBackrefNavigationApplied && backrefNavigation != null)
