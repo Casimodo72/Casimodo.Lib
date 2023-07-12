@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Threading;
+using System.Linq;
 
 namespace Casimodo.Lib
 {
@@ -86,6 +84,22 @@ namespace Casimodo.Lib
                 offset);
         }
 
+        public static DateTimeOffset? ModifyDate(this DateTimeOffset? value, DateOnly date)
+        {
+            return value == null
+                ? null
+                : ModifyDate(value.Value, date);
+        }
+
+        public static DateTimeOffset SetDate(this DateTimeOffset value, DateOnly date)
+        {
+            return value.Year == date.Year && value.Month == date.Month && value.Day == date.Day
+                ? value
+                : new DateTimeOffset(
+                    date.Year, date.Month, date.Day,
+                    value.Hour, value.Minute, value.Second, value.Millisecond, value.Offset);
+        }
+
         public static DateTimeOffset? TruncateTime(this DateTimeOffset? value)
         {
             return value != null ? TruncateTime(value.Value) : value;
@@ -133,7 +147,7 @@ namespace Casimodo.Lib
         {
             return TimeZoneInfo.ConvertTime(value, tzi);
         }
-    
+
         public static DateTimeOffset? LocalStartOfDayUtc(this DateTimeOffset? value)
         {
             if (value == null) return null;

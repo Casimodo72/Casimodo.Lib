@@ -58,24 +58,22 @@ public class TsXClassGen : TsGenBase
             outputDirPaths.Add(WebConfig.TypeScriptDataDirPath);
         }
 
+        IncludedTypeNames = Options.IncludeTypes?.ToList();
+
+        var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
+            .Where(x => !x.IsTenant)
+            .Where(x => IncludedTypeNames == null || IncludedTypeNames.Contains(x.Name))
+            .ToList();
+
         foreach (var outputDirPath in outputDirPaths)
         {
-            IncludedTypeNames = Options.IncludeTypes?.ToList();
-
-            var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
-                .Where(x => !x.IsTenant)
-                .Where(x => IncludedTypeNames == null || IncludedTypeNames.Contains(x.Name))
-                .ToList();
-
             if (Options.OutputSingleFile)
             {
-                var fileName = Options?.SingleFileName ?? "DataTypes.generated";
+                var fileName = Options.SingleFileName ?? "dataTypes";
                 fileName += ".ts";
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
                 {
-                    O("/* tslint:disable:no-inferrable-types max-line-length */");
-
                     var excludedBaseTypes = types.Where(x => x.HasBaseClass && !types.Contains(x.BaseClass))
                         .Select(x => x.BaseClass)
                         .Distinct()
@@ -99,7 +97,7 @@ public class TsXClassGen : TsGenBase
             {
                 foreach (var type in types)
                 {
-                    var fileName = Options?.FormatFileName?.Invoke(type) ?? type.Name + ".generated";
+                    var fileName = Options.FormatFileName?.Invoke(type) ?? type.Name + ".generated";
                     fileName += ".ts";
 
                     PerformWrite(Path.Combine(outputDirPath, fileName), () =>
@@ -273,7 +271,7 @@ public class TsXClassGen : TsGenBase
             else
             {
                 // This will use Partial<T> for references.
-                string propTypeName = BuildPropTypeName(prop.Type, isInterface);
+                string? propTypeName = BuildPropTypeName(prop.Type, isInterface);
 
                 string defaultValue = "null";
 
@@ -281,12 +279,23 @@ public class TsXClassGen : TsGenBase
                 {
                     // Don't auto-generate GUIDs for IDs.
                     if (!prop.IsKey)
+                    {
                         defaultValue = GetJsDefaultValue(prop);
+
+                        // Omit type in order to satisfy the ESList rule:
+                        //   "Type boolean trivially inferred from a boolean literal, remove type annotation"
+                        if (!isInterface && defaultValue != "null")
+                            propTypeName = null;
+                    }
                 }
                 else if (prop.Type.IsBoolean && !prop.Type.IsNullableValueType)
                 {
                     // Always initialize non nullable booleans.
                     defaultValue = "false";
+                    // Omit type in order to satisfy the ESList rule:
+                    //   "Type boolean trivially inferred from a boolean literal, remove type annotation"
+                    if (!isInterface)
+                        propTypeName = null;
                 }
 
                 if (defaultValue == "null")
@@ -295,7 +304,7 @@ public class TsXClassGen : TsGenBase
                 }
 
                 if (!isInterface)
-                    O($"{propName}: {propTypeName} = {defaultValue};");
+                    O($"{propName}{(propTypeName != null ? $" : {propTypeName}" : "")} = {defaultValue};");
                 else
                     O($"{propName}: {propTypeName};");
             }

@@ -263,13 +263,13 @@
             return this;
         }
 
-        public MojValueSetContainerBuilder UseIndex(string name = "Index")
+        public MojValueSetContainerBuilder UseIndex(string name = "Index", int indexStartValue = 0)
         {
             IndexName = name;
             Defaults.Add(new MojValueSetProp
             {
                 Name = IndexName,
-                Value = 0
+                Value = indexStartValue
             });
             Config.UseProp(name);
             Config.UseDefaultProp(name);
@@ -310,15 +310,6 @@
 
             return this;
         }
-
-        // TODO: REMOVE
-        //public MojValueSetContainerBuilder With(object[] values, Action<MojValueSetBuilder> buildValueSet = null)
-        //{
-        //    var builder = Add().O(values);
-        //    _onAdded?.Invoke(builder);
-        //    buildValueSet?.Invoke(builder);
-        //    return this;
-        //}
 
         public MojValueSetContainerBuilder Mapping(string from, string to)
         {

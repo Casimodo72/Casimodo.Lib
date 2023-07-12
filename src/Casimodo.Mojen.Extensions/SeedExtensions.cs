@@ -1,5 +1,10 @@
 ﻿namespace Casimodo.Mojen
 {
+    public class EnumEntitySeedOptions
+    {
+        public int IndexStart { get; set; }
+    }
+
     public static class SeedExtensions
     {
         public static void Seed(this MojenApp app, MojSeedItemOptions options)
@@ -12,7 +17,8 @@
             SeedCore<EntityUserFromDbToSeedGen>(app, options);
         }
 
-        public static void SeedEnumEntity(this MojenDataLayerPackage package, MojType type,
+        public static void SeedEnumEntity(this MojenDataLayerPackage package,
+            MojType type, EnumEntitySeedOptions options,
             Action<MojValueSetContainerBuilder> build)
         {
             var builder = package.Context.AddItemsOfType(type)
@@ -25,12 +31,17 @@
                 AlwaysSeed = (seed) =>
                 {
                     seed
-                        .UseIndex()
+                        .UseIndex("Index", options.IndexStart)
                         .Seed("Name", "DisplayName", "Id");
 
                     build(builder);
                 }
             });
+        }
+
+        public static void SeedEnumEntity(this MojenDataLayerPackage package, MojType type, Action<MojValueSetContainerBuilder> build)
+        {
+            SeedEnumEntity(package, type, new EnumEntitySeedOptions(), build);
         }
 
         public static MojValueSetContainerBuilder UsePrimitiveKeys(this MojValueSetContainerBuilder builder)
