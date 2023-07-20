@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Templates
         internal ITemplateStringFormatter? FindStringFormatter(string format)
           => StringFormatters.FirstOrDefault(x => x.CanFormat(format));
 
-        public void AddStringFormatter(Func<string, bool> canFormat, Func<string, string, IFormatProvider?, string?> format)
+        public void AddStringFormatter(Func<string?, bool> canFormat, Func<string?, string, IFormatProvider?, string?> format)
         {
             StringFormatters.Add(new InternalTemplateStringFormatter(canFormat, format));
         }

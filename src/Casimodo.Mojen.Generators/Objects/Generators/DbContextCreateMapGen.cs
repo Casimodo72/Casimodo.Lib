@@ -20,7 +20,7 @@ namespace Casimodo.Mojen
             if (string.IsNullOrEmpty(DataConfig.DbContextDirPath)) return;
             if (string.IsNullOrEmpty(DataConfig.DbContextName)) return;
 
-            PerformWrite(Path.Combine(DataConfig.DbContextDirPath, DataConfig.DbContextName + ".CreateMap.generated.cs"),
+            PerformWrite(Path.Combine(DataConfig.DbContextDirPath, DataConfig.DbContextName + ".CreateAutomapperConfig.generated.cs"),
                 GenerateDbContextAutoMapperMapping);
         }
 
@@ -28,9 +28,12 @@ namespace Casimodo.Mojen
         {
             var types = App.AllConcreteEntities.ToArray();
 
-            OUsing("System", "System.Collections.Generic", "System.Linq");
+            O("#nullable enable");
+            OUsing("System", "AutoMapper");
+            O("#pragma warning disable CS8981");
             O($"using source = {DataConfig.DataNamespace};");
             O($"using dest = {DataConfig.DataNamespace};");
+            O("#pragma warning restore CS8981");
             O();
 
             ONamespace(DataConfig.DataNamespace);
@@ -38,11 +41,7 @@ namespace Casimodo.Mojen
             O($"public partial class {DataConfig.DbContextName}");
             Begin();
 
-            O($"static void CreateMap(Action<AutoMapper.IMapperConfigurationExpression> build)");
-            Begin();
-
-            // NOTE: We're using AutoMapper 4.2.1.
-            O("AutoMapper.Mapper.Initialize(c =>");
+            O($"public static void ConfigureAutoMapper(IMapperConfigurationExpression c, Action<IMapperConfigurationExpression>? configure = null)");
             Begin();
 
             foreach (var type in types)
@@ -62,9 +61,8 @@ namespace Casimodo.Mojen
                 oO(";");
             }
 
-            O(@"build?.Invoke(c);");
-
-            End(");");
+            O();
+            O(@"configure?.Invoke(c);");
 
             End(); // Method
             End(); // Class

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.33808.371
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Database", "Casimodo.Lib.Database\Casimodo.Lib.Database.csproj", "{78C8786C-3E54-40BC-BFA2-79C0DA78702B}"
 EndProject
@@ -22,8 +22,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Web", "Casimodo.Lib.Web\Casimodo.Lib.Web.csproj", "{6C87AA81-01DC-4754-8011-6134148AEA09}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.ActionAuth", "Casimodo.Lib.ActionAuth\Casimodo.Lib.ActionAuth.csproj", "{B434200D-629C-42F4-8F24-070869416783}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Casimodo.Lib.Web.Auth.BasicSingleUser", "Casimodo.Lib.Web.Auth.BasicSingleUser\Casimodo.Lib.Web.Auth.BasicSingleUser.csproj", "{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,10 +69,6 @@ Global
 		{B434200D-629C-42F4-8F24-070869416783}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B434200D-629C-42F4-8F24-070869416783}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B434200D-629C-42F4-8F24-070869416783}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7970F55-2E53-4149-850D-E0ED3AB1AF5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

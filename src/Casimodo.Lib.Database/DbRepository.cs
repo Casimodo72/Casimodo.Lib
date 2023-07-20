@@ -1,4 +1,5 @@
-﻿using Casimodo.Lib.ComponentModel;
+﻿using AutoMapper;
+using Casimodo.Lib.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -156,11 +157,20 @@ namespace Casimodo.Lib.Data
             if (_core != null) return _core;
             lock (_lock)
             {
-                if (_core != null) return _core;
-                _core = ServiceLocator.Current.GetInstance<DbRepositoryCoreProvider>().GetCoreFor<TContext>();
-                return _core;
+                return _core ??= ServiceLocator.Current.GetRequiredInstance<DbRepositoryCoreProvider>().GetCoreFor<TContext>();
             }
         }
+
+        public IMapper GetAutoMapper()
+        {
+            if (_mapper != null) return _mapper;
+            lock (_lock)
+            {
+                return _mapper ??= ServiceLocator.Current.GetRequiredInstance<IMapper>();
+            }
+        }
+
+        private IMapper _mapper;
 
         public void PerformTransaction(Action<DbTransactionContext<TContext>> action)
         {
@@ -413,7 +423,7 @@ namespace Casimodo.Lib.Data
                 var localEntity = FindLocal(GetKey(entity));
                 if (localEntity != null && localEntity != entity)
                 {
-                    ctx.Item = entity = AutoMapper.Mapper.Map(entity, localEntity);
+                    ctx.Item = entity = GetAutoMapper().Map(entity, localEntity);
                 }
                 //if (Db.Entry(entity).State != EntityState.Added)
                 Context.Entry(entity).State = EntityState.Modified;
