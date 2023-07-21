@@ -277,7 +277,7 @@ namespace Casimodo.Mojen
             O();
             OApiActionAuthAttribute(Type, "View");
             OEnableQueryAttribute();
-            OAttribute(HttpVerb.Get, @"({" + key + "})");
+            OAttribute(HttpVerb.Get, $"{{{key}}}");
             O($"public SingleResult<{type.ClassName}> Get([FromODataUri] {keyProp.Type.Name} {key})");
             Begin();
             O($"return SingleResult.Create({RepoVar()}.QuerySingle({key}));");
@@ -351,7 +351,7 @@ namespace Casimodo.Mojen
                 // PUT: odata/ControllerName/x
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
-                OAttribute(HttpVerb.Put, "{" + key.VName + "}");
+                OAttribute(HttpVerb.Put, $"{{{key.VName}}}");
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");

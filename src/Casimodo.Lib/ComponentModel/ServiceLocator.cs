@@ -31,9 +31,25 @@ namespace Casimodo.Lib.ComponentModel
             return (TService)GetInstance(typeof(TService));
         }
 
+        public TService GetRequiredInstance<TService>()
+        {
+            return (TService)GetRequiredInstance(typeof(TService));
+        }
+
         public object GetInstance(Type serviceType)
         {
             return _currentServiceProvider.GetService(serviceType);
+        }
+
+        public object GetRequiredInstance(Type serviceType)
+        {
+            var instance = GetInstance(serviceType);
+            if (instance == null)
+            {
+                throw new Exception($"ServiceLocator: Failed to find an instance of '{serviceType.Name}'.");
+            }
+
+            return instance;
         }
     }
 }

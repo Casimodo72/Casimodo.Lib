@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+﻿using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -56,10 +55,10 @@ namespace Casimodo.Lib.Data
             var query = base.Query(includeDeleted, trackable);
 
             // Project to TModel using AutoMapper.
-            return query.ProjectTo<TModel>();
+            return query.ProjectTo<TModel>(GetAutoMapper().ConfigurationProvider);
         }
 
-        // CRUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+        // CRUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         public TModel Add(TModel model)
         {
@@ -124,17 +123,17 @@ namespace Casimodo.Lib.Data
 
         public TModel ConvertToModel(TEntity entity)
         {
-            return Mapper.Map<TModel>(entity);
+            return GetAutoMapper().Map<TModel>(entity);
         }
 
         public TModel ConvertToModel(TEntity entity, TModel model)
         {
-            return Mapper.Map(entity, model);
+            return GetAutoMapper().Map(entity, model);
         }
 
         public TEntity ConvertToEntity(TModel model, TEntity entity)
         {
-            return Mapper.Map(model, entity);
+            return GetAutoMapper().Map(model, entity);
         }
 
         public void CheckEqualKey(TModel model, TKey key)

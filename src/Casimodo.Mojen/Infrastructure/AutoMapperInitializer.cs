@@ -5,10 +5,9 @@ namespace Casimodo.Mojen
 {
     public class AutoMapperInitializer
     {
-        public void Initialize()
+        public MapperConfiguration Initialize()
         {
-            // TODO: Use AutoMapper 10 and eliminate static registration.
-            AutoMapper.Mapper.Initialize(cfg => cfg.AddProfile<AutoMapperProfile>());        
+            return new MapperConfiguration(cfg => cfg.AddProfile<AutoMapperProfile>());
         }
 
         public class AutoMapperProfile : Profile
