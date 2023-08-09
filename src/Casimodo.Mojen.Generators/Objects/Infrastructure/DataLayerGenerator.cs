@@ -73,7 +73,7 @@
         {
             var isDerived = !string.IsNullOrEmpty(extends);
 
-            OB($"{ (export ? "export " : "")}interface {name}{(isDerived ? " extends " + extends : "")}");
+            OB($"{(export ? "export " : "")}interface {name}{(isDerived ? " extends " + extends : "")}");
 
             content.Invoke();
 
@@ -87,40 +87,30 @@
 
             if (prop.DefaultValues.Is)
             {
-                var @default = prop.DefaultValues.ForScenario("OnEdit", null).FirstOrDefault();
-                if (@default.Attr != null)
+                var defaultValueConfig = prop.DefaultValues.ForScenario("OnEdit", null).FirstOrDefault();
+                if (defaultValueConfig.Attr != null)
                 {
-                    return @default.Attr.Args.First().ToJsCodeString();
+                    return defaultValueConfig.Attr.Args.First().ToJsCodeString();
                 }
-                else if (@default.CommonValue != null)
+                else if (defaultValueConfig.CommonValue != null)
                 {
-                    if (@default.CommonValue == MojDefaultValueCommon.CurrentYear)
+                    if (defaultValueConfig.CommonValue == MojDefaultValueCommon.CurrentYear)
                     {
                         return "new Date().getFullYear()";
                     }
-                    else throw new MojenException($"Unhandled common default value kind '{@default.CommonValue}'.");
+                    else throw new MojenException($"Unhandled common default value kind '{defaultValueConfig.CommonValue}'.");
                 }
-                else if (@default.Value is string[])
+                else if (defaultValueConfig.Value is string[])
                 {
                     // Multiline text.
-                    string multilineText = (@default.Value as string[]).Join("\\n");
+                    string multilineText = (defaultValueConfig.Value as string[]).Join("\\n");
                     return $"\"{multilineText}\"";
                 }
                 else
                 {
-                    return Moj.JS(@default.Value);
+                    return Moj.JS(defaultValueConfig.Value);
                 }
             }
-
-            // KABU TODO: REMOVE
-            //string defaultValue = null;
-            //var defaultValueArg = prop.Attrs.GetDefaultValueArg();
-            //if (defaultValueArg != null)
-            //{
-            //    defaultValue = defaultValueArg.ToCodeString(parse: false);
-            //    if (defaultValue == "")
-            //        defaultValue = "\"\"";
-            //}
 
             return "null";
         }
