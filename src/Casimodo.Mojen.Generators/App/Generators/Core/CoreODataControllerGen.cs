@@ -338,10 +338,8 @@ namespace Casimodo.Mojen
                 // POST: odata/ControllerName(x)/Ns.MethodName
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
-                O($"[HttpPost(\"{action}\")]");
-                // NOTE: The ID parameter *must* be named "key" by convention.
-                // Otherwise the action won't be found by the OData Web API machinery.
-                O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} key, ODataActionParameters parameters)");
+                O($"[HttpPost(\"{{key}}/{action}\")]");
+                O($"public async Task<IActionResult> {action}({key.Type.Name} key, ODataActionParameters parameters)");
                 Begin();
                 O($"return await UpdateCore(key, parameters?.Values?.FirstOrDefault() as {Type.ClassName}, {mask}, \"{group}\");");
                 End();
@@ -352,6 +350,7 @@ namespace Casimodo.Mojen
                 // Async
                 OApiActionAuthAttribute(editorView, "Modify");
                 OAttribute(HttpVerb.Put, $"{{{key.VName}}}");
+                // TODO: Do we still need the [FromODataUri] here?
                 O($"public async Task<IActionResult> {action}([FromODataUri] {key.Type.Name} {key.VName}, [FromBody] {Type.ClassName} model)");
                 Begin();
                 O($"return await UpdateCore({key.VName}, model, {mask});");

@@ -7,9 +7,10 @@ public class TsXClassGenOptions
 {
     public string[]? OutputDirPaths { get; set; }
     public bool OutputSingleFile { get; set; } = true;
-    public string[]? IncludeTypes { get; set; }
+    public string[]? TypeNames { get; set; }
 
     public bool GenerateInterfaces { get; set; } = true;
+    public bool GeneratePartialInterfaceAliases { get; set; }
     public bool GenerateClasses { get; set; } = true;
     public bool UseODataClasses { get; set; } = true;
 
@@ -20,6 +21,10 @@ public class TsXClassGenOptions
     public bool UseCamelCase { get; set; } = true;
 
     public bool UseDefaultValues { get; set; } = true;
+
+    public bool UseStringForByteArray { get; set; }
+
+    public bool InitializeByteArrayToNull { get; set; }
 
     public Func<MojType, string>? FormatFileName { get; set; }
 }
@@ -58,7 +63,7 @@ public class TsXClassGen : TsGenBase
             outputDirPaths.Add(WebConfig.TypeScriptDataDirPath);
         }
 
-        IncludedTypeNames = Options.IncludeTypes?.ToList();
+        IncludedTypeNames = Options.TypeNames?.ToList();
 
         var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
             .Where(x => !x.IsTenant)
@@ -197,6 +202,17 @@ public class TsXClassGen : TsGenBase
                 {
                     OClassOrInterfaceProps(type, localProps, isInterface: true);
                 });
+
+            if (Options.GeneratePartialInterfaceAliases)
+            {
+                O();
+                var partialInteraceAliasName = $"Partial{type.Name}";
+                if (Options.PrefixInterfaces)
+                {
+                    partialInteraceAliasName = "I" + partialInteraceAliasName;
+                }
+                O($"export type {partialInteraceAliasName} = Partial<{interfaceName}>;");
+            }
         }
 
         if (Options.GenerateClasses)
@@ -216,7 +232,6 @@ public class TsXClassGen : TsGenBase
                         (type.IsEntity() ||
                         (type.IsComplex() && type.UsingGenerators.Any(x => x.Type == typeof(ODataConfigGen)))))
                     {
-                        // TODO: Find a way to emit this only when used in the context of OData.
                         O($@"(this as any)[""@odata.type""] = ""#{WebConfig.ODataNamespace}.{type.ClassName}"";");
                     }
                 },
@@ -258,20 +273,38 @@ public class TsXClassGen : TsGenBase
             if (prop.Type.IsCollection)
             {
                 // This will use Partial<T> for references.
-                string propTypeName = BuildPropTypeName(prop.Type, isInterface);
+                string propTypeExpression = BuildPropTypeName(prop.Type);
+
+                if (prop.Type.IsByteArray && Options.InitializeByteArrayToNull)
+                {
+                    propTypeExpression += " | null";
+                }
 
                 if (!isInterface)
                 {
-                    var initializer = Moj.ToJsCollectionInitializer(prop.Type);
-                    O($"{propName}: {propTypeName} = {initializer};");
+                    string intializerValue;
+
+                    if (prop.Type.IsByteArray)
+                    {
+                        intializerValue = Options.InitializeByteArrayToNull
+                            ? "null"
+                            : Options.UseStringForByteArray
+                                ? "\"\""
+                                : "new Uint8Array()";
+                    }
+                    else
+                    {
+                        intializerValue = Moj.ToJsCollectionInitializer(prop.Type);
+                    }
+                    O($"{propName}: {propTypeExpression} = {intializerValue};");
                 }
                 else
-                    O($"{propName}: {propTypeName};");
+                    O($"{propName}: {propTypeExpression};");
             }
             else
             {
                 // This will use Partial<T> for references.
-                string? propTypeName = BuildPropTypeName(prop.Type, isInterface);
+                string? propTypeExpression = BuildPropTypeName(prop.Type);
 
                 string defaultValue = "null";
 
@@ -285,7 +318,7 @@ public class TsXClassGen : TsGenBase
                         // Omit type in order to satisfy the ESList rule:
                         //   "Type boolean trivially inferred from a boolean literal, remove type annotation"
                         if (!isInterface && defaultValue != "null")
-                            propTypeName = null;
+                            propTypeExpression = null;
                     }
                 }
                 else if (prop.Type.IsBoolean && !prop.Type.IsNullableValueType)
@@ -295,29 +328,29 @@ public class TsXClassGen : TsGenBase
                     // Omit type in order to satisfy the ESList rule:
                     //   "Type boolean trivially inferred from a boolean literal, remove type annotation"
                     if (!isInterface)
-                        propTypeName = null;
+                        propTypeExpression = null;
                 }
 
                 if (defaultValue == "null")
                 {
-                    propTypeName += " | null";
+                    propTypeExpression += " | null";
                 }
 
                 if (!isInterface)
-                    O($"{propName}{(propTypeName != null ? $" : {propTypeName}" : "")} = {defaultValue};");
+                    O($"{propName}{(propTypeExpression != null ? $" : {propTypeExpression}" : "")} = {defaultValue};");
                 else
-                    O($"{propName}: {propTypeName};");
+                    O($"{propName}: {propTypeExpression};");
             }
         }
     }
 
-    string BuildPropTypeName(MojPropType propType, bool isInterface)
+    string BuildPropTypeName(MojPropType propType)
     {
         if (propType.IsDirectOrContainedMojType)
         {
             var name = BuildInterfaceName(propType.DirectOrContainedTypeConfig.Name);
 
-            name = "Partial<" + name + ">";
+            name = $"Partial<{name}>";
 
             if (propType.IsCollection)
                 name += "[]";
@@ -326,7 +359,14 @@ public class TsXClassGen : TsGenBase
         }
         else
         {
-            return Moj.ToJsType(propType);
+            if (propType.IsByteArray && Options.UseStringForByteArray)
+            {
+                return "string";
+            }
+            else
+            {
+                return Moj.ToJsType(propType);
+            }
         }
     }
 

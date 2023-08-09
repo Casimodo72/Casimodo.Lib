@@ -303,9 +303,13 @@ namespace Casimodo.Mojen
 
             var sizeStr = size != 0 ? size.ToString() : "";
             if (type.IsByteArray)
+            {
                 return $"new Uint8Array({sizeStr})";
+            }
             else
+            {
                 return $"[{sizeStr}]";
+            }
         }
 
         public static string ToJsType(MojPropType type)
@@ -320,12 +324,14 @@ namespace Casimodo.Mojen
             else if (type.IsCollection)
             {
                 if (type.IsByteArray)
+                {
                     t = "Uint8Array";
+                }
                 else
                 {
                     var collectionElementType = type.GenericTypeArguments.First();
                     return ToJsType(collectionElementType) + "[]";
-                    // TODO: REMOVE? 
+                    // TODO: REMOVE?
                     // throw new NotImplementedException("TS/JS Conversion of simple type collections is not implemented (yet).");
                 }
             }

@@ -120,16 +120,6 @@ namespace Casimodo.Lib
             }
         }
 
-        //public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
-        //{
-        //    HashSet<TKey> seenKeys = new HashSet<TKey>();
-        //    foreach (TSource element in source)
-        //        if (seenKeys.Add(keySelector(element)))
-        //            yield return element;
-
-        //    yield break;
-        //}
-
         public static IEnumerable<T> EnsureNotNull<T>(this IEnumerable<T> source)
             where T : class
         {
