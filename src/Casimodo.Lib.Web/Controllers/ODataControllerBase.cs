@@ -75,7 +75,7 @@ namespace Casimodo.Lib.Web
 
         protected Func<TEntity, Task> OnCreatingExtended = null;
 
-        protected async Task<IActionResult> UpdateCore(TKey id, TEntity model, MojDataGraphMask mask, string group = null)
+        protected async Task<IActionResult> UpdateCore(TKey id, TEntity model, MojDataGraphMask mask = null, string group = null)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
