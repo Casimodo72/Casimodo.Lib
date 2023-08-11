@@ -50,11 +50,14 @@ namespace Casimodo.Mojen
             {
                 OTsNamespace(WebConfig.ScriptNamespace, () =>
                 {
-                    var gen = new TsXClassGen();
-                    gen.Options.UseCamelCase = false;
-                    gen.Options.GenerateInterfaces = true;
-                    gen.Options.PrefixInterfaces = true;
-                    gen.Options.UseDefaultValues = true;
+                    var gen = new TsXClassGen(new TsXClassGenOptions
+                    {
+                        UseCamelCase = false,
+                        GenerateInterfaces = true,
+                        PrefixInterfaces = true,
+                        UseDefaultValues = true
+                    });
+
                     gen.WebConfig = WebConfig;
                     gen.Use(Writer);
                     gen.Push();

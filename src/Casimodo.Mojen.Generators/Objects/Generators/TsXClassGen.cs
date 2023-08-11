@@ -5,45 +5,33 @@ namespace Casimodo.Mojen;
 
 public class TsXClassGenOptions
 {
-    public string[]? OutputDirPaths { get; set; }
-    public bool OutputSingleFile { get; set; } = true;
     public string[]? TypeNames { get; set; }
-
+    public bool OutputSingleFile { get; set; } = true;
+    public string? SingleFileName { get; set; }
+    public string[]? OutputDirPaths { get; set; }
     public bool GenerateInterfaces { get; set; } = true;
     public bool GeneratePartialInterfaceAliases { get; set; }
     public bool GenerateClasses { get; set; } = true;
     public bool UseODataClasses { get; set; } = true;
-
     public bool PrefixInterfaces { get; set; } = true;
-
-    public string? SingleFileName { get; set; }
-
     public bool UseCamelCase { get; set; } = true;
-
     public bool UseDefaultValues { get; set; } = true;
-
     public bool UseStringForByteArray { get; set; }
-
     public bool InitializeByteArrayToNull { get; set; }
-
     public Func<MojType, string>? FormatFileName { get; set; }
 }
 
 public class TsXClassGen : TsGenBase
 {
-    public TsXClassGen()
-        : this(new TsXClassGenOptions())
-    { }
+    readonly TsXClassGenOptions _options;
 
     public TsXClassGen(TsXClassGenOptions options)
     {
         Guard.ArgNotNull(options);
 
-        Options = options;
+        _options = options;
         Scope = "Context";
     }
-
-    public TsXClassGenOptions Options { get; }
 
     public WebDataLayerConfig WebConfig { get; set; } = default!;
 
@@ -54,16 +42,16 @@ public class TsXClassGen : TsGenBase
         WebConfig = App.Get<WebDataLayerConfig>();
 
         var outputDirPaths = new List<string>();
-        if (Options.OutputDirPaths?.Length > 0)
+        if (_options.OutputDirPaths?.Length > 0)
         {
-            outputDirPaths.AddRange(Options.OutputDirPaths);
+            outputDirPaths.AddRange(_options.OutputDirPaths);
         }
         else
         {
             outputDirPaths.Add(WebConfig.TypeScriptDataDirPath);
         }
 
-        IncludedTypeNames = Options.TypeNames?.ToList();
+        IncludedTypeNames = _options.TypeNames?.ToList();
 
         var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
             .Where(x => !x.IsTenant)
@@ -72,9 +60,9 @@ public class TsXClassGen : TsGenBase
 
         foreach (var outputDirPath in outputDirPaths)
         {
-            if (Options.OutputSingleFile)
+            if (_options.OutputSingleFile)
             {
-                var fileName = Options.SingleFileName ?? "dataTypes";
+                var fileName = _options.SingleFileName ?? "dataTypes";
                 fileName += ".ts";
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
@@ -102,7 +90,7 @@ public class TsXClassGen : TsGenBase
             {
                 foreach (var type in types)
                 {
-                    var fileName = Options.FormatFileName?.Invoke(type) ?? type.Name + ".generated";
+                    var fileName = _options.FormatFileName?.Invoke(type) ?? type.Name + ".generated";
                     fileName += ".ts";
 
                     PerformWrite(Path.Combine(outputDirPath, fileName), () =>
@@ -122,10 +110,10 @@ public class TsXClassGen : TsGenBase
 
         var typeNames = new List<string>();
 
-        if (Options.GenerateClasses)
+        if (_options.GenerateClasses)
             typeNames.Add(type.Name);
 
-        if (Options.GenerateInterfaces && Options.PrefixInterfaces)
+        if (_options.GenerateInterfaces && _options.PrefixInterfaces)
             typeNames.Add($"I{type.Name}");
 
         O($@"import {{ {typeNames.Join(", ")} }} from ""./{type.Name.FirstLetterToLower()}"";");
@@ -189,7 +177,7 @@ public class TsXClassGen : TsGenBase
 
         string? interfaceName = null;
 
-        if (Options.GenerateInterfaces)
+        if (_options.GenerateInterfaces)
         {
             interfaceName = BuildInterfaceName(type.Name);
             var interfaceBaseName = !type.HasBaseClass
@@ -203,11 +191,11 @@ public class TsXClassGen : TsGenBase
                     OClassOrInterfaceProps(type, localProps, isInterface: true);
                 });
 
-            if (Options.GeneratePartialInterfaceAliases)
+            if (_options.GeneratePartialInterfaceAliases)
             {
                 O();
                 var partialInteraceAliasName = $"Partial{type.Name}";
-                if (Options.PrefixInterfaces)
+                if (_options.PrefixInterfaces)
                 {
                     partialInteraceAliasName = "I" + partialInteraceAliasName;
                 }
@@ -215,7 +203,7 @@ public class TsXClassGen : TsGenBase
             }
         }
 
-        if (Options.GenerateClasses)
+        if (_options.GenerateClasses)
         {
             O();
             OTsClass(type.Name,
@@ -228,7 +216,7 @@ public class TsXClassGen : TsGenBase
                 propertyInitializer: true,
                 constructor: () =>
                 {
-                    if (Options.UseODataClasses &&
+                    if (_options.UseODataClasses &&
                         (type.IsEntity() ||
                         (type.IsComplex() && type.UsingGenerators.Any(x => x.Type == typeof(ODataConfigGen)))))
                     {
@@ -255,18 +243,18 @@ public class TsXClassGen : TsGenBase
 
             if (HasDoc(prop))
             {
-                if (Options.GenerateInterfaces == isInterface)
+                if (_options.GenerateInterfaces == isInterface)
                 {
                     OTsDoc(prop);
                 }
 
-                if (Options.GenerateInterfaces && !isInterface)
+                if (_options.GenerateInterfaces && !isInterface)
                 {
                     O("/** @inheritdoc */");
                 }
             }
 
-            var propName = Options.UseCamelCase
+            var propName = _options.UseCamelCase
                 ? prop.VName
                 : prop.Name;
 
@@ -275,7 +263,7 @@ public class TsXClassGen : TsGenBase
                 // This will use Partial<T> for references.
                 string propTypeExpression = BuildPropTypeName(prop.Type);
 
-                if (prop.Type.IsByteArray && Options.InitializeByteArrayToNull)
+                if (prop.Type.IsByteArray && _options.InitializeByteArrayToNull)
                 {
                     propTypeExpression += " | null";
                 }
@@ -286,9 +274,9 @@ public class TsXClassGen : TsGenBase
 
                     if (prop.Type.IsByteArray)
                     {
-                        intializerValue = Options.InitializeByteArrayToNull
+                        intializerValue = _options.InitializeByteArrayToNull
                             ? "null"
-                            : Options.UseStringForByteArray
+                            : _options.UseStringForByteArray
                                 ? "\"\""
                                 : "new Uint8Array()";
                     }
@@ -308,7 +296,7 @@ public class TsXClassGen : TsGenBase
 
                 string defaultValue = "null";
 
-                if (Options.UseDefaultValues)
+                if (_options.UseDefaultValues)
                 {
                     // Don't auto-generate GUIDs for IDs.
                     if (!prop.IsKey)
@@ -359,7 +347,7 @@ public class TsXClassGen : TsGenBase
         }
         else
         {
-            if (propType.IsByteArray && Options.UseStringForByteArray)
+            if (propType.IsByteArray && _options.UseStringForByteArray)
             {
                 return "string";
             }
@@ -372,7 +360,7 @@ public class TsXClassGen : TsGenBase
 
     string BuildInterfaceName(string interfaceName)
     {
-        return Options.PrefixInterfaces
+        return _options.PrefixInterfaces
             ? "I" + interfaceName
             : interfaceName;
     }
