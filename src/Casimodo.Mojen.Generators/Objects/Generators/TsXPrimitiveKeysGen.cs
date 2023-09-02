@@ -5,9 +5,9 @@ namespace Casimodo.Mojen
 {
     public class TsXPrimitiveKeysGenOptions
     {
-        public string[]? OutputDirPaths { get; set; }
+        public required string[] TypeNames { get; set; }
         public string? FileName { get; set; }
-        public string[]? IncludeTypes { get; set; }
+        public required string[] OutputDirPaths { get; set; }
     }
 
     /// <summary>
@@ -17,6 +17,7 @@ namespace Casimodo.Mojen
     public partial class TsXPrimitiveKeysGen : TsGenBase
     {
         readonly TsXPrimitiveKeysGenOptions _options;
+
         public TsXPrimitiveKeysGen(TsXPrimitiveKeysGenOptions options)
         {
             Guard.ArgNotNull(options, nameof(options));
@@ -25,7 +26,7 @@ namespace Casimodo.Mojen
             Scope = "Context";
         }
 
-        public PrimitiveKeysOptions Options { get; set; }
+        // public PrimitiveKeysOptions Options { get; set; }
 
         protected override void GenerateCore()
         {
@@ -45,7 +46,7 @@ namespace Casimodo.Mojen
             foreach (var outputDirPath in outputDirPaths)
             {
                 var items = App.AllValueCollections
-                    .Where(x => _options.IncludeTypes.Contains(x.TypeConfig.Name))
+                    .Where(x => _options.TypeNames.Contains(x.TypeConfig.Name))
                     .ToList();
 
                 if (!items.Any())
@@ -76,11 +77,11 @@ namespace Casimodo.Mojen
             // ES5:
             // Object.defineProperty (mymodule, 'myConstObj', { value : 5, writable: false });
 
-            Options = config.GetGeneratorOptions<PrimitiveKeysOptions>() ?? new PrimitiveKeysOptions();
+            var options = config.GetGeneratorOptions<PrimitiveKeysOptions>() ?? new PrimitiveKeysOptions();
 
             var typeName = config.KeysContainerName;
 
-            if (Options.IsNamedValueEnabled)
+            if (options.IsNamedValueEnabled)
             {
                 var props = config.Items.Where(x => !x.IsNull).ToList();
                 for (int i = 0; i < props.Count; i++)
@@ -108,7 +109,7 @@ namespace Casimodo.Mojen
                     // Public static member
                     var name = valueSet.Get(config.NamePropName);
                     var val = valueSet.Get(config.ValuePropName);
-                    O($"public static {name.Value} = {Moj.JS(val.Value)};");
+                    O($"static {name.Value} = {Moj.JS(val.Value)};");
                 }
             }
         }
