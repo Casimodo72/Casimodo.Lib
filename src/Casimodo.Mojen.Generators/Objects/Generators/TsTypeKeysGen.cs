@@ -89,11 +89,11 @@ namespace Casimodo.Mojen
 
                 O();
                 OB("static getNameById(id: string): string | null");
-                O($"return {className}.#id2Name[id] ?? null;");
+                O($"return {className}._id2Name[id] || null;");
                 End();
 
                 O();
-                OB("static #id2Name: { [id: string]: string } =");
+                OB("static _id2Name: { [id: string]: string } =");
                 foreach (var type in types)
                     O($@"""{type.Id}"": ""{type.Name}"",");
                 End(";");

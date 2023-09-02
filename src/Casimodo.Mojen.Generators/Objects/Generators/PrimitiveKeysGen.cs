@@ -54,7 +54,7 @@ namespace Casimodo.Mojen
                     // Summary of member
                     descriptions.Clear();
                     //AddDescription(item, "DisplayValue", descriptions);
-                    //AddDescription(item, "Display", descriptions);                    
+                    //AddDescription(item, "Display", descriptions);
                     if (item.Description != null)
                         descriptions.Add(item.Description);
                     OSummary(descriptions);
