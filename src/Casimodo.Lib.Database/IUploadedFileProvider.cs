@@ -5,7 +5,7 @@ namespace Casimodo.Lib.Data
 {
     public interface IUploadedFileProvider
     {
-        string UploadPath { get; }
+        string GetUploadPath();
 
         object GetFileInfo(Guid guid, bool required = true);
 
