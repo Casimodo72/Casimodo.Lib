@@ -506,7 +506,7 @@ namespace Casimodo.Lib.Data
 
         /// <summary>
         /// Returns true if the item was changed.
-        /// </summary>        
+        /// </summary>
         protected bool ProcessCascadeItem(object item, DbRepoOperationContext ctx)
         {
             if (ctx.OriginOperation == DbRepoOp.None)
@@ -616,7 +616,7 @@ namespace Casimodo.Lib.Data
         /// Newly added entities in the collection are added to the DB.
         /// Existing entities in the collection and the DB are updated and saved to DB.
         /// WARNING: Removed entities are deleted physically from the DB.
-        /// </summary>        
+        /// </summary>
         public void UpdateNestedCollection<T, TKey>(
             IEnumerable<T> collection,
             Expression<Func<T, bool>> predicate,

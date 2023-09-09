@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿#nullable enable
+using AutoMapper;
 using Casimodo.Lib.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,8 +21,8 @@ namespace Casimodo.Lib.Data
     {
         TEntity GetById(object key);
         TEntity Add(TEntity entity);
-        TEntity Update(TEntity entity, MojDataGraphMask mask = null);
-        void Delete(TEntity entity, DbRepoOperationContext ctx = null, bool? isPhysicalDeletionAuthorized = null);
+        TEntity Update(TEntity entity, MojDataGraphMask? mask = null);
+        void Delete(TEntity entity, DbRepoOperationContext? ctx = null, bool? isPhysicalDeletionAuthorized = null);
         IQueryable<TEntity> LocalAndDbQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true);
         int SaveChanges();
@@ -31,8 +32,8 @@ namespace Casimodo.Lib.Data
     public interface IDbRepository
     {
         void Use(DbContext context);
-        Guid GetGuid(object entity);
-        object FindEntity(object key);
+        Guid? GetGuid(object entity);
+        object? FindEntity(object key);
         object AddEntity(DbRepoOperationContext ctx);
 
         object UpdateEntity(DbRepoOperationContext ctx);
@@ -97,7 +98,7 @@ namespace Casimodo.Lib.Data
         }
     }
 
-    // TransactionScope: https://msdn.microsoft.com/en-us/library/system.transactions.transactionscope%28v=vs.110%29.aspx  
+    // TransactionScope: https://msdn.microsoft.com/en-us/library/system.transactions.transactionscope%28v=vs.110%29.aspx
 
     public class DbRepository
     { }
@@ -108,11 +109,11 @@ namespace Casimodo.Lib.Data
         where TKey : struct, IComparable<TKey>
     {
         protected readonly static PropertyInfo KeyProp;
-        protected readonly static PropertyInfo GuidProp;
-        protected readonly static PropertyInfo TenantKeyProp;
-        protected readonly static PropertyInfo IsDeletedProp;
+        protected readonly static PropertyInfo? GuidProp;
+        protected readonly static PropertyInfo? TenantKeyProp;
+        protected readonly static PropertyInfo? IsDeletedProp;
 
-        DbRepositoryCore _core;
+        DbRepositoryCore _core = default!;
         Guid? _tenantGuid;
         readonly object _lock = new();
 
@@ -220,10 +221,10 @@ namespace Casimodo.Lib.Data
 
         TEntity IDbRepository<TEntity>.GetById(object key)
         {
-            return Get((TKey?)key, required: true);
+            return GetRequired((TKey?)key);
         }
 
-        object IDbRepository.FindEntity(object key)
+        object? IDbRepository.FindEntity(object key)
         {
             return Get((TKey)key, required: false);
         }
@@ -231,19 +232,40 @@ namespace Casimodo.Lib.Data
         /// <summary>
         /// NOTE: Returns also IsDeleted entities.
         /// </summary>
-        public TEntity Find(TKey? key, bool required = false)
+        public TEntity? Find(TKey? key, bool required = false)
         {
             return Get(key, required: required);
         }
 
-        public TEntity Get(TKey? key, bool required = true)
+        public TEntity? Get(TKey? key, bool required = true)
         {
-            TEntity entity = null;
+            TEntity? entity = null;
             if (key != null)
                 entity = EntitySet.Find(key);
 
             if (entity == null && required)
                 throw NotFound();
+
+            if (entity != null)
+            {
+                OnLoaded(entity);
+            }
+
+            return entity;
+        }
+
+        public TEntity GetRequired(TKey? key)
+        {
+            TEntity? entity = null;
+            if (key != null)
+            {
+                entity = EntitySet.Find(key);
+            }
+
+            if (entity == null)
+            {
+                throw NotFound();
+            }
 
             OnLoaded(entity);
 
@@ -252,14 +274,17 @@ namespace Casimodo.Lib.Data
 
         /// <summary>
         /// Returns also IsDeleted entities.
-        /// </summary> 
-        public async Task<TEntity> GetAsync(TKey key, bool required = true)
+        /// </summary>
+        public async Task<TEntity?> GetAsync(TKey key, bool required = true)
         {
             var entity = await EntitySet.FindAsync(key);
             if (entity == null && required)
                 throw NotFound();
 
-            OnLoaded(entity);
+            if (entity != null)
+            {
+                OnLoaded(entity);
+            }
 
             return entity;
         }
@@ -330,7 +355,7 @@ namespace Casimodo.Lib.Data
             return query;
         }
 
-        public IQueryable<TEntity> QueryDistinct(string on, bool includeDeleted = false, bool trackable = true)
+        public IQueryable<TEntity?> QueryDistinct(string on, bool includeDeleted = false, bool trackable = true)
         {
             Guard.ArgNotEmpty(on, nameof(on));
 
@@ -396,7 +421,7 @@ namespace Casimodo.Lib.Data
 
         public DbSet<TEntity> EntitySet => Context.Set<TEntity>();
 
-        public TEntity Update(TEntity entity, MojDataGraphMask mask = null)
+        public TEntity Update(TEntity entity, MojDataGraphMask? mask = null)
         {
             return Update(Core().CreateOperationContext(entity, DbRepoOp.Update, Context, mask));
         }
@@ -436,16 +461,16 @@ namespace Casimodo.Lib.Data
 
         public TEntity RestoreSelfDeleted(TKey key)
         {
-            var entity = Get(key, required: true);
+            var entity = GetRequired(key);
             Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, Context));
 
             return entity;
         }
 
-        public T GetProp<T>(object item, string name, T defaultValue = default)
-        {
-            return HProp.GetProp(item, name, defaultValue);
-        }
+        // public T? GetProp<T>(object item, string name, T? defaultValue = default)
+        // {
+        //     return HProp.GetProp(item, name, defaultValue);
+        // }
 
         object IDbRepository.UpdateEntity(DbRepoOperationContext ctx)
         {
@@ -599,7 +624,7 @@ namespace Casimodo.Lib.Data
             Delete((TKey)key);
         }
 
-        public void Delete(TKey key, DbRepoOperationContext ctx = null, bool save = false)
+        public void Delete(TKey key, DbRepoOperationContext? ctx = null, bool save = false)
         {
             var entity = EntitySet.Find(key);
             if (entity == null)
@@ -612,12 +637,18 @@ namespace Casimodo.Lib.Data
 
         public IDbRepository<TEntity> DeletePhysicallyById(TKey id)
         {
-            Delete(EntitySet.Find(id), isPhysicalDeletionAuthorized: true);
+            var entity = EntitySet.Find(id);
+            if (entity == null)
+            {
+                throw new DbRepositoryException($"Entity with not found for deletion (ID: {id}).");
+            }
+
+            Delete(entity, isPhysicalDeletionAuthorized: true);
 
             return this;
         }
 
-        public void Delete(TEntity entity, DbRepoOperationContext ctx = null, bool? isPhysicalDeletionAuthorized = null)
+        public void Delete(TEntity entity, DbRepoOperationContext? ctx = null, bool? isPhysicalDeletionAuthorized = null)
         {
             Guard.ArgNotNull(entity, nameof(entity));
 
@@ -637,7 +668,7 @@ namespace Casimodo.Lib.Data
             EntitySet.Remove(entity);
         }
 
-        // Add ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+        // Add ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         // NOTE: Not used anywhere. Keep though.
         async Task<TEntity> AddAsync(TEntity entity, bool save = false)
@@ -651,7 +682,7 @@ namespace Casimodo.Lib.Data
 
         // Update ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public TEntity Update(TKey key, TEntity entity, MojDataGraphMask mask = null)
+        public TEntity Update(TKey key, TEntity entity, MojDataGraphMask? mask = null)
         {
             CheckEqualKey(entity, key);
 
@@ -659,7 +690,7 @@ namespace Casimodo.Lib.Data
         }
 
         // NOTE: Not used anywhere. Keep though.
-        async Task<TEntity> UpdateAsync(TKey key, TEntity entity, MojDataGraphMask mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        async Task<TEntity> UpdateAsync(TKey key, TEntity entity, MojDataGraphMask? mask = null, bool save = false, CancellationToken? cancellationToken = null)
         {
             CheckEqualKey(entity, key);
 
@@ -667,7 +698,7 @@ namespace Casimodo.Lib.Data
         }
 
         // NOTE: Not used anywhere. Keep though.
-        async Task<TEntity> UpdateAsync(TEntity entity, MojDataGraphMask mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        async Task<TEntity> UpdateAsync(TEntity entity, MojDataGraphMask? mask = null, bool save = false, CancellationToken? cancellationToken = null)
         {
             entity = Update(entity, mask);
 
@@ -710,12 +741,12 @@ namespace Casimodo.Lib.Data
             return ((IKeyAccessor<TKey>)item).GetKey();
         }
 
-        public Guid GetGuid(object item)
+        public Guid? GetGuid(object item)
         {
-            return (Guid)GuidProp.GetValue(item);
+            return (Guid?)GuidProp?.GetValue(item);
         }
 
-        protected TEntity FindLocal(TKey key)
+        protected TEntity? FindLocal(TKey key)
         {
             return EntitySet.Local.AsQueryable().FirstOrDefault(GetIsKeyEqual(key));
         }
@@ -730,7 +761,7 @@ namespace Casimodo.Lib.Data
             return GetProperty(attr.PropName);
         }
 
-        static PropertyInfo FindTenantKeyProperty()
+        static PropertyInfo? FindTenantKeyProperty()
         {
             var attr = typeof(TEntity).FindAttr<TenantKeyInfoAttribute>();
             if (attr == null)
@@ -749,7 +780,7 @@ namespace Casimodo.Lib.Data
             return prop;
         }
 
-        static PropertyInfo FindProperty(string name)
+        static PropertyInfo? FindProperty(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
 
