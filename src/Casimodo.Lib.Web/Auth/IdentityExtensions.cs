@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
 
 namespace Casimodo.Lib.Auth
 {
     public static class IdentityExtensions
     {
-        public static string GetUserId(this ClaimsPrincipal identity)
+        public static string GetUserId(this ClaimsPrincipal user)
         {
-            return identity.FindFirstValue(ClaimTypes.NameIdentifier);
+            return user.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
         public static string GetFullName(this IPrincipal user)

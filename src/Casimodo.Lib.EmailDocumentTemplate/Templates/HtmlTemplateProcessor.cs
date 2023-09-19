@@ -608,7 +608,7 @@ namespace Casimodo.Lib.Templates
             return elem;
         }
 
-        protected IElement CurrentElem => CurrentHtmlTemplateElement.Elem;
+        public IElement CurrentElem => CurrentHtmlTemplateElement.Elem;
 
         void AppendTextNode(string value)
         {
@@ -694,7 +694,7 @@ namespace Casimodo.Lib.Templates
             attr.Value = items.Select(x => $"{x.Name}:{x.Value}").Join(";");
         }
 
-        protected IElement E(string name, params object[] content)
+        public IElement E(string name, params object[] content)
         {
             var elem = CurrentTemplate.Doc.CreateElement(name);
 
@@ -718,7 +718,7 @@ namespace Casimodo.Lib.Templates
             return elem;
         }
 
-        protected IAttr A(string name, string value)
+        public IAttr A(string name, string value)
         {
             var attr = CurrentTemplate.Doc.CreateAttribute(name);
             attr.Value = value;
@@ -726,7 +726,7 @@ namespace Casimodo.Lib.Templates
             return attr;
         }
 
-        protected static string ShrinkDecimal(decimal? value)
+        public string ShrinkDecimal(decimal? value)
         {
             if (value == null)
                 return "";

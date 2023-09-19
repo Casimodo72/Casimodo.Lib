@@ -13,19 +13,26 @@ namespace Casimodo.Lib
                 throw new ArgumentNullException(name);
         }
 
-        public static void ArgNotEmpty([NotNull] byte[]? arg, [CallerArgumentExpression("arg")] string? name = null)
+        public static void ArgNotEmpty<T>([NotNull] T[]? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             ArgNotNull(arg, name);
             if (arg.Length == 0)
                 throw new ArgumentException("The array must not be empty.", name);
         }
 
-        public static void ArgNotEmpty([NotNull] object[]? arg, [CallerArgumentExpression("arg")] string? name = null)
+        public static void ArgNotEmpty([NotNull] DateTimeOffset? arg, [CallerArgumentExpression("arg")] string? name = null)
         {
             ArgNotNull(arg, name);
-            if (arg.Length == 0)
-                throw new ArgumentException("The array must not be empty.", name);
+            if (arg == DateTimeOffset.MinValue || arg == DateTimeOffset.MaxValue)
+                throw new ArgumentException("The date time offset must have a real value (not a min/max value).", name);
         }
+
+        //public static void ArgNotEmpty([NotNull] object[]? arg, [CallerArgumentExpression("arg")] string? name = null)
+        //{
+        //    ArgNotNull(arg, name);
+        //    if (arg.Length == 0)
+        //        throw new ArgumentException("The array must not be empty.", name);
+        //}
 
         public static void ArgNotEmpty([NotNull] string[]? arg, [CallerArgumentExpression("arg")] string? name = null)
         {

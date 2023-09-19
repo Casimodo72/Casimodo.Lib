@@ -3,14 +3,10 @@ using AutoMapper;
 using Casimodo.Lib.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
@@ -221,12 +217,12 @@ namespace Casimodo.Lib.Data
 
         TEntity IDbRepository<TEntity>.GetById(object key)
         {
-            return GetRequired((TKey?)key);
+            return Get((TKey?)key);
         }
 
         object? IDbRepository.FindEntity(object key)
         {
-            return Get((TKey)key, required: false);
+            return Find((TKey)key);
         }
 
         /// <summary>
@@ -234,10 +230,15 @@ namespace Casimodo.Lib.Data
         /// </summary>
         public TEntity? Find(TKey? key, bool required = false)
         {
-            return Get(key, required: required);
+            return GetCore(key, required: required);
         }
 
-        public TEntity? Get(TKey? key, bool required = true)
+        public TEntity Get(TKey? key)
+        {
+            return GetCore(key, true)!;
+        }
+
+        private TEntity? GetCore(TKey? key, bool required)
         {
             TEntity? entity = null;
             if (key != null)
@@ -250,24 +251,6 @@ namespace Casimodo.Lib.Data
             {
                 OnLoaded(entity);
             }
-
-            return entity;
-        }
-
-        public TEntity GetRequired(TKey? key)
-        {
-            TEntity? entity = null;
-            if (key != null)
-            {
-                entity = EntitySet.Find(key);
-            }
-
-            if (entity == null)
-            {
-                throw NotFound();
-            }
-
-            OnLoaded(entity);
 
             return entity;
         }
@@ -461,7 +444,7 @@ namespace Casimodo.Lib.Data
 
         public TEntity RestoreSelfDeleted(TKey key)
         {
-            var entity = GetRequired(key);
+            var entity = Get(key);
             Core().RestoreSelfDeleted(Core().CreateOperationContext(entity, DbRepoOp.RestoreSelfDeleted, Context));
 
             return entity;

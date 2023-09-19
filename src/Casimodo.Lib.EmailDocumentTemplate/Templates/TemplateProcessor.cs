@@ -18,14 +18,14 @@ namespace Casimodo.Lib.Templates
 
         protected TemplateContext Context { get; }
 
-        public abstract void SetText(string value);
+        public abstract void SetText(string? value);
         public abstract void SetImage(Guid? imageFileId, bool removeIfEmpty = false);
 
         public abstract void RemoveValue();
 
         public CultureInfo Culture => Context.Culture;
 
-        public TemplateElement CurrentTemplateElement { get; protected set; }
+        public TemplateElement? CurrentTemplateElement { get; protected set; }
 
         public bool IsMatch { get; set; }
 
@@ -44,14 +44,14 @@ namespace Casimodo.Lib.Templates
             return await GetExpressionProcessor().EvaluateCondition(Context, expression);
         }
 
-        protected async Task<object> EvaluateValue(TemplateExpression expression)
+        protected async Task<object?> EvaluateValue(TemplateExpression expression)
         {
             return await GetExpressionProcessor().EvaluateValue(Context, expression);
         }
 
         bool _isInTransformation;
 
-        public event TemplateProcessorEvent ElementExecuted;
+        public event TemplateProcessorEvent ElementExecuted = default!;
 
         protected async Task ExecuteCurrentTemplateElement()
         {
@@ -62,7 +62,7 @@ namespace Casimodo.Lib.Templates
 
             _isInTransformation = true;
 
-            await Execute(CurrentTemplateElement);
+            await Execute(CurrentTemplateElement!);
 
             ElementExecuted?.Invoke(this, new TemplateProcessorEventArgs { Processor = this });
 
@@ -93,13 +93,14 @@ namespace Casimodo.Lib.Templates
             return Context.GetExpressionParser().ParseTemplateExpression(Context.Data, element.Expression, element.Kind);
         }
 
-        TemplateExpressionProcessor _pathProcessor;
         public TemplateExpressionProcessor GetExpressionProcessor()
         {
             _pathProcessor ??= new TemplateExpressionProcessor(Context);
 
             return _pathProcessor;
         }
+
+        TemplateExpressionProcessor? _pathProcessor;
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,7 +110,7 @@ namespace Casimodo.Lib.Templates
             if (IsMatch)
                 return false;
 
-            if (CurrentTemplateElement.Expression != expression)
+            if (CurrentTemplateElement!.Expression != expression)
                 return false;
 
             IsMatch = true;
@@ -119,7 +120,7 @@ namespace Casimodo.Lib.Templates
 
         public bool EnableArea(object value)
         {
-            if (value == null || (value is string && IsEmpty(value as string)))
+            if (value == null || (value is string stringValue && IsEmpty(stringValue)))
             {
                 RemoveValue();
                 return false;
@@ -128,7 +129,7 @@ namespace Casimodo.Lib.Templates
             return true;
         }
 
-        public bool EnableValue(object value)
+        public bool EnableValue(object? value)
         {
             if (value == null || (value is string && IsEmpty(value as string)))
             {
@@ -146,7 +147,7 @@ namespace Casimodo.Lib.Templates
 
         public void SetDate(DateTimeOffset? value)
         {
-            SetText(value?.ToString("d", Culture));
+            SetText(value?.ToString("d", Culture) ?? "");
         }
 
         public void SetZonedTime(DateTimeOffset? value)
@@ -154,19 +155,22 @@ namespace Casimodo.Lib.Templates
             SetZonedDateTime(value, Culture.DateTimeFormat.ShortTimePattern);
         }
 
-        public void SetZonedDateTime(DateTimeOffset? value, string format = null)
+        public void SetZonedDateTime(DateTimeOffset? value, string? format = null)
         {
             SetText(value.ToZonedString(format));
         }
 
-        public static bool IsEmpty(string value)
+        public static bool IsEmpty(string? value)
         {
             return string.IsNullOrWhiteSpace(value);
         }
 
-        public void SetTextOrRemove(object value)
+        public void SetTextOrRemove(object? value)
         {
-            var valueStr = value != null ? value.ToString().Trim() : "";
+            var valueStr = value != null
+                ? value.ToString()?.Trim() ?? ""
+                : "";
+
             if (IsEmpty(valueStr))
             {
                 RemoveValue();
@@ -176,12 +180,12 @@ namespace Casimodo.Lib.Templates
             SetText(valueStr);
         }
 
-        public void SetText(object value)
+        public void SetText(object? value)
         {
             SetText(value?.ToString());
         }
 
-        public void SetTextNonEmpty(string text)
+        public void SetTextNonEmpty(string? text)
         {
             if (!IsEmpty(text))
                 SetText(text);
@@ -200,7 +204,7 @@ namespace Casimodo.Lib.Templates
             using var ms = new System.IO.MemoryStream();
             stream.CopyTo(ms);
             return ms.ToArray();
-        }  
+        }
 #endif
 
         protected static void ThrowUnhandledTemplateExpression(string expression)
@@ -212,7 +216,7 @@ namespace Casimodo.Lib.Templates
         {
             // TODO: Check if CurTemplateElement will be null if there's no template element.
             if (!IsMatch)
-                ThrowUnhandledTemplateExpression(CurrentTemplateElement.Expression);
+                ThrowUnhandledTemplateExpression(CurrentTemplateElement!.Expression);
         }
     }
 }

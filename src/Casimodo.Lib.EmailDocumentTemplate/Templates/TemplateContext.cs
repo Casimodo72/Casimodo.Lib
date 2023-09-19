@@ -132,7 +132,7 @@ namespace Casimodo.Lib.Templates
 
         public abstract TemplateExpressionParser GetExpressionParser();
 
-        public virtual TemplateExpressionContext CreateExpressionContext(TemplateProcessor templateProcessor)
+        public virtual TemplateExpressionContext CreateExpressionContext(TemplateProcessor? templateProcessor)
         {
             var context = new TemplateExpressionContext();
             context.CoreContext = this;
