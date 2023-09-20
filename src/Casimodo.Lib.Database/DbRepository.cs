@@ -215,29 +215,41 @@ namespace Casimodo.Lib.Data
 
         // Get: Single ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+        /// <summary>
+        /// NOTE: Returns also deleted entities.
+        /// </summary>
         TEntity IDbRepository<TEntity>.GetById(object key)
         {
             return Get((TKey?)key);
         }
 
+        /// <summary>
+        /// NOTE: Returns also deleted entities.
+        /// </summary>
         object? IDbRepository.FindEntity(object key)
         {
             return Find((TKey)key);
         }
 
         /// <summary>
-        /// NOTE: Returns also IsDeleted entities.
+        /// NOTE: Returns also deleted entities.
         /// </summary>
         public TEntity? Find(TKey? key, bool required = false)
         {
             return GetCore(key, required: required);
         }
 
+        /// <summary>
+        /// NOTE: Returns also deleted entities.
+        /// </summary>
         public TEntity Get(TKey? key)
         {
             return GetCore(key, true)!;
         }
 
+        /// <summary>
+        /// NOTE: Returns also deleted entities.
+        /// </summary>
         private TEntity? GetCore(TKey? key, bool required)
         {
             TEntity? entity = null;
@@ -256,7 +268,7 @@ namespace Casimodo.Lib.Data
         }
 
         /// <summary>
-        /// Returns also IsDeleted entities.
+        /// NOTE: Returns also deleted entities.
         /// </summary>
         public async Task<TEntity?> GetAsync(TKey key, bool required = true)
         {

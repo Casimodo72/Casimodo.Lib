@@ -31,13 +31,6 @@ namespace Casimodo.Lib
                 throw new ArgumentException("The date time offset must have a real value (not a min/max value).", name);
         }
 
-        //public static void ArgNotEmpty([NotNull] object[]? arg, [CallerArgumentExpression("arg")] string? name = null)
-        //{
-        //    ArgNotNull(arg, name);
-        //    if (arg.Length == 0)
-        //        throw new ArgumentException("The array must not be empty.", name);
-        //}
-
         public static void ArgNotEmpty([NotNull] string[]? arg, [CallerArgumentExpression(nameof(arg))] string? name = null)
         {
             ArgNotNull(arg, name);
