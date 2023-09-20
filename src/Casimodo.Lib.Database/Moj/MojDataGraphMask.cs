@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
@@ -65,7 +63,7 @@ namespace Casimodo.Lib.Data
     {
         public MojDataMaskBuilder(Type targetType)
         {
-            Guard.ArgNotNull(targetType, nameof(targetType));
+            Guard.ArgNotNull(targetType);
 
             _targetType = targetType;
 
@@ -79,7 +77,7 @@ namespace Casimodo.Lib.Data
 
         public MojDataMaskBuilder Prop(string name)
         {
-            Guard.ArgNotNull(name, nameof(name));
+            Guard.ArgNotNull(name);
 
             if (_targetType.GetProperty(name) == null)
                 throw new InvalidOperationException($"The type '{_targetType.Name}' does not contain a property named '{name}'.");
@@ -90,7 +88,7 @@ namespace Casimodo.Lib.Data
 
         public MojDataMaskBuilder StartReference(string name, MojReferenceBinding binding, MojMultiplicity multiplicity)
         {
-            Guard.ArgNotNull(name, nameof(name));
+            Guard.ArgNotNull(name);
 
             var reference = new MojReferenceDataGraphMask
             {

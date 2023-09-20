@@ -56,8 +56,8 @@ namespace Casimodo.Lib.Data
 
         public DbTransactionContext(DbContext db, IDbContextTransaction trans)
         {
-            Guard.ArgNotNull(db, nameof(db));
-            Guard.ArgNotNull(trans, nameof(trans));
+            Guard.ArgNotNull(db);
+            Guard.ArgNotNull(trans);
 
             _db = db;
             Transaction = trans;
@@ -69,7 +69,7 @@ namespace Casimodo.Lib.Data
 
         public void EnlistTransaction(DbContext dbcontext)
         {
-            Guard.ArgNotNull(dbcontext, nameof(dbcontext));
+            Guard.ArgNotNull(dbcontext);
             dbcontext.Database.UseTransaction(Transaction.GetDbTransaction());
         }
     }
@@ -127,7 +127,7 @@ namespace Casimodo.Lib.Data
 
         public DbRepository(TContext db)
         {
-            Guard.ArgNotNull(db, nameof(db));
+            Guard.ArgNotNull(db);
 
             Context = db;
         }
@@ -139,7 +139,7 @@ namespace Casimodo.Lib.Data
             get => Context;
             set
             {
-                Guard.ArgNotNull(value, nameof(value));
+                Guard.ArgNotNull(value);
                 Context = (TContext)value;
             }
         }
@@ -390,7 +390,7 @@ namespace Casimodo.Lib.Data
 
         public TEntity Add(DbRepoOperationContext ctx)
         {
-            Guard.ArgNotNull(ctx, nameof(ctx));
+            Guard.ArgNotNull(ctx);
             ctx.Validate(DbRepoOp.Add);
 
             var entity = (TEntity)ctx.Item;
@@ -416,7 +416,7 @@ namespace Casimodo.Lib.Data
 
         public TEntity Update(DbRepoOperationContext ctx)
         {
-            Guard.ArgNotNull(ctx, nameof(ctx));
+            Guard.ArgNotNull(ctx);
             ctx.Validate(DbRepoOp.Update);
 
             var entity = (TEntity)ctx.Item;
@@ -633,7 +633,7 @@ namespace Casimodo.Lib.Data
 
         public void Delete(TEntity entity, DbRepoOperationContext? ctx = null, bool? isPhysicalDeletionAuthorized = null)
         {
-            Guard.ArgNotNull(entity, nameof(entity));
+            Guard.ArgNotNull(entity);
 
             if (ctx == null)
                 ctx = Core().CreateOperationContext(entity, DbRepoOp.Delete, Context);

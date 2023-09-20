@@ -11,7 +11,7 @@ namespace Casimodo.Lib.Templates
     {
         protected TemplateProcessor(TemplateContext context)
         {
-            Guard.ArgNotNull(context, nameof(context));
+            Guard.ArgNotNull(context);
 
             Context = context;
         }

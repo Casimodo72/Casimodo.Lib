@@ -16,8 +16,8 @@ namespace Casimodo.Lib.Templates
 
         public InternalTemplateStringFormatter(Func<string?, bool> canFormat, Func<string?, string, IFormatProvider?, string?> format)
         {
-            Guard.ArgNotNull(canFormat, nameof(canFormat));
-            Guard.ArgNotNull(format, nameof(format));
+            Guard.ArgNotNull(canFormat);
+            Guard.ArgNotNull(format);
 
             _canFormat = canFormat;
             _format = format;

@@ -87,24 +87,24 @@ namespace Casimodo.Lib
 
         public static bool HasProp(object item, string name)
         {
-            Guard.ArgNotNull(item, nameof(item));
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNull(item);
+            Guard.ArgNotNullOrWhitespace(name);
 
             return item.GetTypeProperty(name) != null;
         }
 
         public static void SetProp(object item, string name, object value)
         {
-            Guard.ArgNotNull(item, nameof(item));
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNull(item);
+            Guard.ArgNotNullOrWhitespace(name);
 
             item.GetTypeProperty(name)?.SetValue(item, value);
         }
 
         public static bool SetChangedProp<TValue>(object item, string name, TValue value)
         {
-            Guard.ArgNotNull(item, nameof(item));
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNull(item);
+            Guard.ArgNotNullOrWhitespace(name);
 
             var prop = item.GetTypeProperty(name);
             if (prop == null)
@@ -122,32 +122,32 @@ namespace Casimodo.Lib
 
         public static void MapProp<T>(object source, object target, string name, T defaultValue = default)
         {
-            Guard.ArgNotNull(source, nameof(source));
-            Guard.ArgNotNull(target, nameof(target));
+            Guard.ArgNotNull(source);
+            Guard.ArgNotNull(target);
 
             SetProp(target, name, GetProp(source, name, defaultValue));
         }
 
         public static bool MapChangedProp<T>(object source, object target, string name, T defaultValue = default)
         {
-            Guard.ArgNotNull(source, nameof(source));
-            Guard.ArgNotNull(target, nameof(target));
+            Guard.ArgNotNull(source);
+            Guard.ArgNotNull(target);
 
             return SetChangedProp(target, name, GetProp(source, name, defaultValue));
         }
 
         public static void MapProp(object source, object target, string name)
         {
-            Guard.ArgNotNull(source, nameof(source));
-            Guard.ArgNotNull(target, nameof(target));
+            Guard.ArgNotNull(source);
+            Guard.ArgNotNull(target);
 
             SetProp(target, name, GetProp(source, name));
         }
 
         public static T GetProp<T>(object item, string name, T defaultValue = default)
         {
-            Guard.ArgNotNull(item, nameof(item));
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNull(item);
+            Guard.ArgNotNullOrWhitespace(name);
 
             var prop = item.GetTypeProperty(name);
             if (prop == null)
@@ -158,8 +158,8 @@ namespace Casimodo.Lib
 
         public static object GetProp(object item, string name)
         {
-            Guard.ArgNotNull(item, nameof(item));
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNull(item);
+            Guard.ArgNotNullOrWhitespace(name);
 
             return item.GetTypeProperty(name).GetValue(item);
         }

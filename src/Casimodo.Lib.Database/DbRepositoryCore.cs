@@ -1,9 +1,6 @@
 ﻿using Casimodo.Lib.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -96,7 +93,7 @@ namespace Casimodo.Lib.Data
         public virtual object Create<TEntity>(DbContext db)
             where TEntity : class, new()
         {
-            Guard.ArgNotNull(db, nameof(db));
+            Guard.ArgNotNull(db);
 
             return new TEntity();
         }
@@ -130,7 +127,7 @@ namespace Casimodo.Lib.Data
 
         public object UpdateUsingMask(DbRepoOperationContext ctx)
         {
-            Guard.ArgNotNull(ctx, nameof(ctx));
+            Guard.ArgNotNull(ctx);
 
             var db = ctx.GetDb();
             var source = ctx.Item;
@@ -401,7 +398,7 @@ namespace Casimodo.Lib.Data
 
         public void SetAddedCore(object item, DateTimeOffset? now, Guid? userId, string userName)
         {
-            Guard.ArgNotNull(item, nameof(item));
+            Guard.ArgNotNull(item);
 
             now ??= GetTime();
 
@@ -427,7 +424,7 @@ namespace Casimodo.Lib.Data
 
         public void SetModifiedCore(object item, DateTimeOffset? now, Guid? userId, string userName)
         {
-            Guard.ArgNotNull(item, nameof(item));
+            Guard.ArgNotNull(item);
 
             if (!HasProp(item, CommonDataNames.ModifiedOn))
                 return;
@@ -446,7 +443,7 @@ namespace Casimodo.Lib.Data
 
         public void SetDeletedCore(object item, DateTimeOffset? now, Guid? userId, string userName)
         {
-            Guard.ArgNotNull(item, nameof(item));
+            Guard.ArgNotNull(item);
 
             if (!HasProp(item, CommonDataNames.IsDeleted))
                 return;

@@ -10,7 +10,7 @@ namespace Casimodo.Lib.SimpleParser
 
         public void Initialize(IEnumerable<string> tokens)
         {
-            Guard.ArgNotNull(tokens, nameof(tokens));
+            Guard.ArgNotNull(tokens);
 
             _tokens.Clear();
             _tokens.AddRange(tokens);

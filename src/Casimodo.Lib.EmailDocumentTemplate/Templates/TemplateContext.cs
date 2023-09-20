@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Templates
 
         public void AddStringFormatter(ITemplateStringFormatter formatter)
         {
-            Guard.ArgNotNull(formatter, nameof(formatter));
+            Guard.ArgNotNull(formatter);
 
             StringFormatters.Add(formatter);
         }

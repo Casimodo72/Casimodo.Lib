@@ -5,10 +5,8 @@ using Microsoft.Extensions.FileProviders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Casimodo.Lib.Templates
 {
@@ -22,7 +20,7 @@ namespace Casimodo.Lib.Templates
     {
         public HtmlTemplate(IDocument doc)
         {
-            Guard.ArgNotNull(doc, nameof(doc));
+            Guard.ArgNotNull(doc);
 
             Doc = doc;
         }
@@ -101,7 +99,7 @@ namespace Casimodo.Lib.Templates
         protected HtmlTemplateProcessor(TemplateContext context, IFileProvider fileProvider)
             : base(context)
         {
-            Guard.ArgNotNull(fileProvider, nameof(fileProvider));
+            Guard.ArgNotNull(fileProvider);
 
             _fileProvider = fileProvider;
         }

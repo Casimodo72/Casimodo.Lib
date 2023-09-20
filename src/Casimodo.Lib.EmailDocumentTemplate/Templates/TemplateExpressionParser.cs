@@ -136,7 +136,7 @@ namespace Casimodo.Lib.Templates
 
         public AstNode ParseExpression(Type contextItemType, string expression)
         {
-            Guard.ArgNotNull(contextItemType, nameof(contextItemType));
+            Guard.ArgNotNull(contextItemType);
 
             Clear();
             try
@@ -366,7 +366,7 @@ namespace Casimodo.Lib.Templates
             {
                 throw CreateInvalidExpressionException($"A value of type '{CurType.Type.Name}' " +
                         $"cannot be formatted because it does not implement {nameof(IFormattable)}.");
-            }            
+            }
 
             if (Next())
                 throw CreateInvalidExpressionException("Unexpected tokens after format specifier.");

@@ -1,9 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using System.Data.Common;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
@@ -17,7 +14,7 @@ namespace Casimodo.Lib.Data
 
         public CustomDbContext(DbConnection connection)
         {
-            Guard.ArgNotNull(connection, nameof(connection));
+            Guard.ArgNotNull(connection);
 
             _connection = connection;
         }

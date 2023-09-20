@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 #nullable enable
@@ -12,7 +11,7 @@ namespace Casimodo.Lib.Templates
     {
         public TemplateExpressionProcessor(TemplateContext context)
         {
-            Guard.ArgNotNull(context, nameof(context));
+            Guard.ArgNotNull(context);
 
             Context = context;
         }
@@ -42,7 +41,7 @@ namespace Casimodo.Lib.Templates
 
         public async Task<TemplateExpressionContext> ParseAndEvaluateValue(TemplateContext coreContext, TemplateExpression expression)
         {
-            Guard.ArgNotNull(expression, nameof(expression));
+            Guard.ArgNotNull(expression);
 
             var context = coreContext.CreateExpressionContext(templateProcessor: null);
             // We do not want to modify the template here. We just want to get a value. 
@@ -94,7 +93,7 @@ namespace Casimodo.Lib.Templates
 
         public async Task ExecuteAsync(TemplateExpressionContext context)
         {
-            Guard.ArgNotNull(context, nameof(context));
+            Guard.ArgNotNull(context);
 
             if (context.Ast == null)
                 return;
@@ -115,8 +114,8 @@ namespace Casimodo.Lib.Templates
 
         IEnumerable<object?> ExecuteCore(TemplateExpressionContext context, object contextObj, AstNode node)
         {
-            Guard.ArgNotNull(contextObj, nameof(contextObj));
-            Guard.ArgNotNull(node, nameof(node));
+            Guard.ArgNotNull(contextObj);
+            Guard.ArgNotNull(node);
 
             if (node is InstructionAstNode instruction)
             {

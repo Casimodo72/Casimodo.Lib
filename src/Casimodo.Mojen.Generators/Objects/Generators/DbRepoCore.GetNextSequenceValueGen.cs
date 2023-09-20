@@ -97,7 +97,7 @@
                     if (nullables.Any())
                     {
                         foreach (var p in nullables)
-                            OFormat("Guard.ArgNotNull({0}, nameof({0})); ", p.Prop.VName);
+                            O($"Guard.ArgNotEmpty({p.Prop.VName});");
                         O();
                     }
 
@@ -130,7 +130,7 @@
                         O($"    value = {method}(db, {foreignKey.VName});");
                     }
                     else
-                    {                        
+                    {
                         O($"    value = {prop.DbAnno.Sequence.Start};");
                     }
                     O("else");
@@ -179,11 +179,8 @@
             oO(")");
             Begin();
 
-            if (sourceProp.Type.CanBeNull)
-            {
-                OFormat("Guard.ArgNotNull({0}, nameof({0}));", sourceProp.VName);
-                O();
-            }
+            O($"Guard.ArgNotEmpty({sourceProp.VName});");
+            O();
 
             O($"// Select value from {step.TargetType.Name}.{targetProp.Name}.");
             O($"return (({DataConfig.DbContextName})db).{step.TargetType.PluralName}");

@@ -23,7 +23,7 @@ namespace Casimodo.Lib.Templates
 
         public void RemoveProp(string name)
         {
-            Guard.ArgNotNullOrWhitespace(name, nameof(name));
+            Guard.ArgNotNullOrWhitespace(name);
 
             var prop = FindPropAccessor(name, null);
             if (prop == null)
@@ -189,13 +189,13 @@ namespace Casimodo.Lib.Templates
         }
 
         void AddInstruction<TSourceType, TTargetType>(string names,
-            Func<TemplateExpressionContext, TSourceType, TTargetType> valueGetter = null,
-            Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>> listValueGetter = null)
+            Func<TemplateExpressionContext, TSourceType, TTargetType>? valueGetter = null,
+            Func<TemplateExpressionContext, TSourceType, IEnumerable<TTargetType>>? listValueGetter = null)
         {
             CheckComplexSourceType(typeof(TSourceType));
-            Guard.ArgNotNullOrWhitespace(names, nameof(names));
-            Guard.ArgMutuallyExclusive(valueGetter, listValueGetter, nameof(valueGetter), nameof(listValueGetter));
-            Guard.ArgOneNotNull(valueGetter, listValueGetter, nameof(valueGetter), nameof(listValueGetter));
+            Guard.ArgNotNullOrWhitespace(names);
+            Guard.ArgMutuallyExclusive(valueGetter, listValueGetter);
+            Guard.ArgOneNotNull(valueGetter, listValueGetter);
 
             var isReturnTypeSimple = TypeHelper.IsSimple(typeof(TTargetType));
 
@@ -233,11 +233,11 @@ namespace Casimodo.Lib.Templates
         }
 
         public void Action<TSourceType>(string name,
-            Action<TemplateExpressionContext, TSourceType> execute = null)
+            Action<TemplateExpressionContext, TSourceType>? execute = null)
         {
             CheckComplexSourceType(typeof(TSourceType));
             CheckName(name);
-            Guard.ArgNotNull(execute, nameof(execute));
+            Guard.ArgNotNull(execute);
 
             var item = new TemplateInstructionDefinition<TSourceType>
             {

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
-using Microsoft.AspNetCore.OData.Results;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -49,8 +48,8 @@ namespace Casimodo.Lib.Web
 
         public StandardODataControllerBase(TDbContext db, TDbRepository repo)
         {
-            Guard.ArgNotNull(db, nameof(db));
-            Guard.ArgNotNull(repo, nameof(repo));
+            Guard.ArgNotNull(db);
+            Guard.ArgNotNull(repo);
 
             _db = db;
             _repo = repo;
