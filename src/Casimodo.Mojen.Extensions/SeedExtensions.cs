@@ -1,4 +1,6 @@
-﻿namespace Casimodo.Mojen
+﻿#nullable enable
+
+namespace Casimodo.Mojen
 {
     public class EnumEntitySeedOptions
     {
@@ -18,7 +20,7 @@
         }
 
         public static void SeedEnumEntity(this MojenDataLayerPackage package,
-            MojType type, EnumEntitySeedOptions options,
+            MojType type, EnumEntitySeedOptions? options,
             Action<MojValueSetContainerBuilder> build)
         {
             var builder = package.Context.AddItemsOfType(type)
@@ -30,9 +32,12 @@
                 SeedBuilder = builder,
                 AlwaysSeed = (seed) =>
                 {
-                    seed
-                        .UseIndex("Index", options.IndexStart)
-                        .Seed("Name", "DisplayName", "Id");
+                    if (options != null)
+                    {
+                        seed.UseIndex("Index", options.IndexStart);
+                    }
+
+                    seed.Seed("Name", "DisplayName", "Id");
 
                     build(builder);
                 }
