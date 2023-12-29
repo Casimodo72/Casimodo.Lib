@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
 using System.Reflection;
+#nullable enable
 
 namespace Casimodo.Lib.Data
 {
@@ -57,8 +58,8 @@ namespace Casimodo.Lib.Data
         where TDb : DbContext
         where TRepoAggregate : DbRepoContainer
     {
-        public TDb Db { get; set; }
-        public TRepoAggregate Repos { get; set; }
+        public required TDb Db { get; set; }
+        public required TRepoAggregate Repos { get; set; }
 
         public sealed override DbContext GetDb()
         {
@@ -79,8 +80,8 @@ namespace Casimodo.Lib.Data
 
     public class DbRepoCurrentUserInfo
     {
-        public Guid UserId { get; set; }
-        public string UserName { get; set; }
+        public required Guid UserId { get; set; }
+        public required string UserName { get; set; }
     }
 
     public abstract class DbRepositoryCore
@@ -98,14 +99,14 @@ namespace Casimodo.Lib.Data
             return new TEntity();
         }
 
-        public abstract DbRepoOperationContext CreateOperationContext(object item, DbRepoOp op, DbContext db, MojDataGraphMask mask = null);
+        public abstract DbRepoOperationContext CreateOperationContext(object item, DbRepoOp op, DbContext db, MojDataGraphMask? mask = null);
 
         public virtual DbRepoCurrentUserInfo GetCurrentUserInfo()
         {
             throw new NotImplementedException();
         }
 
-        void ProcessPropertyModified(DbRepoOperationContext ctx, object target, PropertyInfo prop, object oldValue, object newValue)
+        void ProcessPropertyModified(DbRepoOperationContext ctx, object target, PropertyInfo prop, object? oldValue, object? newValue)
         {
             try
             {
@@ -149,7 +150,7 @@ namespace Casimodo.Lib.Data
             var entry = db.Entry(target);
 
             PropertyInfo prop;
-            object newValue;
+            object? newValue;
 
             // Leaf properties
             foreach (var propName in mask.Properties)
@@ -159,7 +160,7 @@ namespace Casimodo.Lib.Data
                     throw new DbRepositoryException("Unexpected update of same object.");
                 }
 
-                prop = type.GetProperty(propName);
+                prop = type.GetProperty(propName)!;
                 newValue = prop.GetValue(source);
                 // Mark as modified and assign if changed.
                 var oldValue = prop.GetValue(target);
@@ -196,7 +197,7 @@ namespace Casimodo.Lib.Data
 
                     if (referenceNode.Binding.HasFlag(MojReferenceBinding.Loose))
                     {
-                        prop = type.GetProperty(referenceNode.ForeignKey);
+                        prop = type.GetProperty(referenceNode.ForeignKey)!;
                         newValue = prop.GetValue(source);
 
                         // Loose navigation properties: Update the foreign key value only.
@@ -212,10 +213,10 @@ namespace Casimodo.Lib.Data
 
                     // Nested reference
 
-                    prop = type.GetProperty(referenceNode.Name);
+                    prop = type.GetProperty(referenceNode.Name)!;
                     newValue = prop.GetValue(source);
 
-                    var foreignKeyProp = type.GetProperty(referenceNode.ForeignKey);
+                    var foreignKeyProp = type.GetProperty(referenceNode.ForeignKey)!;
                     var oldValue = foreignKeyProp.GetValue(target);
 
                     if (newValue == null)
@@ -272,14 +273,14 @@ namespace Casimodo.Lib.Data
 
         static void UpdateIndependentCollection(DbContext db, Type type, EntityEntry entry, object source, object target, MojReferenceDataGraphMask referenceNode)
         {
-            var prop = type.GetProperty(referenceNode.Name);
+            var prop = type.GetProperty(referenceNode.Name)!;
 
-            dynamic newItems = prop.GetValue(source);
+            dynamic newItems = prop.GetValue(source)!;
             dynamic addedItems = Enumerable.ToList(newItems);
 
             // Load current items from DB.
             entry.Collection(referenceNode.Name).Load();
-            dynamic curItems = prop.GetValue(target);
+            dynamic curItems = prop.GetValue(target)!;
 
             bool found;
             foreach (var curItem in Enumerable.ToArray(curItems))
@@ -396,7 +397,7 @@ namespace Casimodo.Lib.Data
             SetAddedCore(item, now, null, null);
         }
 
-        public void SetAddedCore(object item, DateTimeOffset? now, Guid? userId, string userName)
+        public void SetAddedCore(object item, DateTimeOffset? now, Guid? userId, string? userName)
         {
             Guard.ArgNotNull(item);
 
@@ -422,7 +423,7 @@ namespace Casimodo.Lib.Data
             SetModifiedCore(item, now, null, null);
         }
 
-        public void SetModifiedCore(object item, DateTimeOffset? now, Guid? userId, string userName)
+        public void SetModifiedCore(object item, DateTimeOffset? now, Guid? userId, string? userName)
         {
             Guard.ArgNotNull(item);
 
@@ -441,7 +442,7 @@ namespace Casimodo.Lib.Data
             SetDeletedCore(item, now, null, null);
         }
 
-        public void SetDeletedCore(object item, DateTimeOffset? now, Guid? userId, string userName)
+        public void SetDeletedCore(object item, DateTimeOffset? now, Guid? userId, string? userName)
         {
             Guard.ArgNotNull(item);
 
@@ -631,14 +632,14 @@ namespace Casimodo.Lib.Data
 
             foreach (var id in existingIds)
             {
-                var update = items.FirstOrDefault(x => keySel(x).Equals(id));
+                var update = items.FirstOrDefault(x => keySel(x)!.Equals(id));
                 if (update != null)
                 {
                     // Modified. This entity exists in the collection and in the DB.
                     // Update the modified nested entity and save to DB.
 
                     // Check for local duplicate.
-                    var local = entitySet.Local.FirstOrDefault(x => keySel(x).Equals(id));
+                    var local = entitySet.Local.FirstOrDefault(x => keySel(x)!.Equals(id));
                     if (local != update)
                         throw new DbRepositoryException("An other instance of this entity already exists in the DbContext.");
 
@@ -650,7 +651,7 @@ namespace Casimodo.Lib.Data
                 {
                     // This DB entity does not exist anymore in the collection.
                     // Delete **physically** from DB.
-                    db.DeleteEntityByKey(id, ctx.CreateSubDeleteOperation());
+                    db.DeleteEntityByKey(id!, ctx.CreateSubDeleteOperation());
                 }
             }
 
@@ -670,7 +671,7 @@ namespace Casimodo.Lib.Data
             return HProp.HasProp(item, name);
         }
 
-        public void SetProp(object item, string name, object value)
+        public void SetProp(object item, string name, object? value)
         {
             HProp.SetProp(item, name, value);
         }
@@ -680,54 +681,54 @@ namespace Casimodo.Lib.Data
             return HProp.SetChangedProp<T>(item, name, value);
         }
 
-        public void MapProp<T>(object source, object target, string name, T defaultValue = default)
+        public void MapProp<T>(object source, object target, string name, T? defaultValue = default)
         {
             HProp.MapProp<T>(source, target, name, defaultValue);
         }
 
-        public bool MapChangedProp<T>(object source, object target, string name, T defaultValue = default)
+        public bool MapChangedProp<T>(object source, object target, string name, T? defaultValue = default)
         {
             return HProp.MapChangedProp<T>(source, target, name, defaultValue);
         }
 
-        public T GetProp<T>(object item, string name, T defaultValue = default)
+        public T? GetProp<T>(object item, string name, T? defaultValue = default)
         {
             return HProp.GetProp(item, name, defaultValue);
         }
 
         // Error helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        public void ThrowUniquePropValueExists<T>(string prop, object value)
+        public static void ThrowUniquePropValueExists<T>(string prop, object value)
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException($"Der Wert '{value}' für '{display}' ist bereits vergeben.");
         }
 
-        public void ThrowUniquePropValueExistsCustom<T>(string prop, object value, string errorMessage)
+        public static void ThrowUniquePropValueExistsCustom<T>(string prop, object value, string errorMessage)
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException(string.Format(errorMessage, value, display));
         }
 
-        public void ThrowUniquePropValueMustNotBeNull<T>(string prop)
+        public static void ThrowUniquePropValueMustNotBeNull<T>(string prop)
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException($"Ein Wert für '{display}' wird benötigt.");
         }
 
-        public void ThrowUniquePropValueMustNotBeLessThan<T>(string prop, object value)
+        public static void ThrowUniquePropValueMustNotBeLessThan<T>(string prop, object value)
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException($"Der Wert für '{display}' darf nicht kleiner als {value} sein.");
         }
 
-        public void ThrowUniquePropValueMustNotBeGreaterThan<T>(string prop, object value)
+        public static void ThrowUniquePropValueMustNotBeGreaterThan<T>(string prop, object value)
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException($"Der Wert für '{display}' darf nicht größer als {value} sein.");
         }
 
-        public void ThrowStaticUserIdPropMustNotBeModified<T>(string prop)
+        public static void ThrowStaticUserIdPropMustNotBeModified<T>(string prop)
         {
             var display = HProp.Display(typeof(T), prop).Text;
             throw new DbRepositoryException($"Die User-Identifikations-Eigenschaft '{display}' darf nicht mehr verändert werden.");

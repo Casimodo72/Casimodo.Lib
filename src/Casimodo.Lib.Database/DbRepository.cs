@@ -132,7 +132,7 @@ namespace Casimodo.Lib.Data
             Context = db;
         }
 
-        public TContext Context { get; private set; }
+        public TContext Context { get; private set; } = default!;
 
         DbContext IDbRepository.Context
         {
@@ -167,7 +167,7 @@ namespace Casimodo.Lib.Data
             }
         }
 
-        private IMapper _mapper;
+        private IMapper? _mapper;
 
         public void PerformTransaction(Action<DbTransactionContext<TContext>> action)
         {
@@ -540,7 +540,7 @@ namespace Casimodo.Lib.Data
 
             using var cmd = Context.Database.GetDbConnection().CreateCommand();
 
-            var connectionWasOpen = cmd.Connection.State == ConnectionState.Open;
+            var connectionWasOpen = cmd.Connection!.State == ConnectionState.Open;
             if (!connectionWasOpen)
             {
                 cmd.Connection.Open();
@@ -572,7 +572,7 @@ namespace Casimodo.Lib.Data
 
             using var cmd = Context.Database.GetDbConnection().CreateCommand();
 
-            var connectionWasOpen = cmd.Connection.State == ConnectionState.Open;
+            var connectionWasOpen = cmd.Connection!.State == ConnectionState.Open;
             if (!connectionWasOpen)
             {
                 await cmd.Connection.OpenAsync();
@@ -712,7 +712,7 @@ namespace Casimodo.Lib.Data
         public void Dispose()
         {
             // We can't dispose the DbContext because it might be shared.
-            Context = null;
+            Context = null!;
         }
 
         // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

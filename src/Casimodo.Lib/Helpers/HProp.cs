@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using System.Reflection;
+#nullable enable
 
 namespace Casimodo.Lib
 {
@@ -18,7 +19,7 @@ namespace Casimodo.Lib
             if (type == null) throw new ArgumentNullException("type");
             if (prop == null) throw new ArgumentNullException("prop");
 
-            PropertyInfo iprop = type.GetProperty(prop);
+            var iprop = type.GetProperty(prop);
             if (iprop == null)
                 throw new Exception(string.Format("Property '{0}' not found in type '{1}'.", prop, type.Name));
 
@@ -74,13 +75,13 @@ namespace Casimodo.Lib
             MemberExpression memberExpr;
             if (lambda.Body is UnaryExpression)
             {
-                UnaryExpression unaryExpr = lambda.Body as UnaryExpression;
-                memberExpr = unaryExpr.Operand as MemberExpression;
+                UnaryExpression unaryExpr = (UnaryExpression)lambda.Body;
+                memberExpr = (MemberExpression)unaryExpr.Operand;
             }
             else
-                memberExpr = lambda.Body as MemberExpression;
+                memberExpr = (MemberExpression)lambda.Body;
 
-            PropertyInfo iprop = memberExpr.Member as PropertyInfo;
+            PropertyInfo iprop = (PropertyInfo)memberExpr.Member;
 
             return iprop;
         }
@@ -93,7 +94,7 @@ namespace Casimodo.Lib
             return item.GetTypeProperty(name) != null;
         }
 
-        public static void SetProp(object item, string name, object value)
+        public static void SetProp(object item, string name, object? value)
         {
             Guard.ArgNotNull(item);
             Guard.ArgNotNullOrWhitespace(name);
@@ -101,7 +102,7 @@ namespace Casimodo.Lib
             item.GetTypeProperty(name)?.SetValue(item, value);
         }
 
-        public static bool SetChangedProp<TValue>(object item, string name, TValue value)
+        public static bool SetChangedProp<TValue>(object item, string name, TValue? value)
         {
             Guard.ArgNotNull(item);
             Guard.ArgNotNullOrWhitespace(name);
@@ -110,7 +111,7 @@ namespace Casimodo.Lib
             if (prop == null)
                 return false;
 
-            var oldValue = (TValue)prop.GetValue(item);
+            var oldValue = (TValue?)prop.GetValue(item);
 
             if (EqualityComparer<TValue>.Default.Equals(oldValue, value))
                 return false;
@@ -120,7 +121,7 @@ namespace Casimodo.Lib
             return true;
         }
 
-        public static void MapProp<T>(object source, object target, string name, T defaultValue = default)
+        public static void MapProp<T>(object source, object target, string name, T? defaultValue = default)
         {
             Guard.ArgNotNull(source);
             Guard.ArgNotNull(target);
@@ -128,7 +129,7 @@ namespace Casimodo.Lib
             SetProp(target, name, GetProp(source, name, defaultValue));
         }
 
-        public static bool MapChangedProp<T>(object source, object target, string name, T defaultValue = default)
+        public static bool MapChangedProp<T>(object source, object target, string name, T? defaultValue = default)
         {
             Guard.ArgNotNull(source);
             Guard.ArgNotNull(target);
@@ -144,7 +145,7 @@ namespace Casimodo.Lib
             SetProp(target, name, GetProp(source, name));
         }
 
-        public static T GetProp<T>(object item, string name, T defaultValue = default)
+        public static T? GetProp<T>(object item, string name, T? defaultValue = default)
         {
             Guard.ArgNotNull(item);
             Guard.ArgNotNullOrWhitespace(name);
@@ -153,10 +154,10 @@ namespace Casimodo.Lib
             if (prop == null)
                 return defaultValue;
 
-            return (T)prop.GetValue(item);
+            return (T?)prop.GetValue(item);
         }
 
-        public static object GetProp(object item, string name)
+        public static object? GetProp(object item, string name)
         {
             Guard.ArgNotNull(item);
             Guard.ArgNotNullOrWhitespace(name);

@@ -383,6 +383,11 @@ namespace Casimodo.Mojen
             return NamedAssignFrom(name, TypeConfig.GetProps().Select(x => x.Name).ToArray());
         }
 
+        public TClassBuilder NamedAssignFromSelf(string name)
+        {
+            return NamedAssignFrom(name, TypeConfig.LocalProps.Select(x => x.Name).ToArray());
+        }
+
         public TClassBuilder NamedAssignFrom(string name, params string[] props)
         {
             Guard.ArgNotEmpty(name, nameof(name));
