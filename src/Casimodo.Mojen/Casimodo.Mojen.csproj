@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="PluralizeService.Core" Version="1.2.21147.2" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
