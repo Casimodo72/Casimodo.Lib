@@ -53,10 +53,12 @@ namespace Casimodo.Mojen
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
                 {
+                    O("import { AbstractODataQueryBuilder } from \"@lib/data-utils\";");
+                    O();
+
                     foreach (var type in types)
                     {
                         GenerateQueryableFunctions(type);
-                        O();
                     }
                 });
             }
@@ -64,28 +66,21 @@ namespace Casimodo.Mojen
 
         void GenerateQueryableFunctions(MojType type)
         {
-            O("import { AbstractODataQueryBuilder } from \"@lib/data-utils\";");
-            O();
+            var localProps = type.GetLocalProps().Where(prop => !prop.Type.IsMojType).ToArray();
+            if (localProps.Length == 0) return;
 
             OB($"export function selectOwnPropsFrom{type.Name}(q: AbstractODataQueryBuilder<any>)");
             Oo("q.select(\"");
-            var localProps = type.GetLocalProps().ToArray();
             foreach (var (prop, index) in localProps.WithIndex())
             {
-                if (prop.Type.IsMojType)
-                {
-                    continue;
-                }
-
                 o(prop.Name);
 
                 if (localProps.HasNext(index))
-                {
                     o(",");
-                }
             }
             oO("\");");
             End();
+            O();
         }
     }
 }
