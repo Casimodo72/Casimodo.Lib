@@ -26,6 +26,8 @@ namespace Casimodo.Mojen
             Scope = "Context";
         }
 
+        record Item(MojType Type, MojProp[] LocalProps);
+
         protected override void GenerateCore()
         {
             var webConfig = App.Get<WebDataLayerConfig>();
@@ -42,8 +44,10 @@ namespace Casimodo.Mojen
 
             var IncludedTypeNames = _options.TypeNames?.ToArray() ?? Array.Empty<string>();
 
-            var types = App.GetTypes(MojTypeKind.Entity)
+            var items = App.GetTypes(MojTypeKind.Entity)
                 .Where(x => IncludedTypeNames.Contains(x.Name))
+                .Select(x => new Item(x, x.GetLocalProps().Where(prop => !prop.Type.IsMojType).ToArray()))
+                .Where(x => x.LocalProps.Length > 0)
                 .ToList();
 
             foreach (var outputDirPath in outputDirPaths)
@@ -53,23 +57,30 @@ namespace Casimodo.Mojen
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
                 {
-                    O("import { AbstractODataQueryBuilder } from \"@lib/data-utils\";");
+                    O("import { ODataCoreQueryBuilder } from \"@lib/data-utils\";");
+
+                    Oo("import {");
+                    foreach (var item in items)
+                    {
+                        o($"I{item.Type.Name},");
+                    }
+                    oO("} from \"@lib/data\";");
                     O();
 
-                    foreach (var type in types)
+                    foreach (var item in items)
                     {
-                        GenerateQueryableFunctions(type);
+                        GenerateQueryableFunctions(item);
                     }
                 });
             }
         }
 
-        void GenerateQueryableFunctions(MojType type)
+        void GenerateQueryableFunctions(Item item)
         {
-            var localProps = type.GetLocalProps().Where(prop => !prop.Type.IsMojType).ToArray();
-            if (localProps.Length == 0) return;
+            var type = item.Type;
+            var localProps = item.LocalProps;
 
-            OB($"export function selectOwnPropsFrom{type.Name}(q: AbstractODataQueryBuilder<any>)");
+            OB($"export function selectFrom{type.Name}(q: ODataCoreQueryBuilder<I{type.Name}>)");
             Oo("q.select(\"");
             foreach (var (prop, index) in localProps.WithIndex())
             {
