@@ -37,6 +37,15 @@ public class TsXClassGen : TsGenBase
 
     public List<string>? IncludedTypeNames { get; set; }
 
+    static int GetInheritanceDepth(MojType type)
+    {
+        int depth = 0;
+        while ((type = type.BaseClass) != null)
+            depth++;
+
+        return depth;
+    }
+
     protected override void GenerateCore()
     {
         WebConfig = App.Get<WebDataLayerConfig>();
@@ -56,6 +65,8 @@ public class TsXClassGen : TsGenBase
         var types = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
             .Where(x => !x.IsTenant)
             .Where(x => IncludedTypeNames == null || IncludedTypeNames.Contains(x.Name))
+            .OrderBy(x => GetInheritanceDepth(x))
+            .ThenBy(x => x.Name)
             .ToList();
 
         foreach (var outputDirPath in outputDirPaths)

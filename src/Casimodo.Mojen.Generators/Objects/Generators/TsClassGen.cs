@@ -11,27 +11,14 @@ namespace Casimodo.Mojen
 
         public WebDataLayerConfig WebConfig { get; set; }
 
-        class MyTypeComparer : IComparer<MojType>
+        static int GetInheritanceDepth(MojType type)
         {
-            public int Compare(MojType x, MojType y) => GetClassPath(x).CompareTo(GetClassPath(y));
+            int depth = 0;
+            while ((type = type.BaseClass) != null)
+                depth++;
 
-            static string GetClassPath(MojType x)
-            {
-                var classPath = "";
-                var baseClass = x.BaseClass;
-                while (baseClass != null)
-                {
-                    classPath += $"{baseClass.Name}.";
-                    baseClass = baseClass.BaseClass;
-                }
-
-                classPath += x.Name;
-
-                return classPath;
-            }
+            return depth;
         }
-
-        static readonly MyTypeComparer TypeComparer = new();
 
         protected override void GenerateCore()
         {
@@ -43,7 +30,8 @@ namespace Casimodo.Mojen
             var items = App.GetTypes(MojTypeKind.Entity, MojTypeKind.Complex)
                 .Where(x => !x.WasGenerated)
                 .Where(x => !x.IsTenant)
-                .OrderBy(x => x, TypeComparer)
+                .OrderBy(x => GetInheritanceDepth(x))
+                .ThenBy(x => x.Name)
                 .ToArray();
 
             PerformWrite(Path.Combine(outputDirPath, "DataTypes.generated.ts"), () =>
