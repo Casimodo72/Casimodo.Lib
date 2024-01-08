@@ -1,5 +1,5 @@
-﻿using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
+using System.Runtime.Serialization;
 
 namespace Casimodo.Mojen
 {
@@ -35,7 +35,7 @@ namespace Casimodo.Mojen
         public string SourceTypesDescriptorFilePath { get; set; }
 
         [DataMember]
-        public string[] IgnoredSourceTypes { get; set; } = Array.Empty<string>();
+        public string[] IgnoredSourceTypes { get; set; } = [];
 
         [DataMember]
         public string SourceDbContextName { get; set; }

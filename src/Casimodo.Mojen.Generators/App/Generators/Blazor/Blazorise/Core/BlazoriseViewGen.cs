@@ -55,7 +55,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
         {
             string result = "";
             var attrs = GetAttrsByTarget(target);
-            if (attrs.Any())
+            if (attrs.Length > 0)
             {
                 result = " " + attrs
                     .Select(x => $"{x.Name.LocalName}='{x.Value}'")
@@ -166,7 +166,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
             if (view.MaxHeight != null) AddStyleProp(props, "max-height", $"{view.MaxHeight}px", filter);
 
 
-            return props.ToArray();
+            return [.. props];
         }
     }
 }

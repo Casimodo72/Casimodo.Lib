@@ -5,12 +5,9 @@ using System.Xml.Linq;
 
 namespace Casimodo.Mojen
 {
-    public class MojXAttribute : XAttribute
+    public class MojXAttribute(XName name, object value)
+        : XAttribute(name, value)
     {
-        public MojXAttribute(XName name, object value)
-            : base(name, value)
-        { }
-
         public string Target { get; set; }
     }
 
@@ -178,7 +175,7 @@ namespace Casimodo.Mojen
             Br();
         }
 
-        public void OFormat(string text , params object[] args)
+        public void OFormat(string text, params object[] args)
         {
             if (text == null) return;
             Write(true, text, args);
@@ -296,7 +293,7 @@ namespace Casimodo.Mojen
         Tuple<string, string> GetJsObjectLiteralNameAndValue(string expression)
         {
             // TODO: Will break if the name contains a colon.
-            var index = expression.IndexOf(":");
+            var index = expression.IndexOf(':');
             if (index == -1)
                 throw new MojenException("Syntax error: a colon was expected in JS object literal.");
 
@@ -388,7 +385,7 @@ namespace Casimodo.Mojen
         {
             Write(true, text, args);
 
-            if (!text.StartsWith("<"))
+            if (!text.StartsWith('<'))
             {
                 // If no XML element then start block.
 
@@ -427,7 +424,7 @@ namespace Casimodo.Mojen
 
             Write(false, text, args);
 
-            if (!text.StartsWith("<"))
+            if (!text.StartsWith('<'))
                 // If not XML element, then assume JavaScript and start block.
                 o(" {");
 
@@ -440,7 +437,7 @@ namespace Casimodo.Mojen
         /// </summary>
         protected void XE(string tag, params object[] args)
         {
-            if (string.IsNullOrWhiteSpace(tag)) throw new ArgumentNullException("text");
+            if (string.IsNullOrWhiteSpace(tag)) throw new ArgumentNullException(nameof(tag));
             if (!tag.StartsWith("</")) throw new ArgumentException("Not an XML end tag.");
 
             PopBlockIndent();
@@ -531,8 +528,7 @@ namespace Casimodo.Mojen
                 return;
             }
 
-            if (block == null)
-                block = CodeBlock;
+            block ??= CodeBlock;
 
             if (Blocks.Count <= _blockIndent)
                 Blocks.Add(block);
@@ -661,10 +657,8 @@ namespace Casimodo.Mojen
         public void OFileScopedNamespace(string ns, Action content = null)
         {
             O($"namespace {ns};");
-            if (content != null)
-            {
-                content();
-            }
+
+            content?.Invoke();
         }
 
         public void OSummary(IEnumerable<string> text)
@@ -685,14 +679,14 @@ namespace Casimodo.Mojen
 
             if (obj is MojSummaryConfig summary)
             {
-                if (summary.Descriptions.Any())
+                if (summary.Descriptions.Count > 0)
                 {
                     O("/// <summary>");
                     foreach (var txt in summary.Descriptions)
                         O("/// " + Moj.CollapseWhitespace(txt));
                     O("/// </summary>");
                 }
-                if (summary.Remarks.Any())
+                if (summary.Remarks.Count > 0)
                 {
                     O("/// <remarks>");
                     foreach (var txt in summary.Remarks)
@@ -760,7 +754,7 @@ namespace Casimodo.Mojen
 
         protected void PerformWrite(string outputFilePath, Action<Stream, TextWriter> callback)
         {
-            if (outputFilePath.Contains("~"))
+            if (outputFilePath.Contains('~'))
                 throw new MojenException($"Invalid output file path '{outputFilePath}'.");
 
             if (!AllOutputFilePaths.Contains(outputFilePath))
@@ -772,7 +766,7 @@ namespace Casimodo.Mojen
             byte[] outputData = null;
             int outputLength = 0;
 
-            using (TextWriter writer = new StreamWriter(stream, MyUT8Encoding, 8192, leaveOpen: true))
+            using (var writer = new StreamWriter(stream, MyUT8Encoding, 8192, leaveOpen: true))
             {
                 Use(writer);
 
@@ -894,7 +888,9 @@ namespace Casimodo.Mojen
             return new XElement(name, content);
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public void OJsObjectLiteral(XElement cur, bool isSibling = false,
+#pragma warning restore IDE0060 // Remove unused parameter
             bool isArray = false, bool trailingNewline = true, bool trailingComma = true, bool leaveOpen = false)
         {
             if (cur == null)

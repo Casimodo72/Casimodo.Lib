@@ -284,11 +284,11 @@ namespace Casimodo.Mojen
 
             foreach (var cascade in info.ViewProp.CascadeFrom.Items)
             {
-                var item = new ComponentCascadeFromInfo();
-
-                item.Config = cascade;
-
-                item.FirstLooseStep = cascade.FromType.FormedNavigationFrom.FirstLooseStep;
+                var item = new ComponentCascadeFromInfo
+                {
+                    Config = cascade,
+                    FirstLooseStep = cascade.FromType.FormedNavigationFrom.FirstLooseStep
+                };
                 if (item.FirstLooseStep == null)
                     throw new MojenException("The cascade-from path must contain a loose reference property.");
 
@@ -765,7 +765,7 @@ namespace Casimodo.Mojen
                 }
 
                 // Arguments to be passed to the lookup dialog.
-                if (cascadeFromInfos?.Any() == true)
+                if (cascadeFromInfos?.Count > 0)
                 {
                     O($"options.filterCommands = [];");
                     O("let cascadeFromVal = '';");
@@ -778,9 +778,9 @@ namespace Casimodo.Mojen
 
                         // There must be a reference in the lookup target type which references the same type.
                         var cascadeFromType = cascadeFromInfo.ForeignKey.Reference.ToType;
-                        var reference = info.TargetType.FindReferenceWithForeignKey(to: cascadeFromType);
-                        if (reference == null)
-                            throw new MojenException("Lookup with cascade-from mismatch: " +
+
+                        var reference = info.TargetType.FindReferenceWithForeignKey(to: cascadeFromType)
+                            ?? throw new MojenException("Lookup with cascade-from mismatch: " +
                                 $"There is no reference to type '{cascadeFromType.ClassName}' " +
                                 $"in type '{info.TargetType.ClassName}' to be used for cascade-from.");
 
@@ -990,9 +990,8 @@ namespace Casimodo.Mojen
                 display = targetDisplayProp.Name;
             else
             {
-                var pick = targetType.FindPick();
-                if (pick == null)
-                    throw new MojenException($"No pick display property defined for reference property '{prop.Name}'.");
+                var pick = targetType.FindPick()
+                    ?? throw new MojenException($"No pick display property defined for reference property '{prop.Name}'.");
 
                 display = pick.DisplayProp;
             }
@@ -1097,7 +1096,7 @@ namespace Casimodo.Mojen
 
                         O("value: input.val(),");
 
-                        if (snippetsEditorView.Parameters.Any())
+                        if (snippetsEditorView.Parameters.Count > 0)
                         {
                             OB("params:");
                             foreach (var p in snippetsEditorView.Parameters)

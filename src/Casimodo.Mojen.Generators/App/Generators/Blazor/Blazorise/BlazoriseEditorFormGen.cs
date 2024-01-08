@@ -461,17 +461,23 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
         O($"<button class='btn btn-secondary' type='button' @onclick={onclick} @onclick:stopPropagation>{text}</button>");
     }
 
+#pragma warning disable IDE1006 // Naming Styles
     void oBindValue(WebViewGenContext context)
+#pragma warning restore IDE1006 // Naming Styles
     {
         oBindCore(context, "Value");
     }
 
+#pragma warning disable IDE1006 // Naming Styles
     void oBindText(WebViewGenContext context)
+#pragma warning restore IDE1006 // Naming Styles
     {
         oBindCore(context, "Text");
     }
 
+#pragma warning disable IDE1006 // Naming Styles
     void oBindCore(WebViewGenContext context, string propName)
+#pragma warning restore IDE1006 // Naming Styles
     {
         if (context.PropInfo.ViewProp.IsEditable)
         {
@@ -494,7 +500,9 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
     }
 
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable IDE0060 // Remove unused parameter
     void oLengthValidationAttrs(WebViewGenContext context)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore IDE1006 // Naming Styles
     {
         // TODO: IMPL?

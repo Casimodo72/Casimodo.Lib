@@ -68,7 +68,9 @@ namespace Casimodo.Mojen
             return item;
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public ViewTemplate GroupBox(string? header = null)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             AnyGroup("group-box");
             return this;
@@ -87,7 +89,7 @@ namespace Casimodo.Mojen
             Cur.TextValue = header;
             Cur.Index = index;
 
-            if (col != null) col.Build();
+            col?.Build();
             Cur.Style = col;
             EndRun();
 
