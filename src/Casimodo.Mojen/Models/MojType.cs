@@ -60,7 +60,7 @@ namespace Casimodo.Mojen
     {
         public MojType Owner { get; set; }
         public bool IsActive { get; set; }
-        public List<MojPropFilter> Props { get; set; } = new List<MojPropFilter>();
+        public List<MojPropFilter> Props { get; set; } = [];
 
         public void AddBaseType()
         {
@@ -373,7 +373,7 @@ namespace Casimodo.Mojen
         public MojVersionMapping VerMap { get; set; } = MojVersionMapping.None;
 
         [DataMember]
-        public List<MojInterface> Interfaces { get; private set; } = new List<MojInterface>();
+        public List<MojInterface> Interfaces { get; private set; } = [];
 
         [DataMember]
         public bool IsTenant { get; set; }
@@ -403,22 +403,22 @@ namespace Casimodo.Mojen
         public MojSummaryConfig Summary { get; private set; } = new MojSummaryConfig();
 
         [DataMember]
-        public MojAttrs Attrs { get; private set; } = new MojAttrs();
+        public MojAttrs Attrs { get; private set; } = [];
 
         [DataMember]
-        public List<MiaTypeTriggerConfig> Triggers { get; private set; } = new List<MiaTypeTriggerConfig>();
+        public List<MiaTypeTriggerConfig> Triggers { get; private set; } = [];
 
         [DataMember]
-        internal List<MojProp> LocalProps { get; private set; } = new List<MojProp>();
+        internal List<MojProp> LocalProps { get; private set; } = [];
 
         [DataMember]
-        public List<MojSoftReference> SoftReferences { get; set; } = new List<MojSoftReference>();
+        public List<MojSoftReference> SoftReferences { get; set; } = [];
 
         [DataMember]
         public MojAssignFromCollectionConfig AssignFromConfig = MojAssignFromCollectionConfig.None;
 
         [DataMember]
-        public readonly List<MojIndexConfig> Indexes = new(0);
+        public readonly List<MojIndexConfig> Indexes = [];
 
         internal void AddLocalProp(MojProp prop)
         {
@@ -658,10 +658,10 @@ namespace Casimodo.Mojen
         public bool IsMultitenant { get; set; }
 
         [DataMember]
-        public List<MojProp> ChangeTrackingProps { get; private set; } = new List<MojProp>();
+        public List<MojProp> ChangeTrackingProps { get; private set; } = [];
 
         [DataMember]
-        public List<MexExpressionNode> Conditions { get; private set; } = new List<MexExpressionNode>();
+        public List<MexExpressionNode> Conditions { get; private set; } = [];
 
         [DataMember]
         public MojType Store { get; set; }
@@ -733,7 +733,7 @@ namespace Casimodo.Mojen
         public MojDataSetSizeKind DataSetSize { get; set; } = MojDataSetSizeKind.Normal;
 
         [DataMember]
-        public List<MojTypeComparison> Comparisons { get; private set; } = new List<MojTypeComparison>();
+        public List<MojTypeComparison> Comparisons { get; private set; } = [];
 
         [DataMember]
         public bool IsStoreWrapper { get; set; }
@@ -920,7 +920,7 @@ namespace Casimodo.Mojen
             List<MojProp> descendantProps, bool hidden = true, bool custom = true, bool inherited = true, bool overriden = false)
         {
             if (descendantProps == null)
-                descendantProps = new List<MojProp>();
+                descendantProps = [];
             if (inherited && BaseClass != null)
             {
                 var localProps = new List<MojProp>(LocalProps);

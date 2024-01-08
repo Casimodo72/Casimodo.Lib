@@ -371,7 +371,7 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
     //    OInvalidPropPlaceholder(ppath + ".Minutes");
     //}
 
-    readonly List<MojViewPropInfo> _codeProps = new();
+    readonly List<MojViewPropInfo> _codeProps = [];
 
     public bool OPropSelector(WebViewGenContext context)
     {
@@ -538,7 +538,7 @@ public class BlazoriseEditorFormGen : BlazoriseFormGen
     string? GetTextRole(DataType? type)
     {
         // Blazorise has a TextRole enum.
-        return type != null && _textInputTypeByDataType.TryGetValue(type.Value, out string result)
+        return type != null && _textInputTypeByDataType.TryGetValue(type.Value, out string? result)
             ? result
             : null;
 

@@ -68,7 +68,7 @@ namespace Casimodo.Mojen
             return item;
         }
 
-        public ViewTemplate GroupBox(string header = null)
+        public ViewTemplate GroupBox(string? header = null)
         {
             AnyGroup("group-box");
             return this;

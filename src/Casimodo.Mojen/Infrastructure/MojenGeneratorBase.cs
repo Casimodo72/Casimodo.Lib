@@ -520,7 +520,7 @@ namespace Casimodo.Mojen
         static readonly BlockInfo CodeBlock = new();
         public static readonly BlockInfo ArrayBlock = new() { StartToken = "[", EndToken = "]" };
 
-        readonly List<BlockInfo> Blocks = new();
+        readonly List<BlockInfo> Blocks = [];
         int _blockIndent;
 
         void PushBlockIndent(BlockInfo block = null)
@@ -756,7 +756,7 @@ namespace Casimodo.Mojen
         static readonly MemoryStream SharedOutputStream = new(129024);
         static readonly byte[] SharedComparisonBuffer = new byte[4096];
 
-        static readonly List<string> AllOutputFilePaths = new();
+        static readonly List<string> AllOutputFilePaths = [];
 
         protected void PerformWrite(string outputFilePath, Action<Stream, TextWriter> callback)
         {

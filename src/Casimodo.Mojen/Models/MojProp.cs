@@ -78,11 +78,11 @@ namespace Casimodo.Mojen
 
         void InitReferenceProps()
         {
-            Attrs = new MojAttrs();
+            Attrs = [];
             Summary = new MojSummaryConfig();
-            ForeignKeyConditions = new List<MexExpressionNode>();
-            AutoRelatedProps = new List<MojProp>();
-            CascadeFromProps = new List<MojProp>();
+            ForeignKeyConditions = [];
+            AutoRelatedProps = [];
+            CascadeFromProps = [];
         }
 
         public MojProp Clone()
@@ -329,7 +329,7 @@ namespace Casimodo.Mojen
 
         [MapFromModel]
         [DataMember]
-        public List<string> OnChangeRaiseProps { get; set; } = new List<string>();
+        public List<string> OnChangeRaiseProps { get; set; } = [];
 
         [MapFromModel(Clone = true)]
         [DataMember]
@@ -559,7 +559,7 @@ namespace Casimodo.Mojen
         // KABU TODO: Move to MojReference.
         public List<MexExpressionNode> ForeignKeyConditions
         {
-            get { return _foreignKeyConditions ??= new List<MexExpressionNode>(); }
+            get { return _foreignKeyConditions ??= []; }
             set { _foreignKeyConditions = value; }
         }
         List<MexExpressionNode> _foreignKeyConditions;

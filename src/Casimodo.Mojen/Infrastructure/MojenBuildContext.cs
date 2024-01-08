@@ -4,7 +4,7 @@
     {
         public MojenBuildContext()
         {
-            Items = new List<MojBase>();
+            Items = [];
         }
 
         public void Initialize(MojenApp app)

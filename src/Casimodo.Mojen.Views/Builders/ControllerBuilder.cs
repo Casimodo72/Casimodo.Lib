@@ -5,7 +5,7 @@
         public MojControllerBuilder(MojControllerConfig config)
         {
             Controller = config;
-            ViewBuilders = new List<MojViewBuilder>();
+            ViewBuilders = [];
         }
 
         public MojControllerConfig Controller { get; private set; }

@@ -56,7 +56,7 @@ namespace Casimodo.Mojen
     {
         public static readonly MojDefaultValuesConfig None = new(false);
 
-        public static readonly List<MojDefaultValueConfig> Empty = new(0);
+        public static readonly List<MojDefaultValueConfig> Empty = [];
 
         public MojDefaultValuesConfig()
             : this(true)
@@ -66,7 +66,7 @@ namespace Casimodo.Mojen
         {
             Is = @is;
             if (Is)
-                Items = new List<MojDefaultValueConfig>();
+                Items = [];
         }
 
         [DataMember]
@@ -175,7 +175,7 @@ namespace Casimodo.Mojen
 
         public MojAttr()
         {
-            Args = new MojAttrArgs();
+            Args = [];
         }
 
         public MojAttr(string name, int order)

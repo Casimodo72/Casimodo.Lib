@@ -300,7 +300,7 @@ namespace Casimodo.Mojen
 
         //public string Name { get; set; }
 
-        public Dictionary<string, object> Args { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, object> Args { get; set; } = [];
     }
 
     [DataContract(Namespace = MojContract.Ns)]

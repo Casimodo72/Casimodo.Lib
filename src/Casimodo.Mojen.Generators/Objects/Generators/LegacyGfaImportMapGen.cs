@@ -12,9 +12,9 @@ namespace Casimodo.Mojen
 
         public LegacyDataMappingConfig Config { get; set; }
 
-        List<MojType> TargetTypes { get; set; } = new List<MojType>();
+        List<MojType> TargetTypes { get; set; } = [];
 
-        List<SourceType> SourceTypes { get; set; } = new List<SourceType>();
+        List<SourceType> SourceTypes { get; set; } = [];
 
         protected override void GenerateCore()
         {
@@ -371,15 +371,15 @@ namespace Casimodo.Mojen
         class SourceType
         {
             public string Name { get; set; }
-            public List<SourceProp> Props { get; set; } = new List<SourceProp>();
+            public List<SourceProp> Props { get; set; } = [];
 
             public MojType TargetType { get; set; }
 
-            public List<TargetProp> TargetProps { get; set; } = new List<TargetProp>();
+            public List<TargetProp> TargetProps { get; set; } = [];
 
-            public List<string> MissingTargetProps { get; set; } = new List<string>();
-            public List<string> MissingSourceProps { get; set; } = new List<string>();
-            public List<string> IgnoredSourceProps { get; set; } = new List<string>();
+            public List<string> MissingTargetProps { get; set; } = [];
+            public List<string> MissingSourceProps { get; set; } = [];
+            public List<string> IgnoredSourceProps { get; set; } = [];
         }
 
         class SourceProp

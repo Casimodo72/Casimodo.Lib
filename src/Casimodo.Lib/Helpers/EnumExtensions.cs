@@ -54,7 +54,7 @@ namespace Casimodo.Lib
         public static List<TEnum> GetActiveFlags<TEnum>(this TEnum flags)
              where TEnum : struct
         {
-            List<TEnum> result = new List<TEnum>();
+            List<TEnum> result = [];
             var enumValues = (TEnum[])System.Enum.GetValues(typeof(TEnum));
             foreach (var enumValue in enumValues)
             {

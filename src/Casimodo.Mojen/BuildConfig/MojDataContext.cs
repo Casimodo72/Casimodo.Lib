@@ -25,7 +25,7 @@ namespace Casimodo.Mojen
         public string InterfacesDirPath { get; set; }
 
         [DataMember]
-        public List<string> Namespaces { get; set; } = new List<string>();
+        public List<string> Namespaces { get; set; } = [];
     }
 
     [DataContract(Namespace = MojContract.Ns)]
@@ -125,7 +125,7 @@ namespace Casimodo.Mojen
         public string DataNamespace { get; set; }
 
         [DataMember]
-        public List<string> DataNamespaces { get; set; } = new List<string>();
+        public List<string> DataNamespaces { get; set; } = [];
 
         [DataMember]
         public string ModelNamespace { get; set; }

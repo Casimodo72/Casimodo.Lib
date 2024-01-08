@@ -7,7 +7,7 @@ namespace Casimodo.Mojen
     {
         public KendoFormReadOnlyViewGen ReadOnlyGen { get; set; } = new KendoFormReadOnlyViewGen();
 
-        public List<MojViewPropInfo> UsedViewPropInfos { get; set; } = new List<MojViewPropInfo>();
+        public List<MojViewPropInfo> UsedViewPropInfos { get; set; } = [];
 
         public string ViewFilePath { get; set; }
         public string ViewFileName { get; set; }

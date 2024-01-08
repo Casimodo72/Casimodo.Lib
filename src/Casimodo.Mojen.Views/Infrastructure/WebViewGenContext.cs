@@ -8,7 +8,7 @@
 
     public class WebViewGenContext
     {
-        readonly Dictionary<string, object> _properties = new();
+        readonly Dictionary<string, object> _properties = [];
 
         public void SetProperty(string name, object value)
         {

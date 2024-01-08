@@ -13,9 +13,9 @@
 
         public MojValueSetContainer Config { get; private set; }
 
-        internal List<MojValueSetProp> Defaults { get; private set; } = new List<MojValueSetProp>();
+        internal List<MojValueSetProp> Defaults { get; private set; } = [];
 
-        public List<MojValueSetAggregateBuilder> Aggregates { get; private set; } = new List<MojValueSetAggregateBuilder>();
+        public List<MojValueSetAggregateBuilder> Aggregates { get; private set; } = [];
 
         Action<MojValueSetBuilder> _onAdded;
 

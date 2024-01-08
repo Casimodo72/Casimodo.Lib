@@ -412,7 +412,7 @@ namespace Casimodo.Mojen
         public class CsvToXmlConverter
         {
             readonly StringBuilder _sb = new();
-            readonly List<string> _values = new();
+            readonly List<string> _values = [];
             readonly char Separator = ';';
             readonly char QuotationMark = '"';
             int _rowIndex = -1;

@@ -69,7 +69,7 @@ namespace Casimodo.Mojen
             if (HasGenericTypeArguments && GenericTypeArguments.Any(x => x.TypeConfig.IsModel()))
             {
                 var prevArgs = _genericTypeArguments;
-                _genericTypeArguments = new List<MojPropType>();
+                _genericTypeArguments = [];
                 foreach (var t in prevArgs)
                 {
                     if (t.TypeConfig.IsModel())
@@ -287,7 +287,7 @@ namespace Casimodo.Mojen
 
         public List<MojPropType> GenericTypeArguments
         {
-            get { return _genericTypeArguments ??= new List<MojPropType>(); }
+            get { return _genericTypeArguments ??= []; }
         }
 
         [DataMember]

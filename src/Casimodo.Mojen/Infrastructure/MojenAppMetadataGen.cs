@@ -10,7 +10,7 @@ namespace Casimodo.Mojen.Meta
 
         public string Namespace { get; set; } = "Casimodo.Mojen.AppMeta";
 
-        public List<Type> Types { get; set; } = new List<Type>();
+        public List<Type> Types { get; set; } = [];
     }
 
     public class MojenAppMetadataGen : MojenGenerator

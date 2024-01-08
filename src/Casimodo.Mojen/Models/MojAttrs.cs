@@ -4,7 +4,7 @@
     [Serializable]
     public class MojAttrs : List<MojAttr>
     {
-        static readonly List<MojAttrAccessor> _registeredAttrs = new();
+        static readonly List<MojAttrAccessor> _registeredAttrs = [];
 
         static MojAttrs()
         {

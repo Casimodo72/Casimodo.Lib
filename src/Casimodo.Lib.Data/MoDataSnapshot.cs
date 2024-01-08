@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Data
     {
         public MoDataSnapshot()
         {
-            Properties = new Dictionary<string, object>();
+            Properties = [];
         }
 
         public Dictionary<string, object> Properties { get; private set; }
@@ -88,7 +88,7 @@ namespace Casimodo.Lib.Data
             return true;
         }
 
-        static readonly Dictionary<Type, List<string>> _items = new();
+        static readonly Dictionary<Type, List<string>> _items = [];
 
         public static void Add(Type type)
         {
@@ -111,7 +111,7 @@ namespace Casimodo.Lib.Data
 
             if (!_items.TryGetValue(type, out List<string> properties))
             {
-                properties = new List<string>();
+                properties = [];
                 _items.Add(type, properties);
             }
 

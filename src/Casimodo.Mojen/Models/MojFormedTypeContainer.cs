@@ -7,12 +7,12 @@
 
     public class MojFormedTypeRegistry : MojBase
     {
-        public List<MojFormedTypeContainer> TypeContainers { get; set; } = new List<MojFormedTypeContainer>();
+        public List<MojFormedTypeContainer> TypeContainers { get; set; } = [];
     }
 
     public class MojFormedTypeContainer : IFormedTypePropAccessor
     {
-        internal readonly Dictionary<int, MojProp> _props = new();
+        internal readonly Dictionary<int, MojProp> _props = [];
 
         public MojFormedTypeContainer(MojType type)
         {

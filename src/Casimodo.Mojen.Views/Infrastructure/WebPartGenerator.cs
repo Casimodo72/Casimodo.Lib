@@ -222,7 +222,7 @@ namespace Casimodo.Mojen
                 Namespaces.AddRange(namespaces.Split("."));
             }
 
-            public List<string> Namespaces { get; set; } = new List<string>();
+            public List<string> Namespaces { get; set; } = [];
 
             public string Current
             {

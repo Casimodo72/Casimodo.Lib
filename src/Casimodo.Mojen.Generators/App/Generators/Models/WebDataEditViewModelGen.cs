@@ -14,8 +14,8 @@ namespace Casimodo.Mojen
         {
             Scope = "App";
 
-            Namespaces = new List<string>
-            {
+            Namespaces =
+            [
                "System",
                "System.Collections.Generic",
                "System.ComponentModel",
@@ -25,7 +25,7 @@ namespace Casimodo.Mojen
                "Casimodo.Lib",
                "Casimodo.Lib.ComponentModel",
                "Casimodo.Lib.Data"
-            };
+            ];
         }
 
         public List<string> Namespaces { get; private set; }

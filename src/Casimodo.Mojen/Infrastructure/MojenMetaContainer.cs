@@ -8,7 +8,7 @@ namespace Casimodo.Mojen
     {
         public MojenMetaContainer()
         {
-            Items = new Dictionary<string, object>();
+            Items = [];
         }
 
         [DataMember]

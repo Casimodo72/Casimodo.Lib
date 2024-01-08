@@ -107,7 +107,7 @@ namespace Casimodo.Mojen
                 {
                     yield return runs;
 
-                    runs = new List<ViewTemplateItem>();
+                    runs = [];
                 }
 
                 cur = cur.Next;

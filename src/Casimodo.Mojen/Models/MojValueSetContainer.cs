@@ -72,22 +72,22 @@ namespace Casimodo.Mojen
         /// <summary>
         /// Used at build-time only.
         /// </summary>
-        public List<string> SeedMappings { get; private set; } = new List<string>();
+        public List<string> SeedMappings { get; private set; } = [];
 
         // TODO: REMOVE: [DataMember]
-        public List<MojValueSet> Items { get; private set; } = new List<MojValueSet>();
+        public List<MojValueSet> Items { get; private set; } = [];
 
         [DataMember]
-        public List<MojValueSetAggregate> Aggregates { get; private set; } = new List<MojValueSetAggregate>();
+        public List<MojValueSetAggregate> Aggregates { get; private set; } = [];
 
         [DataMember]
-        public List<MojValueSetMapping> Mappings { get; set; } = new List<MojValueSetMapping>();
+        public List<MojValueSetMapping> Mappings { get; set; } = [];
 
         [DataMember]
-        internal List<string> AllPropNames { get; set; } = new List<string>();
+        internal List<string> AllPropNames { get; set; } = [];
 
         [DataMember]
-        internal List<string> DefaultPropNames { get; set; } = new List<string>();
+        internal List<string> DefaultPropNames { get; set; } = [];
 
         internal List<MyImportPropMapping> ImportPropMappings { get; set; }
 
@@ -106,7 +106,7 @@ namespace Casimodo.Mojen
         public void MapImportProp(string propName, string importPropName)
         {
             if (ImportPropMappings == null)
-                ImportPropMappings = new List<MyImportPropMapping>();
+                ImportPropMappings = [];
             ImportPropMappings.Add(new MyImportPropMapping { PropName = propName, ImportPropName = importPropName });
         }
 

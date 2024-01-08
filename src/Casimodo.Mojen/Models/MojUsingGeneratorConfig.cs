@@ -14,7 +14,7 @@ namespace Casimodo.Mojen
         /// <summary>
         /// KABU TODO: IMPL serialization when needed.
         /// </summary>
-        public List<object> Args { get; set; } = new List<object>();
+        public List<object> Args { get; set; } = [];
 
         public void AddArgs(object args)
         {

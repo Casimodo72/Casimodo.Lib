@@ -328,7 +328,7 @@ namespace Casimodo.Mojen
     {
         public MexCollection()
         {
-            Items = new List<MexItem>();
+            Items = [];
         }
 
         [DataMember]

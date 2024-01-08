@@ -17,7 +17,7 @@
 
     public abstract class WebViewGenerator : WebPartGenerator
     {
-        public List<MojXAttribute> Attributes { get; set; } = new List<MojXAttribute>();
+        public List<MojXAttribute> Attributes { get; set; } = [];
 
         public void OHiddenInputFor(string name)
         {

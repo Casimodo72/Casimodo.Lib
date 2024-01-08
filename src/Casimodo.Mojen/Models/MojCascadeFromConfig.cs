@@ -18,7 +18,7 @@
 
         public bool Is { get; private set; }
 
-        public List<MojCascadeFromConfig> Items { get; set; } = new List<MojCascadeFromConfig>();
+        public List<MojCascadeFromConfig> Items { get; set; } = [];
     }
 
     [Flags]

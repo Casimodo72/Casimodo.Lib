@@ -84,7 +84,7 @@ namespace Casimodo.Mojen
     public class MiaTypeOperationsConfig : MojBase
     {
         [DataMember]
-        public List<MiaTypeOperationConfig> Items { get; private set; } = new List<MiaTypeOperationConfig>();
+        public List<MiaTypeOperationConfig> Items { get; private set; } = [];
 
         [DataMember]
         public string FactoryFunctionCall { get; set; }

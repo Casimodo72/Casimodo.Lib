@@ -42,9 +42,9 @@ namespace Casimodo.Mojen
 
         public bool CanDelete { get; set; }
 
-        public List<MojViewConfig> Views { get; private set; } = new List<MojViewConfig>();
+        public List<MojViewConfig> Views { get; private set; } = [];
 
-        public List<MojAttr> Attrs { get; private set; } = new List<MojAttr>();
+        public List<MojAttr> Attrs { get; private set; } = [];
 
         public IEnumerable<string> GetViewGroups()
         {

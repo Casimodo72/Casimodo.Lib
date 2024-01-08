@@ -6,8 +6,8 @@ namespace Casimodo.Mojen
     {
         public MojValueSet()
         {
-            Values = new List<MojValueSetProp>();
-            AuthRoles = new List<string>();
+            Values = [];
+            AuthRoles = [];
         }
 
         [DataMember]

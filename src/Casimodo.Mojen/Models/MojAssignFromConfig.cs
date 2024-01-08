@@ -21,7 +21,7 @@ namespace Casimodo.Mojen
         public bool Is { get; private set; }
 
         [DataMember]
-        public List<MojNamedAssignFromConfig> Items { get; set; } = new List<MojNamedAssignFromConfig>();
+        public List<MojNamedAssignFromConfig> Items { get; set; } = [];
     }
 
     [DataContract(Namespace = MojContract.Ns)]
@@ -31,6 +31,6 @@ namespace Casimodo.Mojen
         public string Name { get; set; }
 
         [DataMember]
-        public List<string> Properties { get; set; } = new List<string>();
+        public List<string> Properties { get; set; } = [];
     }
 }

@@ -50,10 +50,10 @@ namespace Casimodo.Mojen
         }
         int? _minMaxWidth;
 
-        static readonly List<string> _cols = new()
-        {
+        static readonly List<string> _cols =
+        [
             "lg-", "md-", "sm-", "xs-"
-        };
+        ];
 
         public override void Build()
         {
@@ -958,7 +958,7 @@ namespace Casimodo.Mojen
 
             var path = new MojFormedNavigationPath
             {
-                Steps = new List<MojFormedNavigationPathStep>()
+                Steps = []
             };
             path.AddStep(new MojFormedNavigationPathStep
             {

@@ -117,7 +117,7 @@
 
     public class MojGlobalDataSeedConfig : MojBase
     {
-        public List<MojDataSeedSectionConfig> Sections { get; set; } = new List<MojDataSeedSectionConfig>();
+        public List<MojDataSeedSectionConfig> Sections { get; set; } = [];
         public bool IsDbSeedEnabled { get; set; }
        
         public bool IsInitialSeedEnabled { get; set; }

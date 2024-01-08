@@ -18,7 +18,7 @@ namespace Casimodo.Mojen
     public class MojValueSetMapping
     {
         [DataMember]
-        public List<string> From { get; set; } = new List<string>();
+        public List<string> From { get; set; } = [];
 
         [DataMember]
         public string To { get; set; }

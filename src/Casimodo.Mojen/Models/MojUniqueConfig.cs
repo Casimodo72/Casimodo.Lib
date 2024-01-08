@@ -114,7 +114,7 @@ namespace Casimodo.Mojen
         }
 
         [DataMember]
-        internal List<MojUniqueParameterConfig> _parameters = new();
+        internal List<MojUniqueParameterConfig> _parameters = [];
 
         public IEnumerable<MojUniqueParameterConfig> GetParams(bool includeTenant = false)
         {

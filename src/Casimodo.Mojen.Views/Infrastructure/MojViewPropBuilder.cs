@@ -50,7 +50,7 @@ namespace Casimodo.Mojen
     public abstract class MojViewPropBuilderBase<TBuilder>
         where TBuilder : MojViewPropBuilderBase<TBuilder>
     {
-        static readonly List<string> CloneFromModelExcludedProps = new() { };
+        static readonly List<string> CloneFromModelExcludedProps = [];
 
         protected MojViewBuilder ViewBuilder { get; private set; }
 

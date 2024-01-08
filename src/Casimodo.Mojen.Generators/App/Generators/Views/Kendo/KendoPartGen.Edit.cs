@@ -29,7 +29,7 @@ namespace Casimodo.Mojen
             End();
         }
 
-        public List<MiaPropSetterConfig> QueriedTriggerPropSetters { get; set; } = new List<MiaPropSetterConfig>();
+        public List<MiaPropSetterConfig> QueriedTriggerPropSetters { get; set; } = [];
 
         void GenOnEditing_OnPropChanged(MojViewConfig view)
         {

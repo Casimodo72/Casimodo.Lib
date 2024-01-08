@@ -77,13 +77,13 @@ namespace Casimodo.Mojen
     {
         public MojenApp()
         {
-            Items = new List<MojBase>();
-            Generators = new List<MojenGenerator>();
-            Contexts = new List<MojenBuildContext>();
-            Configs = new List<MojenBuildConfig>();
+            Items = [];
+            Generators = [];
+            Contexts = [];
+            Configs = [];
         }
 
-        public List<MojenAppExtensionItem> Extensions { get; private set; } = new List<MojenAppExtensionItem>();
+        public List<MojenAppExtensionItem> Extensions { get; private set; } = [];
 
         public void LoadConfigs(MojenMetaContainer container)
         {

@@ -36,11 +36,11 @@ namespace Casimodo.Mojen
         public string TargetName { get; set; }
 
         [DataMember]
-        public List<string> IgnoreSourceProps { get { return _ignorePreviousProps ??= new List<string>(); } }
+        public List<string> IgnoreSourceProps { get { return _ignorePreviousProps ??= []; } }
         List<string> _ignorePreviousProps;
 
         [DataMember]
-        public List<MojVersionMapping> ToPropOverrides { get; set; } = new List<MojVersionMapping>();
+        public List<MojVersionMapping> ToPropOverrides { get; set; } = [];
 
         [DataMember]
         public string ValueExpression { get; set; }

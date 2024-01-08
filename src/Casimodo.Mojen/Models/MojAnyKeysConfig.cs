@@ -33,7 +33,7 @@ namespace Casimodo.Mojen
         public bool UseInstance { get; set; }
 
         [DataMember]
-        public List<MojAnyKeyItemConfig> Items { get; private set; } = new List<MojAnyKeyItemConfig>();
+        public List<MojAnyKeyItemConfig> Items { get; private set; } = [];
 
         [OnSerializing]
         void OnSerializing(StreamingContext context)

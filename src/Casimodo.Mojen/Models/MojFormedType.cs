@@ -2,7 +2,7 @@
 {
     public class MojFormedType : MojBase, IFormedTypePropAccessor
     {
-        Dictionary<int, MojProp> _props = new();
+        Dictionary<int, MojProp> _props = [];
 
         public MojFormedType()
         { }
@@ -41,7 +41,7 @@
             {
                 FormedNavigationFrom = new MojFormedNavigationPath
                 {
-                    Steps = new List<MojFormedNavigationPathStep>()
+                    Steps = []
                 };
             }
 

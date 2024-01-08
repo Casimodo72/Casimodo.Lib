@@ -14,7 +14,7 @@
 
     public class WebResultBuildInfo : MojBase
     {
-        public List<WebResultComponentInfo> Components { get; set; } = new List<WebResultComponentInfo>();
+        public List<WebResultComponentInfo> Components { get; set; } = [];
     }
 
     public class WebAppBuildConfig : MojenBuildConfig

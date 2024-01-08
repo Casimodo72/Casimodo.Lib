@@ -9,7 +9,7 @@
             var path = new MojFormedNavigationPath
             {
                 IsForeign = true,
-                Steps = new List<MojFormedNavigationPathStep>()
+                Steps = []
             };
 
             var targetType = contextProp.Reference.ToType;

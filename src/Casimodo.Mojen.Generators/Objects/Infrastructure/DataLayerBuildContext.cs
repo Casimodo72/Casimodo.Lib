@@ -39,7 +39,7 @@
 
         public DataLayerBuildContext Context { get; set; }
 
-        public List<MojBase> Items { get; set; } = new List<MojBase>();
+        public List<MojBase> Items { get; set; } = [];
 
         T Add<T>(T builder) where T : MojTypeBuilder
         {          
@@ -187,7 +187,7 @@
             Context.PropToTenant(builder, build);
         }
 
-        readonly List<Action> _referenceResolutionActions = new();
+        readonly List<Action> _referenceResolutionActions = [];
 
         public void ResolveReferencesLater(Action action)
         {

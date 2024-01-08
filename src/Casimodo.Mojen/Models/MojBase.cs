@@ -37,9 +37,9 @@ namespace Casimodo.Mojen
     public abstract class MojPartBase : MojBase, IMojenGenerateable
     {
         [DataMember]
-        public List<MojUsingGeneratorConfig> UsingGenerators { get; private set; } = new List<MojUsingGeneratorConfig>();
+        public List<MojUsingGeneratorConfig> UsingGenerators { get; private set; } = [];
 
-        public List<MojAuthPermission> AuthPermissions { get; set; } = new List<MojAuthPermission>();
+        public List<MojAuthPermission> AuthPermissions { get; set; } = [];
 
         public bool Uses(MojenGenerator generator)
         {

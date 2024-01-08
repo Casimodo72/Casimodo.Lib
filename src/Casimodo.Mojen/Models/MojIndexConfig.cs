@@ -25,7 +25,7 @@ namespace Casimodo.Mojen
         public bool IsUnique { get; set; }
 
         [DataMember]
-        public readonly List<MojIndexMemberConfig> Members = new();
+        public readonly List<MojIndexMemberConfig> Members = [];
 
         //public MojIndexConfig Clone()
         //{

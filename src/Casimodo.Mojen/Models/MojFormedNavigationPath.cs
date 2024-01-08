@@ -179,7 +179,7 @@ namespace Casimodo.Mojen
                 IsForeign = IsForeign,
                 SourcePath = SourcePath,
                 TargetPath = TargetPath,
-                Steps = new List<MojFormedNavigationPathStep>()
+                Steps = []
             };
             foreach (var step in Steps)
                 clone.Steps.Add(step.Clone());

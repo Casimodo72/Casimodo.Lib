@@ -40,13 +40,11 @@ namespace Casimodo.Lib.Data
         DbRepositoryCore Core();
     }
 
-    public class DbTransactionContext<TDbContext> : DbTransactionContext
+    public class DbTransactionContext<TDbContext>
+        (TDbContext db, IDbContextTransaction trans)
+        : DbTransactionContext(db, trans)
         where TDbContext : DbContext
     {
-        public DbTransactionContext(TDbContext db, IDbContextTransaction trans)
-            : base(db, trans)
-        { }
-
         public TDbContext Context => (TDbContext)_db;
     }
 
@@ -99,7 +97,8 @@ namespace Casimodo.Lib.Data
     public class DbRepository
     { }
 
-    public class DbRepository<TContext, TEntity, TKey> : DbRepository, IDbRepository<TEntity>, IDbRepository, IDisposable
+    public class DbRepository<TContext, TEntity, TKey> : DbRepository, IDbRepository<TEntity>, IDbRepository
+        // , IDisposable
         where TContext : DbContext, new()
         where TEntity : class, IKeyAccessor<TKey>, new()
         where TKey : struct, IComparable<TKey>
@@ -709,11 +708,12 @@ namespace Casimodo.Lib.Data
             return new DbRepositoryException(DbRepositoryErrorKind.NotFound, "Entity not found.");
         }
 
-        public void Dispose()
-        {
-            // We can't dispose the DbContext because it might be shared.
-            Context = null!;
-        }
+        // TODO: REMOVE
+        //public void Dispose()
+        //{
+        //    // We can't dispose the DbContext because it might be shared.
+        //    Context = null!;
+        //}
 
         // Helpers ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

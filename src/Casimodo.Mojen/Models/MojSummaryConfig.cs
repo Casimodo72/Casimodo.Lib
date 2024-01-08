@@ -8,14 +8,14 @@ namespace Casimodo.Mojen
     {
         public List<string> Descriptions
         {
-            get { return _descriptions ??= new List<string>(); }
+            get { return _descriptions ??= []; }
         }
         [DataMember]
         List<string> _descriptions;
 
         public List<string> Remarks
         {
-            get { return _remarks ??= new List<string>(); }
+            get { return _remarks ??= []; }
         }
         [DataMember]
         List<string> _remarks;

@@ -15,7 +15,7 @@
 
         public MojValueSet ValuesConfig { get; set; }
 
-        public List<string> TypeProps { get; set; } = new List<string>();
+        public List<string> TypeProps { get; set; } = [];
 
         int MappingIndex { get; set; }
 

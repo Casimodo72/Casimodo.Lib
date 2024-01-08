@@ -55,7 +55,7 @@ namespace Casimodo.Mojen
         public MojLookupViewConfig()
         {
             Is = true;
-            Sources = new List<MojLookupViewSource>();
+            Sources = [];
         }
 
         public bool Is { get; private set; }
@@ -64,7 +64,7 @@ namespace Casimodo.Mojen
 
         public List<MojLookupViewSource> Sources { get; private set; }
 
-        public List<MojProp> Parameters { get; set; } = new List<MojProp>();
+        public List<MojProp> Parameters { get; set; } = [];
     }
 
     public class MojStandaloneViewConfig : MojBase
@@ -94,7 +94,7 @@ namespace Casimodo.Mojen
 
         public string HeaderCssClass { get; set; }
 
-        public Dictionary<string, string> Attrs { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Attrs { get; set; } = [];
     }
 
     public class MojViewConfig : MojPartBase
@@ -141,13 +141,13 @@ namespace Casimodo.Mojen
 
         public MojType TypeConfig { get; set; }
 
-        public List<MojViewProp> Props { get; private set; } = new List<MojViewProp>();
+        public List<MojViewProp> Props { get; private set; } = [];
 
-        public List<MojViewCustomControl> CustomControls { get; set; } = new List<MojViewCustomControl>();
+        public List<MojViewCustomControl> CustomControls { get; set; } = [];
 
         public MojViewKindConfig Kind { get; set; } = new MojViewKindConfig();
 
-        public List<MojProp> Parameters { get; set; } = new List<MojProp>();
+        public List<MojProp> Parameters { get; set; } = [];
 
         public string CustomPartName { get; set; }
 
@@ -234,9 +234,9 @@ namespace Casimodo.Mojen
 
         public MojViewConfig TagsEditorView { get; set; }
 
-        public List<MojViewConfig> ContentViews { get; set; } = new List<MojViewConfig>();
+        public List<MojViewConfig> ContentViews { get; set; } = [];
 
-        public List<MojViewCommand> CustomCommands { get; set; } = new List<MojViewCommand>();
+        public List<MojViewCommand> CustomCommands { get; set; } = [];
 
         // TODO: REMOVE: public List<MojViewCommand> ListItemCommands { get; set; } = new List<MojViewCommand>();
 

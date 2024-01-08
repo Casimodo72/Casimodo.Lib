@@ -39,7 +39,7 @@ namespace Casimodo.Mojen
             return gen;
         }
 
-        public List<MojenGenerator> SubGens { get; set; } = new List<MojenGenerator>();
+        public List<MojenGenerator> SubGens { get; set; } = [];
 
         protected virtual void GenerateCore()
         {

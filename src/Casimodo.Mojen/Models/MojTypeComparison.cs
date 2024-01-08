@@ -9,8 +9,8 @@ namespace Casimodo.Mojen
         public MojTypeComparison()
         {
             Mode = "none";
-            IncludedProps = new List<string>();
-            ExcludedProps = new List<string>();
+            IncludedProps = [];
+            ExcludedProps = [];
         }
 
         [DataMember]

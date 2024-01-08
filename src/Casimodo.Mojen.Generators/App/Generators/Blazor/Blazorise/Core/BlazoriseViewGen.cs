@@ -44,7 +44,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
             return iprop.PropPath.Replace(".", "_");
         }
 
-        public List<MojXAttribute> Attributes { get; } = new();
+        public List<MojXAttribute> Attributes { get; } = [];
 
         public void Attr(string name, object value)
         {
@@ -143,7 +143,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
             return new HtmlStyleProp { Name = name, Value = value };
         }
 
-        void AddStyleProp(List<HtmlStyleProp> props, string name, string value, Func<string, bool> filter = null)
+        void AddStyleProp(List<HtmlStyleProp> props, string name, string value, Func<string, bool>? filter = null)
         {
             if (filter != null && !filter(name))
                 return;
@@ -151,7 +151,7 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
             props.Add(StyleProp(name, value));
         }
 
-        public virtual HtmlStyleProp[] GetViewStyles(WebViewGenContext context, Func<string, bool> filter = null)
+        public virtual HtmlStyleProp[] GetViewStyles(WebViewGenContext context, Func<string, bool>? filter = null)
         {
             var view = context.View;
 
@@ -167,6 +167,6 @@ namespace Casimodo.Mojen.App.Generators.Blazor.Blazorise
 
 
             return props.ToArray();
-        }      
+        }
     }
 }

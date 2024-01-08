@@ -9,10 +9,10 @@ namespace Casimodo.Mojen
         {
             Scope = "App";
 
-            Namespaces = new List<string>
-            {
+            Namespaces =
+            [
                "System"
-            };
+            ];
         }
 
         public ViewModelLayerConfig ViewModelConfig { get; set; }

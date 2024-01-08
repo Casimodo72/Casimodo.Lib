@@ -306,7 +306,7 @@ namespace Casimodo.Mojen
     {
         public MojReferenceDataGraphNode()
         {
-            TargetItems = new List<MojDataGraphNode>();
+            TargetItems = [];
         }
 
         public MojProp SourceProp { get; set; }
