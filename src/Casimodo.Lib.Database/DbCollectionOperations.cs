@@ -1,8 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
@@ -144,32 +140,33 @@ namespace Casimodo.Lib.Data
             //   would that trigger a re-detection of the already added/removed entities?
             options.Db.ChangeTracker.AutoDetectChangesEnabled = false;
 
+            // Load owner with collection items.
+            var owner = await options.Db.Set<TOwner>()
+                .Include(options.PropPath)
+                .FirstOrDefaultAsync(x => x.Id == options.OwnerId)
+                ?? throw new EntityNotFoundException($"Owner of unidirectional many to many collection not found (ID: {options.OwnerId}).");
+
+            var propPathSteps = options.PropPath.Split('.');
+
             var context = new UnidirM2MCollectionOperationContext<TOwner, TLink, TItem>
             {
                 Db = options.Db,
                 OwnerDbSet = options.Db.Set<TOwner>(),
+                Owner = owner,
                 ItemDbSet = options.Db.Set<TItem>(),
                 ItemIds = options.ItemIds,
                 ForeignKeyToOwnerPropName = options.ForeignKeyToOwner,
                 ForeignKeyToItemPropName = options.ForeignKeyToItem,
                 ValidateItem = options.ValidateItem,
-                OwnerId = options.OwnerId
+                OwnerId = options.OwnerId,
+                PropPath = options.PropPath,
+                LinksPropName = propPathSteps[0],
+                ItemPropName = propPathSteps[1]
             };
 
-            context.PropPath = options.PropPath;
-            var propPathSteps = context.PropPath.Split('.');
-            context.LinksPropName = propPathSteps[0];
-            context.ItemPropName = propPathSteps[1];
-
-            // Load owner with collection items.
-            context.Owner = await context.OwnerDbSet
-                .Include(context.PropPath)
-                .FirstOrDefaultAsync(x => x.Id == context.OwnerId);
-
-            if (context.Owner == null)
-                throw new EntityNotFoundException($"Owner of unidirectional many to many collection not found (ID: {context.OwnerId}).");
-
-            foreach (var link in (ICollection<TLink>)typeof(TOwner).GetProperty(context.LinksPropName).GetValue(context.Owner))
+            foreach (var link in (ICollection<TLink>)typeof(TOwner)
+                .GetProperty(context.LinksPropName)
+                .GetValue(context.Owner))
             {
                 context.Entries.Add(new Entry<TLink, TItem>
                 {
@@ -193,11 +190,11 @@ namespace Casimodo.Lib.Data
             where TItem : class, IIdGetter
         {
             return await ModifyUnidirM2MCollection<TOwner, TLink, TItem>(options,
-               (context) =>
-               {
-                   context.RemoveMissing();
-                   context.AddItems();
-               });
+                (context) =>
+                {
+                    context.RemoveMissing();
+                    context.AddItems();
+                });
         }
 
         public static async Task<bool> AddToUnidirM2MCollection<TOwner, TLink, TItem>(
