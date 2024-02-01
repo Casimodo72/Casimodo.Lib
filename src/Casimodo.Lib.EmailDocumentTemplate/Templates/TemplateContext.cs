@@ -8,23 +8,39 @@ using System.Linq;
 
 namespace Casimodo.Lib.Templates
 {
+    internal sealed class NoopTemplateContext : TemplateContext
+    {
+        public NoopTemplateContext()
+            : base(new TemplateDataContainer(), CultureInfo.InvariantCulture)
+        {
+        }
+
+        public override TemplateExpressionParser GetExpressionParser()
+        {
+            throw new NotSupportedException();
+        }
+    }
+
     public abstract class TemplateContext
     {
-        protected TemplateContext(CultureInfo culture)
+        internal static NoopTemplateContext NoopTemplateContext = new();
+
+        protected TemplateContext(TemplateDataContainer data, CultureInfo culture)
         {
+            Data = data;
             Culture = culture;
         }
 
         public CultureInfo Culture { get; }
 
-        public Action<TemplateExpressionContext> TemplateExpressionContextConfiguring { get; set; }
+        public Action<TemplateExpressionContext>? TemplateExpressionContextConfiguring { get; set; }
 
-        public TemplateDataContainer Data { get; set; }
+        public TemplateDataContainer Data { get; }
 
-        private List<ITemplateStringFormatter> StringFormatters { get; } = new();
+        private List<ITemplateStringFormatter> StringFormatters { get; } = [];
 
         internal ITemplateStringFormatter? FindStringFormatter(string format)
-          => StringFormatters.FirstOrDefault(x => x.CanFormat(format));
+            => StringFormatters.FirstOrDefault(x => x.CanFormat(format));
 
         public void AddStringFormatter(Func<string?, bool> canFormat, Func<string?, string, IFormatProvider?, string?> format)
         {
@@ -41,14 +57,16 @@ namespace Casimodo.Lib.Templates
         /// <summary>
         /// Additional properties (and values) provided by external means. E.g. by the FlexEmailDocumentTemplate itself.
         /// </summary>
-        public TemplateExternalPropertiesContainer ExternalPropertiesContainer { get; set; }
-            = new TemplateExternalPropertiesContainer();
+        public TemplateExternalPropertiesContainer ExternalPropertiesContainer { get; set; } = new();
 
         /// <summary>
         /// Processes properties defined by the template itself.
         /// </summary>
         public virtual void ProcessCustomProperty(TemplateExpressionContext context)
         {
+            if (context.CurrentInstruction == null)
+                throw new TemplateException("Current instraction is not assigned.");
+
             var propName = context.CurrentInstruction.Name;
 
             var prop = ExternalPropertiesContainer.Items.FirstOrDefault(x => x.Name == propName);
@@ -76,14 +94,12 @@ namespace Casimodo.Lib.Templates
                 if (_instructionDefinitionsCache.TryGetValue(prop.Guid, out TemplateInstructionDefinition? definition))
                     return definition;
 
-                definition = new TemplateInstructionDefinition<TemplateExternalPropertiesContainer>
+                definition = new TemplateInstructionDefinition<TemplateExternalPropertiesContainer>(typeof(string))
                 {
                     Name = prop.Name,
-                    ReturnType = typeof(string),
-                    IsReturnTypeSimple = true
+                    IsReturnTypeSimple = true,
+                    ExecuteCore = (c, x) => ProcessCustomProperty(c)
                 };
-
-                definition.ExecuteCore = (c, x) => ProcessCustomProperty(c);
 
                 _instructionDefinitionsCache.TryAdd(prop.Guid, definition);
 
@@ -98,19 +114,21 @@ namespace Casimodo.Lib.Templates
                 if (_instructionDefinitionsCache.TryGetValue(prop.Guid, out TemplateInstructionDefinition? def))
                     return def;
 
-                var definition = new TemplateInstructionDefinition<TemplateDataContainer>
+                var definition = new TemplateInstructionDefinition<TemplateDataContainer>(prop.Type)
                 {
                     Name = prop.Name,
-                    ReturnType = prop.Type,
                     IsReturnTypeList = prop.Type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(prop.Type),
                     IsReturnTypeSimple = TypeHelper.IsSimple(prop.Type)
                 };
 
                 if (definition.IsReturnTypeList)
                 {
-                    definition.ListValueGetter = (c, x) =>
+                    definition.ListValueGetter = (ctx, x) =>
                     {
-                        var value = x.GetPropValueObject(c.CurrentInstruction.Name);
+                        if (ctx.CurrentInstruction == null)
+                            throw new TemplateException("Current instraction is not assigned.");
+
+                        var value = x.GetPropValueObject(ctx.CurrentInstruction.Name);
                         if (value is not IEnumerable enumerable)
                             throw new TemplateException("The value was expected to be a list type.");
 
@@ -119,7 +137,13 @@ namespace Casimodo.Lib.Templates
                 }
                 else
                 {
-                    definition.ValueGetter = (c, x) => x.GetPropValueObject(c.CurrentInstruction.Name);
+                    definition.ValueGetter = (ctx, data) =>
+                    {
+                        if (ctx.CurrentInstruction == null)
+                            throw new TemplateException("Current instraction is not assigned.");
+
+                        return data.GetPropValueObject(ctx.CurrentInstruction.Name);
+                    };
                 }
 
                 _instructionDefinitionsCache.TryAdd(prop.Guid, definition);
@@ -132,12 +156,10 @@ namespace Casimodo.Lib.Templates
 
         public abstract TemplateExpressionParser GetExpressionParser();
 
-        public virtual TemplateExpressionContext CreateExpressionContext(TemplateProcessor? templateProcessor)
+        public virtual TemplateExpressionContext CreateExpressionContext(
+            TemplateProcessor templateProcessor, AstNode ast)
         {
-            var context = new TemplateExpressionContext();
-            context.CoreContext = this;
-            context.DataContainer = Data;
-            context.Processor = templateProcessor;
+            var context = new TemplateExpressionContext(this, Data, templateProcessor, ast);
 
             Data.GetRequiredProp<TemplateEnvContainer>().Context = context;
 

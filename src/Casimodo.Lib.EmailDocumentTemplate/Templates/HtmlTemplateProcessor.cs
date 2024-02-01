@@ -26,7 +26,7 @@ namespace Casimodo.Lib.Templates
         }
 
         public IDocument Doc { get; set; }
-        public List<HtmlInlineTemplate> InlineTemplates { get; set; } = new List<HtmlInlineTemplate>();
+        public List<HtmlInlineTemplate> InlineTemplates { get; set; } = [];
 
         public IEnumerable<IElement> Elements
         {
@@ -104,7 +104,7 @@ namespace Casimodo.Lib.Templates
             _fileProvider = fileProvider;
         }
 
-        protected List<HtmlTemplate> Pages { get; set; } = new List<HtmlTemplate>();
+        protected List<HtmlTemplate> Pages { get; set; } = [];
 
         public RazorRemoverParser RazorRemover { get; set; } = new RazorRemoverParser();
 
@@ -126,7 +126,7 @@ namespace Casimodo.Lib.Templates
             await ProcessTemplateElements(CurrentTemplate.Elements, ExecuteCurrentTemplateElement);
         }
 
-        readonly List<IElement> _processedElements = new();
+        readonly List<IElement> _processedElements = [];
 
         protected void ClearProcessedElements()
         {
@@ -270,7 +270,7 @@ namespace Casimodo.Lib.Templates
         {
             CurrentElem.RemoveAllChildren();
 
-            if (IsEmpty(value))
+            if (string.IsNullOrWhiteSpace(value))
                 return;
 
             if (!value.ContainsAny(NewLineTokens))

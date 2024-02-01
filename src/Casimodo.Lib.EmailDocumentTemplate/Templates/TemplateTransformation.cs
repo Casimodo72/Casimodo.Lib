@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Templates
     public class TemplateDataContainer
     {
         public TemplateDataContainer Self { get { return this; } }
-        readonly List<TemplateDataPropAccessor> _properties = new();
+        readonly List<TemplateDataPropAccessor> _properties = [];
 
         public void AddProp<T>(string name, T? instance = default)
         {
@@ -139,21 +139,13 @@ namespace Casimodo.Lib.Templates
         }
     }
 
-    public class TemplateDataPropAccessor
+    public class TemplateDataPropAccessor(string name, Type type, object? instanceObject)
     {
-        public TemplateDataPropAccessor(string name, Type type, object? instanceObject)
-        {
-            Guid = Guid.NewGuid();
-            Name = name;
-            Type = type;
-            ValueObject = instanceObject;
-        }
+        public Guid Guid { get; } = Guid.NewGuid();
+        public string Name { get; } = name;
+        public Type Type { get; } = type;
 
-        public Guid Guid { get; }
-        public string Name { get; }
-        public Type Type { get; }
-
-        public object? ValueObject { get; set; }
+        public object? ValueObject { get; set; } = instanceObject;
     }
 
     public interface ITemplateInstructionResolver
@@ -173,8 +165,8 @@ namespace Casimodo.Lib.Templates
             return Functions.FirstOrDefault(x => x.Name == funcName);
         }
 
-        public List<TemplateInstructionDefinition> Instructions { get; set; } = new List<TemplateInstructionDefinition>();
-        public List<TemplateFunctionDefinition> Functions { get; set; } = new List<TemplateFunctionDefinition>();
+        public List<TemplateInstructionDefinition> Instructions { get; set; } = [];
+        public List<TemplateFunctionDefinition> Functions { get; set; } = [];
 
         public void Prop<TSourceType, TTargetType>(string names,
             Func<TemplateExpressionContext, TSourceType, TTargetType> value)
@@ -210,10 +202,9 @@ namespace Casimodo.Lib.Templates
             {
                 CheckName(name);
 
-                var item = new TemplateInstructionDefinition<TSourceType>
+                var item = new TemplateInstructionDefinition<TSourceType>(typeof(TTargetType))
                 {
                     Name = name,
-                    ReturnType = typeof(TTargetType),
                     IsReturnTypeSimple = isReturnTypeSimple
                 };
 
@@ -239,14 +230,12 @@ namespace Casimodo.Lib.Templates
             CheckName(name);
             Guard.ArgNotNull(execute);
 
-            var item = new TemplateInstructionDefinition<TSourceType>
+            var item = new TemplateInstructionDefinition<TSourceType>(AstTypeInfo.NoType)
             {
-                Name = name?.Trim(),
-                ReturnType = null,
-                IsReturnTypeSimple = true
+                Name = name.Trim(),
+                IsReturnTypeSimple = true,
+                ExecuteCore = (c, x) => execute(c, (TSourceType)x)
             };
-
-            item.ExecuteCore = (c, x) => execute(c, (TSourceType)x);
 
             Instructions.Add(item);
         }
@@ -255,7 +244,7 @@ namespace Casimodo.Lib.Templates
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Empty instruction name.");
-            if (name.Contains("."))
+            if (name.Contains('.'))
                 throw new ArgumentException("The instruction name must not contain any dot characters.");
         }
 

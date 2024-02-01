@@ -18,11 +18,11 @@ namespace Casimodo.Lib.Templates
 
         public TemplateContext Context { get; }
 
-        public async Task<IEnumerable<object>> FindObjects(TemplateContext coreContext, TemplateExpression expression)
+        public async Task<IEnumerable<object?>> FindObjects(TemplateContext coreContext, TemplateExpression expression)
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
-            return context.HasReturnValue ? context.ReturnValue : Enumerable.Empty<object>();
+            return context.HasReturnValue ? context.ReturnValue : Enumerable.Empty<object?>();
         }
 
         public async Task<bool> EvaluateCondition(TemplateContext coreContext, TemplateExpression expression)
@@ -43,10 +43,10 @@ namespace Casimodo.Lib.Templates
         {
             Guard.ArgNotNull(expression);
 
-            var context = coreContext.CreateExpressionContext(templateProcessor: null);
             // We do not want to modify the template here. We just want to get a value. 
+            var ast = ParseExpression(coreContext, expression);
+            var context = coreContext.CreateExpressionContext(TemplateProcessor.NoopTemplateProcessor, ast);
             context.IsModificationDenied = true;
-            context.Ast = ParseExpression(coreContext, expression);
 
             await ExecuteAsync(context);
 
@@ -58,7 +58,7 @@ namespace Casimodo.Lib.Templates
             return coreContext.GetExpressionParser().ParseTemplateExpression(coreContext.Data, element.Expression, element.Kind);
         }
 
-        public static object? EvaluatedResultToValue(IEnumerable<object> evaluatedResult)
+        public static object? EvaluatedResultToValue(IEnumerable<object?> evaluatedResult)
         {
             if (evaluatedResult == null)
                 return null;
@@ -70,7 +70,7 @@ namespace Casimodo.Lib.Templates
             return value;
         }
 
-        public static bool ConditionResultToBoolean(IEnumerable<object> evaluatedResult)
+        public static bool ConditionResultToBoolean(IEnumerable<object?> evaluatedResult)
         {
             if (evaluatedResult == null)
                 return false;
@@ -127,11 +127,11 @@ namespace Casimodo.Lib.Templates
 
                 var values = Enumerable.Empty<object?>();
 
-                if (instruction.Definition != null)
+                if (instruction is InstructionDefinitionAstNode instructionDefNode)
                 {
                     // Handle custom instructions.
 
-                    if (instruction.Definition.ExecuteCore != null)
+                    if (instructionDefNode.Definition.ExecuteCore != null)
                     {
                         // This is an executing instruction.
                         // Such instructions have to value getter and will
@@ -145,7 +145,7 @@ namespace Casimodo.Lib.Templates
                             throw new TemplateException("Invalid template expression. " +
                                 "Custom executing instructions must appear at last position in the expression.");
 
-                        instruction.Definition.ExecuteCore(context, contextObj);
+                        instructionDefNode.Definition.ExecuteCore(context, contextObj);
 
                         // Executing instructions do not have return values.
                         return Enumerable.Empty<object>();
@@ -153,15 +153,15 @@ namespace Casimodo.Lib.Templates
                     else
                     {
                         // Call instruction's values getter.
-                        values = instruction.Definition.GetValuesCore(context, contextObj)
-                            ?? Enumerable.Empty<object>();
+                        values = instructionDefNode.Definition.GetValuesCore(context, contextObj)
+                            ?? Enumerable.Empty<object?>();
                     }
                     context.CurrentInstruction = null;
                 }
-                else
+                else if (instruction is PropertyAstNode propNode)
                 {
                     // Get property value.
-                    var propValue = instruction.PropInfo.GetValue(contextObj);
+                    var propValue = propNode.PropInfo.GetValue(contextObj);
                     values = ToEnumerable(propValue);
                 }
 
@@ -198,12 +198,9 @@ namespace Casimodo.Lib.Templates
 
                 if (contextObj is string text)
                 {
-                    var stringFormatter = Context.FindStringFormatter(formatValue.Format);
-                    if (stringFormatter == null)
-                    {
-                        throw new TemplateException(
+                    var stringFormatter = Context.FindStringFormatter(formatValue.Format)
+                        ?? throw new TemplateException(
                            $"No custom string formatter found for format '{formatValue.Format}'.");
-                    }
 
                     var formattedValue = stringFormatter.Format(text, formatValue.Format, Context.Culture);
 

@@ -7,8 +7,33 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Templates
 {
+    internal sealed class NoopTemplateProcessor : TemplateProcessor
+    {
+        public NoopTemplateProcessor()
+            : base(TemplateContext.NoopTemplateContext)
+        {
+        }
+
+        public override void SetText(string? value)
+        {
+            // NOOP
+        }
+
+        public override void SetImage(Guid? imageFileId, bool removeIfEmpty = false)
+        {
+            // NOOP
+        }
+
+        public override void RemoveValue()
+        {
+            // NOOP
+        }
+    }
+
     public abstract class TemplateProcessor : ITemplateProcessor
     {
+        internal static NoopTemplateProcessor NoopTemplateProcessor = new();
+
         protected TemplateProcessor(TemplateContext context)
         {
             Guard.ArgNotNull(context);
@@ -34,7 +59,7 @@ namespace Casimodo.Lib.Templates
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        protected async Task<IEnumerable<object>> FindObjects(TemplateExpression expression)
+        protected async Task<IEnumerable<object?>> FindObjects(TemplateExpression expression)
         {
             return await GetExpressionProcessor().FindObjects(Context, expression);
         }
@@ -74,9 +99,8 @@ namespace Casimodo.Lib.Templates
 
         public async Task Execute(TemplateElement element)
         {
-            var context = Context.CreateExpressionContext(templateProcessor: this);
-
-            context.Ast = ParseExpression(element);
+            var ast = ParseExpression(element);
+            var context = Context.CreateExpressionContext(this, ast);
 
             await GetExpressionProcessor().ExecuteAsync(context);
 

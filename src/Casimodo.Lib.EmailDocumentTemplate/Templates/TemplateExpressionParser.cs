@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+#nullable enable
 
 namespace Casimodo.Lib.Templates
 {
@@ -14,33 +15,34 @@ namespace Casimodo.Lib.Templates
     {
         private const string CSharpExpressionPrefix = "cs:";
 
-        public static T Create<T>(string expression, TemplateNodeKind? kind = null)
+        public static T Create<T>(string? expression, TemplateNodeKind? kind = null)
             where T : TemplateNode, new()
         {
-            var item = new T();
-
-            if (kind != null)
-                item.Kind = kind.Value;
+            var effectiveKind = kind ?? TemplateNodeKind.None;
 
             expression = expression?.Trim();
 
             if (expression?.StartsWith(CSharpExpressionPrefix) == true)
             {
-                if (item.Kind != TemplateNodeKind.Expression)
+                if (effectiveKind != TemplateNodeKind.Expression)
                     throw new TemplateException(
-                        $"Template node of kind '{item.Kind}' must not start with the " +
+                        $"Template node of kind '{effectiveKind}' must not start with the " +
                         $"CSharp expression prefix '{CSharpExpressionPrefix}'.");
 
-                item.Kind = TemplateNodeKind.CSharpExpression;
+                effectiveKind = TemplateNodeKind.CSharpExpression;
 
                 expression = expression.Substring(CSharpExpressionPrefix.Length);
             }
             else
             {
-                item.Kind = TemplateNodeKind.Expression;
+                effectiveKind = TemplateNodeKind.Expression;
             }
 
-            item.Expression = expression;
+            var item = new T()
+            {
+                Kind = effectiveKind,
+                Expression = expression ?? ""
+            };
 
             return item;
         }
@@ -49,16 +51,17 @@ namespace Casimodo.Lib.Templates
     // KABU TODO: Do we want to implement functions like "EnableArea(Foo.Bar)" ?
     public class TemplateExpressionParser : SimpleStringTokenParser
     {
-        public TemplateExpressionParser(TemplateContext context)
+        public TemplateExpressionParser(TemplateContext context, CSharpScriptOptionsWrapper scriptOptions)
         {
             Context = context;
+            CSharpScriptOptions = scriptOptions;
         }
 
-        public CSharpScriptOptionsWrapper CSharpScriptOptions { get; set; }
-        public List<ITemplateInstructionResolver> InstructionResolvers { get; set; } = new List<ITemplateInstructionResolver>();
+        public CSharpScriptOptionsWrapper CSharpScriptOptions { get; }
+        public List<ITemplateInstructionResolver> InstructionResolvers { get; set; } = [];
         public TemplateContext Context { get; }
 
-        AstTypeInfo CurType;
+        AstTypeInfo? CurType;
 
         void Tokenize(string expression)
         {
@@ -98,13 +101,9 @@ namespace Casimodo.Lib.Templates
                 : ParseExpression(data.GetType(), expression);
         }
 
-        class CodeCacheItem
-        {
-            public string Code { get; set; }
-            public CSharpScriptWrapper Script { get; set; }
-        }
+        record class CodeCacheItem(string Code, CSharpScriptWrapper Script);
 
-        static readonly ConcurrentBag<CodeCacheItem> _codeCache = new();
+        static readonly ConcurrentBag<CodeCacheItem> _codeCache = [];
         const string ComparableScriptClassName = "#Tc6e8b1d6-9e4f-4ef5-bee7-34882f417efa#";
 
         public AstNode ParseCSharpExpression(TemplateDataContainer data, string expression)
@@ -123,13 +122,10 @@ namespace Casimodo.Lib.Templates
                     CSharpScriptOptions,
                     typeof(TemplateDataContainer));
 
-                _codeCache.Add(new CodeCacheItem { Code = code, Script = script });
+                _codeCache.Add(new CodeCacheItem(code, script));
             }
 
-            var scriptNode = new CSharpScriptAstNode
-            {
-                Script = script
-            };
+            var scriptNode = new CSharpScriptAstNode(script);
 
             return scriptNode;
         }
@@ -142,9 +138,8 @@ namespace Casimodo.Lib.Templates
             try
             {
                 Tokenize(expression);
-                var itype = new AstTypeInfo
+                var itype = new AstTypeInfo(contextItemType)
                 {
-                    Type = contextItemType,
                     IsListType = false,
                     IsSimpleType = false
                 };
@@ -194,6 +189,9 @@ namespace Casimodo.Lib.Templates
 
         static string GetScriptableTypeName(Type type)
         {
+            if (type.FullName == null)
+                throw new TemplateException($"The given type has no full-name.");
+
             if (type.IsGenericType)
             {
                 int backtickIndex = type.FullName.IndexOf('`');
@@ -209,20 +207,20 @@ namespace Casimodo.Lib.Templates
             }
         }
 
-        static List<string> _anySpecialTokens = new()
-        {
+        static List<string> _anySpecialTokens =
+        [
             ".", "(", ")", "=", "!", "\""
-        };
+        ];
 
         static bool IsSpecialToken(string token)
         {
             return _anySpecialTokens.Contains(token);
         }
 
-        AstNode ParseAny(AstTypeInfo contextType = null)
+        AstNode ParseAny(AstTypeInfo? contextType = null)
         {
             // Either a property or a function is expected.
-            AstTypeInfo prevItemType = CurType;
+            AstTypeInfo? prevItemType = CurType;
             try
             {
                 if (contextType != null)
@@ -235,27 +233,28 @@ namespace Casimodo.Lib.Templates
 
                 Next();
 
+                var curType = CurType
+                    ?? throw new TemplateException("Not current AST type info assigned.");
+
                 // Handle custom instructions (or overrides of declared properties) first.
-                AstNode node = ParseCustomInstruction(token);
-                node ??= ParseProp(token);
+                AstNode? node = ParseCustomInstruction(curType, token);
+                node ??= ParseProp(curType, token);
 
                 if (node == null)
                     throw CreateInvalidExpressionException($"Unexpected token '{token}'.");
 
-                CurType = node.ReturnType;
+                CurType = curType = node.ReturnType;
 
                 if (Is("."))
                 {
                     if (!Next())
                         throw CreateExpressionEndedUnexpectedlyException();
 
-                    node.Right = ParseAny();
+                    node.Right = ParseAny(curType);
                 }
                 else if (Is(":"))
                 {
-
-
-                    node.Right = ParseFormatValue();
+                    node.Right = ParseFormatValue(curType);
                 }
 
                 return node;
@@ -272,21 +271,16 @@ namespace Casimodo.Lib.Templates
             _curPos = 0;
         }
 
-        static InstructionAstNode CreateInstructionNode()
-        {
-            return new InstructionAstNode();
-        }
-
-        InstructionAstNode ParseCustomInstruction(string propName)
+        InstructionAstNode? ParseCustomInstruction(AstTypeInfo curType, string propName)
         {
             if (InstructionResolvers == null)
                 return null;
 
-            TemplateInstructionDefinition definition = null;
+            TemplateInstructionDefinition? definition = null;
 
             foreach (var resolver in InstructionResolvers)
             {
-                definition = resolver.ResolveInstruction(CurType.Type, propName);
+                definition = resolver.ResolveInstruction(curType.Type, propName);
                 if (definition != null)
                     break;
             }
@@ -294,30 +288,27 @@ namespace Casimodo.Lib.Templates
             if (definition == null)
                 return null;
 
-            var node = CreateInstructionNode();
-            node.SourceType = CurType.Type;
-            node.Name = definition.Name;
-            node.Definition = definition;
-
-            node.ReturnType = new AstTypeInfo
-            {
-                Type = definition.ReturnType,
-                IsListType = definition.IsReturnTypeList,
-                IsSimpleType = definition.IsReturnTypeSimple
-            };
+            var node = new InstructionDefinitionAstNode(
+                curType.Type,
+                definition,
+                new AstTypeInfo(definition.ReturnType)
+                {
+                    IsListType = definition.IsReturnTypeList,
+                    IsSimpleType = definition.IsReturnTypeSimple
+                });
 
             return node;
         }
 
-        InstructionAstNode ParseProp(string name)
+        InstructionAstNode? ParseProp(AstTypeInfo curType, string name)
         {
-            var iprop = CurType.Type.GetProperty(name);
+            var iprop = curType.Type.GetProperty(name);
             if (iprop == null)
             {
                 // Search in interfaces of interface.
-                if (CurType.Type.IsInterface)
+                if (curType.Type.IsInterface)
                 {
-                    foreach (var iface in CurType.Type.GetInterfaces())
+                    foreach (var iface in curType.Type.GetInterfaces())
                     {
                         iprop = iface.GetProperty(name);
                         if (iprop != null)
@@ -329,21 +320,19 @@ namespace Casimodo.Lib.Templates
                     return null;
             }
 
-            var prop = CreateInstructionNode();
-            prop.SourceType = CurType.Type;
-            prop.Name = iprop.Name;
-            prop.PropInfo = iprop;
-            prop.ReturnType = new AstTypeInfo
-            {
-                Type = iprop.PropertyType,
-                IsListType = iprop.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(iprop.PropertyType),
-                IsSimpleType = TypeHelper.IsSimple(iprop.PropertyType)
-            };
+            var prop = new PropertyAstNode(
+                curType.Type,
+                iprop,
+                new AstTypeInfo(iprop.PropertyType)
+                {
+                    IsListType = iprop.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(iprop.PropertyType),
+                    IsSimpleType = TypeHelper.IsSimple(iprop.PropertyType)
+                });
 
             return prop;
         }
 
-        FormatValueAstNode ParseFormatValue()
+        FormatValueAstNode ParseFormatValue(AstTypeInfo curType)
         {
             if (Current() != ":")
                 throw CreateInvalidExpressionException("The token ':' was expected.");
@@ -353,7 +342,7 @@ namespace Casimodo.Lib.Templates
 
             var format = Current();
 
-            if (CurType.Type == typeof(string))
+            if (curType.Type == typeof(string))
             {
                 var stringFormatter = Context.FindStringFormatter(format);
                 if (stringFormatter == null)
@@ -362,20 +351,16 @@ namespace Casimodo.Lib.Templates
                         $"No custom string formatter found for format '{format}'.");
                 }
             }
-            else if (!typeof(IFormattable).IsAssignableFrom(Nullable.GetUnderlyingType(CurType.Type) ?? CurType.Type))
+            else if (!typeof(IFormattable).IsAssignableFrom(Nullable.GetUnderlyingType(curType.Type) ?? curType.Type))
             {
-                throw CreateInvalidExpressionException($"A value of type '{CurType.Type.Name}' " +
+                throw CreateInvalidExpressionException($"A value of type '{curType.Type.Name}' " +
                         $"cannot be formatted because it does not implement {nameof(IFormattable)}.");
             }
 
             if (Next())
                 throw CreateInvalidExpressionException("Unexpected tokens after format specifier.");
 
-            return new FormatValueAstNode
-            {
-                Format = format,
-                ReturnType = AstTypeInfo.String
-            };
+            return new FormatValueAstNode(format, AstTypeInfo.String);
         }
 
         private TemplateException CreateInvalidExpressionException(string message)
