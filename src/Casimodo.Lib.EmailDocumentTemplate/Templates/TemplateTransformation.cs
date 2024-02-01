@@ -133,7 +133,7 @@ namespace Casimodo.Lib.Templates
             }
 
             if (prop == null)
-                throw new TemplateException($"Data property '{name}' of type '{type.Name}' not found.");
+                throw new TemplateException($"Data property '{name}' of type '{(type != null ? type.Name : "[not specified]")}' not found.");
 
             return prop;
         }

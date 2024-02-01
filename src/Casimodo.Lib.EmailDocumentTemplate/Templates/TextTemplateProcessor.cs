@@ -7,7 +7,7 @@ namespace Casimodo.Lib.Templates
     public class TextTemplateProcessor : TemplateProcessor
     {
         public TextTemplateProcessor(TemplateContext context)
-            :base(context)
+            : base(context)
         { }
 
         public StringBuilder TextBuilder { get; } = new();
@@ -22,9 +22,12 @@ namespace Casimodo.Lib.Templates
             // NOP
         }
 
-        public override void SetText(string value)
+        public override void SetText(string? value)
         {
-            TextBuilder.Append(value);
+            if (!string.IsNullOrEmpty(value))
+            {
+                TextBuilder.Append(value);
+            }
         }
 
         public override void SetImage(Guid? imageFileId, bool removeIfEmpty = false)

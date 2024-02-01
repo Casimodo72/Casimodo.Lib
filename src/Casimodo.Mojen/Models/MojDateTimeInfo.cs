@@ -1,5 +1,5 @@
-﻿using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
+using System.Runtime.Serialization;
 
 namespace Casimodo.Mojen
 {
@@ -11,6 +11,9 @@ namespace Casimodo.Mojen
 
         [DataMember]
         public bool IsDate { get; set; }
+
+        [DataMember]
+        public bool IsDateOnly { get; set; }
 
         [DataMember]
         public bool IsTime { get; set; }
@@ -49,7 +52,7 @@ namespace Casimodo.Mojen
         public bool IsHours { get; set; }
 
         [DataMember]
-        public bool IsMinutes { get; set; }        
+        public bool IsMinutes { get; set; }
 
         public MojDateTimeInfo Clone()
         {

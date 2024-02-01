@@ -292,19 +292,34 @@ namespace Casimodo.Mojen
             return This();
         }
 
-        public TPropBuilder DateTime(bool nullable = true, bool date = true, bool time = true, int ms = 0, bool local = true)
+        public TPropBuilder DateOnly(bool nullable = true)
+        {
+            return DateTime(nullable, date: true, time: false, isDateOnly: true);
+        }
+
+        public TPropBuilder DateTime(bool nullable = true,
+            bool date = true, bool time = true, bool isDateOnly = false,
+            int ms = 0, bool local = true)
         {
             if (ms < 0 || ms > 3)
                 throw new ArgumentOutOfRangeException("ms",
                     "The number of milliseconds must be greater than -2 and less than 4.");
 
-            Type(nullable ? typeof(DateTimeOffset?) : typeof(DateTimeOffset));
+            if (isDateOnly)
+            {
+                Type(nullable ? typeof(DateOnly?) : typeof(DateOnly));
+            }
+            else
+            {
+                Type(nullable ? typeof(DateTimeOffset?) : typeof(DateTimeOffset));
+            }
             //if (!MojenUtils.IsDateTimeOrOffset(PropConfig.Type.TypeNormalized))
             //    throw new MojenException(string.Format("The property '{0}' must be of type DateTime or DateTimeOffset " +
             //        "in order to use the DateTime() builder method.", PropConfig.Name));
 
             var info = PropConfig.Type.DateTimeInfo;
             info.IsDate = date;
+            info.IsDateOnly = isDateOnly;
             info.IsTime = time;
             info.IsLocal = time && local;
             info.DisplayMillisecondDigits = ms;

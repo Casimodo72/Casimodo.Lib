@@ -78,7 +78,7 @@ namespace Casimodo.Mojen
         void GenerateQueryableFunctions(Item item)
         {
             var type = item.Type;
-            var localProps = item.LocalProps;
+            var localProps = item.LocalProps.Where(x => !x.IsExcludedFromDb).ToArray();
 
             OB($"export function selectFrom{type.Name}(q: ODataCoreQueryBuilder<I{type.Name}>)");
             Oo("q.select(\"");

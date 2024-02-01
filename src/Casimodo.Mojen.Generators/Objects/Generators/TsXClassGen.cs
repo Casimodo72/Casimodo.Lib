@@ -175,7 +175,9 @@ public class TsXClassGen : TsGenBase
     {
         var localProps = type.GetLocalProps(custom: false)
             // Exclude hidden EF navigation collection props.
-            .Where(x => !x.IsHiddenCollectionNavigationProp)
+            .Where(x =>
+                !x.IsHiddenCollectionNavigationProp &&
+                !x.IsExcludedFromDb)
             .Where(x =>
                 !x.Type.IsDirectOrContainedMojType ||
                 IncludedTypeNames == null ||
@@ -360,6 +362,11 @@ public class TsXClassGen : TsGenBase
         {
             if (propType.IsByteArray && _options.UseStringForByteArray)
             {
+                return "string";
+            }
+            else if (propType.DateTimeInfo?.IsDateOnly == true)
+            {
+                // TODO: Currently serializing DateOnly to string.
                 return "string";
             }
             else

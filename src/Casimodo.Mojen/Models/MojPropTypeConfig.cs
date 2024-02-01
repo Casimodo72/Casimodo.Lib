@@ -226,7 +226,7 @@ namespace Casimodo.Mojen
         /// </summary>
         public bool IsAnyTime
         {
-            get { return Moj.IsDateTimeOrOffset(TypeNormalized); }
+            get { return Moj.IsAnyDateOrTime(TypeNormalized); }
         }
 
         public bool IsTimeSpan
@@ -406,7 +406,7 @@ namespace Casimodo.Mojen
                     GenericTypeArguments.Add(MojPropType.Create(argType));
             }
 
-            if (Moj.IsDateTimeOrOffset(normalizedType))
+            if (Moj.IsAnyDateOrTime(normalizedType))
             {
                 DateTimeInfo = new MojDateTimeInfo
                 {

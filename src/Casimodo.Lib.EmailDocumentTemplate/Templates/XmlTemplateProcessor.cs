@@ -8,7 +8,7 @@ namespace Casimodo.Lib.Templates
 {
     public class XmlTemplateElement : TemplateElement
     {
-        public XElement Elem { get; set; }
+        public XElement Elem { get; set; } = default!;
     };
 
     public abstract class XmlTemplateProcessor : TemplateProcessor, ITemplateProcessor
@@ -17,7 +17,7 @@ namespace Casimodo.Lib.Templates
             : base(context)
         { }
 
-        public override void SetText(string value)
+        public override void SetText(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return;
@@ -82,7 +82,13 @@ namespace Casimodo.Lib.Templates
 
         protected XElement CurElem
         {
-            get { return ((XmlTemplateElement)CurrentTemplateElement).Elem; }
+            get
+            {
+                if (CurrentTemplateElement == null)
+                    throw new Exception("Current template element is not assigned.");
+
+                return ((XmlTemplateElement)CurrentTemplateElement).Elem;
+            }
         }
     }
 }

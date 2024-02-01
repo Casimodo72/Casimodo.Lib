@@ -40,6 +40,8 @@ namespace Casimodo.Mojen
 
                 member = members[i];
 
+                OSummary(member.Summary);
+
                 O("[EnumMember]");
 
                 // Attributes

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Web
 {
-    [Serializable]
     public class ServerException : Exception
     {
         public ServerException()
@@ -27,12 +26,6 @@ namespace Casimodo.Lib.Web
         {
             StatusCode = code;
         }
-
-        protected ServerException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context)
-            : base(info, context)
-        { }
 
         public HttpStatusCode StatusCode { get; private set; } = HttpStatusCode.InternalServerError;
     }

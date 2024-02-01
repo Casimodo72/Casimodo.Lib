@@ -65,9 +65,11 @@ namespace Casimodo.Mojen
             return char.ToUpperInvariant(str[0]) + str[1..];
         }
 
-        public static bool IsDateTimeOrOffset(Type type)
+        public static bool IsAnyDateOrTime(Type type)
         {
-            return type != null && (type == typeof(DateTimeOffset) || type == typeof(DateTime));
+            return type != null &&
+                (type == typeof(DateTimeOffset) || type == typeof(DateTime) ||
+                 type == typeof(DateOnly) || type == typeof(TimeOnly));
         }
 
         public static string CollapseWhitespace(string text)
