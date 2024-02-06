@@ -5,7 +5,7 @@ namespace Casimodo.Lib.SimpleParser
 {
     public class SimpleStringTokenParser
     {
-        protected readonly List<string> _tokens = new List<string>();
+        protected readonly List<string> _tokens = [];
         protected int _curPos;
 
         public void Initialize(IEnumerable<string> tokens)

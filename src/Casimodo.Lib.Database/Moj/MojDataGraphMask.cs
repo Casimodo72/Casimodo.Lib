@@ -72,7 +72,7 @@ namespace Casimodo.Lib.Data
 
         MojDataMaskBuilder _parent;
         readonly MojDataGraphMask _mask = new();
-        readonly List<MojDataMaskBuilder> _propTypeBuilders = new();
+        readonly List<MojDataMaskBuilder> _propTypeBuilders = [];
         readonly Type _targetType;
 
         public MojDataMaskBuilder Prop(string name)
@@ -134,8 +134,8 @@ namespace Casimodo.Lib.Data
     {
         internal MojDataGraphMask()
         {
-            Properties = new List<string>();
-            References = new List<MojReferenceDataGraphMask>();
+            Properties = [];
+            References = [];
         }
 
         public static MojDataGraphMask CreateFor(Type type, params string[] props)

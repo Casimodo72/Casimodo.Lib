@@ -18,31 +18,36 @@ namespace Casimodo.Lib.Templates
         public static T Create<T>(string? expression, TemplateNodeKind? kind = null)
             where T : TemplateNode, new()
         {
-            var effectiveKind = kind ?? TemplateNodeKind.None;
+            var item = new T();
+            if (kind != null)
+            {
+                item.Kind = kind.Value;
+            }
 
             expression = expression?.Trim();
 
             if (expression?.StartsWith(CSharpExpressionPrefix) == true)
             {
-                if (effectiveKind != TemplateNodeKind.Expression)
+                if (item.Kind != TemplateNodeKind.Expression)
                     throw new TemplateException(
-                        $"Template node of kind '{effectiveKind}' must not start with the " +
+                        $"Template node of kind '{item.Kind}' must not start with the " +
                         $"CSharp expression prefix '{CSharpExpressionPrefix}'.");
 
-                effectiveKind = TemplateNodeKind.CSharpExpression;
+                item.Kind = TemplateNodeKind.CSharpExpression;
 
                 expression = expression.Substring(CSharpExpressionPrefix.Length);
             }
             else
             {
-                effectiveKind = TemplateNodeKind.Expression;
+                item.Kind = TemplateNodeKind.Expression;
             }
 
-            var item = new T()
+            if (string.IsNullOrWhiteSpace(expression))
             {
-                Kind = effectiveKind,
-                Expression = expression ?? ""
-            };
+                throw new TemplateException("The template expression is empty.");
+            }
+
+            item.Expression = expression;
 
             return item;
         }

@@ -33,7 +33,7 @@ namespace Casimodo.Lib.Data
             public Guid OwnerId;
             public DbSet<TOwner> OwnerDbSet;
             public DbSet<TItem> ItemDbSet;
-            public List<Entry<TLink, TItem>> Entries = new();
+            public List<Entry<TLink, TItem>> Entries = [];
             public bool IsChanged;
             //public System.Data.Entity.Core.Objects.ObjectStateManager StateManager;
             public string PropPath;

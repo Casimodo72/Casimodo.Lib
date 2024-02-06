@@ -7,8 +7,8 @@ namespace Casimodo.Lib.Data
 {
     public class DbSeedInfo
     {
-        public readonly Dictionary<string, string[]> Sections = new();
-        public readonly Dictionary<string, Action<DbSeedBase>> Items = new();
+        public readonly Dictionary<string, string[]> Sections = [];
+        public readonly Dictionary<string, Action<DbSeedBase>> Items = [];
 
         public void AddSection(string name, string[] items)
         {
@@ -29,7 +29,7 @@ namespace Casimodo.Lib.Data
     public class DbSeedInfo<TDbSeed>
         where TDbSeed : DbSeedBase
     {
-        public Dictionary<string, Action<TDbSeed>> Items { get; protected set; } = new Dictionary<string, Action<TDbSeed>>();
+        public Dictionary<string, Action<TDbSeed>> Items { get; protected set; } = [];
     }
 
     public class DbSeed<TContext> : DbSeedBase

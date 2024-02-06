@@ -11,7 +11,7 @@ namespace Casimodo.Lib.Data
     {
         public DbRepositoryCoreProvider()
         {
-            Items = new Dictionary<Type, DbRepositoryCore>();
+            Items = [];
         }
 
         Dictionary<Type, DbRepositoryCore> Items { get; set; }

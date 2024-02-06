@@ -15,7 +15,7 @@ namespace Casimodo.Lib.Web.Auth
         public string Part { get; set; }
         public string Group { get; set; }
 
-        public List<AuthPermissionQueryResult> Permissions { get; set; } = new List<AuthPermissionQueryResult>();
+        public List<AuthPermissionQueryResult> Permissions { get; set; } = [];
 
         public override string ToString()
         {
@@ -40,6 +40,6 @@ namespace Casimodo.Lib.Web.Auth
         public string UserName { get; set; }
         public string[] UserRoles { get; set; }
 
-        public List<AuthPartQueryResult> Items { get; set; } = new List<AuthPartQueryResult>();
+        public List<AuthPartQueryResult> Items { get; set; } = [];
     }
 }

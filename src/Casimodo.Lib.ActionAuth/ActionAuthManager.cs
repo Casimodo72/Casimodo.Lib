@@ -35,7 +35,7 @@ namespace Casimodo.Lib.Auth
         public UIComponentInfo Set(params AuthRoleSetting[] roles)
         {
             if (AuthRoles == null)
-                AuthRoles = new List<AuthRoleSetting>();
+                AuthRoles = [];
             for (int i = 0; i < roles.Length; i++)
                 AuthRoles.Add(roles[i]);
 
@@ -67,7 +67,7 @@ namespace Casimodo.Lib.Auth
     // KABU TODO: Maybe load some auth parts from file (using HostingEnvironment.ApplicationPhysicalPath).
     public abstract class ActionAuthManager : IDisposable
     {
-        internal readonly Dictionary<string, int> RoleInheritance = new();
+        internal readonly Dictionary<string, int> RoleInheritance = [];
 
         public ActionAuthManager()
         {
@@ -78,7 +78,7 @@ namespace Casimodo.Lib.Auth
             RoleInheritance.Add("ExternEmployee", 10);
         }
 
-        public List<AuthPart> Parts { get; private set; } = new List<AuthPart>();
+        public List<AuthPart> Parts { get; private set; } = [];
 
         public bool IsPermitted(IPrincipal user, string action, string part, string group, string vrole)
         {
@@ -239,7 +239,7 @@ namespace Casimodo.Lib.Auth
                 (exclude == null || !exclude.Contains(verb)))
             {
                 if (target == null)
-                    target = new List<string>();
+                    target = [];
                 target.Add(verb);
             }
         }

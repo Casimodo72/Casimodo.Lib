@@ -7,9 +7,9 @@ namespace Casimodo.Lib.Auth
     {
         public string PartName { get; set; }
         public string PartGroup { get; set; }
-        public List<AuthAction> Actions { get; private set; } = new List<AuthAction>();
-        public List<AuthActionPerm> Permissions { get; private set; } = new List<AuthActionPerm>();
-        public List<UIComponentInfo> Components { get; set; } = new List<UIComponentInfo>();
+        public List<AuthAction> Actions { get; private set; } = [];
+        public List<AuthActionPerm> Permissions { get; private set; } = [];
+        public List<UIComponentInfo> Components { get; set; } = [];
 
         public IEnumerable<AuthViewAction> GetViewActions()
         {

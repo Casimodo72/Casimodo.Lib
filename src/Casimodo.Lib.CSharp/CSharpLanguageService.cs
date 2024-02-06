@@ -113,10 +113,11 @@ namespace Casimodo.Lib.CSharp
         public CSharpCompilation CompileCore(Type[] types, params SyntaxTree[] syntaxTrees)
         {
             string assemblyName = Path.GetRandomFileName();
-            var referenceTypes = new List<Type>();
-
-            referenceTypes.Add(typeof(object));
-            referenceTypes.Add(typeof(Enumerable));
+            var referenceTypes = new List<Type>
+            {
+                typeof(object),
+                typeof(Enumerable)
+            };
             if (types != null)
                 foreach (var type in types)
                     if (!referenceTypes.Contains(type))
