@@ -222,10 +222,10 @@ namespace Casimodo.Mojen
 
         void IMojValidatable.Validate()
         {
-            if (!WasBuild)
-            {
-                throw new MojenException($"Seed container for type '{TypeConfig.Name}' was not build.");
-            }
+            //if (!WasBuild)
+            //{
+            //    throw new MojenException($"Seed container for type '{TypeConfig.Name}' was not build.");
+            //}
         }
     }
 }

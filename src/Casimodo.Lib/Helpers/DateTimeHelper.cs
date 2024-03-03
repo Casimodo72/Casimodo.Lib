@@ -148,6 +148,11 @@ namespace Casimodo.Lib
             return TimeZoneInfo.ConvertTime(value, tzi);
         }
 
+        public static DateTime StartOfMonth(this DateTime value)
+        {
+            return new DateTime(value.Year, value.Month, 1);
+        }
+
         public static DateTimeOffset? LocalStartOfDayUtc(this DateTimeOffset? value)
         {
             if (value == null) return null;

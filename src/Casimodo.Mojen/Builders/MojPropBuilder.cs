@@ -182,8 +182,9 @@ namespace Casimodo.Mojen
         /// </summary>
         TPropBuilder RequiredCore(string error = null)
         {
-            if (!PropConfig.IsKey && !PropConfig.Type.CanBeNull)
-                throw new MojenException("Using 'Required' on a non-nullable property is invalid.");
+            // TODO: REMOVE
+            //if (!PropConfig.IsKey && !PropConfig.Type.CanBeNull)
+            //    throw new MojenException("Using 'Required' on a non-nullable property is invalid.");
 
             if (PropConfig.UseRules().IsNotRequired)
                 throw new MojenException("Using 'Required' on an already *not* required property is invalid.");

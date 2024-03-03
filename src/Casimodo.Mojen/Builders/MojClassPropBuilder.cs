@@ -593,9 +593,9 @@ namespace Casimodo.Mojen
             return This();
         }
 
-        public TPropBuilder ToParentAsChildCollection(MojType parent, bool required = true, string collectionPropName = null)
+        public TPropBuilder ToParentAsChildCollection(MojType parent, bool required = true, bool nullable = true, string collectionPropName = null)
         {
-            return ToParent(parent, required: required).AsChildCollection(collectionPropName: collectionPropName);
+            return ToParent(parent, required: required, nullable: nullable).AsChildCollection(collectionPropName: collectionPropName);
         }
 
         public TPropBuilder AsChildCollection(bool hidden = false, string collectionPropName = null)

@@ -132,7 +132,7 @@ namespace Casimodo.Lib.Auth
             {
                 var permissionContext = ExpandVerbs(part, permit, deny);
 
-                ConfigureAuth(part, permissionContext, viewRole: vrole, userRole: role);
+                ConfigureAuth(part, permissionContext, viewRole: vrole, userRole: role, isMinUserRole: minRole);
             }
         }
 
