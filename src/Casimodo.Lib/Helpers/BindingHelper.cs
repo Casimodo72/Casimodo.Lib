@@ -11,7 +11,7 @@ namespace Casimodo.Lib.ComponentModel
         {
             object curObject = source;
             Type curType = source.GetType();
-            string[] steps = path.Split(new char[] { '.' });
+            string[] steps = path.Split(['.']);
             int max = steps.Length - 1;
             int i;
             for (i = 0; i < steps.Length; i++)
@@ -68,7 +68,7 @@ namespace Casimodo.Lib.ComponentModel
 
             object curInstance = source;
             Type curType = source.GetType();
-            string[] steps = path.Split(new char[] { '.' });
+            string[] steps = path.Split(['.']);
             int max = steps.Length - 1;
             int i;
             for (i = 0; i < steps.Length; i++)

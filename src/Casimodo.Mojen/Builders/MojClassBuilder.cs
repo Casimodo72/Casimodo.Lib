@@ -385,7 +385,11 @@ namespace Casimodo.Mojen
 
         public TClassBuilder NamedAssignFromSelf(string name)
         {
-            return NamedAssignFrom(name, TypeConfig.LocalProps.Select(x => x.Name).ToArray());
+            return NamedAssignFrom(name,
+                TypeConfig.LocalProps
+                    .Where(x => !x.IsNavigation)
+                    .Select(x => x.Name)
+                    .ToArray());
         }
 
         public TClassBuilder NamedAssignFrom(string name, params string[] props)

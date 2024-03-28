@@ -60,7 +60,7 @@ namespace Casimodo.Lib.SimpleParser
                 }
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

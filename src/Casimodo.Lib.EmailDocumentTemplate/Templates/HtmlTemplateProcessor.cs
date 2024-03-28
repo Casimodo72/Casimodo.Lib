@@ -264,7 +264,7 @@ namespace Casimodo.Lib.Templates
             CurrentElem.SetAttribute("src", value);
         }
 
-        static readonly string[] NewLineTokens = { "\n", Environment.NewLine };
+        static readonly string[] NewLineTokens = ["\n", Environment.NewLine];
 
         public override void SetText(string value)
         {
@@ -296,9 +296,9 @@ namespace Casimodo.Lib.Templates
             CurrentElem.Remove();
         }
 
-        public Func<IEnumerable<string>> GetCssFilePaths { get; set; } = () => Enumerable.Empty<string>();
+        public Func<IEnumerable<string>> GetCssFilePaths { get; set; } = () => [];
 
-        public Func<IEnumerable<string>> GetCustomCss { get; set; } = () => Enumerable.Empty<string>();
+        public Func<IEnumerable<string>> GetCustomCss { get; set; } = () => [];
 
 
         public string StylesHtml { get; set; }
@@ -645,7 +645,7 @@ namespace Casimodo.Lib.Templates
             Css(name, valueStr);
         }
 
-        static readonly char[] _semicolonSeparator = new[] { ';' };
+        static readonly char[] _semicolonSeparator = [';'];
 
         protected void Css(string name, object value)
         {

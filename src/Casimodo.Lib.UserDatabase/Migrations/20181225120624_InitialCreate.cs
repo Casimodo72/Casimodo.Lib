@@ -160,7 +160,7 @@ namespace Casimodo.Lib.UserDatabase.Migrations
 
             migrationBuilder.InsertData(
                 table: "AuthRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "DisplayName", "Index", "Name", "NormalizedName" },
+                columns: ["Id", "ConcurrencyStamp", "DisplayName", "Index", "Name", "NormalizedName"],
                 values: new object[,]
                 {
                     { new Guid("14eea27c-697f-4494-9413-bcdd47611c20"), "4469db95-6db4-4f66-b214-277dbf7adcb6", "Administrator", 1, "Admin", "ADMIN" },

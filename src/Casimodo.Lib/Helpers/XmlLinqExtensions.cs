@@ -10,7 +10,7 @@ namespace Casimodo.Lib
 {
     public static class XmlLinqExtensions
     {
-        static readonly char[] _separator = new char[] { ',' };
+        static readonly char[] _separator = [','];
 
         public static TEnum EnumAttr<TEnum>(this XElement elem, string name, bool optional = true)
             where TEnum : struct
@@ -31,7 +31,7 @@ namespace Casimodo.Lib
         {
             var elem = parent.Elem(name, optional);
             if (elem == null || string.IsNullOrWhiteSpace(elem.Value))
-                return Enumerable.Empty<string>();
+                return [];
 
             return elem.Value.Split(_separator, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
         }

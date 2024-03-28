@@ -5,10 +5,10 @@ namespace Casimodo.Lib.Templates
 {
     public static class TemplateUtils
     {
-        static readonly string[] UriSchemes = new[]
-        {
+        static readonly string[] UriSchemes =
+        [
             "http://", "https://"
-        };
+        ];
 
         public static string? RemoveSchemeFromUri(string uri)
         {

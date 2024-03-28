@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Templates
         {
             var context = await ParseAndEvaluateValue(coreContext, expression);
 
-            return context.HasReturnValue ? context.ReturnValue : Enumerable.Empty<object?>();
+            return context.HasReturnValue ? context.ReturnValue : [];
         }
 
         public async Task<bool> EvaluateCondition(TemplateContext coreContext, TemplateExpression expression)
@@ -148,13 +148,13 @@ namespace Casimodo.Lib.Templates
                         instructionDefNode.Definition.ExecuteCore(context, contextObj);
 
                         // Executing instructions do not have return values.
-                        return Enumerable.Empty<object>();
+                        return [];
                     }
                     else
                     {
                         // Call instruction's values getter.
                         values = instructionDefNode.Definition.GetValuesCore(context, contextObj)
-                            ?? Enumerable.Empty<object?>();
+                            ?? [];
                     }
                     context.CurrentInstruction = null;
                 }
@@ -194,7 +194,7 @@ namespace Casimodo.Lib.Templates
             else if (node is FormatValueAstNode formatValue)
             {
                 if (contextObj == null)
-                    return Enumerable.Empty<object>();
+                    return [];
 
                 if (contextObj is string text)
                 {
@@ -230,7 +230,7 @@ namespace Casimodo.Lib.Templates
         static IEnumerable<object> ToEnumerable(object? value)
         {
             if (value == null)
-                return Enumerable.Empty<object>();
+                return [];
             else if (value is IEnumerable enumerable && value is not string)
                 return enumerable.Cast<object>();
             else

@@ -1,5 +1,5 @@
-﻿using System.Runtime.Serialization;
-using Casimodo.Lib.Data;
+﻿using Casimodo.Lib.Data;
+using System.Runtime.Serialization;
 
 namespace Casimodo.Mojen
 {
@@ -151,6 +151,9 @@ namespace Casimodo.Mojen
         /// </summary>
         [DataMember]
         public bool IsOptimizedDeletion { get; set; }
+
+        [DataMember]
+        public bool IsMarkedForHardDeletion { get; set; }
 
         /// <summary>
         /// Only used if this reference is a collection.

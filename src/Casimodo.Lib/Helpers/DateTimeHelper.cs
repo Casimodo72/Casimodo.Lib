@@ -84,13 +84,6 @@ namespace Casimodo.Lib
                 offset);
         }
 
-        public static DateTimeOffset? ModifyDate(this DateTimeOffset? value, DateOnly date)
-        {
-            return value == null
-                ? null
-                : ModifyDate(value.Value, date);
-        }
-
         public static DateTimeOffset SetDate(this DateTimeOffset value, DateOnly date)
         {
             return value.Year == date.Year && value.Month == date.Month && value.Day == date.Day
@@ -100,6 +93,18 @@ namespace Casimodo.Lib
                     value.Hour, value.Minute, value.Second, value.Millisecond, value.Offset);
         }
 
+        public static DateTimeOffset? SetTime(this DateTimeOffset? value, TimeSpan time)
+        {
+            return value != null ? SetTime(value.Value, time) : null;
+        }
+
+        public static DateTimeOffset SetTime(this DateTimeOffset value, TimeSpan time)
+        {
+            return new DateTimeOffset(
+                value.Year, value.Month, value.Day,
+                time.Hours, time.Minutes, time.Seconds, time.Milliseconds, value.Offset);
+        }
+
         public static DateTimeOffset? TruncateTime(this DateTimeOffset? value)
         {
             return value != null ? TruncateTime(value.Value) : value;
@@ -107,14 +112,17 @@ namespace Casimodo.Lib
 
         public static DateTimeOffset TruncateTime(this DateTimeOffset value)
         {
-            // TODO: similar to DateTime(date.Ticks - date.Ticks % TimeSpan.TicksPerDay, date.Kind);
             return new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, 0, value.Offset);
         }
 
         public static DateTimeOffset TruncateMinutes(this DateTimeOffset value)
         {
-            // TODO: similar to DateTime(date.Ticks - date.Ticks % TimeSpan.TicksPerHour, date.Kind);
             return new DateTimeOffset(value.Year, value.Month, value.Day, value.Hour, 0, 0, 0, value.Offset);
+        }
+
+        public static DateTimeOffset TruncateSeconds(this DateTimeOffset value)
+        {
+            return new DateTimeOffset(value.Year, value.Month, value.Day, value.Hour, value.Minute, 0, 0, value.Offset);
         }
 
         static DateTimeOffset ApplyTimeZone(DateTimeOffset value)

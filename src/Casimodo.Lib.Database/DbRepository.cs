@@ -22,7 +22,7 @@ namespace Casimodo.Lib.Data
         IQueryable<TEntity> LocalAndDbQuery(Expression<Func<TEntity, bool>> expression);
         IQueryable<TEntity> Query(bool includeDeleted = false, bool trackable = true);
         int SaveChanges();
-        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellation = default);
     }
 
     public interface IDbRepository
@@ -269,11 +269,10 @@ namespace Casimodo.Lib.Data
         /// <summary>
         /// NOTE: Returns also deleted entities.
         /// </summary>
-        public async Task<TEntity?> GetAsync(TKey key, bool required = true)
+
+        public async Task<TEntity?> FindAsync(TKey key, CancellationToken cancellationToken = default)
         {
-            var entity = await EntitySet.FindAsync(key);
-            if (entity == null && required)
-                throw NotFound();
+            var entity = await EntitySet.FindAsync(key, cancellationToken);
 
             if (entity != null)
             {
@@ -283,12 +282,9 @@ namespace Casimodo.Lib.Data
             return entity;
         }
 
-        public async Task<TEntity> GetAsync(IQueryable<TEntity> query)
+        public async Task<TEntity> FindRequiredAsync(TKey key, CancellationToken cancellationToken = default)
         {
-            var entity = await query.FirstAsync();
-            OnLoaded(entity);
-
-            return entity;
+            return await FindAsync(key, cancellationToken) ?? throw NotFound();
         }
 
         public TEntity Get(IQueryable<TEntity> query)
@@ -366,19 +362,16 @@ namespace Casimodo.Lib.Data
         }
 
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<int> SaveChangesAsync(CancellationToken cancellation = default)
         {
-            return await Context.SaveChangesAsync();
+            return await Context.SaveChangesAsync(cancellation);
         }
 
-        public async Task SaveChangesAsync(TKey key, CancellationToken? cancellationToken = null)
+        public async Task SaveChangesAsync(TKey key, CancellationToken cancellationToken = default)
         {
             try
             {
-                if (cancellationToken != null)
-                    await Context.SaveChangesAsync(cancellationToken.Value);
-                else
-                    await Context.SaveChangesAsync();
+                await Context.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -664,14 +657,11 @@ namespace Casimodo.Lib.Data
 
         // Add ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        // NOTE: Not used anywhere. Keep though.
-        async Task<TEntity> AddAsync(TEntity entity, bool save = false)
+        public Task<TEntity> AddAsync(TEntity entity, CancellationToken? cancellation = default)
         {
-            entity = Add(entity);
-
-            if (save) await SaveChangesAsync(entity.GetKey());
-
-            return entity;
+            // TODO: IMPL async DB operations because some deeper processing
+            // needs asynchronicity.
+            return Task.FromResult(Add(entity));
         }
 
         // Update ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -683,22 +673,11 @@ namespace Casimodo.Lib.Data
             return Update(entity, mask);
         }
 
-        // NOTE: Not used anywhere. Keep though.
-        async Task<TEntity> UpdateAsync(TKey key, TEntity entity, MojDataGraphMask? mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        public Task<TEntity> UpdateAsync(TEntity entity, CancellationToken? cancellationToken = default)
         {
-            CheckEqualKey(entity, key);
-
-            return await UpdateAsync(entity, mask, save, cancellationToken);
-        }
-
-        // NOTE: Not used anywhere. Keep though.
-        async Task<TEntity> UpdateAsync(TEntity entity, MojDataGraphMask? mask = null, bool save = false, CancellationToken? cancellationToken = null)
-        {
-            entity = Update(entity, mask);
-
-            if (save) await SaveChangesAsync(GetKey(entity), cancellationToken);
-
-            return entity;
+            // TODO: IMPL async DB operations because some deeper processing
+            // needs asynchronicity.
+            return Task.FromResult(Update(entity));
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

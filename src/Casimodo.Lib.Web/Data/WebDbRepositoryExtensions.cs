@@ -14,7 +14,7 @@ namespace Casimodo.Lib.Data
             TKey key,
             Delta<TEntity> delta,
             bool save = false,
-            CancellationToken? cancellationToken = null)
+            CancellationToken cancellationToken = default)
             where TContext : DbContext, new()
             where TEntity : class, IKeyAccessor<TKey>, new()
             where TKey : struct, IComparable<TKey>
@@ -41,7 +41,7 @@ namespace Casimodo.Lib.Data
             TKey key,
             Delta<TModel> delta,
             bool save = false,
-            CancellationToken? cancellationToken = null)
+            CancellationToken cancellationToken = default)
             where TEntityRepo : DbRepository<TContext, TEntity, TKey>, new()
             where TContext : DbContext, new()
             where TEntity : class, IKeyAccessor<TKey>, new()

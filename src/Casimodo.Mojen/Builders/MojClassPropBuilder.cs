@@ -725,6 +725,15 @@ namespace Casimodo.Mojen
             return This();
         }
 
+        public TPropBuilder MarkForHardDeletion()
+        {
+            if (!PropConfig.Reference.Is)
+                throw new MojenException($"The option '{nameof(MarkForHardDeletion)}' is available for reference properties only.");
+
+            PropConfig.Reference.IsMarkedForHardDeletion = true;
+            return This();
+        }
+
         public TPropBuilder ToChildNew(MojType to,
             bool required = true,
             bool nested = false,

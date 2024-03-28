@@ -45,6 +45,14 @@ namespace Casimodo.Mojen
                     // db.Entry(blob).State = EntityState.Deleted;
                     O($"db.Entry({target}).State = EntityState.Deleted;");
                 }
+                else if (prop.Reference.IsMarkedForHardDeletion)
+                {
+                    OComment("Mark for hard deletion");
+                    // var blob = new Blob { Id = parent.DataId.Value, IsMakedForHardDeletion = true };
+                    O($"var {target} = new {targetType.Name} {{ {targetType.Key.Name} = {item}.{prop.Name}.Value, IsMarkedForHardDeletion = true }};");
+                    // db.Entry(blob).Property(nameof(blob.IsMarkedForHardDeletion)).IsModified = true;
+                    O($"db.Entry({target}).Property(nameof({target}.IsMarkedForHardDeletion)).IsModified = true;");
+                }
                 else
                 {
                     O($"var {target} = context.{targetType.PluralName}.Find({item}.{prop.Name}.Value);");

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
 using System.Reflection;
 
 namespace Casimodo.Lib.Data
@@ -15,7 +14,7 @@ namespace Casimodo.Lib.Data
 
         public MojDataGraphMask UpdateMask { get; set; }
 
-        public DateTimeOffset Time { get; set; }
+        public required DateTimeOffset Time { get; set; }
 
         /// <summary>
         /// The root entity of the DB operation.

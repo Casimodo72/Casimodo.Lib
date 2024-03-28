@@ -97,7 +97,13 @@ namespace Casimodo.Lib.Web
         [System.Diagnostics.DebuggerHidden]
         public void ThrowBadRequest(string message = null)
         {
+
             throw new ServerException(HttpStatusCode.BadRequest, message);
+        }
+
+        protected BadRequestResult OperationCancelled()
+        {
+            return BadRequest();
         }
     }
 }

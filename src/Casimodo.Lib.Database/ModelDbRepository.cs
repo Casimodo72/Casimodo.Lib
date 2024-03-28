@@ -1,9 +1,6 @@
 ﻿using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Casimodo.Lib.Data
 {
@@ -77,14 +74,16 @@ namespace Casimodo.Lib.Data
             return ConvertToModel(entity, model);
         }
 
-        public async Task<TModel> UpdateAsync(TKey key, TModel model, MojDataGraphMask mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        public async Task<TModel> UpdateAsync(TKey key, TModel model,
+            MojDataGraphMask mask = null, bool save = false,
+            CancellationToken cancellationToken = default)
         {
             CheckEqualKey(model, key);
 
             return await UpdateAsync(model, mask, save, cancellationToken);
         }
 
-        public async Task<TModel> UpdateAsync(TModel model, MojDataGraphMask mask = null, bool save = false, CancellationToken? cancellationToken = null)
+        public async Task<TModel> UpdateAsync(TModel model, MojDataGraphMask mask = null, bool save = false, CancellationToken cancellationToken = default)
         {
             var entity = Update(ConvertToEntity(model, CreateEntity()), mask);
 

@@ -100,11 +100,11 @@ namespace Casimodo.Lib.Templates
 
         public void SetReturnValue(IEnumerable<object?> value)
         {
-            ReturnValue = value ?? Enumerable.Empty<object?>();
+            ReturnValue = value ?? [];
             HasReturnValue = true;
         }
 
-        public IEnumerable<object?> ReturnValue { get; private set; } = Enumerable.Empty<object?>();
+        public IEnumerable<object?> ReturnValue { get; private set; } = [];
 
         public AstNode Ast { get; }
 

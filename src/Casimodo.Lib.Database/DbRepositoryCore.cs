@@ -640,7 +640,7 @@ namespace Casimodo.Lib.Data
 
                     // Check for local duplicate.
                     var local = entitySet.Local.FirstOrDefault(x => keySel(x)!.Equals(id));
-                    if (local != update)
+                    if (local != null && local != update)
                         throw new DbRepositoryException("An other instance of this entity already exists in the DbContext.");
 
                     db.UpdateEntity(ctx.CreateSubContext(update, op: DbRepoOp.Update));

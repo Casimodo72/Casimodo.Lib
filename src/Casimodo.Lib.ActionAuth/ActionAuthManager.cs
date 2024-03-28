@@ -34,8 +34,7 @@ namespace Casimodo.Lib.Auth
 
         public UIComponentInfo Set(params AuthRoleSetting[] roles)
         {
-            if (AuthRoles == null)
-                AuthRoles = [];
+            AuthRoles ??= [];
             for (int i = 0; i < roles.Length; i++)
                 AuthRoles.Add(roles[i]);
 
@@ -200,7 +199,7 @@ namespace Casimodo.Lib.Auth
         string[] ExpandVerbsCore(AuthPart part, string expression, string[] exclude)
         {
             if (string.IsNullOrEmpty(expression))
-                return Array.Empty<string>();
+                return [];
 
             var items = expression.Split(',');
 
@@ -230,7 +229,7 @@ namespace Casimodo.Lib.Auth
                 }
             }
 
-            return result?.ToArray() ?? Array.Empty<string>();
+            return result?.ToArray() ?? [];
         }
 
         void AddVerb(ref List<string> target, string verb, string[] exclude)
@@ -238,8 +237,7 @@ namespace Casimodo.Lib.Auth
             if ((target == null || !target.Contains(verb)) &&
                 (exclude == null || !exclude.Contains(verb)))
             {
-                if (target == null)
-                    target = [];
+                target ??= [];
                 target.Add(verb);
             }
         }

@@ -71,8 +71,7 @@ namespace Casimodo.Lib
             if (source == null || !source.Any())
                 return "";
 
-            if (transform == null)
-                transform = (x) => x?.ToString() ?? "";
+            transform ??= (x) => x?.ToString() ?? "";
 
             var sb = new StringBuilder();
             string? value;
@@ -124,7 +123,7 @@ namespace Casimodo.Lib
             where T : class
         {
             if (source == null)
-                return Enumerable.Empty<T>();
+                return [];
             else
                 return source;
         }
