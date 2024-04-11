@@ -1,0 +1,42 @@
+<div mat-dialog-title>
+    @if (vm(); as vm) {
+    <div class="flex items-end justify-between gap-1">
+        <div>{{title()}}</div>
+
+        @if (vm.dialogActionsPosition() === "title") {
+        <div class="flex gap-2">
+            @if (vm.canDelete()) {
+            <button mat-button (click)="delete()"><span class="app-warning">Löschen</span></button>
+            }
+            <button mat-raised-button (click)="cancel()">Abbrechen</button>
+
+            <button mat-raised-button color="primary" (click)="submit()" [disabled]="!vm.canSubmit()">
+                {{confirmButtonText()}}
+            </button>
+        </div>
+        }
+    </div>
+    }
+</div>
+
+<!-- Setting max-height because Material sets it to 65vh. -->
+<div mat-dialog-content class="full-flex-col-item" style="max-height: 100%">
+    <ng-template #target></ng-template>
+</div>
+
+@if (vm(); as vm) {
+@if (vm.dialogActionsPosition() === "default") {
+<div mat-dialog-actions align="end">
+
+    @if (vm.canDelete()) {
+    <button mat-button (click)="delete()"><span class="app-warning">Löschen</span></button>
+    }
+    <button mat-raised-button (click)="cancel()">Abbrechen</button>
+
+    <!-- TODO: We can't set cdkFocusInitial if the button is disabled. This will throw an exception. -->
+    <button mat-raised-button color="primary" (click)="submit()" [disabled]="!vm.canSubmit()">
+        {{confirmButtonText()}}
+    </button>
+</div>
+}
+}
