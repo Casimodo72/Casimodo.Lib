@@ -26,6 +26,12 @@ namespace Casimodo.Lib
 
         public static Func<TimeZoneInfo> GetCurrentTimeZone { get; set; } = () => DefaultTimeZone;
 
+        public static DateTimeOffset ToLocalDateTimeOffset(this DateOnly date)
+            => new DateTimeOffset(
+                date.Year, date.Month, date.Day,
+                0, 0, 0,
+                TimeZoneInfo.Local.GetUtcOffset(new DateTime(date.Year, date.Month, date.Day)));
+
         public static string ToDateString(this DateTimeOffset? value, string format = null)
         {
             if (value == null) return "";

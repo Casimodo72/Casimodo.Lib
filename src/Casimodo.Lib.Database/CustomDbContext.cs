@@ -62,11 +62,11 @@ namespace Casimodo.Lib.Data
             {
                 await action(new DbTransactionContext<TDbContext>((TDbContext)this, trans));
 
-                trans.Commit();
+                await trans.CommitAsync();
             }
             catch (Exception)
             {
-                trans.Rollback();
+                await trans.RollbackAsync();
                 throw;
             }
         }
