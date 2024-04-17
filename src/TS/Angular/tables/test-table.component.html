@@ -1,0 +1,26 @@
+<div>
+    <mat-table [dataSource]="tableModel.rows()" matSort (matSortChange)="onMatSort($event)">
+        <!-- matSort
+            [matSortActive]="tableModel.sortPropName()" [matSortDisableClear]="true"
+            [matSortDirection]="tableModel.sortDirection()">
+        -->
+
+        @for (column of tableModel.columns(); track column) {
+        <ng-container [matColumnDef]="column.path">
+
+            <mat-header-cell *matHeaderCellDef mat-sort-header [disableClear]="true">
+                @if (column.filter) {
+                <app-table-column-header-renderer [column]="column" />
+                }
+            </mat-header-cell>
+
+            <mat-cell *matCellDef="let row">
+                <app-table-cell-renderer [column]="column" [row]="row" />
+            </mat-cell>
+        </ng-container>
+        }
+
+        <mat-header-row *matHeaderRowDef="tableModel.visibleColumnPaths()" />
+        <mat-row *matRowDef="let row; columns: tableModel.visibleColumnPaths()" />
+    </mat-table>
+</div>

@@ -2,55 +2,69 @@
 import { CommonModule } from "@angular/common"
 import { ChangeDetectionStrategy, Component, input } from "@angular/core"
 import { FormsModule } from "@angular/forms"
+import { MatAutocompleteModule } from "@angular/material/autocomplete"
 import { MatFormFieldModule } from "@angular/material/form-field"
-import { MatSelectModule } from "@angular/material/select"
+import { MatInputModule } from "@angular/material/input"
 import { CCPropDirective, PropErrorsComponent, PropLabelComponent } from "@lib/forms"
-import { PickerFormProp } from "@lib/models"
+import { PickerFormProp, PickerItemModel } from "@lib/models"
 
 @Component({
-    selector: "app-standard-value-picker",
+    selector: "app-standard-typeahead-value-picker",
     standalone: true,
     imports: [
         CommonModule,
-        FormsModule, MatFormFieldModule, MatSelectModule,
+        FormsModule, MatFormFieldModule, MatInputModule, MatAutocompleteModule,
         PropLabelComponent, CCPropDirective, PropErrorsComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
 @if (model(); as model) {
-    <mat-form-field [ngStyle]="customStyle()" appearance="outline">
+    <mat-form-field
+        appearance="outline"
+        [ngStyle]="customStyle()">
+
         @if (model.label) {
             <mat-label [ccProp]="model" />
         }
-        <mat-select [ccProp]="model"
-            ngModel
+
+        <input matInput ngModel
+            [ccProp]="model"
+            [matAutocomplete]="myAutocomplete"
             [disabled]="model.isReadOnly()"
             [ariaReadOnly]="model.isReadOnly()">
-            <!-- <mat-select-trigger>
-                @if (model.selectedItem(); as pickItem) {
-                    {{pickItem.data}}
-                }
-            </mat-select-trigger> -->
 
+        <!-- @if (something) {
+        <app-button matSuffix type="add" (click)="..." />
+        } -->
+
+        <mat-autocomplete #myAutocomplete="matAutocomplete" [displayWith]="displayFn">
             @if (model.hasEmptyItem()) {
-            <mat-option [value]="null">
-                {{model.emptyText()}}
-            </mat-option>
+                <mat-option [value]="null">
+                    {{model.emptyText()}}
+                </mat-option>
             }
 
             @for (pickItem of model.pickableItems(); track pickItem.id) {
-                <!-- TODO: Include null value. -->
                 <mat-option [value]="pickItem">
                     {{pickItem.toDisplayText()}}
                 </mat-option>
             }
-        </mat-select>
+        </mat-autocomplete>
+
         <mat-error [ccProp]="model" />
     </mat-form-field>
+
+    <div>{{model.filter.value()}}</div>
 }
 `
 })
-export class AppStandardValuePickerComponent {
+export class StandardTypeaheadValuePickerComponent {
     // TODO: REMOVE: readonly emptyItem = PickerFormProp.EmptyItem
     readonly model = input.required<PickerFormProp>()
     readonly customStyle = input<any | undefined>(undefined)
+
+    displayFn(value: any): string {
+        return value instanceof PickerItemModel
+            ? value.toDisplayText() ?? ""
+            : ""
+    }
 }

@@ -2,6 +2,7 @@ import { ChangeDetectorRef, DestroyRef, Directive, ElementRef, Input, OnDestroy,
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop"
 import { AbstractControl, NgModel } from "@angular/forms"
 import { MatAutocompleteTrigger } from "@angular/material/autocomplete"
+import { MatOptionSelectionChange } from "@angular/material/core"
 import { MatDatepickerInput } from "@angular/material/datepicker"
 import { MatFormFieldControl } from "@angular/material/form-field"
 import { MatSelect, MatSelectChange } from "@angular/material/select"
@@ -160,6 +161,26 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
         if (this.ccProp instanceof PickerFormProp) {
             const pickerModel = this.ccProp as PickerFormProp
 
+            if (this._ngModel.valueAccessor instanceof MatAutocompleteTrigger &&
+                this._ngModel.valueChanges
+            ) {
+                this._ngModel.valueChanges
+                    .pipe(takeUntilDestroyed(this.#destroyRef))
+                    .subscribe(data => {
+                        if (data == null || typeof data === "string") {
+                            pickerModel.setFilterValue(data ?? null)
+                        }
+                    })
+
+                this._ngModel.valueAccessor.optionSelections
+                    .pipe(takeUntilDestroyed(this.#destroyRef))
+                    .subscribe((change: MatOptionSelectionChange<any>) => {
+                        if (change.isUserInput) {
+                            pickerModel.selectItem(change.source.value ?? null)
+                        }
+                    })
+            }
+
             if (this.#formFieldControl instanceof MatSelect) {
                 this.#formFieldControl.compareWith = this.#compareValues
                 this.#formFieldControl.selectionChange
@@ -172,29 +193,20 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
                             pickerModel.setValue(change.value)
                         }
                     })
-
-                // const matSelect = this._ngModel.valueAccessor as MatSelect
-                // const matSelectValue = matSelect.value
-                // if ((matSelectValue === null || matSelectValue === undefined) &&
-                //     this.ccProp.selectedItem() !== null
-                // ) {
-                //     matSelect.writeValue(this.ccProp.selectedItem())
-
-                //     this.changeDetectorRef.detectChanges()
-                // }
             }
-            else if (this._ngModel.valueAccessor instanceof MatAutocompleteTrigger &&
-                this._ngModel.valueChanges
-            ) {
-                this._ngModel.valueChanges
-                    .pipe(takeUntilDestroyed(this.#destroyRef))
-                    .subscribe(data => {
-                        if (data == null || typeof data === "string") {
-                            pickerModel.setFilterValue(data ?? null)
-                            pickerModel.setValue(data ?? null)
-                        }
-                    })
-            }
+            // TODO: REMOVE?
+            // else if (this._ngModel.valueAccessor instanceof MatAutocompleteTrigger &&
+            //     this._ngModel.valueChanges
+            // ) {
+            //     this._ngModel.valueChanges
+            //         .pipe(takeUntilDestroyed(this.#destroyRef))
+            //         .subscribe(data => {
+            //             if (data == null || typeof data === "string") {
+            //                 pickerModel.setFilterValue(data ?? null)
+            //                 pickerModel.setValue(data ?? null)
+            //             }
+            //         })
+            // }
         }
     }
 
