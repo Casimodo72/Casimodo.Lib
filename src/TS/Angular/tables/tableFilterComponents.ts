@@ -1,5 +1,0 @@
-import { Component, ChangeDetectionStrategy, AfterViewInit } from "@angular/core"
-import { StandardStringInputComponent, StandardTypeaheadValuePickerComponent } from "@lib/components"
-import { PickerFormProp, StringFormProp } from "@lib/models"
-import { AbstractTableFilterComponent } from "./tableComponents"
-import { DataPath } from "@lib/data-utils"
