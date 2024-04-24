@@ -5,23 +5,25 @@ import { IFormItem } from "./core"
 import { FormProp } from "./prop"
 import { FormPropRulesBuilder } from "./propRuleBuilder"
 import { StringFormProp } from "./stringProp"
+import { DataPath, DataPathSelection } from "@lib/data-utils"
+
+type StringKeys<T> = Extract<keyof T, string>
 
 export class PickerItemModel<T = any> extends DataItemModel<T> {
     _isEmpty?: boolean
-    displayProp?: string
+    _displayPath?: DataPath
+    _displayFn?: (data: any) => string
 
-    setDisplayProp(displayProp: string): this {
-        this.displayProp = displayProp
-
-        return this
-    }
-
-    toDisplayText() {
-        if (this.displayProp) {
-            return (this.data as any)[this.displayProp]
+    toDisplayText(): string {
+        if (this._displayPath) {
+            return this._displayPath.getValueFrom(this.data)?.toString() ?? ""
         }
-
-        return this.data
+        else if (this._displayFn) {
+            return this._displayFn(this.data)
+        }
+        else {
+            return this.data?.toString() ?? ""
+        }
     }
 }
 
@@ -32,11 +34,11 @@ type PickItemFn<TPickItem> = (pickItem: TPickItem) => void
 export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData> = PickerItemModel<TData>>
     extends FormProp<TData | null> {
 
-    static readonly EmptyItem = new PickerItemModel({ id: "47a3ec00-5a07-4c1e-98b5-01a6cbf48038" })
-
-    static {
-        this.EmptyItem._isEmpty = true
-    }
+    // TODO: REMOVE? Not used
+    // static readonly EmptyItem = new PickerItemModel({ id: "47a3ec00-5a07-4c1e-98b5-01a6cbf48038" })
+    // static {
+    //     this.EmptyItem._isEmpty = true
+    // }
 
     /** @filterValue will always be non empty here. */
     static #filterDefault(filterValue: string, data: any): boolean {
@@ -52,78 +54,128 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
     readonly items: Signal<TPickItem[]> = this.#itemList.items
     readonly selectedItem: Signal<TPickItem | null> = this.#itemList.current
 
-    readonly internalSelectedItem = computed(() => {
-        return this.selectedItem() ?? PickerFormProp.EmptyItem
-    })
-
     readonly filter = new StringFormProp(this)
-    readonly #filterPropName = signal<keyof TData | undefined>(undefined)
+    readonly #filterPath = signal<DataPath | undefined>(undefined)
     readonly filterValue = this.filter.value
 
-    readonly hasEmptyItem = signal(true)
+    readonly hasEmptyItem = signal(false)
     readonly #emptyText = signal("(Keine Auswahl)")
     readonly emptyText = this.#emptyText.asReadonly()
+
+    // TODO: Since Angular material can't virtualize the displayed items,
+    // we need to restrict the number of displayable items for now.
+    // Think about implementing a pagination strategy in the picker UI.
+    readonly maxPickableItemCount = signal(50)
 
     #filterFn?: PickerFilterFn<TData>
 
     readonly #filterChangedSignal = signal("")
 
-    displayProp?: string
+    #displayFn?: (data: TData) => string
+    #displayPath = signal<DataPath | undefined>(undefined)
 
     /** Either all items or a filtered subset if a @filterValue is set. */
-    readonly pickableItems = computed<TPickItem[]>(() => {
+    readonly #filteredItems = computed<TPickItem[]>(() => {
         const _ = this.#filterChangedSignal()
         let items = this.#itemList.items()
-        const filterPropName = this.#filterPropName()
-        let filterValue = this.filterValue()
 
-        if (!filterValue) {
-            return items
-        }
+        const filterValue = this.filterValue()?.toLocaleLowerCase()
 
-        filterValue = filterValue.toLocaleLowerCase()
+        if (filterValue) {
+            const filterPath = this.#filterPath() ?? this.#displayPath()
+            if (filterPath) {
+                const filterRegex = new RegExp(filterValue, "i")
 
-        if (filterPropName) {
-            items = items.filter(x => {
-                const itemValue = x.data[filterPropName] ?? ""
-                return typeof itemValue === "string"
-                    ? itemValue.indexOf(filterValue) >= 0
-                    : false
-            })
-        }
-        else {
-            const filterFn = this.#filterFn ?? PickerFormProp.#filterDefault
+                items = items.filter(x => {
+                    // TODO: Do we want to support numbers?
+                    const itemValue = filterPath.getValueFrom(x.data)?.toString() ?? ""
+                    if (typeof itemValue !== "string") {
+                        return false
+                    }
 
-            items = items.filter(x => filterFn(filterValue, x.data))
+                    //  itemValue.toLocaleLowerCase().indexOf(filterValue) >= 0
+
+                    const result = itemValue.search(filterRegex) !== -1
+
+                    return result
+                })
+            }
+            else {
+                // Use filter function.
+                const filterFn = this.#filterFn ?? PickerFormProp.#filterDefault
+
+                items = items.filter(x => filterFn(filterValue, x.data))
+            }
         }
 
         return items
+    })
+
+    /**
+     * Either all items or a filtered subset if a @filterValue is set.
+     * Restricted by maxPickableItemCount.
+    */
+    readonly pickableItems = computed<TPickItem[]>(() => {
+        // TODO: Had to separate #filteredItems and pickableItems
+        // because we can't set isMaxPickableItemCountExceeded inside
+        // the compute function. I.e. we need two array and compare them in
+        // the isMaxPickableItemCountExceeded compute function :-()
+        let items = this.#filteredItems()
+        if (items.length > this.maxPickableItemCount()) {
+            items = items.slice(0, this.maxPickableItemCount() - 1)
+        }
+
+        return items
+    })
+
+    readonly isMaxPickableItemCountExceeded = computed(() => {
+        return this.#filteredItems().length > this.pickableItems().length
     })
 
     constructor(group: IFormItem, initialValue?: TData | null) {
         super(group, initialValue ?? null)
     }
 
-    setEmptyText(emptyText: string) {
+    setEmptyText(emptyText: string): this {
         this.#emptyText.set(emptyText)
+
+        return this
     }
 
-    setHasNullValue(hasNullValue: boolean) {
+    setHasNullValue(hasNullValue: boolean): this {
         this.hasEmptyItem.set(hasNullValue)
+
+        return this
     }
 
     includesValue(value: TData): boolean {
         return this.items().find(x => x.data === value) !== undefined
     }
 
-    setDisplayProp(displayProp: string): this {
-        this.displayProp = displayProp
+    setDisplayProp(displayProp: DataPathSelection<TData> | undefined): this {
+        if (displayProp) {
+            this.#displayPath.set(DataPath.createFromSelection<TData>(displayProp))
+        }
+        else {
+            this.#displayPath.set(undefined)
+        }
 
         return this
     }
 
-    setFilterProp(filterProp: keyof TData): this {
-        this.#filterPropName.set(filterProp)
+    setDisplayFn(displayFn: ((data: TData) => string) | undefined): this {
+        this.#displayFn = displayFn
+
+        return this
+    }
+
+    setFilterProp(filterProp: DataPathSelection<TData> | undefined): this {
+        if (filterProp) {
+            this.#filterPath.set(DataPath.createFromSelection<TData>(filterProp))
+        }
+        else {
+            this.#filterPath.set(undefined)
+        }
 
         return this
     }
@@ -149,10 +201,17 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
     }
 
     setPickItems(items: TPickItem[]): this {
-        if (this.displayProp) {
+        const displayPath = this.#displayPath()
+        const displayFn = this.#displayFn
+
+        if (displayPath || displayFn) {
             for (const item of items) {
-                if (!item.displayProp) {
-                    item.displayProp = this.displayProp
+                if (displayPath && !item._displayPath) {
+                    item._displayPath = displayPath
+                }
+
+                if (displayFn && !item._displayFn) {
+                    item._displayFn = displayFn
                 }
             }
         }
@@ -170,8 +229,11 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
 
     #createItem(value: TData): TPickItem {
         const item = this.#itemFactory(value)
-        if (this.displayProp) {
-            item.displayProp = this.displayProp
+        if (this.#displayPath()) {
+            item._displayPath = this.#displayPath()
+        }
+        if (this.#displayFn) {
+            item._displayFn = this.#displayFn
         }
 
         return item
@@ -191,8 +253,9 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
         if (this.#isSelectingItem) return false
 
         this.#isSelectingItem = true
+        let result = false
         try {
-            const result = this.setValue(selectedItem?.data ?? null)
+            result = this.setValue(selectedItem?.data ?? null)
             if (result) {
                 this.#itemList.setCurrent(selectedItem)
                 this._controlAdapter?.setValue(selectedItem)
@@ -202,7 +265,9 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
         }
         finally {
             this.#isSelectingItem = false
-            this.#onAfterPickItemSelectedFn?.(selectedItem)
+            if (result) {
+                this.#onAfterPickItemSelectedFn?.(selectedItem)
+            }
         }
     }
 
@@ -267,15 +332,9 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
         return super.validate()
     }
 
-    override async _onDomInput(ev: InputEvent): Promise<void> {
-        // TODO: REMOVE?
-        //const inputEvent = ev as InputEvent
-        //const textInputValue = (inputEvent.currentTarget as any)?.value ?? ""
-
-        this.#itemList.setCurrent(null)
-        // TODO: REMOVE?
-        //this.#filterValue.set(textInputValue)
-        this.setValue(null)
+    override async _onDomInput(_ev: InputEvent): Promise<void> {
+        // An input event is raised when the user types into a typeahead input.
+        this.selectItem(null)
     }
 
     setRules(rulesBuildFn: (rulesBuilder: PickerFormPropRulesBuilder<TData>) => void): this {

@@ -1,5 +1,128 @@
 import { DateTime } from "luxon"
 
+export type DataSortDirection = "asc" | "desc"
+
+export type DataPathSelection<T> = StringKeys<T> | ((b: DataPathBuilder<T>) => DataPath)
+
+export class DataPath {
+    static createFromSelection<T>(selection: DataPathSelection<T>): DataPath {
+        if (typeof selection === "string") {
+            return new DataPath([selection])
+        }
+        else if (typeof selection === "function") {
+            return selection(new DataPathBuilder<T>())
+        }
+
+        return new DataPath([])
+    }
+
+    readonly segments: string[]
+    readonly value: string
+
+    constructor(nameOrSegments: string | string[]) {
+        if (typeof nameOrSegments === "string") {
+            nameOrSegments = [nameOrSegments]
+        }
+        this.segments = nameOrSegments
+        this.value = nameOrSegments.reduce((acc, next) => acc + "." + next)
+    }
+
+    getValueFrom(data: any): any | null | undefined {
+        if (data == null || !this.segments.length) return undefined
+
+        for (let i = 0; i < this.segments.length; i++) {
+            if (typeof data !== "object") {
+                return undefined
+            }
+
+            data = data[this.segments[i]]
+        }
+
+        return data
+    }
+}
+
+abstract class AbstractDataPathBuilder<T = any> {
+    protected _depth = 0
+    protected segments: string[] = []
+}
+
+export class DataPathBuilder<T = any> extends AbstractDataPathBuilder<T> {
+    select(prop: StringKeys<T>): DataPath {
+        if (this._depth >= this.segments.length) {
+            this.segments.push(prop)
+        }
+        else {
+            this.segments[this._depth] = prop
+        }
+
+        return new DataPath(this.segments)
+    }
+
+    expand<TExpandType>(prop: StringKeys<T>): DataPathBuilder<TExpandType> {
+        this.segments.push(prop)
+        this._depth++
+
+        return this as any as DataPathBuilder<TExpandType>
+    }
+}
+
+export class OrderByDataPath extends DataPath {
+    readonly direction: DataSortDirection
+
+    constructor(nameOrSegments: string | string[], direction?: DataSortDirection) {
+        super(nameOrSegments)
+
+        this.direction = direction ?? "asc"
+    }
+}
+
+export class OrderByDataPathBuilder<T = any> extends DataPathBuilder<T> {
+    override select(prop: StringKeys<T>, sortDirection?: DataSortDirection): OrderByDataPath {
+        if (this._depth >= this.segments.length) {
+            this.segments.push(prop)
+        }
+        else {
+            this.segments[this._depth] = prop
+        }
+
+        return new OrderByDataPath(this.segments, sortDirection)
+    }
+
+    override expand<TExpandType>(prop: StringKeys<T>): OrderByDataPathBuilder<TExpandType> {
+        return super.expand<TExpandType>(prop) as any as OrderByDataPathBuilder<TExpandType>
+    }
+}
+
+export type DataOrderByPathSelection<T> = StringKeys<T> | ((b: DataPathBuilder<T>) => string[])
+
+export type TableFilterOperator = ODataComparisonOperator | "contains"
+
+export class ActiveDataSort {
+    readonly id: string
+    readonly target: DataPath
+    direction: DataSortDirection
+
+    constructor(id: string, target: DataPath, sortDirection: DataSortDirection) {
+        this.id = id
+        this.target = target
+        this.direction = sortDirection
+    }
+}
+
+export class ActiveDataFilter {
+    readonly id: string
+    readonly target: DataPath
+    readonly operator: TableFilterOperator
+    value?: any
+
+    constructor(id: string, target: DataPath, operator: TableFilterOperator) {
+        this.id = id
+        this.target = target
+        this.operator = operator
+    }
+}
+
 export function toODataDateTime(value: Date | DateTime | null, encode = false): string | null {
     return toODataDateTimeCore(value, encode, false)
 }
@@ -48,14 +171,46 @@ class Container {
     skip: number | null = null
     top: number | null = null
     expansions: ExpandContainer[] = []
+    apply = ""
+
+    protected _copyTo(target: any) {
+        target.params = this.params
+        target.select = this.select
+        target.filter = this.filter
+        target.orderby = this.orderby
+        target.skip = this.skip
+        target.top = this.top
+        target.expansions = this.expansions.map(x => x.clone())
+    }
+
+    clone(): Container {
+        const clone = new Container()
+        this._copyTo(clone)
+
+        return clone
+    }
 }
 
 class ExpandContainer extends Container {
     expandedProp = ""
+
+    protected override _copyTo(target: any) {
+        super._copyTo(target)
+        target.expandedProp = this.expandedProp
+    }
+
+    override clone(): ExpandContainer {
+        const clone = new ExpandContainer()
+        this._copyTo(clone)
+
+        return clone
+    }
 }
 
 export class SimpleODataQueryBuilderOptions {
     usePascalCase = true
+    url?: string
+    _root?: Container
 }
 
 type SlotType = "params" | "select" | "orderby" | "filter"
@@ -66,15 +221,15 @@ export type ODataLogicalOperator = "and" | "or" | "not";
 
 type StringKeys<T> = Extract<keyof T, string>
 
-type ODataOrderByDirection = "asc" | "desc"
+type ODataOrderByDirection = DataSortDirection
 
-type ValueType = string | number | boolean | Date | DateTime | null | GuidValue | TextValue | DateOnlyValue
+type ODataValueType = string | number | boolean | Date | DateTime | null | GuidValue | TextValue | DateOnlyValue
 
 class GuidValue {
     constructor(public readonly guid: string) { }
 }
 
-export function toGuid(guid: string): ValueType {
+export function toGuid(guid: string): ODataValueType {
     return new GuidValue(guid)
 }
 
@@ -102,6 +257,10 @@ export class ODataCoreQueryBuilder<T> {
 
     constructor(root: Container) {
         this._root = root
+    }
+
+    protected _copyTo(target: any) {
+        target._root = this._root.clone()
     }
 
     get _effectiveContainer(): Container {
@@ -133,7 +292,10 @@ export class ODataCoreQueryBuilder<T> {
         const prev = this.#expandContainer
         this.#expandContainer = expandContainer
 
-        const builder = new ODataCoreQueryBuilder<TExpandType>(expandContainer)
+        // TODO: Assess whether we can reuse the
+        // current builder instance and just return an interface.
+        const builder = this as any as ODataCoreQueryBuilder<TExpandType> //
+        // new ODataCoreQueryBuilder<TExpandType>(expandContainer)
 
         if (selection) {
             builder.select(selection)
@@ -156,6 +318,10 @@ export class ODataCoreQueryBuilder<T> {
         return this
     }
 
+    _setFilterOfBuilder(filterBuilder: ODataFilterBuilder<T>) {
+        this._root.filter = filterBuilder.toString()
+    }
+
     _appendToSlot(slot: SlotType, separator: string | null, appendText: string): this {
         let text = this._effectiveContainer[slot]
         if (separator && text) {
@@ -168,14 +334,96 @@ export class ODataCoreQueryBuilder<T> {
     }
 }
 
+function joinDataPathSegments(separator: string, pathSegments: string[]): string {
+    return pathSegments.reduce((acc, next) => acc + separator + next)
+}
+
+type DataPathBuildFn<T> = (b: DataPathBuilder<T>) => DataPath
+
+export class ODataApplyBuilder<T> {
+    #filter = ""
+    #groupByProps = ""
+
+    filter(BuildFilterFn: (filterBuilder: ODataFilterBuilder<T>) => void): this {
+        if (BuildFilterFn) {
+            const fb = new ODataFilterBuilder<T>()
+
+            BuildFilterFn(fb)
+
+            this.#filter = fb.toString()
+        }
+
+        return this
+    }
+
+    // TODO: Continue with OData "aggregate".
+    // TODO: Support plain strings.
+    groupby(buildGroupBy: DataPathBuildFn<T> | DataPathBuildFn<T>[]): this {
+        if (typeof buildGroupBy === "string") {
+            this.#groupByProps = buildGroupBy
+        }
+
+        if (typeof buildGroupBy === "function") {
+            buildGroupBy = [buildGroupBy]
+        }
+
+        if (Array.isArray(buildGroupBy) && buildGroupBy.length) {
+            for (const [index, buildFn] of buildGroupBy.entries()) {
+                const dataPath = buildFn(new DataPathBuilder<T>())
+                const path = joinDataPathSegments("/", dataPath.segments)
+
+                if (index > 0) {
+                    this.#groupByProps += ","
+                }
+
+                this.#groupByProps += `${path}`
+            }
+        }
+
+        return this
+    }
+
+    toString() {
+        const expressions: string[] = []
+
+        if (this.#filter) {
+            expressions.push(`filter(${this.#filter})`)
+        }
+
+        if (this.#groupByProps) {
+            expressions.push(`groupby((${this.#groupByProps}))`)
+        }
+
+        return expressions.length
+            ? expressions.reduce((acc, next) => acc + "/" + next)
+            : ""
+    }
+}
+
+// TODO: Check out OData aggregation: https://devblogs.microsoft.com/odata/aggregation-extensions-in-odata-asp-net-core/
+
 export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
     #url = ""
     #options: SimpleODataQueryBuilderOptions
 
     constructor(options?: SimpleODataQueryBuilderOptions) {
-        super(new Container())
+        super(options?._root ?? new Container())
 
         this.#options = options ?? new SimpleODataQueryBuilderOptions()
+    }
+
+    clone(): ODataQueryBuilder<T> {
+        const clone = new ODataQueryBuilder<T>()
+        this._copyTo(clone)
+
+        return clone
+    }
+
+    protected override _copyTo(target: any) {
+        super._copyTo(target)
+
+        target.#url = this.#url
+        target.#options = this.#options
     }
 
     url(url: string): this {
@@ -184,7 +432,7 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
         return this
     }
 
-    param(paramName: string, value: ValueType): this {
+    param(paramName: string, value: ODataValueType): this {
         let effectiveValue: string
         if (value === null) {
             effectiveValue = "null"
@@ -211,8 +459,26 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
         return this
     }
 
-    orderby(orderby: StringKeys<T>, direction?: ODataOrderByDirection): this {
-        this._appendToSlot("orderby", ",", (orderby ?? "") + (direction ? `+${direction}` : ""))
+    // TODO: Support multiple order-by props.
+    orderby(
+        orderBy: StringKeys<T> | DataPathBuildFn<T> | DataPath,
+        direction?: ODataOrderByDirection
+    ): this {
+        let orderByPath: string | undefined
+        if (typeof orderBy === "string") {
+            orderByPath = orderBy as any as string
+        }
+        else if (typeof orderBy === "function") {
+            const dataPath = orderBy(new DataPathBuilder<T>())
+            orderByPath = joinDataPathSegments("/", dataPath.segments)
+        }
+        else if (orderBy instanceof DataPath) {
+            orderByPath = orderBy.value
+        }
+
+        if (orderByPath) {
+            this._appendToSlot("orderby", ",", (orderByPath ?? "") + (direction ? `+${direction}` : ""))
+        }
 
         return this
     }
@@ -227,6 +493,63 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
         this._effectiveContainer.top = count
 
         return this
+    }
+
+    apply(buildApply: (b: ODataApplyBuilder<T>) => ODataApplyBuilder<T>): this {
+        const applyBuilder = buildApply(new ODataApplyBuilder<T>())
+        this._root.apply = applyBuilder.toString()
+
+        return this
+    }
+
+    isSinglePropSelection(): boolean {
+        let selectedPropCount = 0
+
+        this.#visitContainers((container: Container) => {
+            // TODO: Since we don't operate on an AST we have to hack with strings here :-(
+            if (container.select) {
+                if (container.select.indexOf(",") !== -1) {
+                    selectedPropCount += 2
+                    return false
+                }
+
+                selectedPropCount++
+            }
+
+            return selectedPropCount <= 1
+        })
+
+        return selectedPropCount === 1
+    }
+
+    // getSelectedPropsFlat(): string[] {
+    //     const selectedProps: string[] = []
+
+    //     this.#visitContainers((container: Container) => {
+    //         // TODO: Since we don't operate on an AST we have to hack with strings here :-(
+    //         selectedProps.push(...container.select.split(",").map(x => x.trim()))
+    //     })
+
+    //     return selectedProps
+    // }
+
+    #visitContainers(visit: (container: Container, level: number) => boolean | void): void {
+        const __traverseContainerTree = (item: Container, level: number): boolean => {
+            const result = visit(item, level)
+            if (result === false) return false
+
+            if (item.expansions) {
+                for (const subContainer of item.expansions) {
+                    if (__traverseContainerTree(subContainer, level + 1) === false) {
+                        return false
+                    }
+                }
+            }
+
+            return true
+        }
+
+        __traverseContainerTree(this._root, 0)
     }
 
     override toString(): string {
@@ -302,6 +625,10 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
             result += this.#addSeparator(result, separator, "$top=" + item.top)
         }
 
+        if (item.apply) {
+            result += this.#addSeparator(result, separator, "$apply=" + item.apply)
+        }
+
         if (item.expansions.length) {
             result += this.#addSeparator(result, separator, "$expand=")
             let expansion: ExpandContainer
@@ -323,14 +650,40 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
     }
 }
 
-export class ODataFilterBuilder<T = any> {
-    #filter = ""
+export class AnyODataQueryBuilder {
+    #url?: string
 
-    get filter(): string {
-        return this.#filter
+    url(url: string): this {
+        this.#url = url
+
+        return this
     }
 
-    where(prop: StringKeys<T>, comparisonOp: ODataComparisonOperator, value: ValueType): this {
+    from<T>(): ODataQueryBuilder<T> {
+        const q = new ODataQueryBuilder<T>()
+        if (this.#url) {
+            q.url(this.#url)
+        }
+
+        return q
+    }
+}
+
+export class ODataFilterBuilder<T = any> {
+    protected _filter = ""
+
+    protected _copyTo(target: any) {
+        target._filter = this._filter
+    }
+
+    clone(): ODataFilterBuilder<T> {
+        const clone = new ODataFilterBuilder<T>()
+        this._copyTo(clone)
+
+        return clone
+    }
+
+    where(prop: StringKeys<T>, comparisonOp: ODataComparisonOperator, value: ODataValueType): this {
         let effectiveProp: string = prop
         let effectiveValue: string
         if (value === null) {
@@ -354,25 +707,25 @@ export class ODataFilterBuilder<T = any> {
             throw new Error(`Unexpected odata query filter value type '${typeof value}'.`)
         }
 
-        this.#append(` ${effectiveProp} ${comparisonOp} ${effectiveValue}`)
+        this._append(` ${effectiveProp} ${comparisonOp} ${effectiveValue}`)
 
         return this
     }
 
-    eq = (prop: StringKeys<T>, value: ValueType): this => this.where(prop, "eq", value)
+    eq = (prop: StringKeys<T>, value: ODataValueType): this => this.where(prop, "eq", value)
 
-    ne = (prop: StringKeys<T>, value: ValueType): this => this.where(prop, "ne", value)
+    ne = (prop: StringKeys<T>, value: ODataValueType): this => this.where(prop, "ne", value)
 
-    gt = (prop: StringKeys<T>, value: ValueType): this => this.where(prop, "gt", value)
+    gt = (prop: StringKeys<T>, value: ODataValueType): this => this.where(prop, "gt", value)
 
-    ge = (prop: StringKeys<T>, value: ValueType): this => this.where(prop, "ge", value)
+    ge = (prop: StringKeys<T>, value: ODataValueType): this => this.where(prop, "ge", value)
 
-    lt = (prop: StringKeys<T>, value: ValueType): this => this.where(prop, "lt", value)
+    lt = (prop: StringKeys<T>, value: ODataValueType): this => this.where(prop, "lt", value)
 
-    le = (prop: StringKeys<T>, value: ValueType): this => this.where(prop, "le", value)
+    le = (prop: StringKeys<T>, value: ODataValueType): this => this.where(prop, "le", value)
 
     #logicalOp(logicalOp: ODataLogicalOperator): this {
-        if (!this.#filter) return this
+        if (!this._filter) return this
 
         if (this.#isSubStart) {
             this.#isSubStart = false
@@ -380,11 +733,11 @@ export class ODataFilterBuilder<T = any> {
             return this
         }
 
-        if (!this.#filter) {
+        if (!this._filter) {
             return this
         }
 
-        this.#append(` ${logicalOp}`)
+        this._append(` ${logicalOp}`)
 
         return this
     }
@@ -397,19 +750,19 @@ export class ODataFilterBuilder<T = any> {
 
     andSub(build: () => void) {
         this.and()
-        this.#append("(")
+        this._append("(")
         this.#isSubStart = true
         build()
-        this.#append(")")
+        this._append(")")
 
         return this
     }
 
     sub(build: () => void) {
-        this.#append("(")
+        this._append("(")
         this.#isSubStart = true
         build()
-        this.#append(")")
+        this._append(")")
 
         return this
     }
@@ -417,31 +770,31 @@ export class ODataFilterBuilder<T = any> {
     not = (): this => this.#logicalOp("not")
 
     contains(prop: StringKeys<T>, value: string): this {
-        return this.#append(` contains(${prop},'${value}')`)
+        return this._append(` contains(${prop},'${value}')`)
     }
 
     anyExpression(prop: StringKeys<T>, odataLambdaExpression: string) {
-        return this.#append(`${prop}/any(${odataLambdaExpression})`)
+        return this._append(`${prop}/any(${odataLambdaExpression})`)
     }
 
-    #append(text: string): this {
+    protected _append(text: string): this {
         if (!text) return this
 
         this.#isSubStart = false
 
-        if (!this.#filter) {
+        if (!this._filter) {
             text = text.trim()
-        } else if (text[0] !== " " && this.#filter[this.#filter.length - 1] !== " ") {
+        } else if (text[0] !== " " && this._filter[this._filter.length - 1] !== " ") {
             // Ensure space between conditions.
             text = " " + text
         }
 
-        this.#filter += text
+        this._filter += text
 
         return this
     }
 
     toString(): string {
-        return this.filter.trim()
+        return this._filter.trim()
     }
 }

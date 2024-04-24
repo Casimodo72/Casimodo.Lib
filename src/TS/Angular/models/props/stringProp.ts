@@ -20,10 +20,6 @@ export class StringFormProp extends FormProp<string> {
         this.applyTrimming()
     }
 
-    // setValueOrNone(value: string | null | undefined): boolean {
-    //     return this.setValue(value ?? "")
-    // }
-
     applyTrimming() {
         if (this.#isTrimming) {
             //console.debug("## prop: trimming")

@@ -1,26 +1,59 @@
 <div>
-    <mat-table [dataSource]="tableModel.rows()" matSort (matSortChange)="onMatSort($event)">
+    <app-global-progress-bar />
+
+    <mat-table [dataSource]="tableModel.rows()">
         <!-- matSort
             [matSortActive]="tableModel.sortPropName()" [matSortDisableClear]="true"
-            [matSortDirection]="tableModel.sortDirection()">
+            [matSortDirection]="tableModel.sortDirection()"
+             (matSortChange)="onMatSort($event)">
         -->
 
-        @for (column of tableModel.columns(); track column) {
-        <ng-container [matColumnDef]="column.path">
-
-            <mat-header-cell *matHeaderCellDef mat-sort-header [disableClear]="true">
-                @if (column.filter) {
-                <app-table-column-header-renderer [column]="column" />
-                }
+        @for (column of tableModel.columns(); track column.id) {
+        <!-- Header title row -->
+        <ng-container [matColumnDef]="column.id">
+            <mat-header-cell *matHeaderCellDef>
+                <!-- mat-sort-header [disableClear]="true" -->
+                <div class="flex items-center gap-1" [class.app-sortable-table-header]="column.isSortable"
+                    (click)="column.toggleSearchDirection()">
+                    <div>{{column.title()}}</div>
+                    @if (column.isSortable) {
+                    <div>
+                        @if (column.sortState() === 'asc') {
+                        <mat-icon class="material-symbols-outlined"
+                            style="vertical-align:middle">stat_1_outline</mat-icon>
+                        }
+                        @else if (column.sortState() === 'desc') {
+                        <mat-icon class="material-symbols-outlined"
+                            style="vertical-align:middle">stat_minus_1_outline</mat-icon>
+                        }
+                    </div>
+                    }
+                </div>
             </mat-header-cell>
 
             <mat-cell *matCellDef="let row">
                 <app-table-cell-renderer [column]="column" [row]="row" />
             </mat-cell>
         </ng-container>
+
+        <!-- Header filter row -->
+        <ng-container [matColumnDef]="column.filterId">
+            <!-- Note that we always have to provide mat-header-cell and matHeaderCellDef
+                 even if there is no filter for this column :-( Angular material will crash otherwise. -->
+            <mat-header-cell *matHeaderCellDef>
+                @if (column.filter) {
+                <!-- TODO: Find out how to display custom sort indicator.
+                     The default one looks unexplicably crappy.
+                    -->
+                <app-table-column-filter-renderer [column]="column" />
+                }
+            </mat-header-cell>
+        </ng-container>
         }
 
-        <mat-header-row *matHeaderRowDef="tableModel.visibleColumnPaths()" />
-        <mat-row *matRowDef="let row; columns: tableModel.visibleColumnPaths()" />
+        <mat-header-row *matHeaderRowDef="tableModel.visibleColumnIds()" />
+        <mat-header-row *matHeaderRowDef="tableModel.visibleColumnFilterIds()" />
+
+        <mat-row *matRowDef="let row; columns: tableModel.visibleColumnIds()" />
     </mat-table>
 </div>

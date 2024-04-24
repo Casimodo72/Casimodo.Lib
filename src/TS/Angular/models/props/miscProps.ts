@@ -4,13 +4,9 @@ import { FormProp } from "./prop"
 import { FormPropRulesBuilder as FormPropRulesBuilder } from "./propRuleBuilder"
 import { Signal, computed, signal } from "@angular/core"
 import { StringFormProp as StringFormProp } from "./stringProp"
-import { PickerItemModel, PickerFormProp } from "./selectableProp"
-import { ListModel } from "../lists"
+import { PickerFormProp } from "./selectableProp"
 
 export class SearchableStringFormProp extends StringFormProp {
-    readonly #pickableItemList = new ListModel<PickerItemModel<string>>()
-    // readonly #searchText = signal("")
-    // readonly searchText = this.#searchText.asReadonly()
     readonly isSearchOpen = signal(false)
     readonly isSearchMatch = computed(() => {
         const items = this.picker.pickableItems()
@@ -53,17 +49,9 @@ export class SearchableStringFormProp extends StringFormProp {
 
     setSearchValue(searchText: string | null) {
         this.picker.setFilterValue(searchText ?? "")
-
-        //this.#searchText.set(searchText ?? "")
     }
 
     setSearchValues(values: string[]): this {
-        // const pickItems: PickerItemModel<string>[] = []
-        // for (const value of values) {
-        //     pickItems.push(new PickerItemModel<string>(value))
-        // }
-        // this.#pickableItemList.setItems(pickItems)
-
         this.picker.setPickValues(values)
 
         return this

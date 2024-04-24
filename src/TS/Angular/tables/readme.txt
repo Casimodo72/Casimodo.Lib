@@ -1,1 +1,1 @@
-This is currently a one-evening experiment/POC thingy.
+Still a POC and work in progress. Not used yet.
