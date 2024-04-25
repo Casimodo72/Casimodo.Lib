@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34321.82
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Casimodo.Web.HtmlToPdf", "Casimodo.Web.HtmlToPdf\Casimodo.Web.HtmlToPdf.csproj", "{7EAEC64C-292B-4F77-8F37-1B5B9FB0B0CF}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DBC69819-E779-465E-ABBF-83A7F4EC0D24}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7EAEC64C-292B-4F77-8F37-1B5B9FB0B0CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EAEC64C-292B-4F77-8F37-1B5B9FB0B0CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EAEC64C-292B-4F77-8F37-1B5B9FB0B0CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EAEC64C-292B-4F77-8F37-1B5B9FB0B0CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBC69819-E779-465E-ABBF-83A7F4EC0D24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC69819-E779-465E-ABBF-83A7F4EC0D24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC69819-E779-465E-ABBF-83A7F4EC0D24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC69819-E779-465E-ABBF-83A7F4EC0D24}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F99B3085-D3AB-4FA5-BD04-DD4285B2535A}
+	EndGlobalSection
+EndGlobal

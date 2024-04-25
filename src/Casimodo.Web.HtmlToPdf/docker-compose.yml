@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  casimodo.web.htmltopdf:
+    image: ${DOCKER_REGISTRY-}casimodo.webhtmltopdf
+    build:
+      context: .
+      dockerfile: Casimodo.Web.HtmlToPdf/Dockerfile
