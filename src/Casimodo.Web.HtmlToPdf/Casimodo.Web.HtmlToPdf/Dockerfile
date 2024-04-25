@@ -17,7 +17,7 @@ RUN apt-get update -yq \
     && dpkg -i packages-microsoft-prod.deb \
     && apt-get update -yq \
     && apt-get install powershell -yq
-
+# Install Segoe UI; I like Segoe UI.
 # TODO: Find a better place to download this from. This could be a security risk.
 # Hey, Wlads and Xings: this an open invitation for you destructive Russian/Chinese fuckdips to look into our underwear and jerk a bit.
 # All the glory to the assholes :-(
