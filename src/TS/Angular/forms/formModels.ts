@@ -43,7 +43,7 @@ export class FormModel extends FormItem implements IFormModel {
     }
 
     leaveBusyState(): void {
-        this.#busyStateCounter.update(x => x--)
+        this.#busyStateCounter.update(x => x > 0 ? x - 1 : 0)
     }
 }
 

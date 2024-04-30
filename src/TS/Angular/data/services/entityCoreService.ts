@@ -1,15 +1,18 @@
 import { Injectable, inject } from "@angular/core"
+import { DateTime } from "luxon"
 
 import { AuthService } from "@lib/auth"
-import { IDeletableEntityCore, IEntityCore } from "../entityBase"
-import { DateTime } from "luxon"
 import { UserNotifiableError } from "@lib/errors"
+
+import { IDeletableEntityCore, IEntityCore } from "../entityBase"
 
 @Injectable({ providedIn: "root" })
 export class EntityCoreService {
     readonly #authService = inject(AuthService)
 
     copyAsNewEntity<T extends Partial<IEntityCore>>(entityToCopy: T, now?: DateTime): T {
+        // TODO: Use a real deep copy. Speading and Object.assign both
+        // keep references to the original strings :-/
         const copy = { ...entityToCopy }
         copy.Id = crypto.randomUUID()
 
@@ -21,7 +24,7 @@ export class EntityCoreService {
 
         const user = this.#authService.user()
         if (!user) {
-            throw new UserNotifiableError("Kein aktueller Benutzer.", "no-current-user")
+            throw this.#createNoCurrentUserError()
         }
 
         if (!entity.Id) {
@@ -43,7 +46,7 @@ export class EntityCoreService {
 
         const user = this.#authService.user()
         if (!user) {
-            throw new UserNotifiableError("Kein aktueller Benutzer.", "no-current-user")
+            throw this.#createNoCurrentUserError()
         }
 
         entity.ModifiedOn = now.toJSDate()
@@ -59,7 +62,7 @@ export class EntityCoreService {
 
         const user = this.#authService.user()
         if (!user) {
-            throw new UserNotifiableError("Kein aktueller Benutzer.", "no-current-user")
+            throw this.#createNoCurrentUserError()
         }
 
         entity.IsDeleted = true
@@ -69,5 +72,9 @@ export class EntityCoreService {
         entity.DeletedByUserId = user.Id
 
         return entity
+    }
+
+    #createNoCurrentUserError() {
+        return new UserNotifiableError("Kein aktueller Benutzer.", "no-current-user")
     }
 }

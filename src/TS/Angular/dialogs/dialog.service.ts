@@ -54,42 +54,42 @@ export class DialogService {
     readonly #matDialog = inject(MatDialog)
 
     openForm<TData = any>(formArgs: IFormDialogArgs<TData>, matDialogConfig?: MatDialogConfig<IFormDialogArgs<TData>>): Promise<IFormResult<TData>> {
-        return this.openFormWithInputAndResult<TData, TData>(formArgs, matDialogConfig)
+        return this.openFormWithInputAndOutput<TData, TData>(formArgs, matDialogConfig)
     }
 
-    async openFormWithInputAndResult<TInput, TResult>(formArgs: IFormDialogArgs<TInput>, matDialogConfig?: MatDialogConfig<IFormDialogArgs<TInput>>): Promise<IFormResult<TResult>> {
+    async openFormWithInputAndOutput<TInput, TOutput>(formArgs: IFormDialogArgs<TInput>, matDialogConfig?: MatDialogConfig<IFormDialogArgs<TInput>>): Promise<IFormResult<TOutput>> {
         matDialogConfig ??= new MatDialogConfig<IFormDialogArgs<TInput>>()
         matDialogConfig.disableClose = true
         matDialogConfig.data = formArgs
 
-        const dialogRef = this.#matDialog.open<FormDialogComponent, IFormDialogArgs<TInput>, IFormResult<TResult>>(FormDialogComponent, matDialogConfig)
-        let result = await firstValueFrom(dialogRef.afterClosed())
+        const dialogRef = this.#matDialog.open<FormDialogComponent, IFormDialogArgs<TInput>, IFormResult<TOutput>>(FormDialogComponent, matDialogConfig)
+        let output = await firstValueFrom(dialogRef.afterClosed())
 
-        if (result === undefined) {
+        if (output === undefined) {
             // Result will be undefined if the close the form e.g. via click on the backdrop.
-            result = {
+            output = {
                 hasSucceeded: false,
                 status: "cancelled"
             } satisfies IFormResult<TInput>
         }
 
-        return result as IFormResult<TResult>
+        return output as IFormResult<TOutput>
     }
 
-    async open<T, TInput = any, TResult = any>(component: ComponentType<T>, matDialogConfig?: MatDialogConfig<TInput>): Promise<TResult> {
+    async open<T, TInput = any, TOutput = any>(component: ComponentType<T>, matDialogConfig?: MatDialogConfig<TInput>): Promise<TOutput> {
         matDialogConfig ??= {}
         matDialogConfig.disableClose = true
         const dialogRef = this.#matDialog.open(component, matDialogConfig)
-        const result = await firstValueFrom(dialogRef.afterClosed())
+        const output = await firstValueFrom(dialogRef.afterClosed())
 
-        return result
+        return output
     }
 
     async confirm(config: ConfirmationDialogConfig): Promise<boolean> {
         const dialogRef = this.#matDialog.open(ConfirmationDialogComponent, this.#buildMatDialogConfig(config))
-        const result = await firstValueFrom(dialogRef.afterClosed())
+        const output = await firstValueFrom(dialogRef.afterClosed())
 
-        return !!result
+        return !!output
     }
 
     showInfo(config: InfoDialogConfig) {

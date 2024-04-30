@@ -7,8 +7,6 @@ import { FormPropRulesBuilder } from "./propRuleBuilder"
 import { StringFormProp } from "./stringProp"
 import { DataPath, DataPathSelection } from "@lib/data-utils"
 
-type StringKeys<T> = Extract<keyof T, string>
-
 export class PickerItemModel<T = any> extends DataItemModel<T> {
     _isEmpty?: boolean
     _displayPath?: DataPath
@@ -34,11 +32,7 @@ type PickItemFn<TPickItem> = (pickItem: TPickItem) => void
 export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData> = PickerItemModel<TData>>
     extends FormProp<TData | null> {
 
-    // TODO: REMOVE? Not used
-    // static readonly EmptyItem = new PickerItemModel({ id: "47a3ec00-5a07-4c1e-98b5-01a6cbf48038" })
-    // static {
-    //     this.EmptyItem._isEmpty = true
-    // }
+    // TODO:
 
     /** @filterValue will always be non empty here. */
     static #filterDefault(filterValue: string, data: any): boolean {
@@ -57,10 +51,11 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
     readonly filter = new StringFormProp(this)
     readonly #filterPath = signal<DataPath | undefined>(undefined)
     readonly filterValue = this.filter.value
+    #isClearFilterValueOnFocusOutEnabled = false
 
     readonly hasEmptyItem = signal(false)
-    readonly #emptyText = signal("(Keine Auswahl)")
-    readonly emptyText = this.#emptyText.asReadonly()
+    // readonly #emptyText = signal("(Keine Auswahl)")
+    // readonly emptyText = this.#emptyText.asReadonly()
 
     // TODO: Since Angular material can't virtualize the displayed items,
     // we need to restrict the number of displayable items for now.
@@ -136,11 +131,11 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
         super(group, initialValue ?? null)
     }
 
-    setEmptyText(emptyText: string): this {
-        this.#emptyText.set(emptyText)
+    // setEmptyText(emptyText: string): this {
+    //     this.#emptyText.set(emptyText)
 
-        return this
-    }
+    //     return this
+    // }
 
     setHasNullValue(hasNullValue: boolean): this {
         this.hasEmptyItem.set(hasNullValue)
@@ -152,9 +147,14 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
         return this.items().find(x => x.data === value) !== undefined
     }
 
-    setDisplayProp(displayProp: DataPathSelection<TData> | undefined): this {
+    setDisplayProp(displayProp: DataPath | DataPathSelection<TData> | undefined): this {
         if (displayProp) {
-            this.#displayPath.set(DataPath.createFromSelection<TData>(displayProp))
+            if (displayProp instanceof DataPath) {
+                this.#displayPath.set(displayProp)
+            }
+            else {
+                this.#displayPath.set(DataPath.createFromSelection<TData>(displayProp))
+            }
         }
         else {
             this.#displayPath.set(undefined)
@@ -169,9 +169,14 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
         return this
     }
 
-    setFilterProp(filterProp: DataPathSelection<TData> | undefined): this {
+    setFilterProp(filterProp: DataPath | DataPathSelection<TData> | undefined): this {
         if (filterProp) {
-            this.#filterPath.set(DataPath.createFromSelection<TData>(filterProp))
+            if (filterProp instanceof DataPath) {
+                this.#filterPath.set(filterProp)
+            }
+            else {
+                this.#filterPath.set(DataPath.createFromSelection<TData>(filterProp))
+            }
         }
         else {
             this.#filterPath.set(undefined)
@@ -182,6 +187,18 @@ export class PickerFormProp<TData = any, TPickItem extends PickerItemModel<TData
 
     setFilterValue(filterValue: string | null) {
         this.filter.setValue(filterValue ?? "")
+    }
+
+    setIsClearFilterValueOnFocusOutEnabled(enabled: boolean) {
+        this.#isClearFilterValueOnFocusOutEnabled = enabled
+    }
+
+    override async _onDomInputFocusOut(ev: FocusEvent): Promise<void> {
+        await super._onDomInputFocusOut(ev)
+
+        if (this.#isClearFilterValueOnFocusOutEnabled) {
+            this.setFilterValue(null)
+        }
     }
 
     setFilterFunction(filterFn: PickerFilterFn<TData>): this {

@@ -9,6 +9,7 @@ import {
 import { FormPropRule, RuleResult, ValidationContext } from "./propRule"
 import { FormPropRulesBuilder } from "./propRuleBuilder"
 import { _InternalPropGroupValidationManager } from "./propValidation"
+import { Observable, Subject } from "rxjs"
 
 export class FormItem implements IFormItem, _IInternalFormItem {
     /**
@@ -133,6 +134,16 @@ export abstract class FormProp<TData = any> extends FormItem implements IFormPro
     readonly initialValue: Signal<TData>
     readonly _value: WritableSignal<TData>
     readonly value: Signal<TData>
+    #valueChanged?: Subject<TData>
+    #valueChanged$?: Observable<TData>
+    get valueChanged(): Observable<TData> {
+        if (!this.#valueChanged$) {
+            this.#valueChanged = new Subject<TData>()
+            this.#valueChanged$ = this.#valueChanged.asObservable()
+        }
+
+        return this.#valueChanged$
+    }
     readonly #focusValue = signal<TData | undefined>(undefined)
     label?: string | null
     readonly #hasFocus = signal(false)
@@ -346,6 +357,9 @@ export abstract class FormProp<TData = any> extends FormItem implements IFormPro
     onValueChanged(): void {
         this.parent.onPropValueChanged(this)
 
+        if (this.#valueChanged) {
+            this.#valueChanged.next(this._value())
+        }
         this.#onValueChangedFn?.(this._value())
 
         if (this.#onFullValueChangedFn && !this.hasFocus()) {

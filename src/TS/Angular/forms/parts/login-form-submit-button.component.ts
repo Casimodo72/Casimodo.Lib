@@ -1,11 +1,11 @@
 import { CommonModule } from "@angular/common"
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core"
+import { ChangeDetectionStrategy, Component, input } from "@angular/core"
 
 import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner"
 
-import { LoginForm } from "./index"
+import { LoginFormModel } from "./loginForm"
 
 @Component({
     selector: "app-login-form-submit-button",
@@ -19,12 +19,14 @@ import { LoginForm } from "./index"
         :host { display: contents; }
     `],
     template: `
-        <button mat-raised-button color="primary" class="w-full">
-            <span>Einloggen</span>
-            <mat-icon *ngIf="form.isBusy()"><mat-spinner diameter="16" color="accent" /></mat-icon>
-        </button>
-    `
+<button mat-raised-button color="primary" class="w-full">
+    <span>Einloggen</span>
+    @if (form().isBusy()) {
+        <mat-icon><mat-spinner diameter="16" color="accent" /></mat-icon>
+    }
+</button>
+`
 })
 export class LoginFormSubmitButtonComponent {
-    @Input({ required: true }) form!: LoginForm
+    readonly form = input.required<LoginFormModel>()
 }

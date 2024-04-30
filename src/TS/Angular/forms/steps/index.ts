@@ -1,2 +1,2 @@
-export { CCStepperDirective, CCStepDirective } from "./directives"
+export { CMatStepperModelDirective, CMatStepModelDirective } from "./directives"
 export { StepModel, StepperModel } from "./models"

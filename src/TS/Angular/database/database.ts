@@ -138,19 +138,6 @@ export abstract class Database<
         return currentUser
     }
 
-    // TODO: REMOVE
-    // async getCurrentUser(): Promise<AuthenticatedAppUser | null> {
-    //     let currentUser = this.#currentUser()
-    //     if (!currentUser) {
-    //         currentUser = this.#authService.user()
-    //         if (currentUser) {
-    //             this.#currentUser.set(currentUser)
-    //         }
-    //     }
-
-    //     return currentUser
-    // }
-
     getRequiredCurrentUserId(): string {
         return this.getRequiredCurrentUser().Id
     }

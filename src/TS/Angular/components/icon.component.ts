@@ -1,10 +1,10 @@
 import { CommonModule } from "@angular/common"
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, computed, input, signal } from "@angular/core"
-import { MatIconModule } from "@angular/material/icon"
+import { ChangeDetectionStrategy, Component, computed, input } from "@angular/core"
 
 type IconType = "add" | "delete" | "cancel" | "clear" | "edit" | "save" | "refresh" |
     "info" | "question" | "logout" | "forward" | "backward" | "star" | "checked" | "ok" |
     "today" | "duration" | "open-dropdown" | "close" | "open-menu" |
+    "sort-arrow-upward" | "sort-arrow-downward" |
     "increase-arrow-upward" | "decrease-arrow-downward" | "decrease-all-arrow-downward" |
     "circle"
 
@@ -14,24 +14,24 @@ type IconType = "add" | "delete" | "cancel" | "clear" | "edit" | "save" | "refre
     selector: "app-icon",
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, MatIconModule],
+    imports: [CommonModule],
+    // TODO: Find a more sane way to display icons. E.g. if used
+    // inline with text: it is a PITA to align stuff nicely.
     styles: [`
         :host { @apply flex items-center }
     `],
     template: `
-@if (icon(); as icon) {
-    <span class="h-full material-symbols-outlined" [ngStyle]="styles()">{{icon}}</span>
-}
+    <span class="h-full material-symbols-outlined" [ngStyle]="styles()">{{icon()}}</span>
 `
 })
 export class IconComponent {//implements OnChanges {
     readonly state = input(false)
     readonly size = input<string>()
     readonly bold = input(false)
-    readonly icon = input.required<string, string>(
+    readonly icon = input.required<string, IconType>(
         {
             alias: "type",
-            transform: (value: string) => this.#mapIcon(value),
+            transform: (value: IconType) => this.#mapIcon(value),
         })
 
     readonly styles = computed<any>(() => {
@@ -41,7 +41,7 @@ export class IconComponent {//implements OnChanges {
         }
     })
 
-    #mapIcon(type: string | undefined | null): string {
+    #mapIcon(type: IconType | undefined | null): string {
         if (!type) return "help_outline"
 
         switch (type) {
@@ -65,9 +65,13 @@ export class IconComponent {//implements OnChanges {
             case "circle": return "circle"
             case "checked": return this.state() ? "task_alt" : "circle"
             case "star": return this.state() ? "star" : "star_outline"
-            case "decrease-arrow-downward": return "stat_minus_1_outline"
+            case "decrease-arrow-downward":
+            case "sort-arrow-downward":
+                return "stat_minus_1_outline"
             case "decrease-all-arrow-downward": return "stat_minus_3_outline"
-            case "increase-arrow-upward": return "stat_1_outline"
+            case "increase-arrow-upward":
+            case "sort-arrow-upward":
+                return "stat_1_outline"
             default: return "help_outline"
         }
     }

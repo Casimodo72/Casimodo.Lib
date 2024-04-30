@@ -1,36 +1,40 @@
-import { ChangeDetectorRef, DestroyRef, Directive, ElementRef, Input, OnDestroy, OnInit, Optional, inject } from "@angular/core"
+/* eslint-disable @angular-eslint/directive-selector */
+/* eslint-disable @angular-eslint/directive-class-suffix */
+import {
+    AfterContentChecked, ChangeDetectorRef, DestroyRef, Directive,
+    ElementRef, OnDestroy, OnInit, Optional, inject, input
+} from "@angular/core"
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop"
 import { AbstractControl, NgModel } from "@angular/forms"
+
 import { MatAutocompleteTrigger } from "@angular/material/autocomplete"
 import { MatOptionSelectionChange } from "@angular/material/core"
 import { MatDatepickerInput } from "@angular/material/datepicker"
 import { MatFormFieldControl } from "@angular/material/form-field"
 import { MatSelect, MatSelectChange } from "@angular/material/select"
+
 import { DomEventManager } from "@lib/dom"
-import { IFormPropControlAdaper, FormProp, PickerFormProp, AnyDateTimeFormProp, PickerItemModel, SearchableStringFormProp } from "@lib/models/props"
+import {
+    IFormPropControlAdaper, FormProp, PickerFormProp, AnyDateTimeFormProp,
+    PickerItemModel, SearchableStringFormProp
+} from "@lib/models/props"
 
 @Directive({
-    // eslint-disable-next-line @angular-eslint/directive-selector
-    selector: "input[ccProp], textarea[ccProp], mat-select[ccProp]",
+    selector: "input[cmatModel], textarea[cmatModel], mat-select[cmatModel]",
     standalone: true
 })
 /**
  * Acts as the glue between a Prop, the Angular forms stuff and the DOM.
  */
-export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdaper {
+export class CMatModel implements OnInit, AfterContentChecked, OnDestroy, IFormPropControlAdaper {
     readonly #destroyRef = inject(DestroyRef)
     readonly #elementRef: ElementRef
     readonly #changeDetectorRef: ChangeDetectorRef
     readonly _ngModel: NgModel
     readonly #formFieldControl: MatFormFieldControl<any> | null
-    // TODO: Dunno yet if we should use HostListener (or something else) instead for listening to DOM events.
     readonly domEvents: DomEventManager
 
-    @Input({ required: true }) ccProp!: FormProp
-
-    // TODO: How do dynamically apply a read-only state?
-    //   [disabled]="prop.isReadOnly()"
-    //   [ariaReadOnly]="prop.isReadOnly()"
+    readonly cmatModel = input.required<FormProp>()
 
     constructor(
         changeDetectorRef: ChangeDetectorRef,
@@ -52,7 +56,7 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
             const ngFormsAbstractControl: AbstractControl | null | undefined = this.#formFieldControl.ngControl?.control
             if (ngFormsAbstractControl) {
                 ngFormsAbstractControl.setValidators((_control: AbstractControl) => {
-                    if (this.ccProp.errors()?.length) {
+                    if (this.cmatModel().errors()?.length) {
                         return { dummy: true }
                     }
 
@@ -71,12 +75,10 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
     /** Couldn't make binding (ngModel="mySignal()") work with mat-select,
      * so we're sometimes setting the value programmatically on the control.
      */
-
     setValue(value: any): void {
-        const control = this._ngModel.control
-        if (control) {
-            control.setValue(value)
-        }
+        this._ngModel.control.setValue(
+            value,
+            { onlySelf: true, emitModelToViewChange: true, emitViewToModelChange: false })
     }
 
     focus() {
@@ -110,22 +112,23 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
     }
 
     ngOnInit() {
-        this.ccProp._setControlAdapter(this)
+        const cmatModel = this.cmatModel()
+        cmatModel._setControlAdapter(this)
 
         const el = this.#elementRef.nativeElement as HTMLInputElement
-        el.setAttribute("name", this.ccProp.id)
+        el.setAttribute("name", cmatModel.id)
         this.domEvents.addInput(this.#onInput)
         this.domEvents.add("keydown", this.#onKeyDown)
         this.domEvents.add("keyup", this.#onKeyUp)
         this.domEvents.add("focusin", this.#onFocusIn)
         this.domEvents.add("focusout", this.#onFocusOut)
 
-        if (this.ccProp.errors()?.length) {
+        if (cmatModel.errors()?.length) {
             this.setErrorState(true)
         }
 
         // Date picker
-        if (this.ccProp instanceof AnyDateTimeFormProp) {
+        if (cmatModel instanceof AnyDateTimeFormProp) {
             if (this._ngModel.valueAccessor instanceof MatDatepickerInput &&
                 this._ngModel.valueChanges
             ) {
@@ -136,14 +139,14 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
                             throw new Error("A Luxon date-time was expected.")
                         }
 
-                        this.ccProp.setValue(data ?? null)
+                        this.cmatModel().setValue(data ?? null)
                         // console.log(data)
                     })
             }
         }
 
-        if (this.ccProp instanceof SearchableStringFormProp) {
-            const textModel = this.ccProp as SearchableStringFormProp
+        if (cmatModel instanceof SearchableStringFormProp) {
+            const textModel = cmatModel as SearchableStringFormProp
             if (this._ngModel.valueAccessor instanceof MatAutocompleteTrigger &&
                 this._ngModel.valueChanges
             ) {
@@ -158,8 +161,8 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
         }
 
         // Value picker
-        if (this.ccProp instanceof PickerFormProp) {
-            const pickerModel = this.ccProp as PickerFormProp
+        if (cmatModel instanceof PickerFormProp) {
+            const pickerModel = cmatModel as PickerFormProp
 
             if (this._ngModel.valueAccessor instanceof MatAutocompleteTrigger &&
                 this._ngModel.valueChanges
@@ -172,6 +175,13 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
                         }
                     })
 
+                // TODO: Using writeValue *clears* the value from UI, why?
+                // pickerModel.filter.valueChanged
+                //     .pipe(takeUntilDestroyed(this.#destroyRef))
+                //     .subscribe(value => {
+                //         this._ngModel.valueAccessor!.writeValue(value)
+                //     })
+
                 this._ngModel.valueAccessor.optionSelections
                     .pipe(takeUntilDestroyed(this.#destroyRef))
                     .subscribe((change: MatOptionSelectionChange<any>) => {
@@ -183,6 +193,7 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
 
             if (this.#formFieldControl instanceof MatSelect) {
                 this.#formFieldControl.compareWith = this.#compareValues
+
                 this.#formFieldControl.selectionChange
                     .pipe(takeUntilDestroyed(this.#destroyRef))
                     .subscribe((change: MatSelectChange) => {
@@ -194,20 +205,27 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
                         }
                     })
             }
-            // TODO: REMOVE?
-            // else if (this._ngModel.valueAccessor instanceof MatAutocompleteTrigger &&
-            //     this._ngModel.valueChanges
-            // ) {
-            //     this._ngModel.valueChanges
-            //         .pipe(takeUntilDestroyed(this.#destroyRef))
-            //         .subscribe(data => {
-            //             if (data == null || typeof data === "string") {
-            //                 pickerModel.setFilterValue(data ?? null)
-            //                 pickerModel.setValue(data ?? null)
-            //             }
-            //         })
-            // }
         }
+    }
+
+    #setInitialValue() {
+        const cmatModel = this.cmatModel()
+        if (cmatModel instanceof PickerFormProp) {
+            const pickerModel = cmatModel as PickerFormProp
+            if (this.#formFieldControl instanceof MatSelect) {
+                const selectedItem = pickerModel.selectedItem()
+                if (selectedItem) {
+                    this.setValue(selectedItem)
+                }
+            }
+        }
+    }
+
+    ngAfterContentChecked(): void {
+        // NOTE that setting a mat-select's initial value only works
+        // when called on ngAfterContentChecked. It does not work
+        // when called on init or on ngAfterViewInit
+        this.#setInitialValue()
     }
 
     /** User by MatSelect. */
@@ -240,27 +258,27 @@ export class CCPropDirective implements OnInit, OnDestroy, IFormPropControlAdape
     }
 
     #onFocusIn(ev: FocusEvent): any {
-        this.ccProp._onDomInputFocusIn(ev)
+        this.cmatModel()._onDomInputFocusIn(ev)
     }
 
     #onKeyDown(ev: KeyboardEvent): any {
-        this.ccProp._onDomInputKeyDown(ev)
+        this.cmatModel()._onDomInputKeyDown(ev)
     }
 
     #onKeyUp(ev: KeyboardEvent): any {
-        this.ccProp._onDomInputKeyUp(ev)
+        this.cmatModel()._onDomInputKeyUp(ev)
     }
 
     #onInput(ev: InputEvent): any {
-        this.ccProp._onDomInput(ev)
+        this.cmatModel()._onDomInput(ev)
     }
 
     #onFocusOut(ev: FocusEvent): any {
-        this.ccProp._onDomInputFocusOut(ev)
+        this.cmatModel()._onDomInputFocusOut(ev)
     }
 
     ngOnDestroy() {
         this.domEvents.removeAll()
-        this.ccProp._setControlAdapter(undefined)
+        this.cmatModel()._setControlAdapter(undefined)
     }
 }

@@ -1,3 +1,5 @@
 export * from "./tableModels"
 export * from "./tableComponents"
+export * from "./paginator.component"
 export * from "./tableODataDataSource"
+export * from "./activeProjectLookupService"

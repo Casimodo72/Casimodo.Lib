@@ -7,7 +7,6 @@ export type RuleAsyncValidationFn = (context: ValidationContext) => Promise<Rule
 const noopValidationFn: RuleValidationFn = () => null
 const noopAsyncValidationFn: RuleAsyncValidationFn = () => Promise.resolve(null)
 const emptyPropArray: IFormPropCore[] = []
-// TODO: REMOVE? const emptyPropRuleArray: PropRule[] = []
 
 export class ValidationContext {
     prop!: FormProp
@@ -71,6 +70,7 @@ export class PropRuleDefinition {
     readonly validateAsync: RuleAsyncValidationFn
 }
 
+// TODO: Just an experiment. Move all built-in rules to a dedicated place.
 export function createIbanRule(opts?: { countryCode?: string }): PropRuleDefinition {
     return new PropRuleDefinition(
         "#iban#",

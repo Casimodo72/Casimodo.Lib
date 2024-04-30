@@ -1,17 +1,22 @@
-import { CommonModule } from "@angular/common"
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core"
+
 import { MatProgressBarModule } from "@angular/material/progress-bar"
+
 import { BusyStateService } from "@lib/services"
 
 @Component({
-    selector: "app-progress-bar",
+    selector: "app-global-progress-bar",
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [CommonModule, MatProgressBarModule],
+    imports: [MatProgressBarModule],
     template: `
-        <mat-progress-bar *ngIf="busyService.isBusy()" mode="query" />
+<div style="min-height: 6px">
+    @if (busyService.isBusy()) {
+        <mat-progress-bar mode="query" />
+    }
+</div>
     `
 })
-export class ProgressBarComponent {
+export class GlobalProgressBarComponent {
     readonly busyService = inject(BusyStateService)
 }

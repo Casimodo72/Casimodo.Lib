@@ -327,7 +327,6 @@ export class ListModel<T extends IItemModel> extends FormItem {
         return index === items.length - 1
     }
 
-
     setCurrentToAdjacentItem(contextIndex: number, direction: "next" | "previous") {
         if (contextIndex === -1) return
 

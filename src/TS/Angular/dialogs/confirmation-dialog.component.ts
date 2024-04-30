@@ -4,7 +4,7 @@ import { MatIconModule } from "@angular/material/icon"
 import { MatButtonModule } from "@angular/material/button"
 import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog"
 import { ConfirmationDialogConfig } from "./dialog.service"
-import { DialogComponentBase } from "./dialogComponentBase"
+import { AbstractDialogComponent } from "./abstractDialogComponent"
 
 @Component({
     selector: "app-confirmation-dialog",
@@ -14,9 +14,14 @@ import { DialogComponentBase } from "./dialogComponentBase"
     styleUrls: ["./dialog.scss"],
     template: `
         <div class="flex">
-            <h1 mat-dialog-title *ngIf="data.title">{{data.title}}</h1>
-            <button mat-button *ngIf="data.closeStrategy === 'title-button'" class="app-dialog-title-close-button"
-                (click)="close(false)"><mat-icon>close</mat-icon></button>
+            @if (data.title) {
+                <h1 mat-dialog-title>{{data.title}}</h1>
+            }
+            @if (data.closeStrategy === 'title-button') {
+                <button mat-button *ngIf="" class="app-dialog-title-close-button" (click)="close(false)">
+                    <mat-icon>close</mat-icon>
+                </button>
+            }
         </div>
 
         <div mat-dialog-content>
@@ -33,7 +38,7 @@ import { DialogComponentBase } from "./dialogComponentBase"
         </div>
     `
 })
-export class ConfirmationDialogComponent extends DialogComponentBase<ConfirmationDialogComponent> {
+export class ConfirmationDialogComponent extends AbstractDialogComponent<ConfirmationDialogComponent> {
     readonly messageLines: string[] = []
 
     constructor(

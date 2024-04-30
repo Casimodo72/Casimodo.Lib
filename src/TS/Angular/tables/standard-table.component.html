@@ -1,18 +1,15 @@
 <div>
+    <!-- TODO: How to indicate loading? Can we show skeletons? -->
     <app-global-progress-bar />
 
-    <mat-table [dataSource]="tableModel.rows()">
-        <!-- matSort
-            [matSortActive]="tableModel.sortPropName()" [matSortDisableClear]="true"
-            [matSortDirection]="tableModel.sortDirection()"
-             (matSortChange)="onMatSort($event)">
-        -->
+    @if (model(); as tableModel) {
 
+    <mat-table [dataSource]="tableModel.rows()" class="app-lookup-table">
         @for (column of tableModel.columns(); track column.id) {
         <!-- Header title row -->
         <ng-container [matColumnDef]="column.id">
             <mat-header-cell *matHeaderCellDef>
-                <!-- mat-sort-header [disableClear]="true" -->
+
                 <div class="flex items-center gap-1" [class.app-sortable-table-header]="column.isSortable"
                     (click)="column.toggleSearchDirection()">
                     <div>{{column.title()}}</div>
@@ -36,10 +33,10 @@
             </mat-cell>
         </ng-container>
 
-        <!-- Header filter row -->
-        <ng-container [matColumnDef]="column.filterId">
+        <!-- Header tools row -->
+        <ng-container [matColumnDef]="column.toolId">
             <!-- Note that we always have to provide mat-header-cell and matHeaderCellDef
-                 even if there is no filter for this column :-( Angular material will crash otherwise. -->
+                 even if there are no tools for this column :-( Angular material will crash otherwise. -->
             <mat-header-cell *matHeaderCellDef>
                 @if (column.filter) {
                 <!-- TODO: Find out how to display custom sort indicator.
@@ -52,8 +49,27 @@
         }
 
         <mat-header-row *matHeaderRowDef="tableModel.visibleColumnIds()" />
-        <mat-header-row *matHeaderRowDef="tableModel.visibleColumnFilterIds()" />
+        <mat-header-row *matHeaderRowDef="tableModel.visibleColumnToolIds()" />
 
-        <mat-row *matRowDef="let row; columns: tableModel.visibleColumnIds()" />
+        <mat-row *matRowDef="let row; columns: tableModel.visibleColumnIds()"
+            (click.single)="handleRowClicked(row, false)" (click.double)="handleRowClicked(row, true)" />
     </mat-table>
+
+    <!-- NOTE: we have to hard-code the paginator's margin because Angular material does not
+         provide a CSS variable for the margin/padding in its tables :-(
+    -->
+    <app-paginator class="mx-6 mt-1" [model]="tableModel.pagination" [disabled]="tableModel.source.isBusy()" />
+
+    <!--
+        TODO: REMOVE: the MatPaginator can't be adjusted to what we want.
+
+        <mat-paginator (page)="onPageEvent($event)"
+        [length]="tableModel.pagination.totalCount() ?? tableModel.pagination.simulatedTotalCount()"
+        [pageSize]="tableModel.pagination.size()"
+        [disabled]="!tableModel.pagination.isEnabled() || tableModel.pagination.isBusy() || tableModel.dataSource.isBusy()"
+        [showFirstLastButtons]="true"
+        [pageSizeOptions]="tableModel.pagination.areAvailableSizesVisible() ? tableModel.pagination.availableSizes() : []"
+        [hidePageSize]="tableModel.pagination.isSizeVisible()" [pageIndex]="tableModel.pagination.index()"
+        aria-label="Seite wählen" /> -->
+    }
 </div>

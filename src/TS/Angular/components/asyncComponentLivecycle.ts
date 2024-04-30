@@ -1,8 +1,9 @@
 import { Injector, runInInjectionContext } from "@angular/core"
-import { AsyncVoidFunction } from "@lib/utils"
 import { Observable, Subject, lastValueFrom } from "rxjs"
 
-type HookHandlerFunction = AsyncVoidFunction | VoidFunction
+import { AsyncVoidFunction } from "@lib/utils"
+
+type HookFn = AsyncVoidFunction | VoidFunction
 type HookName = "ngOnInit" | "ngAfterViewInit"
 type HookDefinition = {
     hasDescendants?: boolean,
@@ -16,6 +17,9 @@ type HookDefinitions = {
 }
 
 type AsyncComponentLivecycleOptions = {
+    /**
+     * Optional injector, in case one wants to inject stuff in ngOnInit/ngAfterViewInit.
+     */
     injector?: Injector
 }
 /**
@@ -41,17 +45,17 @@ export class AsyncComponentLivecycle {
         this.#options = options
     }
 
-    onInit(hookFn: HookHandlerFunction): void {
+    onInit(hookFn: HookFn): void {
         this.#onHook("ngOnInit", hookFn, AsyncComponentLivecycle.#dependencies.ngOnInit, false)
     }
 
-    afterViewInit(hookFn: HookHandlerFunction, withTimeout: boolean = true): void {
+    afterViewInit(hookFn: HookFn, withTimeout: boolean = true): void {
         this.#onHook("ngAfterViewInit", hookFn, AsyncComponentLivecycle.#dependencies.ngAfterViewInit, withTimeout)
     }
 
     async #onHook(
         hookName: HookName,
-        hookFn: HookHandlerFunction,
+        hookFn: HookFn,
         hookDefinition: HookDefinition,
         withTimeout: boolean
     ): Promise<void> {
@@ -91,7 +95,7 @@ export class AsyncComponentLivecycle {
         }
     }
 
-    async #executeHookHandler(hookFn: HookHandlerFunction): Promise<void> {
+    async #executeHookHandler(hookFn: HookFn): Promise<void> {
         if (this.#options?.injector) {
             await runInInjectionContext(this.#options?.injector, async () => await hookFn())
         } else {

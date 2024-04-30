@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core"
 import { MatButtonModule } from "@angular/material/button"
 import { MatIconModule } from "@angular/material/icon"
 
+// TODO: Merge into app-button.
 @Component({
     selector: "app-fab-add-button",
     standalone: true,

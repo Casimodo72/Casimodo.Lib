@@ -8,7 +8,7 @@ import { MatFormFieldModule } from "@angular/material/form-field"
 import { MatInputModule } from "@angular/material/input"
 import { MatIconModule } from "@angular/material/icon"
 import { DialogConfig } from "./dialog.service"
-import { DialogComponentBase } from "./dialogComponentBase"
+import { AbstractDialogComponent } from "./abstractDialogComponent"
 
 export interface InternalPdfDialogConfig extends DialogConfig {
     readonly fileName?: string | undefined
@@ -25,24 +25,27 @@ export interface InternalPdfDialogConfig extends DialogConfig {
         :host { height: 100% }
     `],
     template: `
-        <div class="flex">
-            <h1 mat-dialog-title *ngIf="data.title">{{data.title}}</h1>
-            <button mat-button *ngIf="data.closeStrategy === 'title-button'" class="app-dialog-title-close-button"
-                (click)="close(false)">
-                <mat-icon>close</mat-icon>
-            </button>
-        </div>
+<div class="flex">
+    @if (data.title) {
+        <h1 mat-dialog-title>{{data.title}}</h1>
+    }
+    @if (data.closeStrategy === 'title-button') {
+        <button mat-button class="app-dialog-title-close-button" (click)="close(false)">
+            <mat-icon>close</mat-icon>
+        </button>
+    }
+</div>
 
-        <object type="application/pdf" [data]="dataUri" title="PDF" height="900px" width="800px">
-            <p>The PDF cannot be displayed.</p>
-        </object>
+<object type="application/pdf" [data]="dataUri" title="PDF" height="900px" width="800px">
+    <p>The PDF cannot be displayed.</p>
+</object>
 
-        <div mat-dialog-actions align="end">
-            <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Schließen</button>
-        </div>
+<div mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false" cdkFocusInitial>Schließen</button>
+</div>
     `
 })
-export class PdfViewerDialogComponent extends DialogComponentBase<PdfViewerDialogComponent>{
+export class PdfViewerDialogComponent extends AbstractDialogComponent<PdfViewerDialogComponent> {
     readonly #sanitizer = inject(DomSanitizer)
     readonly dataUri: SafeResourceUrl
 

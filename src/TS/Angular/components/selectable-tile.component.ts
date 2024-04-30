@@ -1,5 +1,6 @@
 import { CommonModule } from "@angular/common"
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core"
+import { ChangeDetectionStrategy, Component, input } from "@angular/core"
+
 import { MatRippleModule } from "@angular/material/core"
 
 @Component({
@@ -8,12 +9,12 @@ import { MatRippleModule } from "@angular/material/core"
     imports: [CommonModule, MatRippleModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <div class="app-container" matRipple  [ngClass]="{'app-container-selectable': clickable}">
-            <div class="app-selection-indicator" [ngClass]="{'app-selected': selected}"></div>
-            <div class="app-content">
-                <ng-content />
-            </div>
-        </div>
+<div class="app-container" matRipple  [ngClass]="{'app-container-selectable': clickable()}">
+    <div class="app-selection-indicator" [ngClass]="{'app-selected': selected()}"></div>
+    <div class="app-content">
+        <ng-content />
+    </div>
+</div>
     `,
     styles: [`
         :host {
@@ -59,6 +60,6 @@ import { MatRippleModule } from "@angular/material/core"
     `]
 })
 export class SelectableTileComponent {
-    @Input() selected: boolean = false
-    @Input() clickable: boolean = true
+    readonly selected = input(false)
+    readonly clickable = input(true)
 }

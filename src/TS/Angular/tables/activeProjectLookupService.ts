@@ -1,49 +1,20 @@
-import { CommonModule } from "@angular/common"
-import { ChangeDetectionStrategy, Component, OnInit, ViewChild, inject } from "@angular/core"
+import { Injectable, inject } from "@angular/core"
 
-import { MatFormFieldModule } from "@angular/material/form-field"
-import { MatInputModule } from "@angular/material/input"
-import { MatSort, MatSortModule, Sort } from "@angular/material/sort"
-import { MatTableModule } from "@angular/material/table"
-
-import { ODataFilterBuilder, ODataQueryBuilder } from "@lib/data-utils"
-import { DataSourceWebService, ProjectWebService } from "@lib/data/web"
-import { DialogService, configureFullScreenDialog } from "@lib/dialogs"
 import {
-    IContract, ICountryState, IParty, IProject,
+    IProject, IContract, ICountryState, IParty,
     expandFromProject2Contract, expandFromProject2Customer
 } from "@lib/data"
+import { ODataQueryBuilder, ODataFilterBuilder } from "@lib/data-utils"
+import { DataSourceWebService, ProjectWebService } from "@lib/data/web"
 
-import { TableColumnModel, TableFilterType, TableModel } from "./tableModels"
-import { TableFilterODataDataSource, TableODataDataSource } from "./tableODataDataSource"
-import { TableCellRendererComponent, TableFilterRendererComponent } from "./tableComponents"
-import { ButtonComponent, GlobalProgressBarComponent, IconComponent } from "@lib/components"
-import { MatIconModule } from "@angular/material/icon"
+import { TableModel, TableColumnModel, TableFilterType } from "./tableModels"
+import { TableODataDataSource, TableFilterODataDataSource } from "./tableODataDataSource"
+//import { LookupFormComponent } from "./lookup-dialog.component"
+import { DialogService } from "@lib/dialogs"
 
-// TODO: Check out for examples: https://github.com/twittwer/components
-
-@Component({
-    selector: "app-table",
-    standalone: true,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        CommonModule,
-        MatTableModule, MatSortModule, MatFormFieldModule, MatInputModule, MatIconModule,
-        GlobalProgressBarComponent,
-        TableFilterRendererComponent,
-        TableCellRendererComponent,
-        ButtonComponent, IconComponent
-    ],
-    templateUrl: "./test-table.component.html",
-    // styleUrls: ["./test-table.component.scss"]
-})
-export class TestTableComponent implements OnInit {
-    static async openAsDialog(dialogService: DialogService) {
-        return await dialogService.open<TestTableComponent, undefined, Partial<IProject> | undefined>(
-            TestTableComponent,
-            configureFullScreenDialog({}))
-    }
-
+@Injectable({ providedIn: "root" })
+export class ActiveProjectLookupService {
+    readonly #dialogService = inject(DialogService)
     readonly #dataSourceWebService = inject(DataSourceWebService)
     readonly #projectWebSerice = inject(ProjectWebService)
 
@@ -56,7 +27,7 @@ export class TestTableComponent implements OnInit {
 
     #buildProjectFilter(f: ODataFilterBuilder<IProject>): ODataFilterBuilder {
         return this.#projectWebSerice.buildFilter({
-            excludeClosed: true,
+            //excludeClosed: true,
             filter: f
         })
     }
@@ -65,8 +36,6 @@ export class TestTableComponent implements OnInit {
         webService: this.#dataSourceWebService,
         query: q => this.#buildProjectQuery(q)
             .url("api/projects/query")
-            // TODO: IMPL table paging
-            .top(5)
             .select(["Id", "Number", "ModifiedOn"])
             .expand<IContract>("Contract", q => q
                 .select(["Street", "ZipCode", "City"])
@@ -82,6 +51,9 @@ export class TestTableComponent implements OnInit {
     })
 
     readonly tableModel = new TableModel<IProject>({
+        pagination: {
+            availableSizes: [3, 5, 10]
+        },
         dataSource: this.#dataSource,
         columns: [
             new TableColumnModel({
@@ -156,24 +128,10 @@ export class TestTableComponent implements OnInit {
         ]
     })
 
-    displayedColumns: string[] = ["created", "state", "number", "title"]
-
-    @ViewChild(MatSort) sort!: MatSort
-
-    ngOnInit() {
-        this.#dataSource.load()
+    lookup() {
+        // FormDialog (title/cancel/submit)
+        // LookupFormComponent: content of the FormDialog
+        //   Must have a IFormComponentModel
+        //LookupFormComponent.openAsLookupDialog(this.#dialogService)
     }
-
-    onMatSort(_sort: Sort) {
-        // TODO:
-    }
-
-    // Misc info:
-    /*
-        Issue: https://github.com/angular/components/issues/11953
-            this.dataSource.paginator = this.paginator;
-            this.dataSource.sort = this.sort;
-            // IMPORTANT: Binding the dataset comes last
-            this.dataSource.data = <YOUR DATASET>
-    */
 }

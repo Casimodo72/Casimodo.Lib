@@ -5,7 +5,13 @@ import { BehaviorSubject, distinctUntilChanged, filter, tap } from "rxjs"
 import linq from "linq"
 
 import { AppRoute } from "@lib/routing"
-import { Breadcrumb } from "@lib/navigation"
+
+export interface Breadcrumb {
+    id: string | null
+    label: string
+    path: string
+    canNavigate: boolean
+}
 
 interface BreadcrumbsContainerGetItemsOptions {
     inclusiveBounderyRouteId: string | null | undefined, max: number | null | undefined

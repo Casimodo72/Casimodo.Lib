@@ -1,56 +1,70 @@
-
 import { CommonModule } from "@angular/common"
 import { ChangeDetectionStrategy, Component, input } from "@angular/core"
 import { FormsModule } from "@angular/forms"
+
+import { MatButtonModule } from "@angular/material/button"
 import { MatFormFieldModule } from "@angular/material/form-field"
 import { MatSelectModule } from "@angular/material/select"
-import { CCPropDirective, PropErrorsComponent, PropLabelComponent } from "@lib/forms"
+
+import { CMatModel, CMatModelErrors, CMatModelLabel } from "@lib/forms"
 import { PickerFormProp } from "@lib/models"
 
+// TODO: Support on-demand loading of pick-items (e.g. for table column filters).
 @Component({
     selector: "app-standard-value-picker",
     standalone: true,
     imports: [
         CommonModule,
-        FormsModule, MatFormFieldModule, MatSelectModule,
-        PropLabelComponent, CCPropDirective, PropErrorsComponent],
+        FormsModule, MatFormFieldModule, MatSelectModule, MatButtonModule,
+        CMatModelLabel, CMatModel, CMatModelErrors],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    styles: [":host { display: block; }"],
     template: `
 @if (model(); as model) {
-    <mat-form-field [ngStyle]="customStyle()" appearance="outline">
+    <mat-form-field [ngStyle]="groupStyle()" [ngClass]="groupClass()" appearance="outline">
         @if (model.label) {
-            <mat-label [ccProp]="model" />
+            <mat-label [cmatModel]="model" />
         }
-        <mat-select [ccProp]="model"
+        <mat-select [cmatModel]="model"
             ngModel
-            [disabled]="model.isReadOnly()"
-            [ariaReadOnly]="model.isReadOnly()">
+            [disabled]="disabled() || model.isReadOnly()"
+            [ariaReadOnly]="disabled() || model.isReadOnly()">
+
             <!-- <mat-select-trigger>
                 @if (model.selectedItem(); as pickItem) {
-                    {{pickItem.data}}
+                    {{pickItem.toDisplayText()}}
                 }
             </mat-select-trigger> -->
 
-            @if (model.hasEmptyItem()) {
+            <!-- TODO: Think about providing a component to be used for display. -->
+            <!-- <mat-select-trigger>
+                @if (model.selectedItem(); as pickItem) {
+                    ...
+                }
+            </mat-select-trigger> -->
+
+            @if (model.hasEmptyItem() && model.value()) {
             <mat-option [value]="null">
-                {{model.emptyText()}}
+                (Auswahl entfernen)
             </mat-option>
+            <!-- {{model.emptyText()}} -->
             }
 
+            <!-- TODO: Think about providing a component to be used for display. -->
             @for (pickItem of model.pickableItems(); track pickItem.id) {
-                <!-- TODO: Include null value. -->
                 <mat-option [value]="pickItem">
                     {{pickItem.toDisplayText()}}
                 </mat-option>
             }
         </mat-select>
-        <mat-error [ccProp]="model" />
+        <mat-error [cmatModel]="model" />
     </mat-form-field>
 }
 `
 })
-export class AppStandardValuePickerComponent {
-    // TODO: REMOVE: readonly emptyItem = PickerFormProp.EmptyItem
+export class StandardValuePickerComponent {
     readonly model = input.required<PickerFormProp>()
-    readonly customStyle = input<any | undefined>(undefined)
+    readonly disabled = input(false)
+    readonly groupClass = input<any | undefined>(undefined)
+    readonly groupStyle = input<any | undefined>(undefined)
 }

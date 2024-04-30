@@ -2,13 +2,13 @@ import { CommonModule, NgComponentOutlet } from "@angular/common"
 import { Component, ChangeDetectionStrategy, AfterViewInit, input, signal, Type, Directive } from "@angular/core"
 
 import { TableColumnModel, TableFilterType } from "./tableModels"
-import { FormComponent } from "@lib/forms"
+import { FormItemComponent } from "@lib/forms"
 import { StandardStringInputComponent, StandardTypeaheadValuePickerComponent } from "@lib/components"
 import { DataPath } from "@lib/data-utils"
 import { PickerFormProp, StringFormProp } from "@lib/models"
 
 @Directive()
-export abstract class AbstractTableFilterComponent extends FormComponent {
+export abstract class AbstractTableFilterComponent extends FormItemComponent {
     readonly column = input.required<TableColumnModel>()
 }
 
@@ -79,8 +79,8 @@ export class TableTypeaheadPickerColumnFilterComponent
         const filter = column?.filter
         if (!filter) return
 
-        if (value && filter.source?.id) {
-            value = filter.source?.id.getValueFrom(value)
+        if (value && filter.source?.value) {
+            value = filter.source?.value.getValueFrom(value)
         }
 
         await column.applyFilterValue(value)
@@ -98,6 +98,7 @@ export class TableTypeaheadPickerColumnFilterComponent
         if (source.text) {
             this.#displayPropPath = source.text
             this.valuePicker.setDisplayFn(data => this.#displayPropPath!.getValueFrom(data) ?? "")
+            this.valuePicker.setFilterProp(source.text)
         }
 
         const pickValues = await source.read()
