@@ -1,3 +1,3 @@
 HTML to PDF coverter
 
-Contributors: Avinash 
+Contributors: Avinash Vadde

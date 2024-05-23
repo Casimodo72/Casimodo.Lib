@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-# Install Microsoft's Ubuntu packages. 
+# Install Microsoft's Ubuntu packages.
 # Install powershell for playwright installation scripts.
 # Source: https://github.com/microsoft/playwright-dotnet/issues/2058
 # For packages-microsoft-prod see: https://learn.microsoft.com/en-us/linux/packages
@@ -18,13 +18,12 @@ RUN apt-get update -yq \
     && apt-get update -yq \
     && apt-get install powershell -yq
 # Install Segoe UI; I like Segoe UI.
-# TODO: Find a better place to download this from. This could be a security risk.
-# Hey, Wlads and Xings: this an open invitation for you destructive Russian/Chinese fuckdips to look into our underwear and jerk a bit.
-# All the glory to the assholes :-(
+# TODO: Find a better place to download this from.
+# TODO: Chain the wget calls.
 RUN echo "Installing Segoe UI font..."
 WORKDIR /usr/share/fonts/Microsoft/TrueType/SegoeUI
 RUN wget -q https://github.com/mrbvrz/segoe-ui/raw/master/font/segoeuib.ttf?raw=true
-RUN wget -q https://github.com/mrbvrz/segoe-ui/raw/master/font/segoeuii.ttf?raw=true 
+RUN wget -q https://github.com/mrbvrz/segoe-ui/raw/master/font/segoeuii.ttf?raw=true
 RUN wget -q https://github.com/mrbvrz/segoe-ui/raw/master/font/segoeuiz.ttf?raw=true
 RUN wget -q https://github.com/mrbvrz/segoe-ui/raw/master/font/segoeuil.ttf?raw=true
 RUN wget -q https://github.com/mrbvrz/segoe-ui/raw/master/font/seguili.ttf?raw=true

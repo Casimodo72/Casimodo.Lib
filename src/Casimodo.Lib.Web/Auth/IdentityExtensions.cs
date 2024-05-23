@@ -16,7 +16,7 @@ namespace Casimodo.Lib.Auth
             return claim?.Value;
         }
 
-        public static string GetAddress(this IPrincipal user)
+        public static string GetStreetAddress(this IPrincipal user)
         {
             var claim = ((ClaimsIdentity)user.Identity).FindFirst(ClaimTypes.StreetAddress);
             return claim?.Value;

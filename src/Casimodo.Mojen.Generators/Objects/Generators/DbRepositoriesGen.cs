@@ -44,8 +44,7 @@ namespace Casimodo.Mojen
                     type.ClassName,
                     type.Key.Type.Name);
 
-
-                // TODO: REMOVE: O($"public {name}() {{ }}");
+                O($"public {name}() : base() {{ }}");
                 O($"public {name}({db.DbContextName} db) : base(db) {{ }}");
 
                 End();

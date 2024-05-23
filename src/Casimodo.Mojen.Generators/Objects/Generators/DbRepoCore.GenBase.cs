@@ -151,7 +151,7 @@ namespace Casimodo.Mojen
             foreach (var typeItem in items)
             {
                 var type = typeItem.Type;
-                string item = ItemName ?? "parent"; // type.VName;
+                string item = ItemName ?? "parent";
 
                 O(TypeMethod(this, type, item));
                 Begin();

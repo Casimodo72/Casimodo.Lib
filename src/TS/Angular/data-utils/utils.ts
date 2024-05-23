@@ -210,7 +210,7 @@ class ExpandContainer extends Container {
     }
 }
 
-export class SimpleODataQueryBuilderOptions {
+export class ODataQueryBuilderOptions {
     usePascalCase = true
     url?: string
     _root?: Container
@@ -266,7 +266,7 @@ export class ODataCoreQueryBuilder<T> {
         target._root = this._root.clone()
     }
 
-    get _effectiveContainer(): Container {
+    protected get _effectiveContainer(): Container {
         return this.#expandContainer ? this.#expandContainer : this._root
     }
 
@@ -292,19 +292,16 @@ export class ODataCoreQueryBuilder<T> {
         expandContainer.expandedProp = expandedProp
         this._effectiveContainer.expansions.push(expandContainer)
 
-        const prev = this.#expandContainer
+        const prevExpandContainer = this.#expandContainer
         this.#expandContainer = expandContainer
 
-        // TODO: Assess whether we can reuse the
-        // current builder instance and just return an interface.
-        const builder = this as any as ODataCoreQueryBuilder<TExpandType> //
-        // new ODataCoreQueryBuilder<TExpandType>(expandContainer)
+        const expansionBuilder = this as any as ODataCoreQueryBuilder<TExpandType>
 
         if (selection) {
-            builder.select(selection)
+            expansionBuilder.select(selection)
         }
 
-        this.#expandContainer = prev
+        this.#expandContainer = prevExpandContainer
 
         return this
     }
@@ -325,7 +322,7 @@ export class ODataCoreQueryBuilder<T> {
         this._root.filter = filterBuilder.toString()
     }
 
-    _appendToSlot(slot: SlotType, separator: string | null, textToAppend: string): this {
+    protected _appendToSlot(slot: SlotType, separator: string | null, textToAppend: string): this {
         let text = this._effectiveContainer[slot]
         if (separator && text) {
             text += separator
@@ -335,10 +332,6 @@ export class ODataCoreQueryBuilder<T> {
 
         return this
     }
-}
-
-function joinDataPathSegments(separator: string, pathSegments: string[]): string {
-    return pathSegments.reduce((acc, next) => acc + separator + next)
 }
 
 type DataPathBuildFn<T> = (b: DataPathBuilder<T>) => DataPath
@@ -370,7 +363,7 @@ export class ODataApplyBuilder<T> {
         if (Array.isArray(buildGroupBy) && buildGroupBy.length) {
             for (const [index, buildFn] of buildGroupBy.entries()) {
                 const dataPath = buildFn(new DataPathBuilder<T>())
-                const path = joinDataPathSegments("/", dataPath.segments)
+                const path = toODataPropPath(dataPath)
 
                 if (index > 0) {
                     this.#groupByProps += ","
@@ -402,12 +395,12 @@ export class ODataApplyBuilder<T> {
 
 export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
     #url = ""
-    #options: SimpleODataQueryBuilderOptions
+    #options: ODataQueryBuilderOptions
 
-    constructor(options?: SimpleODataQueryBuilderOptions) {
+    constructor(options?: ODataQueryBuilderOptions) {
         super(options?._root ?? new Container())
 
-        this.#options = options ?? new SimpleODataQueryBuilderOptions()
+        this.#options = options ?? new ODataQueryBuilderOptions()
     }
 
     clone(): ODataQueryBuilder<T> {
@@ -503,39 +496,40 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
         let selectedPropCount = 0
 
         this.#visitContainers((container: Container) => {
-            // TODO: Since we don't operate on an AST we have to hack with strings here :-(
             if (container.select) {
                 if (container.select.indexOf(",") !== -1) {
                     selectedPropCount += 2
-                    return false
+                    return true
                 }
 
                 selectedPropCount++
             }
 
-            return selectedPropCount <= 1
+            return selectedPropCount > 1
         })
 
         return selectedPropCount === 1
     }
 
-    #visitContainers(visit: (container: Container, level: number) => boolean | void): void {
-        this.#traverseContainerTree(this._root, 0, visit)
+    /** The traversion stops if the visit callback returns true. */
+    #visitContainers(visitFn: (container: Container, level: number) => boolean | void): void {
+        this.#visitContainersCore(this._root, 0, visitFn)
     }
 
-    #traverseContainerTree(item: Container, level: number, callbackFn: (container: Container, level: number) => boolean | void): boolean {
-        const result = callbackFn(item, level)
-        if (result === false) return false
+    /** The traversion stops if the visit callback returns true. */
+    #visitContainersCore(item: Container, level: number, visitFn: (container: Container, level: number) => boolean | void): boolean {
+        const result = visitFn(item, level)
+        if (result) return true
 
         if (item.expansions) {
             for (const subContainer of item.expansions) {
-                if (this.#traverseContainerTree(subContainer, level + 1, callbackFn) === false) {
-                    return false
+                if (this.#visitContainersCore(subContainer, level + 1, visitFn)) {
+                    return true
                 }
             }
         }
 
-        return true
+        return false
     }
 
     override toString(): string {
@@ -636,25 +630,7 @@ export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
     }
 }
 
-export class AnyODataQueryBuilder {
-    #url?: string
-
-    url(url: string): this {
-        this.#url = url
-
-        return this
-    }
-
-    from<T>(): ODataQueryBuilder<T> {
-        const q = new ODataQueryBuilder<T>()
-        if (this.#url) {
-            q.url(this.#url)
-        }
-
-        return q
-    }
-}
-type PropOrPathType<T> = StringKeys<T> | DataPath
+type PropSelection<T> = StringKeys<T> | DataPath
 
 export class ODataFilterBuilder<T = any> {
     protected _filter = ""
@@ -670,7 +646,7 @@ export class ODataFilterBuilder<T = any> {
         return clone
     }
 
-    where(prop: PropOrPathType<T>, comparisonOp: ODataComparisonOperator, value: ODataValueType): this {
+    where(prop: PropSelection<T>, comparisonOp: ODataComparisonOperator, value: ODataValueType): this {
         let effectiveProp = toODataPropPath(prop)
 
         let effectiveValue: string
@@ -700,17 +676,17 @@ export class ODataFilterBuilder<T = any> {
         return this
     }
 
-    eq = (prop: PropOrPathType<T>, value: ODataValueType): this => this.where(prop, "eq", value)
+    eq = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "eq", value)
 
-    ne = (prop: PropOrPathType<T>, value: ODataValueType): this => this.where(prop, "ne", value)
+    ne = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "ne", value)
 
-    gt = (prop: PropOrPathType<T>, value: ODataValueType): this => this.where(prop, "gt", value)
+    gt = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "gt", value)
 
-    ge = (prop: PropOrPathType<T>, value: ODataValueType): this => this.where(prop, "ge", value)
+    ge = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "ge", value)
 
-    lt = (prop: PropOrPathType<T>, value: ODataValueType): this => this.where(prop, "lt", value)
+    lt = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "lt", value)
 
-    le = (prop: PropOrPathType<T>, value: ODataValueType): this => this.where(prop, "le", value)
+    le = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "le", value)
 
     #logicalOp(logicalOp: ODataLogicalOperator): this {
         if (!this._filter) return this
@@ -734,17 +710,7 @@ export class ODataFilterBuilder<T = any> {
 
     or = (): this => this.#logicalOp("or")
 
-    #isSubStart = false
-
-    andSub(build: () => void) {
-        this.and()
-        this._append("(")
-        this.#isSubStart = true
-        build()
-        this._append(")")
-
-        return this
-    }
+    #isSubStart?: boolean
 
     sub(build: () => void) {
         this._append("(")
@@ -757,18 +723,20 @@ export class ODataFilterBuilder<T = any> {
 
     not = (): this => this.#logicalOp("not")
 
-    contains(prop: PropOrPathType<T>, value: string): this {
+    contains(prop: PropSelection<T>, value: string): this {
         return this._append(` contains(${toODataPropPath(prop)},'${value}')`)
     }
 
-    anyExpression(prop: PropOrPathType<T>, odataLambdaExpression: string) {
+    anyExpression(prop: PropSelection<T>, odataLambdaExpression: string) {
         return this._append(`${toODataPropPath(prop)}/any(${odataLambdaExpression})`)
     }
 
     protected _append(text: string): this {
         if (!text) return this
 
-        this.#isSubStart = false
+        if (this.#isSubStart) {
+            this.#isSubStart = false
+        }
 
         if (!this._filter) {
             text = text.trim()
@@ -787,7 +755,7 @@ export class ODataFilterBuilder<T = any> {
     }
 }
 
-function toODataPropPath(prop: PropOrPathType<any>): string {
+function toODataPropPath(prop: PropSelection<any>): string {
     return prop instanceof DataPath
         ? prop.segments.reduce((acc, next) => acc + "/" + next)
         : prop
