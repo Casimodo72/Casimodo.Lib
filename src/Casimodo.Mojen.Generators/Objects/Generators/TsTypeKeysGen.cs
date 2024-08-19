@@ -85,7 +85,7 @@ namespace Casimodo.Mojen
                 }
 
                 foreach (var type in types)
-                    O($@"static {type.Name} = ""{type.Id}"";");
+                    O($@"static readonly {type.Name} = ""{type.Id}"";");
 
                 O();
                 OB("static getNameById(id: string): string | null");
@@ -93,7 +93,7 @@ namespace Casimodo.Mojen
                 End();
 
                 O();
-                OB("static _id2Name: { [id: string]: string } =");
+                OB("static readonly _id2Name: { [id: string]: string } =");
                 foreach (var type in types)
                     O($@"""{type.Id}"": ""{type.Name}"",");
                 End(";");

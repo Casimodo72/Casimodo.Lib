@@ -46,22 +46,22 @@ namespace Casimodo.Mojen
             if (Options.IsNamedValueEnabled)
             {
                 var descriptions = new List<string>();
-                foreach (MojValueSet item in config.Items)
+                foreach (MojValueSet valueSet in config.Items)
                 {
-                    if (item.IsNull)
+                    if (valueSet.IsNull)
                         continue;
 
                     // Summary of member
                     descriptions.Clear();
                     //AddDescription(item, "DisplayValue", descriptions);
                     //AddDescription(item, "Display", descriptions);
-                    if (item.Description != null)
-                        descriptions.Add(item.Description);
+                    if (valueSet.Description != null)
+                        descriptions.Add(valueSet.Description);
                     OSummary(descriptions);
 
                     // Public static member
-                    var name = item.Get(config.NamePropName);
-                    var val = item.Get(config.ValuePropName);
+                    var name = valueSet.Get(config.NamePropName);
+                    var val = valueSet.Get(config.ValuePropName);
 
                     O(string.Format("public {0} {1} {2} = {3};",
                         GetValueTypeModifier(config.ValueType),
@@ -86,7 +86,6 @@ namespace Casimodo.Mojen
                 }
             }
 
-            var type = config.TypeConfig;
             foreach (var mapping in config.Mappings)
             {
                 GenerateMapping(config, mapping);

@@ -73,6 +73,7 @@ namespace Casimodo.Lib.Auth
             RoleInheritance.Add("Admin", 100);
             RoleInheritance.Add("CoAdmin", 99);
             RoleInheritance.Add("Manager", 90);
+            RoleInheritance.Add("UserAdmin", 85);
             RoleInheritance.Add("Employee", 80);
             RoleInheritance.Add("ExternEmployee", 10);
         }

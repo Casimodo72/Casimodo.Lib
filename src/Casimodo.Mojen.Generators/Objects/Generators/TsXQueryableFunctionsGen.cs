@@ -57,14 +57,14 @@ namespace Casimodo.Mojen
 
                 PerformWrite(Path.Combine(outputDirPath, fileName), () =>
                 {
-                    O("import { ODataCoreQueryBuilder } from \"@lib/data-utils\";");
+                    O("import { ODataCoreQueryBuilder } from \"@lib/data/utils\";");
 
-                    Oo("import {");
+                    Oo("import type {");
                     foreach (var item in items)
                     {
-                        o($"I{item.Type.Name},");
+                        o($" I{item.Type.Name},");
                     }
-                    oO("} from \"@lib/data\";");
+                    oO(" } from \"./entityTypes\";");
                     O();
 
                     foreach (var item in items)
