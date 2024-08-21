@@ -1,6 +1,16 @@
-import { IssueEntity, IssueEntityNode } from "./misc"
-
 export type Severity = "error" | "warning" | "info"
+
+export interface IssueEntity {
+    readonly severity: Severity
+    readonly message: string
+    forNames?: string[]
+}
+
+export type IssueEntityNode = IssueEntity[] | IssueContainerEntity | boolean
+
+export interface IssueContainerEntity {
+    readonly [key: string]: IssueEntityNode
+}
 
 export class Issue {
     readonly severity: Severity

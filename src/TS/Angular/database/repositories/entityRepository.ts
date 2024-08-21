@@ -3,8 +3,8 @@ import { isEqual } from "lodash-es"
 import { IEntityCore } from "@lib/data"
 
 import { DataRepository } from "./dataRepository"
+import type { EntityWebRepository } from "../web/entityWebRepository"
 import { DeltaChangeOptions, createEntityStateDeltaOnDownload } from "../data"
-import { EntityWebRepository } from "../web"
 
 export class EntityRepository<TEntity extends Partial<IEntityCore>> extends DataRepository<TEntity> {
     protected _remote?: EntityWebRepository<Partial<IEntityCore>>

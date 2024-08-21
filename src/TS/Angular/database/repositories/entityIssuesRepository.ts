@@ -1,5 +1,8 @@
-import { Database, EntityIssue, Repository } from "@lib/database"
-import { IssueEntityNode } from "@lib/data"
+
+import { IssueEntityNode } from "@lib/data/issues"
+import { Repository } from "./repository"
+import { EntityIssue } from "../data"
+import type { Database } from "../database"
 
 function toTableKey(entityId: string, repository: Repository): [string, string] {
     return [entityId, repository.entityTypeId]

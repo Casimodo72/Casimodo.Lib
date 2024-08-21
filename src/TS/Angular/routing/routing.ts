@@ -1,18 +1,6 @@
-import { Route } from "@angular/router"
 import { AuthGuard } from "@lib/auth"
 import { NoopRouterOutletComponent } from "./noop-router-outlet.component"
-
-export interface AppRoute extends Route {
-    id?: string
-    label?: string
-    allowAnonymous?: boolean
-    /** If allowRoles is undefined then any user can activate this route.  */
-    allowRoles?: string[]
-    canNavigate?: boolean
-    children?: AppRoute[]
-}
-
-export type AppRoutes = AppRoute[];
+import { AppRoute, AppRoutes } from "./appRoute"
 
 export function addRouteWithChildren(route: AppRoute, children: AppRoute[]): AppRoute {
     const noopRoute: AppRoute = Object.assign({}, route, { component: NoopRouterOutletComponent })

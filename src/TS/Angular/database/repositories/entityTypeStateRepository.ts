@@ -1,7 +1,11 @@
-import { AuthenticatedAppUser } from "@lib/auth"
-import { IEntityCore } from "@lib/data"
-import { Database, EntityTypeState, Repository } from "@lib/database"
 import { DateTime } from "luxon"
+
+import { AuthenticatedAppUser } from "@lib/auth"
+import { IEntityCore } from "@lib/data/entityBase"
+
+import { EntityTypeState } from "../data"
+import { Repository } from "./repository"
+import type { Database } from "../database"
 
 interface EntityTypeStateChanges {
     delta: Partial<EntityTypeState>

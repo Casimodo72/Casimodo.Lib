@@ -1,4 +1,4 @@
-import { DataRepository } from "./dataRepository"
+import type { DataRepository } from "./dataRepository"
 
 export abstract class RepositoriesContainer {
     readonly #items: DataRepository[] = []

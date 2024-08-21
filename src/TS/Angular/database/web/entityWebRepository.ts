@@ -1,10 +1,10 @@
 import { lastValueFrom } from "rxjs"
 
-import { fixupReceivedDataDeep } from "@lib/data/utils"
-import { JsonPatchOperation } from "@lib/data"
+import { fixupReceivedDataDeep } from "@lib/data/utils/utils"
+import { JsonPatchOperation } from "@lib/data/jsonPatch"
 import { IEntityCore } from "@lib/data/entityBase"
 
-import { EntityRepository } from "../repositories/entityRepository"
+import type { EntityRepository } from "../repositories/entityRepository"
 
 export interface IEntityWebApiResult<TEntity> {
     readonly hasSucceeded: boolean
@@ -15,7 +15,7 @@ export interface EntityWebRepositoryOptions {
     isPutDisabled?: boolean
 }
 
-export class EntityWebRepository<TEntity extends Partial<IEntityCore>>{
+export class EntityWebRepository<TEntity extends Partial<IEntityCore>> {
     readonly #repository: EntityRepository<TEntity>
     readonly url: string
     readonly options: EntityWebRepositoryOptions

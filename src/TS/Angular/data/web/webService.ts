@@ -1,38 +1,48 @@
 import { HttpClient } from "@angular/common/http"
 import { Injectable, inject } from "@angular/core"
-import { ODataQueryBuilder } from "@lib/data-utils"
 import { lastValueFrom } from "rxjs"
-import { fixupReceivedDataDeep } from "../utils"
+
 import { AuthService } from "@lib/auth"
+import { fixupReceivedDataDeep } from "@lib/data/utils/utils"
+import { ODataFilterBuilder, ODataQueryBuilder, PropPath, toGuid } from "@lib/data/utils"
+import type { IStandardQueryFilterOptions, IStandardQueryOptions } from "./types"
+
+export interface IWebServiceConfig {
+    basePath?: string
+}
 
 export interface IWebApiResult<TData> {
     readonly hasSucceeded: boolean
     readonly data?: TData | TData[]
 }
 
+@Injectable()
 export abstract class AbstractWebService {
     protected readonly _http = inject(HttpClient)
     readonly basePath: string | undefined
 
-    constructor(basePath?: string) {
-        this.basePath = basePath
+    protected constructor(config?: IWebServiceConfig) {
+        this.basePath = config?.basePath
     }
 
     protected async _query<TData>(
-        path: string,
-        buildQuery?: (qb: ODataQueryBuilder<any>) => void
+        path: string | null | undefined,
+        buildQuery?: (qb: ODataQueryBuilder<any>) => void,
+        query?: ODataQueryBuilder<any>
     ): Promise<TData> {
-        const qb = new ODataQueryBuilder<any>()
-
-        const url = this._applyBasePath(path)
-        qb.url(url)
+        const qb = query ?? new ODataQueryBuilder<any>()
 
         buildQuery?.(qb)
+        const effectivePath = path ?? qb.path ?? "query"
+        const url = this._applyBasePath(effectivePath)
+        qb.url(url)
 
         return await this._queryByUrl(qb.toString())
     }
 
-    protected _applyBasePath(path: string) {
+    protected _applyBasePath(path: string | null | undefined) {
+        if (!path) return this.basePath ?? ""
+
         if (this.basePath && path.startsWith(this.basePath)) {
             return path
         }
@@ -55,13 +65,21 @@ export abstract class AbstractWebService {
         const response = await lastValueFrom(this._http.get<any>(queryUrl))
         fixupReceivedDataDeep(response)
 
-        const data = queryUrl.includes("odata/")
-            // OData returns data in a property named "value".
-            // JFYI: OData does that because it can also return metadata in the response.
-            ? response.value
-            : response
+        if (queryUrl.includes("odata/")) {
+            if (response.value !== undefined) {
+                // OData returns data in a property named "value" (only for arrays?).
+                return response.value
+            }
 
-        return data
+            // TODO: Do we want to remove any OData metadata properties from the data?
+        }
+
+        return response
+    }
+
+    protected _performOperation(operation: () => Promise<any>): Promise<any> {
+        // TODO: Error handling?
+        return operation()
     }
 }
 
@@ -79,19 +97,36 @@ export class DataSourceWebService extends AbstractWebService implements IDataSou
         return this._queryByUrl(url)
     }
 
-    async query<TData>(
-        path: string,
-        buildQuery?: (qb: ODataQueryBuilder<any>) => void
-    ): Promise<TData> {
+    async query<TData>(path: string, buildQuery?: (qb: ODataQueryBuilder<any>) => void): Promise<TData> {
         return this._query(path, buildQuery)
     }
 }
 
+const _entityIdProp = new PropPath("Id")
+
 export abstract class AppEntityWebService<TEntity> extends AbstractWebService {
+
     readonly #authService = inject(AuthService)
 
-    protected _queryEntities(path: string, buildQuery?: (qb: ODataQueryBuilder<TEntity>) => void) {
-        return super._query<Partial<TEntity>[]>(path, buildQuery)
+    protected _queryEntitiesCore(query: ODataQueryBuilder<TEntity>) {
+        return super._query<Partial<TEntity>[]>(null, undefined, query)
+    }
+
+    protected _queryEntitiesWithBuild(buildQuery?: (qb: ODataQueryBuilder<TEntity>) => void) {
+        return super._query<Partial<TEntity>[]>(null, buildQuery)
+    }
+
+    async queryEntity(buildQuery?: (qb: ODataQueryBuilder<TEntity>) => void): Promise<Partial<TEntity> | undefined> {
+        const entities = await super._query<Partial<TEntity>[]>(null, buildQuery)
+
+        return entities[0]
+    }
+
+    queryEntityById(id: string, buildQuery?: (qb: ODataQueryBuilder<TEntity>) => void): Promise<Partial<TEntity> | undefined> {
+        return this.queryEntity(q => {
+            q.filter(f => f.eq(_entityIdProp, toGuid(id)))
+            buildQuery?.(q)
+        })
     }
 
     get requiredUserId() {
@@ -100,5 +135,28 @@ export abstract class AppEntityWebService<TEntity> extends AbstractWebService {
 
     get requiredCompanyId() {
         return this.#authService.requiredUser.CompanyId
+    }
+
+    buildQuery(options: IStandardQueryOptions<TEntity>) {
+        const q = this._ensureQueryBuilder(options.query)
+        q.url(this._applyBasePath("query"))
+        options.buildQuery?.(q)
+
+        return q
+    }
+
+    buildFilter(options: IStandardQueryFilterOptions<TEntity>) {
+        const f = this._ensureFilterBuilder(options.filter)
+        options.buildFilter?.(f)
+
+        return f
+    }
+
+    protected _ensureQueryBuilder(q?: ODataQueryBuilder<TEntity>) {
+        return q ?? new ODataQueryBuilder<TEntity>()
+    }
+
+    protected _ensureFilterBuilder(f?: ODataFilterBuilder<TEntity>) {
+        return f ?? new ODataFilterBuilder<TEntity>()
     }
 }

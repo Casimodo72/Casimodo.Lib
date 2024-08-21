@@ -1,5 +1,5 @@
 import Dexie from "dexie"
-import { RepositoryBase } from "./repositories"
+import { RepositoryBase } from "./repositories/repository"
 
 export type DexieSchema = { [tableName: string]: string }
 

@@ -1,20 +1,24 @@
 import { inject, signal } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
 import Dexie from "dexie"
+import { DateTime } from "luxon"
 
 import { AuthService, AuthenticatedAppUser } from "@lib/auth"
 import { IEntityCore } from "@lib/data/entityBase"
-import { TypeKeys } from "@lib/data/entityTypeKeys"
+import { EntityCoreService } from "@lib/data/services/entityCoreService"
 import { UserNotifiableError } from "@lib/errors"
 
+// TODO: IMPORTANT: Eliminate referece to app code.
+import { TypeKeys } from "@applib/data/entities/entityTypeKeys"
+
 import { DexieDatabase, DexieSchema } from "./dexieDatabase"
-import {
-    DataRepository, RepositoriesContainer,
-    EntityTypeStateRepository, EntityStateRepository, EntityIssuesRepository,
-} from "./repositories"
+
 import { AppDataEntry, AppStates } from "./data"
-import { EntityCoreService } from "@lib/data/services/entityCoreService"
-import { DateTime } from "luxon"
+import { EntityStateRepository } from "./repositories/entityStateRepository"
+import { EntityTypeStateRepository } from "./repositories/entityTypeStateRepository"
+import { RepositoriesContainer } from "./repositories/repositoriesContainer"
+import { EntityIssuesRepository } from "./repositories/entityIssuesRepository"
+import { DataRepository } from "./repositories/dataRepository"
 
 type AppStateChangeFn<TAppStates extends AppStates> = (
     // TODO: Can use "delta: Partial<TAppStates>" because TypeScript doesn't support partial generics in this scenario.
@@ -205,6 +209,7 @@ export abstract class Database<
     * or a custom entity type ID represented by a repository.
     */
     getEntityTypeNameById(entityTypeId: string): string {
+        // TODO: Eliminate referece to app code.
         let entityTypeName = TypeKeys.getNameById(entityTypeId)
 
         if (!entityTypeName) {

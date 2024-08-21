@@ -1,6 +1,6 @@
-import { cloneDeep } from "lodash-es"
+import cloneDeep from "lodash-es/cloneDeep"
 
-import { IEntityCore } from "@lib/data"
+import { IEntityCore } from "@lib/data/entityBase"
 
 import { EntityRepository } from "./entityRepository"
 

@@ -1,0 +1,75 @@
+<div>
+    <!-- TODO: How to indicate loading? Can we show skeletons? -->
+    <app-global-progress-bar />
+
+    @if (model(); as table) {
+
+    <mat-table [dataSource]="table.rows()" class="app-standard-table">
+        @for (column of table.columns(); track column.id) {
+
+        <ng-container [matColumnDef]="column.id">
+
+            <!-- Column header title row -->
+            <mat-header-cell *matHeaderCellDef
+                [class.app-standard-table-row-selector-cell]="column.role === TableColumnRole.RowSelector">
+
+                <div class="flex items-center gap-1" [class.app-sortable-table-header]="column.isSortable"
+                    (click)="column.toggleSortDirection()">
+                    <div>{{column.title()}}</div>
+                    @if (column.isSortable) {
+                    <div>
+                        @if (column.sortState() === 'asc') {
+                        <mat-icon class="material-symbols-outlined"
+                            style="vertical-align:middle">stat_1_outline</mat-icon>
+                        }
+                        @else if (column.sortState() === 'desc') {
+                        <mat-icon class="material-symbols-outlined"
+                            style="vertical-align:middle">stat_minus_1_outline</mat-icon>
+                        }
+                    </div>
+                    }
+                </div>
+            </mat-header-cell>
+
+            <!-- Table data cells. -->
+            <mat-cell *matCellDef="let row"
+                [class.app-standard-table-row-selector-cell]="column.role === TableColumnRole.RowSelector">
+                <app-table-cell-renderer [table]="table" [column]="column" [row]="row" />
+            </mat-cell>
+        </ng-container>
+
+        <!-- Header tools row -->
+        <ng-container [matColumnDef]="column.toolId">
+            <!-- Note that we always have to provide mat-header-cell and matHeaderCellDef
+                 even if there are no tools for this column.
+                 Angular material will crash otherwise. -->
+            <mat-header-cell *matHeaderCellDef
+                [class.app-standard-table-row-selector-cell]="column.role === TableColumnRole.RowSelector">
+                @if (column.filter) {
+                <!-- TODO: Find out how to display custom sort indicator.
+                     The default one looks unexplicably crappy - even when being adjusted via CSS by using workarounds found on github.
+                    -->
+                <app-table-column-filter-renderer [column]="column" />
+                }
+            </mat-header-cell>
+        </ng-container>
+        }
+
+        <!-- Title column header row -->
+        <mat-header-row *matHeaderRowDef="table.visibleColumnIds()" />
+        <!-- Tools column header row -->
+        <mat-header-row *matHeaderRowDef="table.visibleColumnToolIds()" />
+
+        <!-- Data rows -->
+        <mat-row *matRowDef="let row; columns: table.visibleColumnIds()" [ngClass]="{
+            'app-standard-table-selected-row': row.isSelected()
+        }" (click.single)="table.onRowClicked(row, $event)"
+            (click.double)="table.onRowClicked(row, $event, 'double')" />
+    </mat-table>
+
+    <!-- NOTE: we have to hard-code the paginator's margin because Angular material does not
+         provide a CSS variable for the margin/padding in its tables :-(
+    -->
+    <app-paginator class="mx-6 mt-1" [model]="table.paginator" [disabled]="table.source.isBusy()" />
+    }
+</div>

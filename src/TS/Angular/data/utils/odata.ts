@@ -1,0 +1,649 @@
+import { DateTime } from "luxon"
+
+import { StringKeys } from "./utils"
+import { PropPath, PropPathBuilder } from "./propPath"
+import { DataSortDirection } from "./data"
+
+export function toODataDateTime(value: Date | DateTime | null, encode = false): string | null {
+    return toODataDateTimeCore(value, encode, false)
+}
+
+export function toODataDateOnly(value: Date | DateTime | null, encode = false): string | null {
+    return toODataDateTimeCore(value, encode, true)
+}
+
+function toODataDateTimeCore(value: Date | DateTime | null, encode: boolean, isDateOnly: boolean): string | null {
+    if (value === null) return null
+
+    let dateTime: DateTime
+
+    if (DateTime.isDateTime(value)) {
+        dateTime = value as any
+    }
+    else if (value instanceof Date) {
+        dateTime = DateTime.fromJSDate(value as Date)
+    }
+    else {
+        throw new Error("Failed to convert date-time to ISO 8601 string. " +
+            "Invalid argument: The date-time value must be of type Date or luxon.DateTime.")
+    }
+
+    // See https://en.wikipedia.org/wiki/ISO_8601
+    const iso8601DateTime = isDateOnly
+        // Format: ISO 8601: yyyy-MM-dd
+        ? dateTime.toISODate()
+        // Format: ISO 8601: yyyy-MM-ddTHH:mm:ss.fffffffZ
+        : dateTime.toISO()
+
+    if (!iso8601DateTime) {
+        throw new Error("Failed to convert a date-time to ISO 8601. The date-time value is invalid.")
+    }
+
+    return encode
+        ? encodeURIComponent(iso8601DateTime)
+        : iso8601DateTime
+}
+
+class Container {
+    params = ""
+    select = ""
+    filter = ""
+    orderby = ""
+    skip: number | null = null
+    top: number | null = null
+    expansions: ExpandContainer[] = []
+    apply = ""
+
+    protected _copyTo(target: any) {
+        target.params = this.params
+        target.select = this.select
+        target.filter = this.filter
+        target.orderby = this.orderby
+        target.skip = this.skip
+        target.top = this.top
+        target.expansions = this.expansions.map(x => x.clone())
+        target.apply = this.apply
+    }
+
+    clone(): Container {
+        const clone = new Container()
+        this._copyTo(clone)
+
+        return clone
+    }
+}
+
+class ExpandContainer extends Container {
+    expandedProp = ""
+
+    protected override _copyTo(target: any) {
+        super._copyTo(target)
+        target.expandedProp = this.expandedProp
+    }
+
+    override clone(): ExpandContainer {
+        const clone = new ExpandContainer()
+        this._copyTo(clone)
+
+        return clone
+    }
+}
+
+export class ODataQueryBuilderOptions {
+    usePascalCase = true
+    url?: string
+    _root?: Container
+}
+
+type SlotType = "params" | "select" | "orderby" | "filter"
+
+export type ODataComparisonOperator = "eq" | "ne" | "gt" | "ge" | "lt" | "le"
+
+export type ODataLogicalOperator = "and" | "or" | "not";
+
+type ODataOrderByDirection = DataSortDirection
+
+type ODataValueType = string | number | boolean | Date | DateTime | null | GuidValue | TextValue | DateOnlyValue
+
+class GuidValue {
+    constructor(public readonly guid: string) { }
+}
+
+export function toGuid(guid: string): ODataValueType {
+    return new GuidValue(guid)
+}
+
+class TextValue {
+    constructor(public readonly text: string) { }
+}
+
+export function toText(text: string): TextValue {
+    return new TextValue(text)
+}
+
+class DateOnlyValue {
+    constructor(public readonly date: DateTime) { }
+}
+
+export function toDateOnly(date: DateTime): DateOnlyValue {
+    return new DateOnlyValue(date)
+}
+
+// TODO: Add Date and DateTime value wrappers.
+
+export class ODataCoreQueryBuilder<T> {
+    protected readonly _root: Container
+    #expandContainer?: ExpandContainer
+
+    constructor(root: Container) {
+        this._root = root
+    }
+
+    protected _copyTo(target: any) {
+        target._root = this._root.clone()
+    }
+
+    protected get _effectiveContainer(): Container {
+        return this.#expandContainer ? this.#expandContainer : this._root
+    }
+
+    select(selection: StringKeys<T>[] | string | ((builder: ODataCoreQueryBuilder<T>) => void)): this {
+        if (typeof selection === "string") {
+            this._appendToSlot("select", ",", selection)
+        }
+        else if (typeof selection === "function") {
+            selection(this)
+        }
+        else if (Array.isArray(selection)) {
+            this._appendToSlot("select", ",", selection.join(","))
+        }
+
+        return this
+    }
+
+    expand<TExpandType = any>(
+        expandedProp: StringKeys<T>,
+        selection?: StringKeys<TExpandType>[] | string | ((builder: ODataCoreQueryBuilder<TExpandType>) => void)
+    ): this {
+        const expandContainer = new ExpandContainer()
+        expandContainer.expandedProp = expandedProp
+        this._effectiveContainer.expansions.push(expandContainer)
+
+        const prevExpandContainer = this.#expandContainer
+        this.#expandContainer = expandContainer
+
+        const expansionBuilder = this as any as ODataCoreQueryBuilder<TExpandType>
+
+        if (selection) {
+            expansionBuilder.select(selection)
+        }
+
+        this.#expandContainer = prevExpandContainer
+
+        return this
+    }
+
+    filter(filterBuildFn: (filterBuilder: ODataFilterBuilder<T>) => void): this {
+        if (filterBuildFn) {
+            const fb = new ODataFilterBuilder<T>()
+
+            filterBuildFn(fb)
+
+            this._effectiveContainer.filter = this._effectiveContainer.filter
+                ? this._effectiveContainer.filter + " and " + fb.toString()
+                : fb.toString()
+        }
+
+        return this
+    }
+
+    assignFromFilterBuilder(filterBuilder: ODataFilterBuilder<T>) {
+        this._root.filter = filterBuilder.toString()
+    }
+
+    protected _appendToSlot(slot: SlotType, separator: string | null, textToAppend: string): this {
+        let text = this._effectiveContainer[slot]
+        if (separator && text) {
+            text += separator
+        }
+
+        this._effectiveContainer[slot] = text + textToAppend
+
+        return this
+    }
+}
+
+type PropPathBuildFn<T> = (b: PropPathBuilder<T>) => PropPath
+
+export class ODataApplyBuilder<T> {
+    #filter = ""
+    #groupByProps = ""
+    // TODO: Check out OData aggregation: https://devblogs.microsoft.com/odata/aggregation-extensions-in-odata-asp-net-core/
+
+    filter(BuildFilterFn: (filterBuilder: ODataFilterBuilder<T>) => void): this {
+        if (BuildFilterFn) {
+            const fb = new ODataFilterBuilder<T>()
+
+            BuildFilterFn(fb)
+
+            this.#filter = fb.toString()
+        }
+
+        return this
+    }
+
+    // TODO: Continue with OData "aggregate".
+    // TODO: Support plain strings.
+    groupby(buildGroupBy: PropPathBuildFn<T> | PropPathBuildFn<T>[]): this {
+        if (typeof buildGroupBy === "function") {
+            buildGroupBy = [buildGroupBy]
+        }
+
+        if (Array.isArray(buildGroupBy) && buildGroupBy.length) {
+            for (const [index, buildFn] of buildGroupBy.entries()) {
+                const propSelection = buildFn(new PropPathBuilder<T>())
+                const propPath = toODataPropPath(propSelection)
+
+                if (index > 0) {
+                    this.#groupByProps += ","
+                }
+
+                this.#groupByProps += `${propPath}`
+            }
+        }
+
+        return this
+    }
+
+    toString() {
+        const expressions: string[] = []
+
+        if (this.#filter) {
+            expressions.push(`filter(${this.#filter})`)
+        }
+
+        if (this.#groupByProps) {
+            expressions.push(`groupby((${this.#groupByProps}))`)
+        }
+
+        return expressions.length
+            ? expressions.reduce((acc, next) => acc + "/" + next)
+            : ""
+    }
+}
+
+export class ODataQueryBuilder<T> extends ODataCoreQueryBuilder<T> {
+    #url = ""
+    path?: string
+    #options: ODataQueryBuilderOptions
+
+    constructor(options?: ODataQueryBuilderOptions) {
+        super(options?._root ?? new Container())
+
+        this.#options = options ?? new ODataQueryBuilderOptions()
+    }
+
+    clone(): ODataQueryBuilder<T> {
+        const clone = new ODataQueryBuilder<T>()
+        this._copyTo(clone)
+
+        return clone
+    }
+
+    protected override _copyTo(target: any) {
+        super._copyTo(target)
+
+        target.#url = this.#url
+        target.#options = this.#options
+    }
+
+    url(url: string): this {
+        this.#url = url
+
+        return this
+    }
+
+    setPath(path: string): this {
+        this.path = path
+
+        return this
+    }
+
+    param(paramName: string, value: ODataValueType): this {
+        let effectiveValue: string
+        if (value === null) {
+            effectiveValue = "null"
+        } else if (typeof value === "string") {
+            effectiveValue = value
+        } else if (typeof value === "number") {
+            effectiveValue = value.toString()
+        } else if (typeof value === "boolean") {
+            effectiveValue = value.toString()
+        } else if (value instanceof Date || DateTime.isDateTime(value)) {
+            effectiveValue = toODataDateTime(value, false) ?? ""
+        } else if (value instanceof DateOnlyValue) {
+            effectiveValue = toODataDateOnly(value.date, false) ?? ""
+        } else if (value instanceof TextValue) {
+            effectiveValue = `'${value.text}'`
+        } else if (value instanceof GuidValue) {
+            effectiveValue = value.guid
+        } else {
+            throw new Error(`Unexpected odata query parameter value type '${typeof value}'.`)
+        }
+
+        this._appendToSlot("params", "&", `${paramName}=${encodeURIComponent(effectiveValue)}`)
+
+        return this
+    }
+
+    // TODO: Support multiple order-by props.
+    orderby(
+        orderBy: StringKeys<T> | PropPathBuildFn<T> | PropPath,
+        direction?: ODataOrderByDirection
+    ): this {
+        let orderByPath: string | undefined
+        if (typeof orderBy === "string") {
+            orderByPath = orderBy as any as string
+        }
+        else if (typeof orderBy === "function") {
+            orderByPath = toODataPropPath(orderBy(new PropPathBuilder<T>()))
+        }
+        else if (orderBy instanceof PropPath) {
+            orderByPath = toODataPropPath(orderBy)
+        }
+
+        if (orderByPath) {
+            this._appendToSlot("orderby", ",", (orderByPath ?? "") + (direction ? `+${direction}` : ""))
+        }
+
+        return this
+    }
+
+    skip(count: number): this {
+        this._effectiveContainer.skip = count
+
+        return this
+    }
+
+    top(count: number): this {
+        this._effectiveContainer.top = count
+
+        return this
+    }
+
+    apply(buildApply: (b: ODataApplyBuilder<T>) => ODataApplyBuilder<T>): this {
+        const applyBuilder = buildApply(new ODataApplyBuilder<T>())
+        this._root.apply = applyBuilder.toString()
+
+        return this
+    }
+
+    isSinglePropSelection(): boolean {
+        let selectedPropCount = 0
+
+        this.#visitContainers((container: Container) => {
+            if (container.select) {
+                if (container.select.indexOf(",") !== -1) {
+                    selectedPropCount += 2
+                    return true
+                }
+
+                selectedPropCount++
+            }
+
+            return selectedPropCount > 1
+        })
+
+        return selectedPropCount === 1
+    }
+
+    /** The traversion stops if the visit callback returns true. */
+    #visitContainers(visitFn: (container: Container, level: number) => boolean | void): void {
+        this.#visitContainersCore(this._root, 0, visitFn)
+    }
+
+    /** The traversion stops if the visit callback returns true. */
+    #visitContainersCore(item: Container, level: number, visitFn: (container: Container, level: number) => boolean | void): boolean {
+        const result = visitFn(item, level)
+        if (result) return true
+
+        if (item.expansions) {
+            for (const subContainer of item.expansions) {
+                if (this.#visitContainersCore(subContainer, level + 1, visitFn)) {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+
+    override toString(): string {
+        const query = this.#serializeContainer(this._root, 0)
+
+        let url = this.#url ?? ""
+
+        if (this._root.params) {
+            if (!url.includes("?")) {
+                url += "?"
+            } else {
+                url += "&"
+            }
+
+            url += this._root.params
+        }
+
+        if (!url.includes("?")) {
+            url += "?"
+        } else {
+            url += "&"
+        }
+
+        url += query
+
+        return url
+    }
+
+    toFilterString(): string {
+        return this._root.filter ?? ""
+    }
+
+    #addSeparator(expr: string, sep: string, nextExpr: string): string {
+        return expr ? sep + nextExpr : nextExpr
+    }
+
+    #processExpression(expression: string): string {
+        if (!this.#options.usePascalCase) return expression
+
+        const separator = ","
+
+        return expression
+            .split(separator)
+            .filter(t => !!t && t.trim().length > 0)
+            .map(t => {
+                const token = t.trim()
+
+                return token[0] + token.slice(1)
+            })
+            .join(separator)
+    }
+
+    #serializeContainer(item: Container, level: number): string {
+        const separator = level === 0 ? "&" : ";"
+        let result = ""
+
+        if (item.select) {
+            result += "$select=" + this.#processExpression(item.select)
+        }
+
+        if (item.filter) {
+            result += this.#addSeparator(result, separator, "$filter=" + item.filter)
+        }
+
+        if (item.orderby) {
+            result += this.#addSeparator(result, separator, "$orderby=" + item.orderby)
+        }
+
+        if (item.skip) {
+            result += this.#addSeparator(result, separator, "$skip=" + item.skip)
+        }
+
+        if (item.top !== null && item.top >= 0) {
+            result += this.#addSeparator(result, separator, "$top=" + item.top)
+        }
+
+        if (item.apply) {
+            result += this.#addSeparator(result, separator, "$apply=" + item.apply)
+        }
+
+        if (item.expansions.length) {
+            result += this.#addSeparator(result, separator, "$expand=")
+            let expansion: ExpandContainer
+            for (let i = 0; i < item.expansions.length; i++) {
+                expansion = item.expansions[i]
+                result += expansion.expandedProp
+                if (expansion.select || expansion.expansions.length) {
+                    result += "("
+                    result += this.#serializeContainer(expansion, level + 1)
+                    result += ")"
+                }
+                if (i + 1 < item.expansions.length) {
+                    result += ","
+                }
+            }
+        }
+
+        return result
+    }
+}
+
+type PropSelection<T> = StringKeys<T> | PropPath
+
+export class ODataFilterBuilder<T = any> {
+    protected _filter = ""
+
+    protected _copyTo(target: any) {
+        target._filter = this._filter
+    }
+
+    clone(): ODataFilterBuilder<T> {
+        const clone = new ODataFilterBuilder<T>()
+        this._copyTo(clone)
+
+        return clone
+    }
+
+    where(prop: PropSelection<T>, comparisonOp: ODataComparisonOperator, value: ODataValueType): this {
+        let effectiveProp = toODataPropPath(prop)
+
+        let effectiveValue: string
+        if (value === null) {
+            effectiveValue = "null"
+        } else if (typeof value === "string") {
+            effectiveValue = value
+        } else if (typeof value === "number") {
+            effectiveValue = value.toString()
+        } else if (typeof value === "boolean") {
+            effectiveValue = value.toString()
+        } else if (value instanceof Date || DateTime.isDateTime(value)) {
+            effectiveValue = toODataDateTime(value, true) ?? ""
+        } else if (value instanceof DateOnlyValue) {
+            effectiveProp = `date(${prop})`
+            effectiveValue = toODataDateOnly(value.date, true) ?? ""
+        } else if (value instanceof TextValue) {
+            effectiveValue = `'${value.text}'`
+        } else if (value instanceof GuidValue) {
+            effectiveValue = value.guid
+        } else {
+            throw new Error(`Unexpected odata query filter value type '${typeof value}'.`)
+        }
+
+        this._append(` ${effectiveProp} ${comparisonOp} ${effectiveValue}`)
+
+        return this
+    }
+
+    readonly eq = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "eq", value)
+
+    readonly ne = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "ne", value)
+
+    readonly gt = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "gt", value)
+
+    readonly ge = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "ge", value)
+
+    readonly lt = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "lt", value)
+
+    readonly le = (prop: PropSelection<T>, value: ODataValueType): this => this.where(prop, "le", value)
+
+    #logicalOp(logicalOp: ODataLogicalOperator): this {
+        if (!this._filter) return this
+
+        if (this.#isSubStart) {
+            this.#isSubStart = false
+
+            return this
+        }
+
+        if (!this._filter) {
+            return this
+        }
+
+        this._append(` ${logicalOp}`)
+
+        return this
+    }
+
+    readonly and = (): this => this.#logicalOp("and")
+
+    readonly or = (): this => this.#logicalOp("or")
+
+    #isSubStart?: boolean
+
+    sub(build: () => void) {
+        this._append("(")
+        this.#isSubStart = true
+        build()
+        this._append(")")
+
+        return this
+    }
+
+    readonly not = (): this => this.#logicalOp("not")
+
+    contains(prop: PropSelection<T>, value: string): this {
+        return this._append(` contains(${toODataPropPath(prop)},'${value}')`)
+    }
+
+    anyExpression(prop: PropSelection<T>, odataLambdaExpression: string) {
+        return this._append(`${toODataPropPath(prop)}/any(${odataLambdaExpression})`)
+    }
+
+    protected _append(text: string): this {
+        if (!text) return this
+
+        if (this.#isSubStart) {
+            this.#isSubStart = false
+        }
+
+        if (!this._filter) {
+            text = text.trim()
+        } else if (text[0] !== " " && this._filter[this._filter.length - 1] !== " ") {
+            // Ensure space between conditions.
+            text = " " + text
+        }
+
+        this._filter += text
+
+        return this
+    }
+
+    toString(): string {
+        return this._filter.trim()
+    }
+}
+
+function toODataPropPath(prop: PropSelection<any>): string {
+    return prop instanceof PropPath
+        ? prop.segments.reduce((acc, next) => acc + "/" + next)
+        : prop
+}

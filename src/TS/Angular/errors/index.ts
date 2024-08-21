@@ -1,4 +1,3 @@
-
 export class UserNotifiableError extends Error {
     readonly errorCode?: string
 

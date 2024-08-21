@@ -1,5 +1,6 @@
-import { IDatabaseCore } from "../database"
 import Dexie from "dexie"
+
+import type { IDatabaseCore } from "../database"
 
 export abstract class RepositoryBase {
     tableName!: string

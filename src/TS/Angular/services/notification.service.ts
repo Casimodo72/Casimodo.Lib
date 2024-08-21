@@ -24,7 +24,7 @@ export class NotificationService {
             errorMessage = "Ein unbekannter Fehler ist aufgetreten."
         }
 
-        this.#snackBar.open(errorMessage, "Schließen", {
+        this.#snackBar.open(errorMessage.trim(), "Schließen", {
             horizontalPosition: this.#horizontalPosition,
             verticalPosition: this.#verticalPosition,
             duration: 5000,
@@ -33,7 +33,7 @@ export class NotificationService {
     }
 
     showWarning(warningMessage: string) {
-        this.#snackBar.open(warningMessage, "Schließen", {
+        this.#snackBar.open(warningMessage.trim(), "Schließen", {
             horizontalPosition: this.#horizontalPosition,
             verticalPosition: this.#verticalPosition,
             duration: 5000,
@@ -42,7 +42,7 @@ export class NotificationService {
     }
 
     showSuccess(successMessage: string) {
-        this.#snackBar.open(successMessage, "Schließen", {
+        this.#snackBar.open(successMessage.trim(), "Schließen", {
             horizontalPosition: this.#horizontalPosition,
             verticalPosition: this.#verticalPosition,
             duration: 5000,
@@ -51,7 +51,7 @@ export class NotificationService {
     }
 
     showInfo(infoMessage: string) {
-        this.#snackBar.open(infoMessage, "Schließen", {
+        this.#snackBar.open(infoMessage.trim(), "Schließen", {
             horizontalPosition: this.#horizontalPosition,
             verticalPosition: this.#verticalPosition,
             duration: 5000,

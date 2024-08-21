@@ -1,5 +1,10 @@
-import { Database, EntityState, Repository, createEntityStateDeltaOnPut } from "@lib/database"
-import { IEntityCore, ValidationResult, convertDeltaToPatches } from "@lib/data"
+import { IEntityCore } from "@lib/data/entityBase"
+import { convertDeltaToPatches } from "@lib/data/jsonPatch"
+import { ValidationResult } from "@lib/data/issues"
+
+import { EntityState, createEntityStateDeltaOnPut } from "../data"
+import type { Database } from "../database"
+import { Repository } from "./repository"
 
 interface EntityStateChanges {
     delta: Partial<EntityState>

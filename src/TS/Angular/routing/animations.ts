@@ -1,5 +1,6 @@
 import { trigger, transition, style, query, animate } from "@angular/animations"
 
+// TODO: Use routing animations.
 export const pageFadeTransitionAnimation =
     trigger("pageFadeTransition", [
         transition("* <=> *", [
