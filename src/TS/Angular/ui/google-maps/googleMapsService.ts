@@ -90,7 +90,7 @@ export class GeoMapsService {
             // TODO: Evaluate loading with importLibrary instead.
             // See https://developers.google.com/maps/documentation/javascript/libraries
             // See https://developers.google.com/maps/documentation/javascript/overview?hl=de#Loading_the_Maps_API
-            await firstValueFrom(this.#http.jsonp("https://maps.googleapis.com/maps/api/js?key=AIzaSyBdrDyNrkrGZ8-pp5SWzn63SytcqeUosC4", "callback"))
+            await firstValueFrom(this.#http.jsonp("https://maps.googleapis.com/maps/api/js?key=YOUR_KEY", "callback"))
 
             this.apiLoaded.set(true)
         }

@@ -13,12 +13,6 @@
         init() {
             if (!this.isInitialized) {
                 $.getScript("https://maps.googleapis.com/maps/api/js?v=3.36&language=de&region=DE&libraries=places,geometry,drawing&callback=kmodo.googleMapInitializer.onScriptReady&key=" + this._key);
-
-                // TODO: REMOVE
-                //$.getScript("https://maps.googleapis.com/maps/api/js?v=3.36&language=de&region=DE&libraries=places,geometry&key=" + this._key,
-                //    e => {
-                //        this.onScriptReady();
-                //    });
             }
             else
                 this.onScriptReady();
