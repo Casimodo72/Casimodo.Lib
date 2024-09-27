@@ -408,6 +408,7 @@ namespace Casimodo.Lib.Data
                 SetProp(item, CommonDataNames.CreatedOn, now);
                 SetProp(item, CommonDataNames.CreatedBy, userName);
                 SetProp(item, CommonDataNames.CreatedByUserId, userId);
+
             }
 
             if (HasProp(item, CommonDataNames.ModifiedOn))
@@ -415,6 +416,11 @@ namespace Casimodo.Lib.Data
                 SetProp(item, CommonDataNames.ModifiedOn, now);
                 SetProp(item, CommonDataNames.ModifiedBy, userName);
                 SetProp(item, CommonDataNames.ModifiedByUserId, userId);
+            }
+
+            if (HasProp(item, CommonDataNames.TouchedOn))
+            {
+                SetProp(item, CommonDataNames.TouchedOn, now);
             }
         }
 
@@ -426,6 +432,11 @@ namespace Casimodo.Lib.Data
         public void SetModifiedCore(object item, DateTimeOffset? now, Guid? userId, string? userName)
         {
             Guard.ArgNotNull(item);
+
+            if (HasProp(item, CommonDataNames.TouchedOn))
+            {
+                SetProp(item, CommonDataNames.TouchedOn, now);
+            }
 
             if (!HasProp(item, CommonDataNames.ModifiedOn))
                 return;
@@ -445,6 +456,11 @@ namespace Casimodo.Lib.Data
         public void SetDeletedCore(object item, DateTimeOffset? now, Guid? userId, string? userName)
         {
             Guard.ArgNotNull(item);
+
+            if (HasProp(item, CommonDataNames.TouchedOn))
+            {
+                SetProp(item, CommonDataNames.TouchedOn, now);
+            }
 
             if (!HasProp(item, CommonDataNames.IsDeleted))
                 return;
@@ -581,6 +597,11 @@ namespace Casimodo.Lib.Data
 
         protected void ClearDeleted(object item, DbRepoOperationContext ctx)
         {
+            if (HasProp(item, CommonDataNames.TouchedOn))
+            {
+                SetProp(item, CommonDataNames.TouchedOn, ctx.Time);
+            }
+
             SetProp(item, CommonDataNames.IsDeleted, false);
             SetProp(item, CommonDataNames.DeletedOn, null);
             SetProp(item, CommonDataNames.DeletedBy, null);

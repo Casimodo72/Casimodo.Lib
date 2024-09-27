@@ -22,6 +22,8 @@
         public const string DeletedByUserId = "DeletedByUserId";
         public const string DeletedByDeviceId = "DeletedByDeviceId";
 
+        public const string TouchedOn = "TouchedOn";
+
         public const string IsCascadeDeleted = "IsCascadeDeleted";
         public const string CascadeDeletedOn = "CascadeDeletedOn";
         public const string CascadeDeletedByOriginTypeId = "CascadeDeletedByOriginTypeId";

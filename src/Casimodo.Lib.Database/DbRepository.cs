@@ -659,8 +659,7 @@ namespace Casimodo.Lib.Data
 
         public Task<TEntity> AddAsync(TEntity entity, CancellationToken? cancellation = default)
         {
-            // TODO: IMPL async DB operations because some deeper processing
-            // needs asynchronicity.
+            // TODO: IMPL async DB operations.
             return Task.FromResult(Add(entity));
         }
 
@@ -675,9 +674,16 @@ namespace Casimodo.Lib.Data
 
         public Task<TEntity> UpdateAsync(TEntity entity, CancellationToken? cancellationToken = default)
         {
-            // TODO: IMPL async DB operations because some deeper processing
-            // needs asynchronicity.
+            // TODO: IMPL async DB operations.
             return Task.FromResult(Update(entity));
+        }
+
+        public Task DeleteAsync(TEntity entity, CancellationToken? cancellationToken = default)
+        {
+            // TODO: IMPL async DB operations.
+            Delete(entity);
+
+            return Task.CompletedTask;
         }
 
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
