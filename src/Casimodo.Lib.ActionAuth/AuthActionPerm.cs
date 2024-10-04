@@ -28,7 +28,12 @@ namespace Casimodo.Lib.Auth
         public bool MatchesUserRole(string userRole)
         {
             if (IsMinRole)
-                return _manager.RoleInheritance[userRole] >= _manager.RoleInheritance[UserRole];
+            {
+                if (!_manager.RoleInheritance.TryGetValue(userRole, out int inheritanceIndex))
+                    return false;
+
+                return inheritanceIndex >= _manager.RoleInheritance[UserRole];
+            }
             else
                 return UserRole == userRole;
         }
