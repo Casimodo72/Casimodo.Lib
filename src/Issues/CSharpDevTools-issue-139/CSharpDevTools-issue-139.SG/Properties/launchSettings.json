@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Consist.Pep.SourceGenerators": {
+      "commandName": "Project"
+    },
+    "DebugTestsSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\CSharpDevTools-issue-139\\CSharpDevTools-issue-139.SG.csproj"
+    }
+  }
+}
